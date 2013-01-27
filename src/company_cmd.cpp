@@ -45,7 +45,8 @@ void ClearEnginesHiddenFlagOfCompany(CompanyID cid);
 
 CompanyID _local_company;   ///< Company controlled by the human player at this client. Can also be #COMPANY_SPECTATOR.
 CompanyID _current_company; ///< Company currently doing an action.
-Colours _company_colours[MAX_COMPANIES];  ///< NOSAVE: can be determined from company structs.
+Colours _company_colours[MAX_COMPANIES];    ///< NOSAVE: can be determined from company structs.
+PaletteID _company_palettes[MAX_COMPANIES]; ///< NOSAVE: cached company palette.
 CompanyManagerFace _company_manager_face; ///< for company manager face storage in openttd.cfg
 uint _next_competitor_start;              ///< the number of ticks before the next AI is started
 uint _cur_company_tick_index;             ///< used to generate a name for one company that doesn't have a name yet per tick
@@ -508,6 +509,37 @@ restart:;
 }
 
 /**
+ * Update cached palettes for a livery.
+ * @param c Company ID.
+ * @param scheme LiveryScheme to update.
+ */
+static void UpdateLivery(Company *c, LiveryScheme scheme)
+{
+	Livery *l = &c->livery[scheme];
+
+	PaletteID pal_1cc = PALETTE_RECOLOUR_START + l->colour1;
+	PaletteID pal_2cc = SPR_2CCMAP_BASE + l->colour1 + l->colour2 * 16;
+
+	l->cached_pal_1cc = pal_1cc;
+	l->cached_pal_2cc = pal_2cc;
+
+	if (scheme == LS_DEFAULT) {
+		/* Update cached colour/palette for company */
+		_company_colours[c->index]  = (Colours)l->colour1;
+		_company_palettes[c->index] = l->cached_pal_1cc;
+	}
+}
+
+void UpdateCompanyLiveries(Company *c)
+{
+	for (LiveryScheme scheme = LS_BEGIN; scheme < LS_END; scheme++) {
+		c->livery[scheme].cached_pal_1cc = PAL_NONE;
+		c->livery[scheme].cached_pal_2cc = PAL_NONE;
+		UpdateLivery(c, scheme);
+	}
+}
+
+/**
  * Reset the livery schemes to the company's primary colour.
  * This is used on loading games without livery information and on new company start up.
  * @param c Company to reset.
@@ -518,6 +550,7 @@ void ResetCompanyLivery(Company *c)
 		c->livery[scheme].in_use  = 0;
 		c->livery[scheme].colour1 = c->colour;
 		c->livery[scheme].colour2 = c->colour;
+		UpdateLivery(c, scheme);
 	}
 
 	Group *g;
@@ -555,7 +588,6 @@ Company *DoStartupNewCompany(bool is_ai, CompanyID company = INVALID_COMPANY)
 	c->colour = colour;
 
 	ResetCompanyLivery(c);
-	_company_colours[c->index] = (Colours)c->colour;
 
 	c->money = c->current_loan = (100000ll * _economy.inflation_prices >> 16) / 50000 * 50000;
 
@@ -981,12 +1013,16 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			if (scheme != LS_DEFAULT) SB(c->livery[scheme].in_use, 0, 1, colour != INVALID_COLOUR);
 			if (colour == INVALID_COLOUR) colour = (Colours)c->livery[LS_DEFAULT].colour1;
 			c->livery[scheme].colour1 = colour;
+			UpdateLivery(c, scheme);
 
 			/* If setting the first colour of the default scheme, adjust the
 			 * original and cached company colours too. */
 			if (scheme == LS_DEFAULT) {
 				for (int i = 1; i < LS_END; i++) {
-					if (!HasBit(c->livery[i].in_use, 0)) c->livery[i].colour1 = colour;
+					if (!HasBit(c->livery[i].in_use, 0)) {
+						c->livery[i].colour1 = colour;
+						UpdateLivery(c, (LiveryScheme)i);
+					}
 				}
 				_company_colours[_current_company] = colour;
 				c->colour = colour;
@@ -996,10 +1032,14 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			if (scheme != LS_DEFAULT) SB(c->livery[scheme].in_use, 1, 1, colour != INVALID_COLOUR);
 			if (colour == INVALID_COLOUR) colour = (Colours)c->livery[LS_DEFAULT].colour2;
 			c->livery[scheme].colour2 = colour;
+			UpdateLivery(c, scheme);
 
 			if (scheme == LS_DEFAULT) {
 				for (int i = 1; i < LS_END; i++) {
-					if (!HasBit(c->livery[i].in_use, 1)) c->livery[i].colour2 = colour;
+					if (!HasBit(c->livery[i].in_use, 1)) {
+						c->livery[i].colour2 = colour;
+						UpdateLivery(c, (LiveryScheme)i);
+					}
 				}
 			}
 		}

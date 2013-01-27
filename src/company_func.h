@@ -25,6 +25,7 @@ void ShowBuyCompanyDialog(CompanyID company);
 void CompanyAdminUpdate(const Company *company);
 void CompanyAdminBankrupt(CompanyID company_id);
 void UpdateLandscapingLimits();
+void UpdateCompanyLiveries(Company *c);
 
 bool CheckCompanyHasMoney(CommandCost &cost);
 void SubtractMoneyFromCompany(CommandCost cost);
@@ -36,6 +37,7 @@ extern CompanyID _local_company;
 extern CompanyID _current_company;
 
 extern Colours _company_colours[MAX_COMPANIES];
+extern PaletteID _company_palettes[MAX_COMPANIES];
 extern CompanyManagerFace _company_manager_face;
 
 /**
