@@ -2035,8 +2035,14 @@ static PaletteID GetEngineColourMap(EngineID engine_type, CompanyID company, Eng
 
 	const Livery *livery = GetEngineLivery(engine_type, company, parent_engine_type, v, _settings_client.gui.liveries);
 
-	map += livery->colour1;
-	if (twocc) map += livery->colour2 * 16;
+	if (map == PALETTE_RECOLOUR_START || map == SPR_2CCMAP_BASE) {
+		/* Use cached palette when using default remaps */
+		map = twocc ? livery->cached_pal_2cc : livery->cached_pal_1cc;
+	} else {
+		/* Add offsets for custom NewGRF remaps */
+		map += livery->colour1;
+		if (twocc) map += livery->colour2 * 16;
+	}
 
 	/* Update cache */
 	if (v != nullptr) const_cast<Vehicle *>(v)->colourmap = map;

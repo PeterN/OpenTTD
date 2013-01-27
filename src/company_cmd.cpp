@@ -45,7 +45,8 @@ void ClearEnginesHiddenFlagOfCompany(CompanyID cid);
 
 CompanyID _local_company;   ///< Company controlled by the human player at this client. Can also be #COMPANY_SPECTATOR.
 CompanyID _current_company; ///< Company currently doing an action.
-Colours _company_colours[MAX_COMPANIES];  ///< NOSAVE: can be determined from company structs.
+Colours _company_colours[MAX_COMPANIES];    ///< NOSAVE: can be determined from company structs.
+PaletteID _company_palettes[MAX_COMPANIES]; ///< NOSAVE: cached company palette.
 CompanyManagerFace _company_manager_face; ///< for company manager face storage in openttd.cfg
 uint _next_competitor_start;              ///< the number of ticks before the next AI is started
 uint _cur_company_tick_index;             ///< used to generate a name for one company that doesn't have a name yet per tick
@@ -512,6 +513,35 @@ restart:;
 }
 
 /**
+ * Update cached palettes for a livery.
+ * @param livery Livery to update.
+ * @param c Company ID.
+ * @param scheme LiveryScheme to update.
+ */
+void UpdateLivery(Livery &livery, const Company *c, LiveryScheme scheme)
+{
+	PaletteID pal_1cc = PALETTE_RECOLOUR_START + livery.colour1;
+	PaletteID pal_2cc = SPR_2CCMAP_BASE + livery.colour1 + livery.colour2 * 16;
+
+	livery.cached_pal_1cc = pal_1cc;
+	livery.cached_pal_2cc = pal_2cc;
+
+	if (scheme == LS_DEFAULT) {
+		/* Update cached colour/palette for company */
+		assert(c != nullptr);
+		_company_colours[c->index]  = (Colours)livery.colour1;
+		_company_palettes[c->index] = livery.cached_pal_1cc;
+	}
+}
+
+void UpdateCompanyLiveries(Company *c)
+{
+	for (LiveryScheme scheme = LS_BEGIN; scheme < LS_END; scheme++) {
+		UpdateLivery(c->livery[scheme], c, scheme);
+	}
+}
+
+/**
  * Reset the livery schemes to the company's primary colour.
  * This is used on loading games without livery information and on new company start up.
  * @param c Company to reset.
@@ -522,6 +552,7 @@ void ResetCompanyLivery(Company *c)
 		c->livery[scheme].in_use  = 0;
 		c->livery[scheme].colour1 = c->colour;
 		c->livery[scheme].colour2 = c->colour;
+		UpdateLivery(c->livery[scheme], c, scheme);
 	}
 
 	for (Group *g : Group::Iterate()) {
@@ -529,6 +560,7 @@ void ResetCompanyLivery(Company *c)
 			g->livery.in_use  = 0;
 			g->livery.colour1 = c->colour;
 			g->livery.colour2 = c->colour;
+			UpdateLivery(g->livery);
 		}
 	}
 }
@@ -558,7 +590,6 @@ Company *DoStartupNewCompany(bool is_ai, CompanyID company = INVALID_COMPANY)
 	c->colour = colour;
 
 	ResetCompanyLivery(c);
-	_company_colours[c->index] = (Colours)c->colour;
 
 	c->money = c->current_loan = (std::min<int64>(INITIAL_LOAN, _economy.max_loan) * _economy.inflation_prices >> 16) / 50000 * 50000;
 
@@ -972,14 +1003,17 @@ CommandCost CmdSetCompanyColour(DoCommandFlag flags, LiveryScheme scheme, bool p
 			if (scheme != LS_DEFAULT) SB(c->livery[scheme].in_use, 0, 1, colour != INVALID_COLOUR);
 			if (colour == INVALID_COLOUR) colour = (Colours)c->livery[LS_DEFAULT].colour1;
 			c->livery[scheme].colour1 = colour;
+			UpdateLivery(c->livery[scheme], c, scheme);
 
 			/* If setting the first colour of the default scheme, adjust the
 			 * original and cached company colours too. */
 			if (scheme == LS_DEFAULT) {
 				for (int i = 1; i < LS_END; i++) {
-					if (!HasBit(c->livery[i].in_use, 0)) c->livery[i].colour1 = colour;
+					if (!HasBit(c->livery[i].in_use, 0)) {
+						c->livery[i].colour1 = colour;
+						UpdateLivery(c->livery[scheme]);
+					}
 				}
-				_company_colours[_current_company] = colour;
 				c->colour = colour;
 				CompanyAdminUpdate(c);
 			}
@@ -987,10 +1021,14 @@ CommandCost CmdSetCompanyColour(DoCommandFlag flags, LiveryScheme scheme, bool p
 			if (scheme != LS_DEFAULT) SB(c->livery[scheme].in_use, 1, 1, colour != INVALID_COLOUR);
 			if (colour == INVALID_COLOUR) colour = (Colours)c->livery[LS_DEFAULT].colour2;
 			c->livery[scheme].colour2 = colour;
+			UpdateLivery(c->livery[scheme]);
 
 			if (scheme == LS_DEFAULT) {
 				for (int i = 1; i < LS_END; i++) {
-					if (!HasBit(c->livery[i].in_use, 1)) c->livery[i].colour2 = colour;
+					if (!HasBit(c->livery[i].in_use, 1)) {
+						c->livery[i].colour2 = colour;
+						UpdateLivery(c->livery[scheme]);
+					}
 				}
 			}
 		}

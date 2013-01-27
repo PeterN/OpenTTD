@@ -276,6 +276,7 @@ void PropagateChildLivery(const Group *g)
 		if (cg->parent == g->index) {
 			if (!HasBit(cg->livery.in_use, 0)) cg->livery.colour1 = g->livery.colour1;
 			if (!HasBit(cg->livery.in_use, 1)) cg->livery.colour2 = g->livery.colour2;
+			UpdateLivery(cg->livery);
 			PropagateChildLivery(cg);
 		}
 	}
@@ -434,6 +435,7 @@ CommandCost CmdAlterGroup(DoCommandFlag flags, AlterGroupMode mode, GroupID grou
 				const Livery *livery = GetParentLivery(g);
 				g->livery.colour1 = livery->colour1;
 				g->livery.colour2 = livery->colour2;
+				UpdateLivery(g->livery);
 
 				PropagateChildLivery(g);
 				MarkWholeScreenDirty();

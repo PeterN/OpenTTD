@@ -14,6 +14,7 @@
 #include "company_type.h"
 #include "gfx_type.h"
 #include "vehicle_type.h"
+#include "livery.h"
 
 bool MayCompanyTakeOver(CompanyID cbig, CompanyID small);
 void ChangeOwnershipOfCompanyItems(Owner old_owner, Owner new_owner);
@@ -23,6 +24,8 @@ void ShowBuyCompanyDialog(CompanyID company);
 void CompanyAdminUpdate(const Company *company);
 void CompanyAdminBankrupt(CompanyID company_id);
 void UpdateLandscapingLimits();
+void UpdateCompanyLiveries(Company *c);
+void UpdateLivery(Livery &livery, const Company *c = nullptr, LiveryScheme scheme = LS_END);
 
 bool CheckCompanyHasMoney(CommandCost &cost);
 void SubtractMoneyFromCompany(const CommandCost& cost);
@@ -34,6 +37,7 @@ extern CompanyID _local_company;
 extern CompanyID _current_company;
 
 extern Colours _company_colours[MAX_COMPANIES];
+extern PaletteID _company_palettes[MAX_COMPANIES];
 extern CompanyManagerFace _company_manager_face;
 
 /**

@@ -48,6 +48,7 @@
 #include "language.h"
 #include "vehicle_base.h"
 #include "road.h"
+#include "company_func.h"
 
 #include "table/strings.h"
 #include "table/build_industry.h"
@@ -9764,6 +9765,12 @@ static void AfterLoadGRFs()
 	/* Set up custom rail types */
 	InitRailTypes();
 	InitRoadTypes();
+
+	/* Force cached palettes to be refreshed */
+	ResetVehicleColourMap();
+	for (Company *c : Company::Iterate()) {
+		UpdateCompanyLiveries(c);
+	}
 
 	for (Engine *e : Engine::IterateType(VEH_ROAD)) {
 		if (_gted[e->index].rv_max_speed != 0) {
