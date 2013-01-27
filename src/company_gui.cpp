@@ -709,7 +709,7 @@ public:
 
 				/* Optional check box + scheme name. */
 				if (scheme != LS_DEFAULT) {
-					DrawSprite(c->livery[scheme].in_use ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, (rtl ? sch_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sch_left) + WD_FRAMERECT_LEFT, y + box_offs);
+					DrawSprite(c->livery[scheme].InUse() ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, (rtl ? sch_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sch_left) + WD_FRAMERECT_LEFT, y + box_offs);
 				}
 				DrawString(sch_left + text_left, sch_right - text_right, y + text_offs, STR_LIVERY_DEFAULT + scheme, sel ? TC_WHITE : TC_BLACK);
 
@@ -773,7 +773,7 @@ public:
 
 				/* If clicking on the left edge, toggle using the livery */
 				if (_current_text_dir == TD_RTL ? pt.x - wid->pos_x > wid->current_x - (this->box.width + 5) : pt.x - wid->pos_x < (this->box.width + 5)) {
-					DoCommandP(0, j | (2 << 8), !Company::Get((CompanyID)this->window_number)->livery[j].in_use, CMD_SET_COMPANY_COLOUR);
+					DoCommandP(0, j | (2 << 8), !Company::Get((CompanyID)this->window_number)->livery[j].InUse(), CMD_SET_COMPANY_COLOUR);
 				}
 
 				if (_ctrl_pressed) {

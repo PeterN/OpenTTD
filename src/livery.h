@@ -73,14 +73,22 @@ enum LiveryClass {
 	LC_END
 };
 
+enum LiveryFlags {
+	LF_ACTIVE = 1 << 0, ///< Set if this livery should be used instead of the default livery.
+	LF_END,
+};
+DECLARE_ENUM_AS_BIT_SET(LiveryFlags)
+
 /** Information about a particular livery. */
 struct Livery {
-	bool in_use;  ///< Set if this livery should be used instead of the default livery.
+	byte flags;   ///< Set if this livery should be used instead of the default livery.
 	byte colour1; ///< First colour, for all vehicles.
 	byte colour2; ///< Second colour, for vehicles with 2CC support.
 
 	PaletteID cached_pal_1cc; ///< NOSAVE: cached 1CC palette.
 	PaletteID cached_pal_2cc; ///< NOSAVE: cached 2CC palette.
+
+	inline bool InUse() const { return (flags & LF_ACTIVE) != 0; }
 };
 
 void ResetCompanyLivery(Company *c);

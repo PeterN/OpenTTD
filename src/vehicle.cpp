@@ -1888,12 +1888,12 @@ const Livery *GetEngineLivery(EngineID engine_type, CompanyID company, EngineID 
 
 	/* The default livery is always available for use, but its in_use flag determines
 	 * whether any _other_ liveries are in use. */
-	if (c->livery[LS_DEFAULT].in_use && (livery_setting == LIT_ALL || (livery_setting == LIT_COMPANY && company == _local_company))) {
+	if (c->livery[LS_DEFAULT].InUse() && (livery_setting == LIT_ALL || (livery_setting == LIT_COMPANY && company == _local_company))) {
 		/* Determine the livery scheme to use */
 		scheme = GetEngineLiveryScheme(engine_type, parent_engine_type, v);
 
 		/* Switch back to the default scheme if the resolved scheme is not in use */
-		if (!c->livery[scheme].in_use) scheme = LS_DEFAULT;
+		if (!c->livery[scheme].InUse()) scheme = LS_DEFAULT;
 	}
 
 	return &c->livery[scheme];

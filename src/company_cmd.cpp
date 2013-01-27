@@ -549,7 +549,7 @@ void UpdateCompanyLiveries(Company *c)
 void ResetCompanyLivery(Company *c)
 {
 	for (LiveryScheme scheme = LS_BEGIN; scheme < LS_END; scheme++) {
-		c->livery[scheme].in_use  = false;
+		c->livery[scheme].flags   = 0;
 		c->livery[scheme].colour1 = c->colour;
 		c->livery[scheme].colour2 = c->colour;
 		UpdateLivery(c, scheme);
@@ -1019,28 +1019,30 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 				break;
 
 			case 2:
-				c->livery[scheme].in_use = colour != 0;
+				if (colour == 0) {
+					c->livery[scheme].flags &= ~LF_ACTIVE;
 
-				/* Now handle setting the default scheme's in_use flag.
-				 * This is different to the other schemes, as it signifies if any
-				 * scheme is active at all. If this flag is not set, then no
-				 * processing of vehicle types occurs at all, and only the default
-				 * colours will be used. */
+					/* Now handle setting the default scheme's InUse() flag.
+					 * This is different to the other schemes, as it signifies if any
+					 * scheme is active at all. If this flag is not set, then no
+					 * processing of vehicle types occurs at all, and only the default
+					 * colours will be used. */
 
-				/* If enabling a scheme, set the default scheme to be in use too */
-				if (colour != 0) {
-					c->livery[LS_DEFAULT].in_use = true;
-					break;
-				}
+					/* Loop through all schemes to see if any are left enabled.
+					 * If not, disable the default scheme too. */
+					c->livery[LS_DEFAULT].flags &= ~LF_ACTIVE;
 
-				/* Else loop through all schemes to see if any are left enabled.
-				 * If not, disable the default scheme too. */
-				c->livery[LS_DEFAULT].in_use = false;
-				for (scheme = LS_DEFAULT; scheme < LS_END; scheme++) {
-					if (c->livery[scheme].in_use) {
-						c->livery[LS_DEFAULT].in_use = true;
-						break;
+					for (scheme = LS_DEFAULT; scheme < LS_END; scheme++) {
+						if (c->livery[scheme].InUse()) {
+							c->livery[LS_DEFAULT].flags |= LF_ACTIVE;
+							break;
+						}
 					}
+				} else {
+					c->livery[scheme].flags |= LF_ACTIVE;
+
+					/* If enabling a scheme, set the default scheme to be in use too */
+					c->livery[LS_DEFAULT].flags |= LF_ACTIVE;
 				}
 				break;
 
