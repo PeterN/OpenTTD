@@ -13,6 +13,7 @@
 #define LIVERY_H
 
 #include "company_type.h"
+#include "gfx_type.h"
 
 static const byte LIT_NONE    = 0; ///< Don't show the liveries at all
 static const byte LIT_COMPANY = 1; ///< Show the liveries of your own company
@@ -77,6 +78,9 @@ struct Livery {
 	bool in_use;  ///< Set if this livery should be used instead of the default livery.
 	byte colour1; ///< First colour, for all vehicles.
 	byte colour2; ///< Second colour, for vehicles with 2CC support.
+
+	PaletteID cached_pal_1cc; ///< NOSAVE: cached 1CC palette.
+	PaletteID cached_pal_2cc; ///< NOSAVE: cached 2CC palette.
 };
 
 void ResetCompanyLivery(Company *c);

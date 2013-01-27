@@ -49,6 +49,7 @@
 #include "vehicle_func.h"
 #include "language.h"
 #include "vehicle_base.h"
+#include "company_func.h"
 
 #include "table/strings.h"
 #include "table/build_industry.h"
@@ -9334,6 +9335,11 @@ static void AfterLoadGRFs()
 
 	/* Set up custom rail types */
 	InitRailTypes();
+
+	/* Force cached palettes to be refreshed */
+	ResetVehicleColourMap();
+	Company *c;
+	FOR_ALL_COMPANIES(c) UpdateCompanyLiveries(c);
 
 	Engine *e;
 	FOR_ALL_ENGINES_OF_TYPE(e, VEH_ROAD) {
