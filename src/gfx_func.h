@@ -232,6 +232,23 @@ static inline bool IsValidColours(Colours colours)
 TextColour GetContrastColour(uint8 background, uint8 threshold = 128);
 
 /**
+ * Convert an RGB colour value into a bit-stuffed TextColour, suitable for
+ * combining with an ordinary TextColour.
+ * @param rgb RGB colour to convert
+ * @return TextColour.
+ */
+static inline TextColour TextColourFromRGB(Colour rgb)
+{
+	/* TextColour only has 20 bits free after the 5 or 8 bit colour index,
+	 * so we lose 2 bits of each value to fit in the remaining space. */
+	return (TextColour)(
+		((rgb.r >> 2) << 12) |
+		((rgb.g >> 2) << 18) |
+		((rgb.b >> 2) << 24)) |
+		TC_IS_RGB_COLOUR;
+}
+
+/**
  * All 16 colour gradients
  * 8 colours per gradient from darkest (0) to lightest (7)
  */

@@ -75,6 +75,7 @@ int _gui_scale_cfg;                        ///< GUI scale in config.
 static Rect _invalid_rect;
 static const byte *_colour_remap_ptr;
 static byte _string_colourremap[3]; ///< Recoloursprite for stringdrawing. The grf loader ensures that #ST_FONT sprites only use colours 0 to 2.
+static byte _string_colourremap_rgb[3 * 4]; ///< Recolour sprite for RGB string drawing.
 
 static const uint DIRTY_BLOCK_HEIGHT   = 8;
 static const uint DIRTY_BLOCK_WIDTH    = 64;
@@ -451,20 +452,34 @@ void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
 /**
  * Set the colour remap to be for the given colour.
  * @param colour the new colour of the remap.
+ * @return blitter mode to draw characters with.
  */
-static void SetColourRemap(TextColour colour)
+static BlitterMode SetColourRemap(TextColour colour)
 {
-	if (colour == TC_INVALID) return;
+	if (colour == TC_INVALID) return BM_COLOUR_REMAP;
+
+	if ((colour & TC_IS_RGB_COLOUR) && BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 32) {
+		/* Unpack RGB recolour */
+		_string_colourremap_rgb[1 * 4 + 0] = GB(colour, 12, 6) << 2;
+		_string_colourremap_rgb[1 * 4 + 1] = GB(colour, 18, 6) << 2;
+		_string_colourremap_rgb[1 * 4 + 2] = GB(colour, 24, 6) << 2;
+		_string_colourremap_rgb[1 * 4 + 3] = 255;
+		_string_colourremap_rgb[2 * 4 + 3] = 255;
+		_colour_remap_ptr = _string_colourremap_rgb;
+
+		return BM_COLOUR_REMAP_RGB;
+	}
 
 	/* Black strings have no shading ever; the shading is black, so it
 	 * would be invisible at best, but it actually makes it illegible. */
 	bool no_shade   = (colour & TC_NO_SHADE) != 0 || colour == TC_BLACK;
 	bool raw_colour = (colour & TC_IS_PALETTE_COLOUR) != 0;
-	colour &= ~(TC_NO_SHADE | TC_IS_PALETTE_COLOUR | TC_FORCED);
 
-	_string_colourremap[1] = raw_colour ? (byte)colour : _string_colourmap[colour];
+	_string_colourremap[1] = raw_colour ? (byte)colour : _string_colourmap[(byte)colour];
 	_string_colourremap[2] = no_shade ? 0 : 1;
 	_colour_remap_ptr = _string_colourremap;
+
+	return BM_COLOUR_REMAP;
 }
 
 /**
@@ -565,13 +580,14 @@ static int DrawLayoutLine(const ParagraphLayouter::Line &line, int y, int left, 
 
 	TextColour colour = TC_BLACK;
 	bool draw_shadow = false;
+	BlitterMode bm = BM_COLOUR_REMAP;
 	for (int run_index = 0; run_index < line.CountRuns(); run_index++) {
 		const ParagraphLayouter::VisualRun &run = line.GetVisualRun(run_index);
 		const Font *f = (const Font*)run.GetFont();
 
 		FontCache *fc = f->fc;
 		colour = f->colour;
-		SetColourRemap(colour);
+		bm = SetColourRemap(colour);
 
 		DrawPixelInfo *dpi = _cur_dpi;
 		int dpi_left  = dpi->left;
@@ -599,9 +615,9 @@ static int DrawLayoutLine(const ParagraphLayouter::Line &line, int y, int left, 
 			if (draw_shadow && (glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
 				GfxMainBlitter(sprite, begin_x + shadow_offset, top + shadow_offset, BM_COLOUR_REMAP);
-				SetColourRemap(colour);
+				bm = SetColourRemap(colour);
 			}
-			GfxMainBlitter(sprite, begin_x, top, BM_COLOUR_REMAP);
+			GfxMainBlitter(sprite, begin_x, top, bm);
 		}
 	}
 
@@ -611,9 +627,9 @@ static int DrawLayoutLine(const ParagraphLayouter::Line &line, int y, int left, 
 			if (draw_shadow) {
 				SetColourRemap(TC_BLACK);
 				GfxMainBlitter(dot_sprite, x + shadow_offset, y + shadow_offset, BM_COLOUR_REMAP);
-				SetColourRemap(colour);
+				bm = SetColourRemap(colour);
 			}
-			GfxMainBlitter(dot_sprite, x, y, BM_COLOUR_REMAP);
+			GfxMainBlitter(dot_sprite, x, y, bm);
 		}
 	}
 
@@ -975,11 +991,11 @@ const char *GetCharAtPosition(const char *str, int x, FontSize start_fontsize)
  */
 void DrawCharCentered(WChar c, const Rect &r, TextColour colour)
 {
-	SetColourRemap(colour);
+	BlitterMode bm = SetColourRemap(colour);
 	GfxMainBlitter(GetGlyph(FS_NORMAL, c),
 		CenterBounds(r.left, r.right, GetCharacterWidth(FS_NORMAL, c)),
 		CenterBounds(r.top, r.bottom, FONT_HEIGHT_NORMAL),
-		BM_COLOUR_REMAP);
+		bm);
 }
 
 /**
