@@ -171,6 +171,8 @@ byte GetCharacterWidth(FontSize size, uint32 key);
 byte GetDigitWidth(FontSize size = FS_NORMAL);
 void GetBroadestDigit(uint *front, uint *next, FontSize size = FS_NORMAL);
 
+PaletteID CreateCompanyColourRemap(Colour rgb1, Colour rgb2, bool twocc, PaletteID basemap, PaletteID hint);
+
 int GetCharacterHeight(FontSize size);
 
 /** Height of characters in the small (#FS_SMALL) font. @note Some characters may be oversized. */

@@ -521,9 +521,17 @@ static void UpdateLivery(Company *c, LiveryScheme scheme)
 
 	PaletteID pal_1cc = PALETTE_RECOLOUR_START + l->colour1;
 	PaletteID pal_2cc = SPR_2CCMAP_BASE + l->colour1 + l->colour2 * 16;
+	PaletteID pal_2cr = SPR_2CCMAP_BASE + l->colour2 + l->colour1 * 16;
 
-	l->cached_pal_1cc = pal_1cc;
-	l->cached_pal_2cc = pal_2cc;
+	if (l->IsRGB()) {
+		l->cached_pal_1cc = CreateCompanyColourRemap(l->rgb1, l->rgb1, false, pal_1cc, l->cached_pal_1cc);
+		l->cached_pal_2cc = CreateCompanyColourRemap(l->rgb1, l->rgb2, true,  pal_2cc, l->cached_pal_2cc);
+		l->cached_pal_2cr = CreateCompanyColourRemap(l->rgb2, l->rgb1, true,  pal_2cr, l->cached_pal_2cr);
+	} else {
+		l->cached_pal_1cc = pal_1cc;
+		l->cached_pal_2cc = pal_2cc;
+		l->cached_pal_2cr = pal_2cr;
+	}
 
 	if (scheme == LS_DEFAULT) {
 		/* Update cached colour/palette for company */
@@ -537,6 +545,7 @@ void UpdateCompanyLiveries(Company *c)
 	for (LiveryScheme scheme = LS_BEGIN; scheme < LS_END; scheme++) {
 		c->livery[scheme].cached_pal_1cc = PAL_NONE;
 		c->livery[scheme].cached_pal_2cc = PAL_NONE;
+		c->livery[scheme].cached_pal_2cr = PAL_NONE;
 		UpdateLivery(c, scheme);
 	}
 }
@@ -979,6 +988,7 @@ CommandCost CmdSetCompanyManagerFace(TileIndex tile, DoCommandFlag flags, uint32
  * @param p1 bitstuffed:
  * p1 bits 0-7 scheme to set
  * p1 bits 8-9 set in use state or first/second colour
+ * p1 bit 10 set if colour is an RGBC quad
  * @param p2 new colour for vehicles, property, etc.
  * @param text unused
  * @return the cost of this operation or an error
@@ -988,13 +998,14 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	Colours colour = Extract<Colours, 0, 4>(p2);
 	LiveryScheme scheme = Extract<LiveryScheme, 0, 8>(p1);
 	byte state = GB(p1, 8, 2);
+	bool rgb = HasBit(p1, 10);
 
-	if (scheme >= LS_END || state >= 3 || colour == INVALID_COLOUR) return CMD_ERROR;
+	if (scheme >= LS_END || state >= 3 || (!rgb && colour == INVALID_COLOUR)) return CMD_ERROR;
 
 	Company *c = Company::Get(_current_company);
 
 	/* Ensure no two companies have the same primary colour */
-	if (scheme == LS_DEFAULT && state == 0) {
+	if (scheme == LS_DEFAULT && state == 0 && !rgb) {
 		const Company *cc;
 		FOR_ALL_COMPANIES(cc) {
 			if (cc != c && cc->colour == colour) return CMD_ERROR;
@@ -1004,18 +1015,32 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 	if (flags & DC_EXEC) {
 		switch (state) {
 			case 0:
-				c->livery[scheme].colour1 = colour;
+				if (rgb) {
+					c->livery[scheme].rgb1 = p2;
+					c->livery[scheme].flags |= LF_RGB;
+				} else {
+					c->livery[scheme].colour1 = colour;
+					c->livery[scheme].flags &= ~LF_RGB;
 
-				/* If setting the first colour of the default scheme, adjust the
-				 * original and cached company colours too. */
-				if (scheme == LS_DEFAULT) {
-					c->colour = colour;
-					CompanyAdminUpdate(c);
+					/* If setting the first colour of the default scheme, adjust the
+					 * original and cached company colours too. */
+					if (scheme == LS_DEFAULT) {
+						c->colour = colour;
+						CompanyAdminUpdate(c);
+					}
 				}
+				UpdateLivery(c, scheme);
 				break;
 
 			case 1:
-				c->livery[scheme].colour2 = colour;
+				if (rgb) {
+					c->livery[scheme].rgb2 = p2;
+					c->livery[scheme].flags |= LF_RGB;
+				} else {
+					c->livery[scheme].colour2 = colour;
+					c->livery[scheme].flags &= ~LF_RGB;
+				}
+				UpdateLivery(c, scheme);
 				break;
 
 			case 2:
@@ -1049,7 +1074,6 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			default:
 				break;
 		}
-		UpdateLivery(c, scheme);
 		ResetVehicleColourMap();
 		MarkWholeScreenDirty();
 

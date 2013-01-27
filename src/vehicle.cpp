@@ -1909,6 +1909,15 @@ static PaletteID GetEngineColourMap(EngineID engine_type, CompanyID company, Eng
 
 	const Engine *e = Engine::Get(engine_type);
 
+	/* Default livery for spectators */
+	static const Livery default_livery = {
+		0, 0, 0, 0, 0,
+		PALETTE_RECOLOUR_START, SPR_2CCMAP_BASE, SPR_2CCMAP_BASE,
+	};
+
+	bool twocc = HasBit(e->info.misc_flags, EF_USES_2CC);
+	const Livery *livery = Company::IsValidID(company) ? GetEngineLivery(engine_type, company, parent_engine_type, v, _settings_client.gui.liveries) : &default_livery;
+
 	/* Check if we should use the colour map callback */
 	if (HasBit(e->info.callback_mask, CBM_VEHICLE_COLOUR_REMAP)) {
 		uint16 callback = GetVehicleCallback(CBID_VEHICLE_COLOUR_MAPPING, 0, 0, engine_type, v);
@@ -1919,6 +1928,15 @@ static PaletteID GetEngineColourMap(EngineID engine_type, CompanyID company, Eng
 			/* If bit 14 is set, then the company colours are applied to the
 			 * map else it's returned as-is. */
 			if (!HasBit(callback, 14)) {
+				/* Test if this is the standard remap/reversed remap */
+				if (map == PALETTE_RECOLOUR_START + livery->colour1) {
+					map = livery->cached_pal_1cc;
+				} else if (map == SPR_2CCMAP_BASE + livery->colour1 + livery->colour2 * 16) {
+					map = livery->cached_pal_2cc;
+				} else if (map == SPR_2CCMAP_BASE + livery->colour2 + livery->colour1 * 16) {
+					map = livery->cached_pal_2cr;
+				}
+
 				/* Update cache */
 				if (v != NULL) const_cast<Vehicle *>(v)->colourmap = map;
 				return map;
@@ -1926,14 +1944,10 @@ static PaletteID GetEngineColourMap(EngineID engine_type, CompanyID company, Eng
 		}
 	}
 
-	bool twocc = HasBit(e->info.misc_flags, EF_USES_2CC);
-
 	if (map == PAL_NONE) map = twocc ? (PaletteID)SPR_2CCMAP_BASE : (PaletteID)PALETTE_RECOLOUR_START;
 
 	/* Spectator has news shown too, but has invalid company ID - as well as dedicated server */
 	if (!Company::IsValidID(company)) return map;
-
-	const Livery *livery = GetEngineLivery(engine_type, company, parent_engine_type, v, _settings_client.gui.liveries);
 
 	if (map == PALETTE_RECOLOUR_START || map == SPR_2CCMAP_BASE) {
 		/* Use cached palette when using default remaps */

@@ -225,6 +225,12 @@ enum WindowClass {
 	WC_COMPANY_COLOUR,
 
 	/**
+	 * RGB colour selection; %Window numbers:
+	 *   - #CompanyID = #SelectRGBWidgets
+	 */
+	WC_RGB_COLOUR,
+
+	/**
 	 * Alter company face window; %Window numbers:
 	 *   - #CompanyID = #SelectCompanyManagerFaceWidgets
 	 */
