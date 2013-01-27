@@ -191,6 +191,7 @@ STR_COLOUR_GREY                                                 :Grey
 STR_COLOUR_WHITE                                                :White
 STR_COLOUR_RANDOM                                               :Random
 STR_COLOUR_DEFAULT                                              :Default
+STR_COLOUR_CUSTOM                                               :Custom...
 
 # Units used in OpenTTD
 STR_UNITS_VELOCITY_IMPERIAL                                     :{COMMA}{NBSP}mph

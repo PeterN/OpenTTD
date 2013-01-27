@@ -38,6 +38,7 @@
 #include "station_func.h"
 #include "zoom_func.h"
 #include "sortlist_type.h"
+#include "blitter/factory.hpp"
 
 #include "widgets/company_widget.h"
 
@@ -550,6 +551,145 @@ public:
 	}
 };
 
+class DropDownListCustomColourItem : public DropDownListItem {
+private:
+	PaletteID palette;
+
+public:
+	DropDownListCustomColourItem(PaletteID palette, int result, bool masked) : DropDownListItem(result, masked), palette(palette) {}
+
+	virtual ~DropDownListCustomColourItem() {}
+
+	StringID String() const
+	{
+		return STR_COLOUR_CUSTOM;
+	}
+
+	uint Height(uint width) const
+	{
+		return max(FONT_HEIGHT_NORMAL, ScaleGUITrad(12) + 2);
+	}
+
+	bool Selectable() const
+	{
+		return true;
+	}
+
+	void Draw(int left, int right, int top, int bottom, bool sel, Colours bg_colour) const
+	{
+		bool rtl = _current_text_dir == TD_RTL;
+		int height = bottom - top;
+		int icon_y_offset = height / 2;
+		int text_y_offset = (height - FONT_HEIGHT_NORMAL) / 2 + 1;
+		DrawSprite(SPR_VEH_BUS_SIDE_VIEW, this->palette,
+				rtl ? right - 2 - ScaleGUITrad(14) : left + ScaleGUITrad(14) + 2,
+				top + icon_y_offset);
+		DrawString(rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
+				rtl ? right - ScaleGUITrad(28) - 4 : right - 2,
+				top + text_y_offset, this->String(), sel ? TC_WHITE : TC_BLACK);
+	}
+};
+
+class SelectRGBWindow : public Window {
+	/* Preserved values from parent window when this window was opened. */
+	uint32 sel;
+	LiveryClass lc;
+	bool ctrl_pressed;
+	bool primary;
+	bool group;
+
+	Scrollbar *r, *g, *b, *c;
+	Colour temp, current;
+
+	static const int BUTTON_SIZE = 20;
+
+public:
+	SelectRGBWindow(WindowDesc *desc, uint winnum, Colour colour, uint32 sel, LiveryClass lc, bool ctrl, bool primary, bool group) :
+		Window(desc), sel(sel), lc(lc), ctrl_pressed(ctrl), primary(primary), group(group)
+	{
+		this->InitNested(winnum);
+		this->owner = _current_company;
+
+		this->temp = this->current = colour;
+
+		this->r = this->GetScrollbar(WID_RGB_SCROLLBAR_R);
+		this->r->SetCapacity(BUTTON_SIZE);
+		this->r->SetCount(255 + BUTTON_SIZE);
+		this->r->SetPosition(colour.r);
+		this->g = this->GetScrollbar(WID_RGB_SCROLLBAR_G);
+		this->g->SetCapacity(BUTTON_SIZE);
+		this->g->SetCount(255 + BUTTON_SIZE);
+		this->g->SetPosition(colour.g);
+		this->b = this->GetScrollbar(WID_RGB_SCROLLBAR_B);
+		this->b->SetCapacity(BUTTON_SIZE);
+		this->b->SetCount(255 + BUTTON_SIZE);
+		this->b->SetPosition(colour.b);
+		this->c = this->GetScrollbar(WID_RGB_SCROLLBAR_C);
+		this->c->SetCapacity(BUTTON_SIZE);
+		this->c->SetCount(255 + BUTTON_SIZE);
+		this->c->SetPosition(colour.a);
+	}
+
+	virtual void SetStringParameters(int widget) const
+	{
+		switch (widget) {
+			case WID_RGB_CAPTION:
+				SetDParam(0, (CompanyID)this->window_number);
+				break;
+		}
+	}
+
+	void OnPaint()
+	{
+		Colour colour = Colour(this->r->GetPosition(), this->g->GetPosition(), this->b->GetPosition(), this->c->GetPosition());
+		if (colour.data != this->temp.data) {
+			this->temp = colour;
+			this->SetTimeout();
+		}
+
+		this->DrawWidgets();
+	}
+
+	void OnTimeout()
+	{
+		Colour colour = Colour(this->r->GetPosition(), this->g->GetPosition(), this->b->GetPosition(), this->c->GetPosition());
+		if (colour.data != this->current.data) {
+			this->temp = this->current = colour;
+
+			if (this->group) {
+				DoCommandP(0, this->sel | (primary ? 0 : (1 << 16)) | (1 << 17), this->current.data, CMD_SET_GROUP_LIVERY);
+			} else {
+				for (LiveryScheme scheme = LS_DEFAULT; scheme < LS_END; scheme++) {
+					/* Changed colour for the selected scheme, or all visible schemes if CTRL is pressed. */
+					if (HasBit(this->sel, scheme) || (this->ctrl_pressed && _livery_class[scheme] == this->lc && HasBit(_loaded_newgrf_features.used_liveries, scheme))) {
+						DoCommandP(0, scheme | (primary ? 0 : 256) | (1 << 10), this->current.data, CMD_SET_COMPANY_COLOUR);
+					}
+				}
+			}
+		}
+	}
+};
+
+static const NWidgetPart _nested_select_rgb_widgets [] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
+		NWidget(WWT_CAPTION, COLOUR_GREY, WID_RGB_CAPTION), SetDataTip(STR_LIVERY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), SetPIP(10, 10, 10),
+		NWidget(NWID_HSCROLLBAR, COLOUR_RED,   WID_RGB_SCROLLBAR_R),
+		NWidget(NWID_HSCROLLBAR, COLOUR_GREEN, WID_RGB_SCROLLBAR_G),
+		NWidget(NWID_HSCROLLBAR, COLOUR_BLUE,  WID_RGB_SCROLLBAR_B),
+		NWidget(NWID_HSCROLLBAR, COLOUR_GREY,  WID_RGB_SCROLLBAR_C),
+	EndContainer(),
+};
+
+static WindowDesc _select_rgb_desc(
+	WDP_AUTO, nullptr, 300, 100,
+	WC_RGB_COLOUR, WC_NONE,
+	0,
+	_nested_select_rgb_widgets, lengthof(_nested_select_rgb_widgets)
+);
+
 static const int LEVEL_WIDTH = 10; ///< Indenting width of a sub-group in pixels
 
 typedef GUIList<const Group*> GUIGroupList;
@@ -566,22 +706,12 @@ private:
 	std::vector<int> indents;
 	Scrollbar *vscroll;
 
-	void ShowColourDropDownMenu(uint32 widget)
+	/**
+	 * Get the first selected livery.
+	 */
+	const Livery *GetSelectedLivery() const
 	{
-		uint32 used_colours = 0;
-		const Company *c;
-		const Livery *livery, *default_livery = nullptr;
-		bool primary = widget == WID_SCL_PRI_COL_DROPDOWN;
-		byte default_col;
-
-		/* Disallow other company colours for the primary colour */
-		if (this->livery_class < LC_GROUP_RAIL && HasBit(this->sel, LS_DEFAULT) && primary) {
-			FOR_ALL_COMPANIES(c) {
-				if (c->index != _local_company) SetBit(used_colours, c->colour);
-			}
-		}
-
-		c = Company::Get((CompanyID)this->window_number);
+		const Company *c = Company::Get((CompanyID)this->window_number);
 
 		if (this->livery_class < LC_GROUP_RAIL) {
 			/* Get the first selected livery to use as the default dropdown item */
@@ -589,19 +719,56 @@ private:
 			for (scheme = LS_BEGIN; scheme < LS_END; scheme++) {
 				if (HasBit(this->sel, scheme)) break;
 			}
+
 			if (scheme == LS_END) scheme = LS_DEFAULT;
-			livery = &c->livery[scheme];
-			if (scheme != LS_DEFAULT) default_livery = &c->livery[LS_DEFAULT];
+
+			return &c->livery[scheme];
 		} else {
 			const Group *g = Group::Get(this->sel);
-			livery = &g->livery;
+			return &g->livery;
+		}
+	}
+
+	/**
+	 * Get the default selected livery.
+	 */
+	const Livery *GetDefaultLivery() const
+	{
+		const Company *c = Company::Get((CompanyID)this->window_number);
+
+		if (this->livery_class < LC_GROUP_RAIL) {
+			if (!HasBit(this->sel, LS_DEFAULT)) return &c->livery[LS_DEFAULT];
+		} else {
+
+			const Group *g = Group::Get(this->sel);
 			if (g->parent == INVALID_GROUP) {
-				default_livery = &c->livery[LS_DEFAULT];
+				return &c->livery[LS_DEFAULT];
 			} else {
 				const Group *pg = Group::Get(g->parent);
-				default_livery = &pg->livery;
+				return &pg->livery;
 			}
 		}
+		return nullptr;
+	}
+
+
+	void ShowColourDropDownMenu(uint32 widget)
+	{
+		uint32 used_colours = 0;
+		bool primary = widget == WID_SCL_PRI_COL_DROPDOWN;
+		byte default_col;
+
+		/* Disallow other company colours for the primary colour */
+		if (this->livery_class < LC_GROUP_RAIL && HasBit(this->sel, LS_DEFAULT) && primary) {
+			const Company *c;
+			FOR_ALL_COMPANIES(c) {
+				if (c->index != _local_company) SetBit(used_colours, c->colour);
+			}
+		}
+
+		/* Get the first selected livery to use as the default dropdown item */
+		const Livery *livery = GetSelectedLivery();
+		const Livery *default_livery = GetDefaultLivery();
 
 		DropDownList list;
 		if (default_livery != nullptr) {
@@ -612,9 +779,10 @@ private:
 		for (uint i = 0; i < lengthof(_colour_dropdown); i++) {
 			list.emplace_back(new DropDownListColourItem(i, HasBit(used_colours, i)));
 		}
+		list.emplace_back(new DropDownListCustomColourItem(widget == WID_SCL_PRI_COL_DROPDOWN ? livery->cached_pal_1cc : livery->cached_pal_2cr, 255, BlitterFactory::GetCurrentBlitter()->GetScreenDepth() != 32));
 
 		byte sel = (default_livery == nullptr || HasBit(livery->flags, primary ? 0 : 1)) ? (primary ? livery->colour1 : livery->colour2) : default_col;
-		ShowDropDownList(this, list, sel, widget);
+		ShowDropDownList(this, std::move(list), livery->IsRGB() ? 255 : sel, widget);
 	}
 
 	static bool GroupNameSorter(const Group * const &a, const Group * const &b)
@@ -881,13 +1049,13 @@ public:
 			DrawString(sch_left + WD_FRAMERECT_LEFT + (rtl ? 0 : indent), sch_right - WD_FRAMERECT_RIGHT - (rtl ? indent : 0), y + text_offs, str, sel ? TC_WHITE : TC_BLACK);
 
 			/* Text below the first dropdown. */
-			DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(liv.colour1), (rtl ? pri_right - (this->square.width + 5) + WD_FRAMERECT_RIGHT : pri_left) + WD_FRAMERECT_LEFT, y + square_offs);
-			DrawString(pri_left + text_left, pri_right - text_right, y + text_offs, (def || HasBit(liv.flags, 0)) ? STR_COLOUR_DARK_BLUE + liv.colour1 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
+			DrawSprite(SPR_SQUARE, liv.cached_pal_1cc, (rtl ? pri_right - (this->square.width + 5) + WD_FRAMERECT_RIGHT : pri_left) + WD_FRAMERECT_LEFT, y + square_offs);
+			DrawString(pri_left + text_left, pri_right - text_right, y + text_offs, liv.IsRGB() ? STR_COLOUR_CUSTOM : (def || HasBit(liv.flags, 0)) ? STR_COLOUR_DARK_BLUE + liv.colour1 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
 
 			/* Text below the second dropdown. */
 			if (sec_right > sec_left) { // Second dropdown has non-zero size.
-				DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(liv.colour2), (rtl ? sec_right - (this->square.width + 5) + WD_FRAMERECT_RIGHT : sec_left) + WD_FRAMERECT_LEFT, y + square_offs);
-				DrawString(sec_left + text_left, sec_right - text_right, y + text_offs, (def || HasBit(liv.flags, 1)) ? STR_COLOUR_DARK_BLUE + liv.colour2 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
+				DrawSprite(SPR_SQUARE, liv.cached_pal_2cr, (rtl ? sec_right - (this->square.width + 5) + WD_FRAMERECT_RIGHT : sec_left) + WD_FRAMERECT_LEFT, y + square_offs);
+				DrawString(sec_left + text_left, sec_right - text_right, y + text_offs, liv.IsRGB() ? STR_COLOUR_CUSTOM : (def || HasBit(liv.flags, 1)) ? STR_COLOUR_DARK_BLUE + liv.colour2 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
 			}
 
 			y += this->line_height;
@@ -996,6 +1164,22 @@ public:
 		bool local = (CompanyID)this->window_number == _local_company;
 		if (!local) return;
 
+		if (index == 0xFF) {
+			/* Special case for 'Custom...' option */
+			int number = ((widget == WID_SCL_PRI_COL_DROPDOWN) ? 1 : 0) | (this->window_number << 1);
+			if (BringWindowToFrontById(WC_RGB_COLOUR, number)) return;
+
+			const Livery *livery = GetSelectedLivery();
+			Colour colour;
+			if (livery->flags & LF_RGB) {
+				colour = (widget == WID_SCL_PRI_COL_DROPDOWN) ? livery->rgb1 : livery->rgb2;
+			} else {
+				colour = GetCompanyColourRGB((widget == WID_SCL_PRI_COL_DROPDOWN) ? livery->colour1 : livery->colour2);
+			}
+			new SelectRGBWindow(&_select_rgb_desc, number, colour, this->sel, this->livery_class, _ctrl_pressed, widget == WID_SCL_PRI_COL_DROPDOWN, this->livery_class >= LC_GROUP_RAIL);
+			return;
+		}
+
 		if (index >= COLOUR_END) index = INVALID_COLOUR;
 
 		if (this->livery_class < LC_GROUP_RAIL) {
@@ -1008,7 +1192,7 @@ public:
 			}
 		} else {
 			/* Setting group livery */
-			DoCommandP(0, this->sel, (widget == WID_SCL_PRI_COL_DROPDOWN ? 0 : 256) | (index << 16), CMD_SET_GROUP_LIVERY);
+			DoCommandP(0, this->sel | (widget == WID_SCL_PRI_COL_DROPDOWN ? 0 : (1 << 16)), index, CMD_SET_GROUP_LIVERY);
 		}
 	}
 

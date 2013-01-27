@@ -268,10 +268,33 @@ const Livery *GetParentLivery(const Group *g)
 
 
 /**
+ * Update cached palettes for a livery.
+ * @param c Company ID.
+ * @param scheme LiveryScheme to update.
+ */
+static void UpdateGroupLivery(Livery *l)
+{
+	PaletteID pal_1cc = PALETTE_RECOLOUR_START + l->colour1;
+	PaletteID pal_2cc = SPR_2CCMAP_BASE + l->colour1 + l->colour2 * 16;
+	PaletteID pal_2cr = SPR_2CCMAP_BASE + l->colour2 + l->colour1 * 16;
+
+	if (l->IsRGB()) {
+		l->cached_pal_1cc = CreateCompanyColourRemap(l->rgb1, l->rgb1, false, pal_1cc, l->cached_pal_1cc);
+		l->cached_pal_2cc = CreateCompanyColourRemap(l->rgb1, l->rgb2, true,  pal_2cc, l->cached_pal_2cc);
+		l->cached_pal_2cr = CreateCompanyColourRemap(l->rgb2, l->rgb1, true,  pal_2cr, l->cached_pal_2cr);
+	} else {
+		l->cached_pal_1cc = pal_1cc;
+		l->cached_pal_2cc = pal_2cc;
+		l->cached_pal_2cr = pal_2cr;
+	}
+}
+
+
+/**
  * Propagate a livery change to a group's children.
  * @param g Group.
  */
-void PropagateChildLivery(const Group *g)
+void PropagateChildLivery(Group *g)
 {
 	/* Company colour data is indirectly cached. */
 	Vehicle *v;
@@ -284,11 +307,21 @@ void PropagateChildLivery(const Group *g)
 		}
 	}
 
+	UpdateGroupLivery(&g->livery);
+
 	Group *cg;
 	FOR_ALL_GROUPS(cg) {
 		if (cg->parent == g->index) {
-			if (!HasBit(cg->livery.flags, 0)) cg->livery.colour1 = g->livery.colour1;
-			if (!HasBit(cg->livery.flags, 1)) cg->livery.colour2 = g->livery.colour2;
+			if (!HasBit(cg->livery.flags, 0)) {
+				cg->livery.colour1 = g->livery.colour1;
+				cg->livery.rgb1    = g->livery.rgb1;
+				SB(cg->livery.flags, 2, 1, g->livery.IsRGB());
+			}
+			if (!HasBit(cg->livery.flags, 1)) {
+				cg->livery.colour2 = g->livery.colour2;
+				cg->livery.rgb2    = g->livery.rgb2;
+				SB(cg->livery.flags, 2, 1, g->livery.IsRGB());
+			}
 			PropagateChildLivery(cg);
 		}
 	}
@@ -339,10 +372,14 @@ CommandCost CmdCreateGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			const Company *c = Company::Get(_current_company);
 			g->livery.colour1 = c->livery[LS_DEFAULT].colour1;
 			g->livery.colour2 = c->livery[LS_DEFAULT].colour2;
+			g->livery.rgb1    = c->livery[LS_DEFAULT].rgb1;
+			g->livery.rgb2    = c->livery[LS_DEFAULT].rgb2;
 		} else {
 			g->parent = pg->index;
 			g->livery.colour1 = pg->livery.colour1;
 			g->livery.colour2 = pg->livery.colour2;
+			g->livery.rgb1    = pg->livery.rgb1;
+			g->livery.rgb2    = pg->livery.rgb2;
 		}
 
 		_new_group_id = g->index;
@@ -461,6 +498,9 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 				const Livery *livery = GetParentLivery(g);
 				g->livery.colour1 = livery->colour1;
 				g->livery.colour2 = livery->colour2;
+				g->livery.rgb1 = livery->rgb1;
+				g->livery.rgb2 = livery->rgb2;
+				SB(g->livery.flags, 2, 1, livery->IsRGB());
 
 				PropagateChildLivery(g);
 				MarkWholeScreenDirty();
@@ -647,29 +687,45 @@ CommandCost CmdRemoveAllVehiclesGroup(TileIndex tile, DoCommandFlag flags, uint3
  * @param flags     Command flags.
  * @param p1
  * - p1 bit  0-15   Group ID.
+ * - p1 bit 16      Set secondary instead of primary colour
+ * - p1 bit 17      Colour is an RGBC quad.
  * @param p2
- * - p2 bit  8      Set secondary instead of primary colour
- * - p2 bit 16-23   Colour.
+ * - p2 bits 0-7    Colour index or
+ * - p2 bits 0-31   RGBC quad
  */
 CommandCost CmdSetGroupLivery(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
-	Group *g = Group::GetIfValid(p1);
-	bool primary = !HasBit(p2, 8);
-	Colours colour = Extract<Colours, 16, 8>(p2);
+	Group *g = Group::GetIfValid(GB(p1, 0, 15));
+	bool primary = !HasBit(p1, 16);
+	bool rgb = HasBit(p1, 17);
+
+	Colours colour = Extract<Colours, 0, 8>(p2);
 
 	if (g == nullptr || g->owner != _current_company) return CMD_ERROR;
 
-	if (colour >= COLOUR_END && colour != INVALID_COLOUR) return CMD_ERROR;
+	if (!rgb && colour >= COLOUR_END && colour != INVALID_COLOUR) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		if (primary) {
-			SB(g->livery.flags, 0, 1, colour != INVALID_COLOUR);
-			if (colour == INVALID_COLOUR) colour = (Colours)GetParentLivery(g)->colour1;
-			g->livery.colour1 = colour;
+		if (rgb) {
+			if (primary) {
+				SetBit(g->livery.flags, 0);
+				SetBit(g->livery.flags, 2);
+				g->livery.rgb1 = p2;
+			} else {
+				SetBit(g->livery.flags, 1);
+				SetBit(g->livery.flags, 2);
+				g->livery.rgb2 = p2;
+			}
 		} else {
-			SB(g->livery.flags, 1, 1, colour != INVALID_COLOUR);
-			if (colour == INVALID_COLOUR) colour = (Colours)GetParentLivery(g)->colour2;
-			g->livery.colour2 = colour;
+			if (primary) {
+				SB(g->livery.flags, 0, 1, colour != INVALID_COLOUR);
+				if (colour == INVALID_COLOUR) colour = (Colours)GetParentLivery(g)->colour1;
+				g->livery.colour1 = colour;
+			} else {
+				SB(g->livery.flags, 1, 1, colour != INVALID_COLOUR);
+				if (colour == INVALID_COLOUR) colour = (Colours)GetParentLivery(g)->colour2;
+				g->livery.colour2 = colour;
+			}
 		}
 
 		PropagateChildLivery(g);

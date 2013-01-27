@@ -79,6 +79,7 @@ enum LiveryClass {
 
 enum LiveryFlags {
 	LF_ACTIVE = 1 << 0, ///< Set if this livery should be used instead of the default livery.
+	LF_RGB    = 1 << 2, ///< Set if this livery has an RGB component.
 	LF_END,
 };
 DECLARE_ENUM_AS_BIT_SET(LiveryFlags)
@@ -88,9 +89,16 @@ struct Livery {
 	byte flags;   ///< Bit 0 set if this livery should override the default livery first colour, Bit 1 for the second colour.
 	byte colour1; ///< First colour, for all vehicles.
 	byte colour2; ///< Second colour, for vehicles with 2CC support.
+	uint32 rgb1;  ///< First RGB colour.
+	uint32 rgb2;  ///< Second RGB colour.
 
 	PaletteID cached_pal_1cc; ///< NOSAVE: cached 1CC palette.
 	PaletteID cached_pal_2cc; ///< NOSAVE: cached 2CC palette.
+	PaletteID cached_pal_2cr; ///< NOSAVE: cached reversed 2CC palette.
+
+	inline bool InUse() const { return (flags & LF_ACTIVE) != 0; }
+
+	inline bool IsRGB() const { return (flags & LF_RGB) != 0; }
 };
 
 void ResetCompanyLivery(Company *c);

@@ -1729,3 +1729,59 @@ void SortResolutions()
 {
 	std::sort(_resolutions.begin(), _resolutions.end());
 }
+
+Colour GetCompanyColourRGB(int colour)
+{
+	PaletteID pal = PALETTE_RECOLOUR_START + colour;
+	const byte *map = GetNonSprite(pal, ST_RECOLOUR) + 1;
+
+	Colour rgb;
+	rgb.r = _palette.palette[map[0xCA]].r;
+	rgb.g = _palette.palette[map[0xCA]].g;
+	rgb.b = _palette.palette[map[0xCA]].b;
+	rgb.a = 0x50;
+	return rgb;
+}
+
+PaletteID CreateCompanyColourRemap(Colour rgb1, Colour rgb2, bool twocc, PaletteID basemap, PaletteID hint)
+{
+	DeallocateCustomSprite(hint);
+
+	PaletteID pal = AllocateCustomSprite();
+	const byte *map = GetNonSprite(basemap, ST_RECOLOUR) + 1;
+	byte *p = (byte *)InjectSprite(ST_RECOLOUR, pal, 1 + 256 + 1024);
+
+	/* Mark as RGB recolour */
+	*p++ = SPRITE_REMAP_RGB;
+
+	/* Copy base remap */
+	for (int i = 0; i < 256; i++) {
+		*p++ = *map++;
+	}
+
+	for (int i = 0; i < 256; i++) {
+		if (i >= 0xC6 && i <= 0xCD) {
+			/* First recolour region */
+			int adj = (i - 0xC6 - 4) * rgb1.a / 4;
+			*p++ = Clamp(rgb1.r + adj, 0, 255);
+			*p++ = Clamp(rgb1.g + adj, 0, 255);
+			*p++ = Clamp(rgb1.b + adj, 0, 255);
+			*p++ = 255;
+		} else if (twocc && i >= 0x50 && i <= 0x57) {
+			/* Second recolour region */
+			int adj = (i - 0x50 - 4) * rgb2.a / 4;
+			*p++ = Clamp(rgb2.r + adj, 0, 255);
+			*p++ = Clamp(rgb2.g + adj, 0, 255);
+			*p++ = Clamp(rgb2.b + adj, 0, 255);
+			*p++ = 255;
+		} else {
+			/* Copy other colours from normal palette */
+			*p++ = _palette.palette[i].r;
+			*p++ = _palette.palette[i].g;
+			*p++ = _palette.palette[i].b;
+			*p++ = i > 0 ? 255 : 0;
+		}
+	}
+
+	return pal;
+}

@@ -309,6 +309,12 @@ public:
 		WC_COMPANY_COLOUR                            = ::WC_COMPANY_COLOUR,
 
 		/**
+		 * RGB colour selection; %Window numbers:
+		 *   - #CompanyID = #SelectRGBWidgets
+		 */
+		WC_RGB_COLOUR                                = ::WC_RGB_COLOUR,
+
+		/**
 		 * Alter company face window; %Window numbers:
 		 *   - #CompanyID = #SelectCompanyManagerFaceWidgets
 		 */
@@ -1072,6 +1078,15 @@ public:
 		WID_CF_INCREASE_LOAN                         = ::WID_CF_INCREASE_LOAN,                         ///< Increase loan.
 		WID_CF_REPAY_LOAN                            = ::WID_CF_REPAY_LOAN,                            ///< Decrease loan..
 		WID_CF_INFRASTRUCTURE                        = ::WID_CF_INFRASTRUCTURE,                        ///< View company infrastructure.
+	};
+
+	/** Widgets of the #SelectRGBWindow class. */
+	enum SelectRGBWidgets {
+		WID_RGB_CAPTION                              = ::WID_RGB_CAPTION,                              ///< Caption of window.
+		WID_RGB_SCROLLBAR_R                          = ::WID_RGB_SCROLLBAR_R,                          ///< Red scrollbar.
+		WID_RGB_SCROLLBAR_G                          = ::WID_RGB_SCROLLBAR_G,                          ///< Green scrollbar.
+		WID_RGB_SCROLLBAR_B                          = ::WID_RGB_SCROLLBAR_B,                          ///< Blue scrollbar.
+		WID_RGB_SCROLLBAR_C                          = ::WID_RGB_SCROLLBAR_C,                          ///< Contrast scrollbar.
 	};
 
 	/** Widgets of the #SelectCompanyLiveryWindow class. */
