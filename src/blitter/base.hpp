@@ -17,11 +17,12 @@
 
 /** The modes of blitting we can do. */
 enum BlitterMode {
-	BM_NORMAL,       ///< Perform the simple blitting.
-	BM_COLOUR_REMAP, ///< Perform a colour remapping.
-	BM_TRANSPARENT,  ///< Perform transparency colour remapping.
-	BM_CRASH_REMAP,  ///< Perform a crash remapping.
-	BM_BLACK_REMAP,  ///< Perform remapping to a completely blackened sprite
+	BM_NORMAL,           ///< Perform the simple blitting.
+	BM_COLOUR_REMAP,     ///< Perform a colour remapping.
+	BM_COLOUR_REMAP_RGB, ///< Perform an RGB colour remapping.
+	BM_TRANSPARENT,      ///< Perform transparency colour remapping.
+	BM_CRASH_REMAP,      ///< Perform a crash remapping.
+	BM_BLACK_REMAP,      ///< Perform remapping to a completely blackened sprite
 };
 
 /**
