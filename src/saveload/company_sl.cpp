@@ -406,9 +406,11 @@ static const SaveLoad _company_ai_build_rec_desc[] = {
 };
 
 static const SaveLoad _company_livery_desc[] = {
-	SLE_CONDVAR(Livery, flags,   SLE_UINT8, SLV_34, SL_MAX_VERSION),
-	SLE_CONDVAR(Livery, colour1, SLE_UINT8, SLV_34, SL_MAX_VERSION),
-	SLE_CONDVAR(Livery, colour2, SLE_UINT8, SLV_34, SL_MAX_VERSION),
+	SLE_CONDVAR(Livery, flags,   SLE_UINT8,  SLV_34, SL_MAX_VERSION),
+	SLE_CONDVAR(Livery, colour1, SLE_UINT8,  SLV_34, SL_MAX_VERSION),
+	SLE_CONDVAR(Livery, colour2, SLE_UINT8,  SLV_34, SL_MAX_VERSION),
+	SLE_CONDVAR(Livery, rgb1,    SLE_UINT32, SLV_RGB_LIVERIES, SL_MAX_VERSION),
+	SLE_CONDVAR(Livery, rgb2,    SLE_UINT32, SLV_RGB_LIVERIES, SL_MAX_VERSION),
 	SLE_END()
 };
 
