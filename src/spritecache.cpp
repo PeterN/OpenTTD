@@ -24,6 +24,8 @@
 #include "table/strings.h"
 #include "table/palette_convert.h"
 
+#include <vector>
+
 #include "safeguards.h"
 
 /* Default of 4MB spritecache */
@@ -786,6 +788,26 @@ static void *AllocSprite(size_t mem_req)
 }
 
 /**
+ * Allocate and inject memory for a memory-based sprite.
+ */
+void *InjectSprite(SpriteType type, int load_index, size_t len)
+{
+	if (SpriteExists(load_index)) DeleteEntryFromSpriteCache(load_index);
+
+	SpriteCache *sc = AllocateSpriteCache(load_index);
+	sc->file_slot     = 0xFF;
+	sc->file_pos      = 0;
+	sc->ptr           = AllocSprite(len);
+	sc->lru           = 0;
+	sc->id            = 0;
+	sc->type          = type;
+	sc->warned        = false;
+	sc->container_ver = 0;
+
+	return sc->ptr;
+}
+
+/**
  * Handles the case when a sprite of different type is requested than is present in the SpriteCache.
  * For ST_FONT sprites, it is normal. In other cases, default sprite is loaded instead.
  * @param sprite ID of loaded sprite
@@ -948,3 +970,41 @@ void GfxClearSpriteCache()
 }
 
 /* static */ ReusableBuffer<SpriteLoader::CommonPixel> SpriteLoader::Sprite::buffer[ZOOM_LVL_COUNT];
+
+static SpriteID _sprites_end;             ///< First usable free sprite ID.
+static std::vector<bool> _custom_sprites; ///< List of used/free custom sprite slots.
+
+/**
+ * Clear custom sprites mapping and set first usable free sprite ID.
+ */
+void ClearCustomSprites(SpriteID base)
+{
+	_custom_sprites.clear();
+	_sprites_end = base;
+}
+
+/**
+ * Allocate a custom sprite ID.
+ */
+SpriteID AllocateCustomSprite()
+{
+	for (std::vector<bool>::iterator b = _custom_sprites.begin(); b != _custom_sprites.end(); ++b) {
+		if (!*b) {
+			*b = true;
+			return (b - _custom_sprites.begin()) + _sprites_end;
+		}
+	}
+	_custom_sprites.push_back(true);
+	return _sprites_end + _custom_sprites.size() - 1;
+}
+
+/**
+ * Mark a custom sprite ID as deallocated.
+ * The sprite slot is merely marked as reusable.
+ */
+void DeallocateCustomSprite(SpriteID sprite)
+{
+	if (sprite >= _sprites_end && sprite < _sprites_end + _custom_sprites.size()) {
+		_custom_sprites[sprite - _sprites_end] = false;
+	}
+}
