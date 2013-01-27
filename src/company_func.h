@@ -37,6 +37,7 @@ extern CompanyByte _local_company;
 extern CompanyByte _current_company;
 
 extern Colours _company_colours[MAX_COMPANIES];
+extern Colour _company_colours_rgb[MAX_COMPANIES];
 extern PaletteID _company_palettes[MAX_COMPANIES];
 extern CompanyManagerFace _company_manager_face;
 
