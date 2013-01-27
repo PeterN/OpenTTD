@@ -141,7 +141,7 @@ enum WidgetDrawDistances {
 };
 
 /* widget.cpp */
-void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, FrameFlags flags);
+void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, FrameFlags flags, Colour rgb = 0);
 void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str);
 
 /* window.cpp */
