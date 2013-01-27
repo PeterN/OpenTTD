@@ -613,8 +613,8 @@ private:
 			list.emplace_back(new DropDownListColourItem(i, HasBit(used_colours, i)));
 		}
 
-		byte sel = (default_livery == nullptr || HasBit(livery->in_use, primary ? 0 : 1)) ? (primary ? livery->colour1 : livery->colour2) : default_col;
-		ShowDropDownList(this, std::move(list), sel, widget);
+		byte sel = (default_livery == nullptr || HasBit(livery->flags, primary ? 0 : 1)) ? (primary ? livery->colour1 : livery->colour2) : default_col;
+		ShowDropDownList(this, list, sel, widget);
 	}
 
 	static bool GroupNameSorter(const Group * const &a, const Group * const &b)
@@ -829,7 +829,7 @@ public:
 						}
 						if (scheme == LS_END) scheme = LS_DEFAULT;
 						const Livery *livery = &c->livery[scheme];
-						if (scheme == LS_DEFAULT || HasBit(livery->in_use, primary ? 0 : 1)) {
+						if (scheme == LS_DEFAULT || HasBit(livery->flags, primary ? 0 : 1)) {
 							colour = STR_COLOUR_DARK_BLUE + (primary ? livery->colour1 : livery->colour2);
 						}
 					}
@@ -837,7 +837,7 @@ public:
 					if (this->sel != INVALID_GROUP) {
 						const Group *g = Group::Get(this->sel);
 						const Livery *livery = &g->livery;
-						if (HasBit(livery->in_use, primary ? 0 : 1)) {
+						if (HasBit(livery->flags, primary ? 0 : 1)) {
 							colour = STR_COLOUR_DARK_BLUE + (primary ? livery->colour1 : livery->colour2);
 						}
 					}
@@ -882,12 +882,12 @@ public:
 
 			/* Text below the first dropdown. */
 			DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(liv.colour1), (rtl ? pri_right - (this->square.width + 5) + WD_FRAMERECT_RIGHT : pri_left) + WD_FRAMERECT_LEFT, y + square_offs);
-			DrawString(pri_left + text_left, pri_right - text_right, y + text_offs, (def || HasBit(liv.in_use, 0)) ? STR_COLOUR_DARK_BLUE + liv.colour1 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
+			DrawString(pri_left + text_left, pri_right - text_right, y + text_offs, (def || HasBit(liv.flags, 0)) ? STR_COLOUR_DARK_BLUE + liv.colour1 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
 
 			/* Text below the second dropdown. */
 			if (sec_right > sec_left) { // Second dropdown has non-zero size.
 				DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(liv.colour2), (rtl ? sec_right - (this->square.width + 5) + WD_FRAMERECT_RIGHT : sec_left) + WD_FRAMERECT_LEFT, y + square_offs);
-				DrawString(sec_left + text_left, sec_right - text_right, y + text_offs, (def || HasBit(liv.in_use, 1)) ? STR_COLOUR_DARK_BLUE + liv.colour2 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
+				DrawString(sec_left + text_left, sec_right - text_right, y + text_offs, (def || HasBit(liv.flags, 1)) ? STR_COLOUR_DARK_BLUE + liv.colour2 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
 			}
 
 			y += this->line_height;

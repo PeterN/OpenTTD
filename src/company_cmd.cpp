@@ -547,7 +547,7 @@ void UpdateCompanyLiveries(Company *c)
 void ResetCompanyLivery(Company *c)
 {
 	for (LiveryScheme scheme = LS_BEGIN; scheme < LS_END; scheme++) {
-		c->livery[scheme].in_use  = 0;
+		c->livery[scheme].flags   = 0;
 		c->livery[scheme].colour1 = c->colour;
 		c->livery[scheme].colour2 = c->colour;
 		UpdateLivery(c, scheme);
@@ -556,7 +556,7 @@ void ResetCompanyLivery(Company *c)
 	Group *g;
 	FOR_ALL_GROUPS(g) {
 		if (g->owner == c->index) {
-			g->livery.in_use  = 0;
+			g->livery.flags   = 0;
 			g->livery.colour1 = c->colour;
 			g->livery.colour2 = c->colour;
 		}
@@ -1010,7 +1010,7 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 
 	if (flags & DC_EXEC) {
 		if (!second) {
-			if (scheme != LS_DEFAULT) SB(c->livery[scheme].in_use, 0, 1, colour != INVALID_COLOUR);
+			if (scheme != LS_DEFAULT) SB(c->livery[scheme].flags, 0, 1, colour != INVALID_COLOUR);
 			if (colour == INVALID_COLOUR) colour = (Colours)c->livery[LS_DEFAULT].colour1;
 			c->livery[scheme].colour1 = colour;
 			UpdateLivery(c, scheme);
@@ -1019,7 +1019,7 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			 * original and cached company colours too. */
 			if (scheme == LS_DEFAULT) {
 				for (int i = 1; i < LS_END; i++) {
-					if (!HasBit(c->livery[i].in_use, 0)) {
+					if (!HasBit(c->livery[i].flags, 0)) {
 						c->livery[i].colour1 = colour;
 						UpdateLivery(c, (LiveryScheme)i);
 					}
@@ -1029,14 +1029,14 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 				CompanyAdminUpdate(c);
 			}
 		} else {
-			if (scheme != LS_DEFAULT) SB(c->livery[scheme].in_use, 1, 1, colour != INVALID_COLOUR);
+			if (scheme != LS_DEFAULT) SB(c->livery[scheme].flags, 1, 1, colour != INVALID_COLOUR);
 			if (colour == INVALID_COLOUR) colour = (Colours)c->livery[LS_DEFAULT].colour2;
 			c->livery[scheme].colour2 = colour;
 			UpdateLivery(c, scheme);
 
 			if (scheme == LS_DEFAULT) {
 				for (int i = 1; i < LS_END; i++) {
-					if (!HasBit(c->livery[i].in_use, 1)) {
+					if (!HasBit(c->livery[i].flags, 1)) {
 						c->livery[i].colour2 = colour;
 						UpdateLivery(c, (LiveryScheme)i);
 					}
@@ -1044,16 +1044,16 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			}
 		}
 
-		if (c->livery[scheme].in_use != 0) {
+		if (c->livery[scheme].flags != 0) {
 			/* If enabling a scheme, set the default scheme to be in use too */
-			c->livery[LS_DEFAULT].in_use = 1;
+			SetBit(c->livery[LS_DEFAULT].flags, 0);
 		} else {
 			/* Else loop through all schemes to see if any are left enabled.
 			 * If not, disable the default scheme too. */
-			c->livery[LS_DEFAULT].in_use = 0;
+			ClrBit(c->livery[LS_DEFAULT].flags, 0);
 			for (scheme = LS_DEFAULT; scheme < LS_END; scheme++) {
-				if (c->livery[scheme].in_use != 0) {
-					c->livery[LS_DEFAULT].in_use = 1;
+				if (c->livery[scheme].flags != 0) {
+					SetBit(c->livery[LS_DEFAULT].flags, 1);
 					break;
 				}
 			}

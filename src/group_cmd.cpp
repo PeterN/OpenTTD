@@ -287,8 +287,8 @@ void PropagateChildLivery(const Group *g)
 	Group *cg;
 	FOR_ALL_GROUPS(cg) {
 		if (cg->parent == g->index) {
-			if (!HasBit(cg->livery.in_use, 0)) cg->livery.colour1 = g->livery.colour1;
-			if (!HasBit(cg->livery.in_use, 1)) cg->livery.colour2 = g->livery.colour2;
+			if (!HasBit(cg->livery.flags, 0)) cg->livery.colour1 = g->livery.colour1;
+			if (!HasBit(cg->livery.flags, 1)) cg->livery.colour2 = g->livery.colour2;
 			PropagateChildLivery(cg);
 		}
 	}
@@ -457,7 +457,7 @@ CommandCost CmdAlterGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 			g->parent = (pg == nullptr) ? INVALID_GROUP : pg->index;
 			GroupStatistics::UpdateAutoreplace(g->owner);
 
-			if (g->livery.in_use == 0) {
+			if (g->livery.flags == 0) {
 				const Livery *livery = GetParentLivery(g);
 				g->livery.colour1 = livery->colour1;
 				g->livery.colour2 = livery->colour2;
@@ -663,11 +663,11 @@ CommandCost CmdSetGroupLivery(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 	if (flags & DC_EXEC) {
 		if (primary) {
-			SB(g->livery.in_use, 0, 1, colour != INVALID_COLOUR);
+			SB(g->livery.flags, 0, 1, colour != INVALID_COLOUR);
 			if (colour == INVALID_COLOUR) colour = (Colours)GetParentLivery(g)->colour1;
 			g->livery.colour1 = colour;
 		} else {
-			SB(g->livery.in_use, 1, 1, colour != INVALID_COLOUR);
+			SB(g->livery.flags, 1, 1, colour != INVALID_COLOUR);
 			if (colour == INVALID_COLOUR) colour = (Colours)GetParentLivery(g)->colour2;
 			g->livery.colour2 = colour;
 		}

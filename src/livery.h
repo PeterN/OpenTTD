@@ -77,9 +77,15 @@ enum LiveryClass {
 	LC_END
 };
 
+enum LiveryFlags {
+	LF_ACTIVE = 1 << 0, ///< Set if this livery should be used instead of the default livery.
+	LF_END,
+};
+DECLARE_ENUM_AS_BIT_SET(LiveryFlags)
+
 /** Information about a particular livery. */
 struct Livery {
-	byte in_use;  ///< Bit 0 set if this livery should override the default livery first colour, Bit 1 for the second colour.
+	byte flags;   ///< Bit 0 set if this livery should override the default livery first colour, Bit 1 for the second colour.
 	byte colour1; ///< First colour, for all vehicles.
 	byte colour2; ///< Second colour, for vehicles with 2CC support.
 

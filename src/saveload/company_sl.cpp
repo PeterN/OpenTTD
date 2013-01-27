@@ -406,7 +406,7 @@ static const SaveLoad _company_ai_build_rec_desc[] = {
 };
 
 static const SaveLoad _company_livery_desc[] = {
-	SLE_CONDVAR(Livery, in_use,  SLE_UINT8, SLV_34, SL_MAX_VERSION),
+	SLE_CONDVAR(Livery, flags,   SLE_UINT8, SLV_34, SL_MAX_VERSION),
 	SLE_CONDVAR(Livery, colour1, SLE_UINT8, SLV_34, SL_MAX_VERSION),
 	SLE_CONDVAR(Livery, colour2, SLE_UINT8, SLV_34, SL_MAX_VERSION),
 	SLE_END()
@@ -446,16 +446,16 @@ static void SaveLoad_PLYR_common(Company *c, CompanyProperties *cprops)
 
 	/* Write each livery entry. */
 	int num_liveries = IsSavegameVersionBefore(SLV_63) ? LS_END - 4 : (IsSavegameVersionBefore(SLV_85) ? LS_END - 2: LS_END);
-	bool update_in_use = IsSavegameVersionBefore(SLV_GROUP_LIVERIES);
+	bool update_flags = IsSavegameVersionBefore(SLV_GROUP_LIVERIES);
 	if (c != nullptr) {
 		for (i = 0; i < num_liveries; i++) {
 			SlObject(&c->livery[i], _company_livery_desc);
-			if (update_in_use && i != LS_DEFAULT) {
-				if (c->livery[i].in_use == 0) {
+			if (update_flags && i != LS_DEFAULT) {
+				if (c->livery[i].flags == 0) {
 					c->livery[i].colour1 = c->livery[LS_DEFAULT].colour1;
 					c->livery[i].colour2 = c->livery[LS_DEFAULT].colour2;
 				} else {
-					c->livery[i].in_use = 3;
+					c->livery[i].flags = 3;
 				}
 			}
 		}
