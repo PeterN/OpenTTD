@@ -9490,6 +9490,9 @@ void LoadNewGRF(uint load_index, uint file_index, uint num_baseset)
 	/* Pseudo sprite processing is finished; free temporary stuff */
 	_cur.ClearDataForNextFile();
 
+	/* Make note of last sprite ID loaded for custom sprite management */
+	ClearCustomSprites(_cur.spriteid);
+
 	/* Call any functions that should be run after GRFs have been loaded. */
 	AfterLoadGRFs();
 

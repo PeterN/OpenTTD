@@ -57,5 +57,10 @@ size_t GetGRFSpriteOffset(uint32 id);
 bool LoadNextSprite(int load_index, byte file_index, uint file_sprite_id, byte container_version);
 bool SkipSpriteData(byte type, uint16 num);
 void DupSprite(SpriteID old_spr, SpriteID new_spr);
+void *InjectSprite(SpriteType type, int load_index, size_t len);
+
+void ClearCustomSprites(SpriteID base);
+SpriteID AllocateCustomSprite();
+void DeallocateCustomSprite(SpriteID spite);
 
 #endif /* SPRITECACHE_H */
