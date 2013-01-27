@@ -46,6 +46,7 @@ void ClearEnginesHiddenFlagOfCompany(CompanyID cid);
 CompanyID _local_company;   ///< Company controlled by the human player at this client. Can also be #COMPANY_SPECTATOR.
 CompanyID _current_company; ///< Company currently doing an action.
 Colours _company_colours[MAX_COMPANIES];    ///< NOSAVE: can be determined from company structs.
+Colour _company_colours_rgb[MAX_COMPANIES]; ///< NOSAVE: cached company RGB colour.
 PaletteID _company_palettes[MAX_COMPANIES]; ///< NOSAVE: cached company palette.
 CompanyManagerFace _company_manager_face; ///< for company manager face storage in openttd.cfg
 uint _next_competitor_start;              ///< the number of ticks before the next AI is started
@@ -535,6 +536,15 @@ static void UpdateLivery(Company *c, LiveryScheme scheme)
 		/* Update cached colour/palette for company */
 		_company_colours[c->index]  = (Colours)l->colour1;
 		_company_palettes[c->index] = l->cached_pal_1cc;
+
+		if (l->IsRGB()) {
+			/* Update cached RGB value for UI elements. Alpha is not used but
+			 * a non-zero alpha value indicates that an RGB value is present. */
+			_company_colours_rgb[c->index] = l->rgb1;
+			_company_colours_rgb[c->index].a = 255;
+		} else {
+			_company_colours_rgb[c->index] = 0;
+		}
 	}
 }
 
