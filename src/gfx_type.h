@@ -269,6 +269,7 @@ enum TextColour {
 
 	TC_IS_PALETTE_COLOUR = 0x100, ///< Colour value is already a real palette colour index, not an index of a StringColour.
 	TC_NO_SHADE          = 0x200, ///< Do not add shading to this text colour.
+	TC_IS_RGB_COLOUR     = 0x400, ///< Colour includes 21-bit RGB value in bits 11 to 31.
 };
 DECLARE_ENUM_AS_BIT_SET(TextColour)
 

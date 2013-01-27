@@ -188,6 +188,24 @@ extern DrawPixelInfo *_cur_dpi;
 TextColour GetContrastColour(uint8 background, uint8 threshold = 128);
 
 /**
+ * Convert an RGB colour value into a bit-stuffed TextColour, suitable for
+ * combining with an ordinary TextColour.
+ * @param rgb RGB colour to convert
+ * @return TextColour.
+ */
+static inline TextColour TextColourFromRGB(Colour rgb)
+{
+	/* TextColour only has 21 bits free after the 5 or 8 bit colour
+	 * index, so we have to lose 1 bit of each value to fit it in
+	 * the remaining space. */
+	return (TextColour)(
+		((rgb.r >> 1) << 11) |
+		((rgb.g >> 1) << 18) |
+		((rgb.b >> 1) << 25)) |
+		TC_IS_RGB_COLOUR;
+}
+
+/**
  * All 16 colour gradients
  * 8 colours per gradient from darkest (0) to lightest (7)
  */
