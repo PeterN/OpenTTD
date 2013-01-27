@@ -352,9 +352,9 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
-void Blitter_32bppAnim::SetPixel(void *video, int x, int y, uint8 colour)
+void Blitter_32bppAnim::SetPixel(void *video, int x, int y, uint8 colour, Colour rgb)
 {
-	*((Colour *)video + x + y * _screen.pitch) = LookupColourInPalette(colour);
+	*((Colour *)video + x + y * _screen.pitch) = (rgb.a == 0) ? LookupColourInPalette(colour) : rgb;
 
 	/* Set the colour in the anim-buffer too, if we are rendering to the screen */
 	if (_screen_disable_anim) return;
@@ -362,9 +362,9 @@ void Blitter_32bppAnim::SetPixel(void *video, int x, int y, uint8 colour)
 	this->anim_buf[this->ScreenToAnimOffset((uint32 *)video) + x + y * this->anim_buf_pitch] = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
-void Blitter_32bppAnim::DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash)
+void Blitter_32bppAnim::DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, Colour rgb, int width, int dash)
 {
-	const Colour c = LookupColourInPalette(colour);
+	const Colour c = (rgb.a == 0) ? LookupColourInPalette(colour) : rgb;
 
 	if (_screen_disable_anim)  {
 		this->DrawLineGeneric(x, y, x2, y2, screen_width, screen_height, width, dash, [&](int x, int y) {
@@ -380,15 +380,15 @@ void Blitter_32bppAnim::DrawLine(void *video, int x, int y, int x2, int y2, int 
 	}
 }
 
-void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colour)
+void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colour, Colour rgb)
 {
 	if (_screen_disable_anim) {
 		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawRect() */
-		Blitter_32bppOptimized::DrawRect(video, width, height, colour);
+		Blitter_32bppOptimized::DrawRect(video, width, height, colour, rgb);
 		return;
 	}
 
-	Colour colour32 = LookupColourInPalette(colour);
+	Colour colour32 = (rgb.a == 0) ? LookupColourInPalette(colour) : rgb;
 	uint16 *anim_line = this->ScreenToAnimOffset((uint32 *)video) + this->anim_buf;
 
 	do {

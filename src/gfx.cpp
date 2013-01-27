@@ -108,8 +108,9 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  *         FILLRECT_OPAQUE:   Fill the rectangle with the specified colour
  *         FILLRECT_CHECKER:  Like FILLRECT_OPAQUE, but only draw every second pixel (used to grey out things)
  *         FILLRECT_RECOLOUR:  Apply a recolour sprite to every pixel in the rectangle currently on screen
+ * @param rgb 24 bit RGB colour value
  */
-void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode)
+void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode, Colour rgb)
 {
 	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
 	const DrawPixelInfo *dpi = _cur_dpi;
@@ -138,7 +139,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 
 	switch (mode) {
 		default: // FILLRECT_OPAQUE
-			blitter->DrawRect(dst, right, bottom, (uint8)colour);
+			blitter->DrawRect(dst, right, bottom, (uint8)colour, rgb);
 			break;
 
 		case FILLRECT_RECOLOUR:
@@ -148,7 +149,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 		case FILLRECT_CHECKER: {
 			byte bo = (oleft - left + dpi->left + otop - top + dpi->top) & 1;
 			do {
-				for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour);
+				for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour, rgb);
 				dst = blitter->MoveTo(dst, 0, 1);
 			} while (--bottom > 0);
 			break;
@@ -170,7 +171,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
  * @param width Width of the line.
  * @param dash Length of dashes for dashed lines. 0 means solid line.
  */
-static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0)
+static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, Colour rgb, int width, int dash = 0)
 {
 	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
 
@@ -214,7 +215,7 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 	 * of rounding errors so much additional code has to be run here that in
 	 * the general case the effect is not noticable. */
 
-	blitter->DrawLine(video, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
+	blitter->DrawLine(video, x, y, x2, y2, screen_width, screen_height, colour, rgb, width, dash);
 }
 
 /**
@@ -243,11 +244,11 @@ static inline bool GfxPreprocessLine(DrawPixelInfo *dpi, int &x, int &y, int &x2
 	return true;
 }
 
-void GfxDrawLine(int x, int y, int x2, int y2, int colour, int width, int dash)
+void GfxDrawLine(int x, int y, int x2, int y2, int colour, int width, int dash, Colour rgb)
 {
 	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, width)) {
-		GfxDoDrawLine(dpi->dst_ptr, x, y, x2, y2, dpi->width, dpi->height, colour, width, dash);
+		GfxDoDrawLine(dpi->dst_ptr, x, y, x2, y2, dpi->width, dpi->height, colour, rgb, width, dash);
 	}
 }
 
@@ -258,7 +259,7 @@ void GfxDrawLineUnscaled(int x, int y, int x2, int y2, int colour)
 		GfxDoDrawLine(dpi->dst_ptr,
 				UnScaleByZoom(x, dpi->zoom), UnScaleByZoom(y, dpi->zoom),
 				UnScaleByZoom(x2, dpi->zoom), UnScaleByZoom(y2, dpi->zoom),
-				UnScaleByZoom(dpi->width, dpi->zoom), UnScaleByZoom(dpi->height, dpi->zoom), colour, 1);
+				UnScaleByZoom(dpi->width, dpi->zoom), UnScaleByZoom(dpi->height, dpi->zoom), colour, 0, 1);
 	}
 }
 
