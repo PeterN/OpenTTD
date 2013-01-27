@@ -143,6 +143,39 @@ inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomL
 					}
 					break;
 
+				case BM_COLOUR_REMAP_RGB:
+					if (src_px->a == 255) {
+						do {
+							uint m = *src_n;
+							/* In case the m-channel is zero, do not remap this pixel in any way */
+							if (m == 0) {
+								*dst = src_px->data;
+							} else {
+								const byte *r = &remap[GB(m, 0, 8) * 4];
+								Colour c = Colour(r[0], r[1], r[2], r[3]);
+								*dst = this->AdjustBrightness(c, GB(m, 8, 8));
+							}
+							dst++;
+							src_px++;
+							src_n++;
+						} while (--n != 0);
+					} else {
+						do {
+							uint m = *src_n;
+							if (m == 0) {
+								*dst = ComposeColourRGBANoCheck(src_px->r, src_px->g, src_px->b, src_px->a, *dst);
+							} else {
+								const byte *r = &remap[GB(m, 0, 8) * 4];
+								Colour c = Colour(r[0], r[1], r[2], r[3]);
+								*dst = ComposeColourPANoCheck(this->AdjustBrightness(c, GB(m, 8, 8)), src_px->a, *dst);
+							}
+							dst++;
+							src_px++;
+							src_n++;
+						} while (--n != 0);
+					}
+					break;
+
 				case BM_CRASH_REMAP:
 					if (src_px->a == 255) {
 						do {
@@ -246,11 +279,12 @@ void Blitter_32bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, 
 {
 	switch (mode) {
 		default: NOT_REACHED();
-		case BM_NORMAL:       Draw<BM_NORMAL>      (bp, zoom); return;
-		case BM_COLOUR_REMAP: Draw<BM_COLOUR_REMAP>(bp, zoom); return;
-		case BM_TRANSPARENT:  Draw<BM_TRANSPARENT> (bp, zoom); return;
-		case BM_CRASH_REMAP:  Draw<BM_CRASH_REMAP> (bp, zoom); return;
-		case BM_BLACK_REMAP:  Draw<BM_BLACK_REMAP> (bp, zoom); return;
+		case BM_NORMAL:           Draw<BM_NORMAL>          (bp, zoom); return;
+		case BM_COLOUR_REMAP:     Draw<BM_COLOUR_REMAP>    (bp, zoom); return;
+		case BM_COLOUR_REMAP_RGB: Draw<BM_COLOUR_REMAP_RGB>(bp, zoom); return;
+		case BM_TRANSPARENT:      Draw<BM_TRANSPARENT>     (bp, zoom); return;
+		case BM_CRASH_REMAP:      Draw<BM_CRASH_REMAP>     (bp, zoom); return;
+		case BM_BLACK_REMAP:      Draw<BM_BLACK_REMAP>     (bp, zoom); return;
 	}
 }
 
