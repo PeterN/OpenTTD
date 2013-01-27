@@ -303,6 +303,9 @@ enum SpriteType : byte {
 	ST_INVALID  = 4,      ///< Pseudosprite or other unusable sprite, used only internally
 };
 
+/** Identifier in first byte of recolour sprite to indicate an RGB recolour */
+static const byte SPRITE_REMAP_RGB = 4;
+
 /** The number of milliseconds per game tick. */
 static const uint MILLISECONDS_PER_TICK = 30;
 
