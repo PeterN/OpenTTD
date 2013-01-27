@@ -189,6 +189,15 @@ extern DrawPixelInfo *_cur_dpi;
 
 TextColour GetContrastColour(uint8 background, uint8 threshold = 128);
 
+static inline TextColour TextColourFromRGB(Colour rgb)
+{
+	return (TextColour)(
+		((rgb.r >> 1) << 11) |
+		((rgb.g >> 1) << 18) |
+		((rgb.b >> 1) << 25)) |
+		TC_IS_RGB_COLOUR;
+}
+
 /**
  * All 16 colour gradients
  * 8 colours per gradient from darkest (0) to lightest (7)
