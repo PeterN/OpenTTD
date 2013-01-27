@@ -79,6 +79,16 @@ enum CompanyFinancesWidgets {
 };
 
 
+/** Widgets of the #SelectRGBWindow class. */
+enum SelectRGBWidgets {
+	WID_RGB_CAPTION,     ///< Caption of window.
+	WID_RGB_SCROLLBAR_R, ///< Red scrollbar.
+	WID_RGB_SCROLLBAR_G, ///< Green scrollbar.
+	WID_RGB_SCROLLBAR_B, ///< Blue scrollbar.
+	WID_RGB_SCROLLBAR_C, ///< Contrast scrollbar.
+};
+
+
 /** Widgets of the #SelectCompanyLiveryWindow class. */
 enum SelectCompanyLiveryWidgets {
 	WID_SCL_CAPTION,          ///< Caption of window.

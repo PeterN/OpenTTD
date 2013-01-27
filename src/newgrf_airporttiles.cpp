@@ -274,7 +274,7 @@ bool DrawNewAirportTile(TileInfo *ti, Station *st, StationGfx gfx, const Airport
 	}
 
 	const TileLayoutSpriteGroup *tlgroup = (const TileLayoutSpriteGroup *)group;
-	AirportDrawTileLayout(ti, tlgroup, Company::Get(st->owner)->colour, gfx);
+	AirportDrawTileLayout(ti, tlgroup, Company::Get(st->owner)->colour & 0xF, gfx);
 	return true;
 }
 

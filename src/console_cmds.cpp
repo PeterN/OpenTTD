@@ -1724,7 +1724,7 @@ DEF_CONSOLE_CMD(ConCompanies)
 		}
 
 		char colour[512];
-		GetString(colour, STR_COLOUR_DARK_BLUE + _company_colours[c->index], lastof(colour));
+		GetString(colour, STR_COLOUR_DARK_BLUE + _company_colours[c->index] & 0xF, lastof(colour));
 		IConsolePrint(CC_INFO, "#:{}({}) Company Name: '{}'  Year Founded: {}  Money: {}  Loan: {}  Value: {}  (T:{}, R:{}, P:{}, S:{}) {}",
 			c->index + 1, colour, company_name,
 			c->inaugurated_year, (int64)c->money, (int64)c->current_loan, (int64)CalculateCompanyValue(c),

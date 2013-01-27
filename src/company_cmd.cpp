@@ -455,7 +455,7 @@ static Colours GenerateCompanyColour()
 
 	/* Move the colours that look similar to each company's colour to the side */
 	for (const Company *c : Company::Iterate()) {
-		Colours pcolour = (Colours)c->colour;
+		Colours pcolour = (Colours)(c->colour & 0xF);
 
 		for (uint i = 0; i < COLOUR_END; i++) {
 			if (colours[i] == pcolour) {
@@ -521,16 +521,28 @@ restart:;
  */
 void UpdateLivery(Livery &livery, const Company *c, LiveryScheme scheme)
 {
-	PaletteID pal_1cc = PALETTE_RECOLOUR_START + livery.colour1;
-	PaletteID pal_2cc = SPR_2CCMAP_BASE + livery.colour1 + livery.colour2 * 16;
+	PaletteID pal_1cc = PALETTE_RECOLOUR_START + GB(livery.colour1, 0, 4);
+	PaletteID pal_2cc = SPR_2CCMAP_BASE + GB(livery.colour1, 0, 4) + GB(livery.colour2, 0, 4) * 16;
+	PaletteID pal_2cr = SPR_2CCMAP_BASE + GB(livery.colour2, 0, 4) + GB(livery.colour1, 0, 4) * 16;
 
-	livery.cached_pal_1cc = pal_1cc;
-	livery.cached_pal_2cc = pal_2cc;
+	if (livery.IsRGB()) {
+		livery.cached_pal_1cc = CreateCompanyColourRemap(livery.colour1, livery.colour1, false, pal_1cc, livery.cached_pal_1cc);
+		livery.cached_pal_2cc = CreateCompanyColourRemap(livery.colour1, livery.colour2, true,  pal_2cc, livery.cached_pal_2cc);
+		livery.cached_pal_2cr = CreateCompanyColourRemap(livery.colour2, livery.colour1, true,  pal_2cr, livery.cached_pal_2cr);
+	} else {
+		livery.cached_pal_1cc = pal_1cc;
+		livery.cached_pal_2cc = pal_2cc;
+		livery.cached_pal_2cr = pal_2cr;
+	}
 
 	if (scheme == LS_DEFAULT) {
 		/* Update cached colour/palette for company */
 		assert(c != nullptr);
-		_company_colours[c->index]  = (Colours)livery.colour1;
+		if (livery.IsRGB()) {
+			_company_colours[c->index] = (Colours)((livery.colour1 & 0xFF) | (Colours)TC_IS_RGB_COLOUR | PackColourFromRGB(Colour(GB(livery.colour1, 8, 6) << 2, GB(livery.colour1, 14, 6) << 2, GB(livery.colour1, 20, 6) << 2, 255)));
+		} else {
+			_company_colours[c->index] = (Colours)(livery.colour1 & 0xFF);
+		}
 		_company_palettes[c->index] = livery.cached_pal_1cc;
 	}
 }
@@ -983,12 +995,15 @@ CommandCost CmdSetCompanyManagerFace(DoCommandFlag flags, CompanyManagerFace cmf
  * @param colour new colour for vehicles, property, etc.
  * @return the cost of this operation or an error
  */
-CommandCost CmdSetCompanyColour(DoCommandFlag flags, LiveryScheme scheme, bool primary, Colours colour)
+CommandCost CmdSetCompanyColour(DoCommandFlag flags, LiveryScheme scheme, bool primary, uint32 colour)
 {
-	if (scheme >= LS_END || (colour >= COLOUR_END && colour != INVALID_COLOUR)) return CMD_ERROR;
+	if (scheme >= LS_END) return CMD_ERROR;
+
+	/* Check colour is in range. */
+	if (GB(colour, 0, 8) >= COLOUR_END && GB(colour, 0, 8) != INVALID_COLOUR) return CMD_ERROR;
 
 	/* Default scheme can't be reset to invalid. */
-	if (scheme == LS_DEFAULT && colour == INVALID_COLOUR) return CMD_ERROR;
+	if (scheme == LS_DEFAULT && GB(colour, 0, 8) == INVALID_COLOUR) return CMD_ERROR;
 
 	Company *c = Company::Get(_current_company);
 
@@ -1002,7 +1017,7 @@ CommandCost CmdSetCompanyColour(DoCommandFlag flags, LiveryScheme scheme, bool p
 	if (flags & DC_EXEC) {
 		if (primary) {
 			if (scheme != LS_DEFAULT) SB(c->livery[scheme].in_use, 0, 1, colour != INVALID_COLOUR);
-			if (colour == INVALID_COLOUR) colour = (Colours)c->livery[LS_DEFAULT].colour1;
+			if (colour == INVALID_COLOUR) colour = c->livery[LS_DEFAULT].colour1;
 			c->livery[scheme].colour1 = colour;
 			UpdateLivery(c->livery[scheme], c, scheme);
 
@@ -1020,7 +1035,7 @@ CommandCost CmdSetCompanyColour(DoCommandFlag flags, LiveryScheme scheme, bool p
 			}
 		} else {
 			if (scheme != LS_DEFAULT) SB(c->livery[scheme].in_use, 1, 1, colour != INVALID_COLOUR);
-			if (colour == INVALID_COLOUR) colour = (Colours)c->livery[LS_DEFAULT].colour2;
+			if (colour == INVALID_COLOUR) colour = c->livery[LS_DEFAULT].colour2;
 			c->livery[scheme].colour2 = colour;
 			UpdateLivery(c->livery[scheme]);
 

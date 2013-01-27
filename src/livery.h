@@ -77,12 +77,18 @@ enum LiveryClass {
 
 /** Information about a particular livery. */
 struct Livery {
-	byte in_use;  ///< Bit 0 set if this livery should override the default livery first colour, Bit 1 for the second colour.
+	uint8 in_use;   ///< Bit 0 set if this livery should override the default livery first colour, Bit 1 for the second colour.
 	uint32 colour1; ///< First colour, for all vehicles.
 	uint32 colour2; ///< Second colour, for vehicles with 2CC support.
 
+	bool IsRGB() const
+	{
+		return (this->colour1 & 0xFFFFFF00) != 0 || (this->colour2 & 0xFFFFFF00) != 0;
+	}
+
 	PaletteID cached_pal_1cc; ///< NOSAVE: cached 1CC palette.
 	PaletteID cached_pal_2cc; ///< NOSAVE: cached 2CC palette.
+	PaletteID cached_pal_2cr; ///< NOSAVE: cached reversed 2CC palette.
 };
 
 void ResetCompanyLivery(Company *c);

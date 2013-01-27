@@ -30,7 +30,7 @@ std::tuple<CommandCost, GroupID> CmdAddVehicleGroup(DoCommandFlag flags, GroupID
 CommandCost CmdAddSharedVehicleGroup(DoCommandFlag flags, GroupID id_g, VehicleType type);
 CommandCost CmdRemoveAllVehiclesGroup(DoCommandFlag flags, GroupID group_id);
 CommandCost CmdSetGroupFlag(DoCommandFlag flags, GroupID group_id, GroupFlags flag, bool value, bool recursive);
-CommandCost CmdSetGroupLivery(DoCommandFlag flags, GroupID group_id, bool primary, Colours colour);
+CommandCost CmdSetGroupLivery(DoCommandFlag flags, GroupID group_id, bool primary, uint32 colour);
 
 DEF_CMD_TRAIT(CMD_CREATE_GROUP,              CmdCreateGroup,            0, CMDT_ROUTE_MANAGEMENT)
 DEF_CMD_TRAIT(CMD_DELETE_GROUP,              CmdDeleteGroup,            0, CMDT_ROUTE_MANAGEMENT)

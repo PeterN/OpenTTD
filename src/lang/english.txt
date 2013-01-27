@@ -171,6 +171,7 @@ STR_ITEMS                                                       :{COMMA}{NBSP}it
 STR_CRATES                                                      :{COMMA}{NBSP}crate{P "" s}
 
 STR_COLOUR_DEFAULT                                              :Default
+STR_COLOUR_CUSTOM                                               :Custom...
 ###length 17
 STR_COLOUR_DARK_BLUE                                            :Dark Blue
 STR_COLOUR_PALE_GREEN                                           :Pale Green

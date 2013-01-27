@@ -272,7 +272,7 @@ public:
 		switch (widget) {
 			case WID_EM_FACE: {
 				const Company *c = Company::Get(this->face);
-				DrawCompanyManagerFace(c->face, c->colour, r.left, r.top);
+				DrawCompanyManagerFace(c->face, c->livery[LS_DEFAULT].cached_pal_1cc, r.left, r.top);
 				break;
 			}
 

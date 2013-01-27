@@ -42,6 +42,7 @@
 #include "group_cmd.h"
 #include "misc_cmd.h"
 #include "object_cmd.h"
+#include "blitter/factory.hpp"
 
 #include "widgets/company_widget.h"
 
@@ -584,11 +585,14 @@ static const LiveryClass _livery_class[LS_END] = {
 };
 
 class DropDownListColourItem : public DropDownListItem {
+private:
+	PaletteID palette;
 public:
-	DropDownListColourItem(int result, bool masked) : DropDownListItem(result, masked) {}
+	DropDownListColourItem(int result, bool masked, PaletteID palette = PAL_NONE) : DropDownListItem(result, masked), palette(palette) {}
 
 	StringID String() const
 	{
+		if (this->palette != PAL_NONE) return STR_COLOUR_CUSTOM;
 		return this->result >= COLOUR_END ? STR_COLOUR_DEFAULT : _colour_dropdown[this->result];
 	}
 
@@ -608,13 +612,128 @@ public:
 		int icon_y = CenterBounds(r.top, r.bottom, 0);
 		int text_y = CenterBounds(r.top, r.bottom, FONT_HEIGHT_NORMAL);
 		Rect tr = r.Shrink(WidgetDimensions::scaled.dropdowntext);
-		DrawSprite(SPR_VEH_BUS_SIDE_VIEW, PALETTE_RECOLOUR_START + (this->result % COLOUR_END),
+		DrawSprite(SPR_VEH_BUS_SIDE_VIEW, this->palette != PAL_NONE ? this->palette : PALETTE_RECOLOUR_START + (this->result % COLOUR_END),
 				   rtl ? tr.right - ScaleGUITrad(14) : tr.left + ScaleGUITrad(14),
 				   icon_y);
 		tr = tr.Indent(ScaleGUITrad(28) + WidgetDimensions::scaled.hsep_normal, rtl);
 		DrawString(tr.left, tr.right, text_y, this->String(), sel ? TC_WHITE : TC_BLACK);
 	}
 };
+
+class SelectRGBWindow : public Window {
+	/* Preserved values from parent window when this window was opened. */
+	uint32 sel;
+	LiveryClass lc;
+	bool ctrl_pressed;
+	bool primary;
+	bool group;
+
+	Scrollbar *r, *g, *b, *c;
+	uint32 temp, current;
+
+	static const int BUTTON_SIZE = 10;
+
+public:
+	SelectRGBWindow(WindowDesc *desc, int window_number, CompanyID company, uint32 colour, uint32 sel, LiveryClass lc, bool ctrl, bool primary, bool group) :
+		Window(desc), sel(sel), lc(lc), ctrl_pressed(ctrl), primary(primary), group(group)
+	{
+		this->InitNested(window_number);
+		this->owner = (Owner)company;
+
+		this->temp = this->current = colour;
+
+		Colour rgb(GB(colour, 8, 6) << 2, GB(colour, 14, 6) << 2, GB(colour, 20, 6) << 2, GB(colour, 26, 6) << 2);
+		if (rgb.data == 0) {
+			rgb = GetCompanyColourRGB(colour);
+		}
+
+		this->r = this->GetScrollbar(WID_RGB_SCROLLBAR_R);
+		this->r->SetCapacity(BUTTON_SIZE);
+		this->r->SetCount(63 + BUTTON_SIZE);
+		this->r->SetPosition(rgb.r >> 2);
+		this->g = this->GetScrollbar(WID_RGB_SCROLLBAR_G);
+		this->g->SetCapacity(BUTTON_SIZE);
+		this->g->SetCount(63 + BUTTON_SIZE);
+		this->g->SetPosition(rgb.g >> 2);
+		this->b = this->GetScrollbar(WID_RGB_SCROLLBAR_B);
+		this->b->SetCapacity(BUTTON_SIZE);
+		this->b->SetCount(63 + BUTTON_SIZE);
+		this->b->SetPosition(rgb.b >> 2);
+		this->c = this->GetScrollbar(WID_RGB_SCROLLBAR_C);
+		this->c->SetCapacity(BUTTON_SIZE);
+		this->c->SetCount(63 + BUTTON_SIZE);
+		this->c->SetPosition(rgb.a >> 2);
+	}
+
+	void SetStringParameters(int widget) const override
+	{
+		switch (widget) {
+			case WID_RGB_CAPTION:
+				SetDParam(0, (CompanyID)this->owner);
+				break;
+		}
+	}
+
+	void OnPaint() override
+	{
+		uint32 colour = this->PackColour();
+		if (colour != this->temp) {
+			this->temp = colour;
+			this->SetTimeout();
+		}
+
+		this->DrawWidgets();
+	}
+
+	uint32 PackColour()
+	{
+		uint32 colour = this->current & 0xFF;
+		colour |= this->r->GetPosition() << 8;
+		colour |= this->g->GetPosition() << 14;
+		colour |= this->b->GetPosition() << 20;
+		colour |= this->c->GetPosition() << 26;
+		return colour;
+	}
+
+	void OnTimeout() override
+	{
+		uint32 colour = this->PackColour();
+		if (colour != this->current) {
+			this->temp = this->current = colour;
+
+			if (this->group) {
+				Command<CMD_SET_GROUP_LIVERY>::Post(this->sel, primary, this->current);
+			} else {
+				for (LiveryScheme scheme = LS_DEFAULT; scheme < LS_END; scheme++) {
+					/* Changed colour for the selected scheme, or all visible schemes if CTRL is pressed. */
+					if (HasBit(this->sel, scheme) || (this->ctrl_pressed && _livery_class[scheme] == this->lc && HasBit(_loaded_newgrf_features.used_liveries, scheme))) {
+						Command<CMD_SET_COMPANY_COLOUR>::Post(scheme, primary, this->current);
+					}
+				}
+			}
+		}
+	}
+};
+
+static const NWidgetPart _nested_select_rgb_widgets [] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
+		NWidget(WWT_CAPTION, COLOUR_GREY, WID_RGB_CAPTION), SetDataTip(STR_LIVERY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), SetPIP(10, 10, 10),
+		NWidget(NWID_HSCROLLBAR, COLOUR_RED,   WID_RGB_SCROLLBAR_R),
+		NWidget(NWID_HSCROLLBAR, COLOUR_GREEN, WID_RGB_SCROLLBAR_G),
+		NWidget(NWID_HSCROLLBAR, COLOUR_BLUE,  WID_RGB_SCROLLBAR_B),
+		NWidget(NWID_HSCROLLBAR, COLOUR_GREY,  WID_RGB_SCROLLBAR_C),
+	EndContainer(),
+};
+
+static WindowDesc _select_rgb_desc(
+	WDP_AUTO, nullptr, 300, 100,
+	WC_RGB_COLOUR, WC_NONE,
+	0,
+	_nested_select_rgb_widgets, lengthof(_nested_select_rgb_widgets)
+);
 
 typedef GUIList<const Group*> GUIGroupList;
 
@@ -630,42 +749,67 @@ private:
 	std::vector<int> indents;
 	Scrollbar *vscroll;
 
-	void ShowColourDropDownMenu(uint32 widget)
+	/**
+	 * Get the first selected livery.
+	 */
+	const Livery *GetSelectedLivery() const
 	{
-		uint32 used_colours = 0;
-		const Company *c;
-		const Livery *livery, *default_livery = nullptr;
-		bool primary = widget == WID_SCL_PRI_COL_DROPDOWN;
-		byte default_col;
-
-		/* Disallow other company colours for the primary colour */
-		if (this->livery_class < LC_GROUP_RAIL && HasBit(this->sel, LS_DEFAULT) && primary) {
-			for (const Company *c : Company::Iterate()) {
-				if (c->index != _local_company) SetBit(used_colours, c->colour);
-			}
-		}
-
-		c = Company::Get((CompanyID)this->window_number);
-
 		if (this->livery_class < LC_GROUP_RAIL) {
 			/* Get the first selected livery to use as the default dropdown item */
 			LiveryScheme scheme;
 			for (scheme = LS_BEGIN; scheme < LS_END; scheme++) {
 				if (HasBit(this->sel, scheme)) break;
 			}
+
 			if (scheme == LS_END) scheme = LS_DEFAULT;
-			livery = &c->livery[scheme];
-			if (scheme != LS_DEFAULT) default_livery = &c->livery[LS_DEFAULT];
+
+			const Company *c = Company::Get((CompanyID)this->window_number);
+			return &c->livery[scheme];
 		} else {
 			const Group *g = Group::Get(this->sel);
-			livery = &g->livery;
+			return &g->livery;
+		}
+	}
+
+	/**
+	 * Get the default selected livery.
+	 */
+	const Livery *GetDefaultLivery() const
+	{
+		const Company *c = Company::Get((CompanyID)this->window_number);
+
+		if (this->livery_class < LC_GROUP_RAIL) {
+			if (!HasBit(this->sel, LS_DEFAULT)) return &c->livery[LS_DEFAULT];
+		} else {
+
+			const Group *g = Group::Get(this->sel);
 			if (g->parent == INVALID_GROUP) {
-				default_livery = &c->livery[LS_DEFAULT];
+				return &c->livery[LS_DEFAULT];
 			} else {
 				const Group *pg = Group::Get(g->parent);
-				default_livery = &pg->livery;
+				return &pg->livery;
 			}
 		}
+		return nullptr;
+	}
+
+
+	void ShowColourDropDownMenu(uint32 widget)
+	{
+		uint32 used_colours = 0;
+		bool primary = widget == WID_SCL_PRI_COL_DROPDOWN;
+		byte default_col;
+
+		/* Disallow other company colours for the primary colour */
+		if (this->livery_class < LC_GROUP_RAIL && HasBit(this->sel, LS_DEFAULT) && primary) {
+			for (const Company *c : Company::Iterate()) {
+				if (c->index != _local_company) SetBit(used_colours, c->colour & 0xF);
+			}
+		}
+
+		/* Get the first selected livery to use as the default dropdown item */
+		const Livery *livery = GetSelectedLivery();
+		const Livery *default_livery = GetDefaultLivery();
 
 		DropDownList list;
 		if (default_livery != nullptr) {
@@ -676,9 +820,10 @@ private:
 		for (uint i = 0; i < lengthof(_colour_dropdown); i++) {
 			list.emplace_back(new DropDownListColourItem(i, HasBit(used_colours, i)));
 		}
+		list.emplace_back(new DropDownListColourItem(255, BlitterFactory::GetCurrentBlitter()->GetScreenDepth() != 32, widget == WID_SCL_PRI_COL_DROPDOWN ? livery->cached_pal_1cc : livery->cached_pal_2cr));
 
 		byte sel = (default_livery == nullptr || HasBit(livery->in_use, primary ? 0 : 1)) ? (primary ? livery->colour1 : livery->colour2) : default_col;
-		ShowDropDownList(this, std::move(list), sel, widget);
+		ShowDropDownList(this, std::move(list), livery->IsRGB() ? 255 : sel, widget);
 	}
 
 	void AddChildren(GUIGroupList *source, GroupID parent, int indent)
@@ -890,7 +1035,7 @@ public:
 						if (scheme == LS_END) scheme = LS_DEFAULT;
 						const Livery *livery = &c->livery[scheme];
 						if (scheme == LS_DEFAULT || HasBit(livery->in_use, primary ? 0 : 1)) {
-							colour = STR_COLOUR_DARK_BLUE + (primary ? livery->colour1 : livery->colour2);
+							colour = STR_COLOUR_DARK_BLUE + (primary ? livery->colour1 : livery->colour2) & 0xF;
 						}
 					}
 				} else {
@@ -898,7 +1043,7 @@ public:
 						const Group *g = Group::Get(this->sel);
 						const Livery *livery = &g->livery;
 						if (HasBit(livery->in_use, primary ? 0 : 1)) {
-							colour = STR_COLOUR_DARK_BLUE + (primary ? livery->colour1 : livery->colour2);
+							colour = STR_COLOUR_DARK_BLUE + (primary ? livery->colour1 : livery->colour2) & 0xF;
 						}
 					}
 				}
@@ -942,13 +1087,13 @@ public:
 			DrawString(sch.left + (rtl ? 0 : indent), sch.right - (rtl ? indent : 0), y + text_offs, str, sel ? TC_WHITE : TC_BLACK);
 
 			/* Text below the first dropdown. */
-			DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(liv.colour1), pri_squ.left, y + square_offs);
-			DrawString(pri.left, pri.right, y + text_offs, (def || HasBit(liv.in_use, 0)) ? STR_COLOUR_DARK_BLUE + liv.colour1 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
+			DrawSprite(SPR_SQUARE, liv.cached_pal_1cc, pri_squ.left, y + square_offs);
+			DrawString(pri.left, pri.right, y + text_offs, liv.IsRGB() ? STR_COLOUR_CUSTOM : (def || HasBit(liv.in_use, 0)) ? STR_COLOUR_DARK_BLUE + liv.colour1 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
 
 			/* Text below the second dropdown. */
 			if (sec.right > sec.left) { // Second dropdown has non-zero size.
-				DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(liv.colour2), sec_squ.left, y + square_offs);
-				DrawString(sec.left, sec.right, y + text_offs, (def || HasBit(liv.in_use, 1)) ? STR_COLOUR_DARK_BLUE + liv.colour2 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
+				DrawSprite(SPR_SQUARE, liv.cached_pal_2cr, sec_squ.left, y + square_offs);
+				DrawString(sec.left, sec.right, y + text_offs, liv.IsRGB() ? STR_COLOUR_CUSTOM : (def || HasBit(liv.in_use, 1)) ? STR_COLOUR_DARK_BLUE + liv.colour2 : STR_COLOUR_DEFAULT, sel ? TC_WHITE : TC_GOLD);
 			}
 
 			y += this->line_height;
@@ -1056,6 +1201,16 @@ public:
 	{
 		bool local = (CompanyID)this->window_number == _local_company;
 		if (!local) return;
+
+		if (index == 0xFF) {
+			/* Special case for 'Custom...' option */
+			int number = ((widget == WID_SCL_PRI_COL_DROPDOWN) ? 1 : 0) | (this->window_number << 1);
+			if (BringWindowToFrontById(WC_RGB_COLOUR, number)) return;
+
+			const Livery *livery = GetSelectedLivery();
+			new SelectRGBWindow(&_select_rgb_desc, number, (CompanyID)this->window_number, (widget == WID_SCL_PRI_COL_DROPDOWN) ? livery->colour1 : livery->colour2, this->sel, this->livery_class, _ctrl_pressed, widget == WID_SCL_PRI_COL_DROPDOWN, this->livery_class >= LC_GROUP_RAIL);
+			return;
+		}
 
 		if (index >= COLOUR_END) index = INVALID_COLOUR;
 
@@ -1172,11 +1327,11 @@ void ShowCompanyLiveryWindow(CompanyID company, GroupID group)
 /**
  * Draws the face of a company manager's face.
  * @param cmf   the company manager's face
- * @param colour the (background) colour of the gradient
+ * @param palette the (background) palette of the gradient
  * @param x     x-position to draw the face
  * @param y     y-position to draw the face
  */
-void DrawCompanyManagerFace(CompanyManagerFace cmf, int colour, int x, int y)
+void DrawCompanyManagerFace(CompanyManagerFace cmf, PaletteID palette, int x, int y)
 {
 	GenderEthnicity ge = (GenderEthnicity)GetCompanyManagerFaceBits(cmf, CMFV_GEN_ETHN, GE_WM);
 
@@ -1198,7 +1353,7 @@ void DrawCompanyManagerFace(CompanyManagerFace cmf, int colour, int x, int y)
 	}
 
 	/* Draw the gradient (background) */
-	DrawSprite(SPR_GRADIENT, GENERAL_SPRITE_COLOUR(colour), x, y);
+	DrawSprite(SPR_GRADIENT, palette, x, y);
 
 	for (CompanyManagerFaceVariable cmfv = CMFV_CHEEKS; cmfv < CMFV_END; cmfv++) {
 		switch (cmfv) {
@@ -1634,7 +1789,7 @@ public:
 	{
 		switch (widget) {
 			case WID_SCMF_FACE:
-				DrawCompanyManagerFace(this->face, Company::Get((CompanyID)this->window_number)->colour, r.left, r.top);
+				DrawCompanyManagerFace(this->face, Company::Get((CompanyID)this->window_number)->livery[LS_DEFAULT].cached_pal_1cc, r.left, r.top);
 				break;
 		}
 	}
@@ -2450,7 +2605,7 @@ struct CompanyWindow : Window
 		const Company *c = Company::Get((CompanyID)this->window_number);
 		switch (widget) {
 			case WID_C_FACE:
-				DrawCompanyManagerFace(c->face, c->colour, r.left, r.top);
+				DrawCompanyManagerFace(c->face, c->livery[LS_DEFAULT].cached_pal_1cc, r.left, r.top);
 				break;
 
 			case WID_C_FACE_TITLE:
@@ -2812,7 +2967,7 @@ struct BuyCompanyWindow : Window {
 		switch (widget) {
 			case WID_BC_FACE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
-				DrawCompanyManagerFace(c->face, c->colour, r.left, r.top);
+				DrawCompanyManagerFace(c->face, c->livery[LS_DEFAULT].cached_pal_1cc, r.left, r.top);
 				break;
 			}
 

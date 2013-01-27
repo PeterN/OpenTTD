@@ -611,13 +611,13 @@ CommandCost CmdRemoveAllVehiclesGroup(DoCommandFlag flags, GroupID group_id)
  * @param primary Set primary instead of secondary colour
  * @param colour Colour.
  */
-CommandCost CmdSetGroupLivery(DoCommandFlag flags, GroupID group_id, bool primary, Colours colour)
+CommandCost CmdSetGroupLivery(DoCommandFlag flags, GroupID group_id, bool primary, uint32 colour)
 {
 	Group *g = Group::GetIfValid(group_id);
 
 	if (g == nullptr || g->owner != _current_company) return CMD_ERROR;
 
-	if (colour >= COLOUR_END && colour != INVALID_COLOUR) return CMD_ERROR;
+	if (GB(colour, 0, 8) >= COLOUR_END && colour != INVALID_COLOUR) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
 		if (primary) {
@@ -629,6 +629,7 @@ CommandCost CmdSetGroupLivery(DoCommandFlag flags, GroupID group_id, bool primar
 			if (colour == INVALID_COLOUR) colour = (Colours)GetParentLivery(g)->colour2;
 			g->livery.colour2 = colour;
 		}
+		UpdateLivery(g->livery);
 
 		PropagateChildLivery(g);
 		MarkWholeScreenDirty();
