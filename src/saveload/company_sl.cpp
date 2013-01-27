@@ -406,6 +406,8 @@ static const SaveLoad _company_livery_desc[] = {
 	SLE_CONDVAR(Livery, flags,    SLE_UINT8,  34, SL_MAX_VERSION),
 	SLE_CONDVAR(Livery, colour1,  SLE_UINT8,  34, SL_MAX_VERSION),
 	SLE_CONDVAR(Livery, colour2,  SLE_UINT8,  34, SL_MAX_VERSION),
+	SLE_CONDVAR(Livery, rgb1,    SLE_UINT32, 203, SL_MAX_VERSION),
+	SLE_CONDVAR(Livery, rgb2,    SLE_UINT32, 203, SL_MAX_VERSION),
 	SLE_END()
 };
 
