@@ -109,6 +109,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  *         FILLRECT_OPAQUE:   Fill the rectangle with the specified colour
  *         FILLRECT_CHECKER:  Like FILLRECT_OPAQUE, but only draw every second pixel (used to grey out things)
  *         FILLRECT_RECOLOUR:  Apply a recolour sprite to every pixel in the rectangle currently on screen
+ * @param rgb 24 bit RGB colour value
  */
 void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode, Colour rgb)
 {
@@ -310,6 +311,7 @@ void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
 /**
  * Set the colour remap to be for the given colour.
  * @param colour the new colour of the remap.
+ * @return blitter mode to draw characters with.
  */
 static BlitterMode SetColourRemap(TextColour colour)
 {
