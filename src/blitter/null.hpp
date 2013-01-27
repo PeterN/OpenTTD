@@ -22,9 +22,9 @@ public:
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal) {};
 	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 	/* virtual */ void *MoveTo(void *video, int x, int y) { return NULL; };
-	/* virtual */ void SetPixel(void *video, int x, int y, uint8 colour) {};
-	/* virtual */ void DrawRect(void *video, int width, int height, uint8 colour) {};
-	/* virtual */ void DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash) {};
+	/* virtual */ void SetPixel(void *video, int x, int y, uint8 colour, Colour rgb) {};
+	/* virtual */ void DrawRect(void *video, int width, int height, uint8 colour, Colour rgb) {};
+	/* virtual */ void DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, Colour rgb, int width, int dash) {};
 	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height) {};
 	/* virtual */ void CopyToBuffer(const void *video, void *dst, int width, int height) {};
 	/* virtual */ void CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch) {};

@@ -30,12 +30,12 @@ void *Blitter_8bppBase::MoveTo(void *video, int x, int y)
 	return (uint8 *)video + x + y * _screen.pitch;
 }
 
-void Blitter_8bppBase::SetPixel(void *video, int x, int y, uint8 colour)
+void Blitter_8bppBase::SetPixel(void *video, int x, int y, uint8 colour, Colour rgb)
 {
 	*((uint8 *)video + x + y * _screen.pitch) = colour;
 }
 
-void Blitter_8bppBase::DrawRect(void *video, int width, int height, uint8 colour)
+void Blitter_8bppBase::DrawRect(void *video, int width, int height, uint8 colour, Colour rgb)
 {
 	do {
 		memset(video, colour, width);
