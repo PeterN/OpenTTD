@@ -26,18 +26,18 @@ static FBlitter_40bppAnim iFBlitter_40bppAnim;
 static const Colour _black_colour(0, 0, 0);
 
 
-void Blitter_40bppAnim::SetPixel(void *video, int x, int y, uint8 colour)
+void Blitter_40bppAnim::SetPixel(void *video, int x, int y, uint32 colour)
 {
 	if (_screen_disable_anim) {
 		Blitter_32bppOptimized::SetPixel(video, x, y, colour);
 	} else {
 		*((Colour *)video + x + y * _screen.pitch) = _black_colour;
-
+		// TODO: Draw RGB part
 		VideoDriver::GetInstance()->GetAnimBuffer()[((uint32 *)video - (uint32 *)_screen.dst_ptr) + x + y * _screen.pitch] = colour;
 	}
 }
 
-void Blitter_40bppAnim::DrawRect(void *video, int width, int height, uint8 colour)
+void Blitter_40bppAnim::DrawRect(void *video, int width, int height, uint32 colour)
 {
 	if (_screen_disable_anim) {
 		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawRect() */
@@ -51,6 +51,7 @@ void Blitter_40bppAnim::DrawRect(void *video, int width, int height, uint8 colou
 	do {
 		Colour *dst = (Colour *)video;
 		uint8 *anim = anim_line;
+		// TODO: Draw RGB part
 
 		for (int i = width; i > 0; i--) {
 			*dst = _black_colour;
@@ -63,7 +64,7 @@ void Blitter_40bppAnim::DrawRect(void *video, int width, int height, uint8 colou
 	} while (--height);
 }
 
-void Blitter_40bppAnim::DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash)
+void Blitter_40bppAnim::DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint32 colour, int width, int dash)
 {
 	if (_screen_disable_anim) {
 		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawRect() */
@@ -75,6 +76,7 @@ void Blitter_40bppAnim::DrawLine(void *video, int x, int y, int x2, int y2, int 
 	uint8 *anim = ((uint32 *)video - (uint32 *)_screen.dst_ptr) + VideoDriver::GetInstance()->GetAnimBuffer();
 
 	this->DrawLineGeneric(x, y, x2, y2, screen_width, screen_height, width, dash, [=](int x, int y) {
+		// TODO: Draw RGB part
 		*((Colour *)video + x + y * _screen.pitch) = _black_colour;
 		*(anim + x + y * _screen.pitch) = colour;
 	});

@@ -29,22 +29,22 @@ void *Blitter_8bppBase::MoveTo(void *video, int x, int y)
 	return (uint8 *)video + x + y * _screen.pitch;
 }
 
-void Blitter_8bppBase::SetPixel(void *video, int x, int y, uint8 colour)
+void Blitter_8bppBase::SetPixel(void *video, int x, int y, uint32 colour)
 {
-	*((uint8 *)video + x + y * _screen.pitch) = colour;
+	*((uint8 *)video + x + y * _screen.pitch) = (uint8)colour;
 }
 
-void Blitter_8bppBase::DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash)
+void Blitter_8bppBase::DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint32 colour, int width, int dash)
 {
 	this->DrawLineGeneric(x, y, x2, y2, screen_width, screen_height, width, dash, [=](int x, int y) {
-		*((uint8 *)video + x + y * _screen.pitch) = colour;
+		*((uint8 *)video + x + y * _screen.pitch) = (uint8)colour;
 	});
 }
 
-void Blitter_8bppBase::DrawRect(void *video, int width, int height, uint8 colour)
+void Blitter_8bppBase::DrawRect(void *video, int width, int height, uint32 colour)
 {
 	do {
-		memset(video, colour, width);
+		memset(video, (uint8)colour, width);
 		video = (uint8 *)video + _screen.pitch;
 	} while (--height);
 }

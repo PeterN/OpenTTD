@@ -113,7 +113,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  *         FILLRECT_CHECKER:  Like FILLRECT_OPAQUE, but only draw every second pixel (used to grey out things)
  *         FILLRECT_RECOLOUR:  Apply a recolour sprite to every pixel in the rectangle currently on screen
  */
-void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode)
+void GfxFillRect(int left, int top, int right, int bottom, uint32 colour, FillRectMode mode)
 {
 	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
 	const DrawPixelInfo *dpi = _cur_dpi;
@@ -142,7 +142,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 
 	switch (mode) {
 		default: // FILLRECT_OPAQUE
-			blitter->DrawRect(dst, right, bottom, (uint8)colour);
+			blitter->DrawRect(dst, right, bottom, colour);
 			break;
 
 		case FILLRECT_RECOLOUR:
@@ -152,7 +152,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 		case FILLRECT_CHECKER: {
 			byte bo = (oleft - left + dpi->left + otop - top + dpi->top) & 1;
 			do {
-				for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour);
+				for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, colour);
 				dst = blitter->MoveTo(dst, 0, 1);
 			} while (--bottom > 0);
 			break;
@@ -209,7 +209,7 @@ static std::vector<LineSegment> MakePolygonSegments(const std::vector<Point> &sh
  *         FILLRECT_CHECKER:  Fill every other pixel with the specified colour, in a checkerboard pattern.
  *         FILLRECT_RECOLOUR: Apply a recolour sprite to every pixel in the polygon.
  */
-void GfxFillPolygon(const std::vector<Point> &shape, int colour, FillRectMode mode)
+void GfxFillPolygon(const std::vector<Point> &shape, uint32 colour, FillRectMode mode)
 {
 	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
 	const DrawPixelInfo *dpi = _cur_dpi;
@@ -278,7 +278,7 @@ void GfxFillPolygon(const std::vector<Point> &shape, int colour, FillRectMode mo
 			void *dst = blitter->MoveTo(dpi->dst_ptr, x1, y);
 			switch (mode) {
 				default: // FILLRECT_OPAQUE
-					blitter->DrawRect(dst, x2 - x1, 1, (uint8)colour);
+					blitter->DrawRect(dst, x2 - x1, 1, colour);
 					break;
 				case FILLRECT_RECOLOUR:
 					blitter->DrawColourMappingRect(dst, x2 - x1, 1, GB(colour, 0, PALETTE_WIDTH));
@@ -287,7 +287,7 @@ void GfxFillPolygon(const std::vector<Point> &shape, int colour, FillRectMode mo
 					/* Fill every other pixel, offset such that the sum of filled pixels' X and Y coordinates is odd.
 					 * This creates a checkerboard effect. */
 					for (int x = (x1 + y) & 1; x < x2 - x1; x += 2) {
-						blitter->SetPixel(dst, x, 0, (uint8)colour);
+						blitter->SetPixel(dst, x, 0, colour);
 					}
 					break;
 			}
@@ -312,7 +312,7 @@ void GfxFillPolygon(const std::vector<Point> &shape, int colour, FillRectMode mo
  * @param width Width of the line.
  * @param dash Length of dashes for dashed lines. 0 means solid line.
  */
-static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0)
+static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint32 colour, int width, int dash = 0)
 {
 	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
 
@@ -385,7 +385,7 @@ static inline bool GfxPreprocessLine(DrawPixelInfo *dpi, int &x, int &y, int &x2
 	return true;
 }
 
-void GfxDrawLine(int x, int y, int x2, int y2, int colour, int width, int dash)
+void GfxDrawLine(int x, int y, int x2, int y2, uint32 colour, int width, int dash)
 {
 	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, width)) {
@@ -393,7 +393,7 @@ void GfxDrawLine(int x, int y, int x2, int y2, int colour, int width, int dash)
 	}
 }
 
-void GfxDrawLineUnscaled(int x, int y, int x2, int y2, int colour)
+void GfxDrawLineUnscaled(int x, int y, int x2, int y2, uint32 colour)
 {
 	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, 1)) {

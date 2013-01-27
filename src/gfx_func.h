@@ -104,10 +104,15 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, StringID str, 
 
 void DrawCharCentered(WChar c, const Rect &r, TextColour colour);
 
-void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode = FILLRECT_OPAQUE);
-void GfxFillPolygon(const std::vector<Point> &shape, int colour, FillRectMode mode = FILLRECT_OPAQUE);
-void GfxDrawLine(int left, int top, int right, int bottom, int colour, int width = 1, int dash = 0);
+void GfxFillRect(int left, int top, int right, int bottom, uint32 colour, FillRectMode mode = FILLRECT_OPAQUE);
+void GfxFillPolygon(const std::vector<Point> &shape, uint32 colour, FillRectMode mode = FILLRECT_OPAQUE);
+void GfxDrawLine(int left, int top, int right, int bottom, uint32 colour, int width = 1, int dash = 0);
 void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3);
+
+static inline uint32 PackColour(uint8 index, Colour colour)
+{
+	return index | (colour.data << 8);
+}
 
 /* Versions of DrawString/DrawStringMultiLine that accept a Rect instead of separate left, right, top and bottom parameters. */
 static inline int DrawString(const Rect &r, const char *str, TextColour colour = TC_FROMSTRING, StringAlignment align = SA_LEFT, bool underline = false, FontSize fontsize = FS_NORMAL)
