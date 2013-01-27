@@ -237,22 +237,16 @@ TextColour GetContrastColour(uint8 background, uint8 threshold = 128);
  * @param rgb RGB colour to convert
  * @return TextColour.
  */
-static inline TextColour TextColourFromRGB(Colour rgb)
+static inline Colours PackColourFromRGB(Colour rgb)
 {
 	/* TextColour only has 20 bits free after the 5 or 8 bit colour index,
 	 * so we lose 2 bits of each value to fit in the remaining space. */
-	return (TextColour)(
-		((rgb.r >> 2) << 12) |
-		((rgb.g >> 2) << 18) |
-		((rgb.b >> 2) << 24)) |
-		TC_IS_RGB_COLOUR;
+	return (Colours)(((rgb.r >> 2) << 12) |
+	                 ((rgb.g >> 2) << 18) |
+	                 ((rgb.b >> 2) << 24));
 }
 
-/**
- * All 16 colour gradients
- * 8 colours per gradient from darkest (0) to lightest (7)
- */
-extern byte _colour_gradient[COLOUR_END][8];
+uint32 ShadeColour(uint32 colour, int shade);
 
 /**
  * Return the colour for a particular greyscale level.

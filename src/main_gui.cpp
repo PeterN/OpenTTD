@@ -537,6 +537,7 @@ void ShowSelectGameWindow();
  */
 void SetupColoursAndInitialWindow()
 {
+	extern byte _colour_gradient[COLOUR_END][8];
 	for (uint i = 0; i != 16; i++) {
 		const byte *b = GetNonSprite(PALETTE_RECOLOUR_START + i, ST_RECOLOUR);
 

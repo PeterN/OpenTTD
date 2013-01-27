@@ -1998,7 +1998,7 @@ public:
 			DrawFrameRect(r, button->colour, FR_NONE);
 			DrawSprite(button->sprite, PAL_NONE, r.left + WidgetDimensions::scaled.framerect.left, r.top + WidgetDimensions::scaled.framerect.top);
 			if (button->disabled) {
-				GfxFillRect(r.Shrink(WidgetDimensions::scaled.bevel), _colour_gradient[button->colour & 0xF][2], FILLRECT_CHECKER);
+				GfxFillRect(r.Shrink(WidgetDimensions::scaled.bevel), ShadeColour(button->colour, 2), FILLRECT_CHECKER);
 			}
 
 			int width = button->width + WidgetDimensions::scaled.hsep_normal;

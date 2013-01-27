@@ -305,6 +305,7 @@ bool HandleBootstrap()
 	 * This way the mauve and gray colours work and we can show the user interface. */
 	GfxInitPalettes();
 	static const int offsets[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0x04, 0x08 };
+	extern byte _colour_gradient[COLOUR_END][8];
 	for (uint i = 0; i != 16; i++) {
 		for (int j = 0; j < 8; j++) {
 			_colour_gradient[i][j] = offsets[i] + j;

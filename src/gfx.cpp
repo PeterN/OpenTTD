@@ -2130,3 +2130,28 @@ void ChangeGameSpeed(bool enable_fast_forward)
 		_game_speed = 100;
 	}
 }
+
+
+/**
+ * Adjust an RGB colour by an amount.
+ * @param rgb Base colour to adjust
+ * @param amt Amount to adjust colour by
+ * @return Adjusted colour.
+ */
+static inline uint32 AdjustRGBShade(uint32 colour, int amt)
+{
+	if ((colour & TC_IS_RGB_COLOUR) == 0) return 0;
+	SB(colour,  8, 8, Clamp((GB(colour, 12, 6) << 2) + amt, 0, 255));
+	SB(colour, 16, 8, Clamp((GB(colour, 18, 6) << 2) + amt, 0, 255));
+	SB(colour, 24, 8, Clamp((GB(colour, 24, 6) << 2) + amt, 0, 255));
+	return colour & 0xFFFFFF00;
+}
+
+/**
+ * All 16 colour gradients
+ * 8 colours per gradient from darkest (0) to lightest (7)
+ */
+uint32 ShadeColour(uint32 colour, int shade)
+{
+	return _colour_gradient[colour & 0xF][shade & 0x7] | AdjustRGBShade(colour, (shade - 4) * 16);
+}

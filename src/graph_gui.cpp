@@ -21,6 +21,7 @@
 #include "core/geometry_func.hpp"
 #include "currency.h"
 #include "zoom_func.h"
+#include "company_func.h"
 
 #include "widgets/graph_widget.h"
 
@@ -193,7 +194,7 @@ protected:
 
 	int graph_widget;
 	StringID format_str_y_axis;
-	byte colours[GRAPH_MAX_DATASETS];
+	uint32 colours[GRAPH_MAX_DATASETS];
 	OverflowSafeInt64 cost[GRAPH_MAX_DATASETS][GRAPH_NUM_MONTHS]; ///< Stored costs for the last #GRAPH_NUM_MONTHS months
 
 	/**
@@ -422,7 +423,7 @@ protected:
 				/* Centre the dot between the grid lines. */
 				x = r.left + (x_sep / 2);
 
-				byte colour  = this->colours[i];
+				uint32 colour = this->colours[i];
 				uint prev_x = INVALID_DATAPOINT_POS;
 				uint prev_y = INVALID_DATAPOINT_POS;
 
@@ -600,7 +601,7 @@ public:
 		for (CompanyID k = COMPANY_FIRST; k < MAX_COMPANIES; k++) {
 			const Company *c = Company::GetIfValid(k);
 			if (c != nullptr) {
-				this->colours[numd] = _colour_gradient[c->colour][6];
+				this->colours[numd] = ShadeColour(c->colour, 6);
 				for (int j = this->num_on_x_axis, i = 0; --j >= 0;) {
 					this->cost[numd][i] = (j >= c->num_valid_stat_ent) ? INVALID_DATAPOINT : GetGraphData(c, j);
 					i++;
@@ -1212,8 +1213,8 @@ struct PerformanceRatingDetailWindow : Window {
 		ScoreID score_type = (ScoreID)(widget - WID_PRD_SCORE_FIRST);
 
 		/* The colours used to show how the progress is going */
-		int colour_done = _colour_gradient[COLOUR_GREEN][4];
-		int colour_notdone = _colour_gradient[COLOUR_RED][4];
+		int colour_done = ShadeColour(COLOUR_GREEN, 4);
+		int colour_notdone = ShadeColour(COLOUR_RED, 4);
 
 		/* Draw all the score parts */
 		int64 val    = _score_part[company][score_type];

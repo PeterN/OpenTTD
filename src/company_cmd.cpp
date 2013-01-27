@@ -36,6 +36,7 @@
 #include "story_base.h"
 #include "widgets/statusbar_widget.h"
 #include "company_cmd.h"
+#include "gfx_func.h"
 
 #include "table/strings.h"
 
@@ -135,8 +136,8 @@ void SetLocalCompany(CompanyID new_company)
  */
 TextColour GetDrawStringCompanyColour(CompanyID company)
 {
-	if (!Company::IsValidID(company)) return (TextColour)_colour_gradient[COLOUR_WHITE][4] | TC_IS_PALETTE_COLOUR;
-	return (TextColour)_colour_gradient[_company_colours[company]][4] | TC_IS_PALETTE_COLOUR;
+	if (!Company::IsValidID(company)) return (TextColour)ShadeColour(COLOUR_WHITE, 4) | TC_IS_PALETTE_COLOUR;
+	return (TextColour)ShadeColour(_company_colours[company], 4) | TC_IS_PALETTE_COLOUR;
 }
 
 /**
