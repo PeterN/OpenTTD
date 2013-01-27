@@ -1055,6 +1055,12 @@ void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSpri
 			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
 		} else {
 			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+			if (_colour_remap_ptr[-1] == SPRITE_REMAP_RGB && BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 32) {
+				/* Skip 8bpp remap */
+				_colour_remap_ptr += 256;
+				GfxMainBlitterViewport(GetSprite(real_sprite, ST_NORMAL), x, y, BM_COLOUR_REMAP_RGB, sub, real_sprite);
+				return;
+			}
 		}
 		GfxMainBlitterViewport(GetSprite(real_sprite, ST_NORMAL), x, y, GetBlitterMode(pal), sub, real_sprite);
 	} else {
@@ -1082,6 +1088,12 @@ void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub,
 			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
 		} else {
 			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+			if (_colour_remap_ptr[-1] == SPRITE_REMAP_RGB && BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 32) {
+				/* Skip 8bpp remap */
+				_colour_remap_ptr += 256;
+				GfxMainBlitter(GetSprite(real_sprite, ST_NORMAL), x, y, BM_COLOUR_REMAP_RGB, sub, real_sprite, zoom);
+				return;
+			}
 		}
 		GfxMainBlitter(GetSprite(real_sprite, ST_NORMAL), x, y, GetBlitterMode(pal), sub, real_sprite, zoom);
 	} else {
