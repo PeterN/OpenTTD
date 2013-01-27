@@ -166,6 +166,21 @@ int GetWidgetFromPos(const Window *w, int x, int y)
 }
 
 /**
+ * Adjust an RGB colour by an amount.
+ * @param rgb Base colour to adjust
+ * @param amt Amount to adjust colour by
+ * @return Adjusted colour.
+ */
+static Colour AdjustRGB(Colour rgb, int amt)
+{
+	if (rgb.a == 0) return 0;
+	rgb.r = Clamp(rgb.r + amt, 0, 255);
+	rgb.g = Clamp(rgb.g + amt, 0, 255);
+	rgb.b = Clamp(rgb.b + amt, 0, 255);
+	return rgb;
+}
+
+/**
  * Draw frame rectangle.
  * @param left   Left edge of the frame
  * @param top    Top edge of the frame
@@ -174,7 +189,7 @@ int GetWidgetFromPos(const Window *w, int x, int y)
  * @param colour Colour table to use. @see _colour_gradient
  * @param flags  Flags controlling how to draw the frame. @see FrameFlags
  */
-void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, FrameFlags flags)
+void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, FrameFlags flags, Colour rgb)
 {
 	assert(colour < COLOUR_END);
 
@@ -183,26 +198,34 @@ void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, Fra
 	uint medium_light = _colour_gradient[colour][6];
 	uint light        = _colour_gradient[colour][7];
 
+	Colour rgb_dark         = AdjustRGB(rgb, -50);
+	Colour rgb_medium_dark  = AdjustRGB(rgb,  10);
+	Colour rgb_medium_light = AdjustRGB(rgb,  50);
+	Colour rgb_light        = AdjustRGB(rgb, 100);
+
 	if (flags & FR_TRANSPARENT) {
 		GfxFillRect(left, top, right, bottom, PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR);
 	} else {
 		uint interior;
+		Colour rgb_interior;
 
 		if (flags & FR_LOWERED) {
-			GfxFillRect(left,                 top,                left,                   bottom,                   dark);
-			GfxFillRect(left + WD_BEVEL_LEFT, top,                right,                  top,                      dark);
-			GfxFillRect(right,                top + WD_BEVEL_TOP, right,                  bottom - WD_BEVEL_BOTTOM, light);
-			GfxFillRect(left + WD_BEVEL_LEFT, bottom,             right,                  bottom,                   light);
+			GfxFillRect(left,                 top,                left,                   bottom,                   dark,  FILLRECT_OPAQUE, rgb_dark);
+			GfxFillRect(left + WD_BEVEL_LEFT, top,                right,                  top,                      dark,  FILLRECT_OPAQUE, rgb_dark);
+			GfxFillRect(right,                top + WD_BEVEL_TOP, right,                  bottom - WD_BEVEL_BOTTOM, light, FILLRECT_OPAQUE, rgb_light);
+			GfxFillRect(left + WD_BEVEL_LEFT, bottom,             right,                  bottom,                   light, FILLRECT_OPAQUE, rgb_light);
 			interior = (flags & FR_DARKENED ? medium_dark : medium_light);
+			rgb_interior = (flags & FR_DARKENED ? rgb_medium_dark : rgb_medium_light);
 		} else {
-			GfxFillRect(left,                 top,                left,                   bottom - WD_BEVEL_BOTTOM, light);
-			GfxFillRect(left + WD_BEVEL_LEFT, top,                right - WD_BEVEL_RIGHT, top,                      light);
-			GfxFillRect(right,                top,                right,                  bottom - WD_BEVEL_BOTTOM, dark);
-			GfxFillRect(left,                 bottom,             right,                  bottom,                   dark);
+			GfxFillRect(left,                 top,                left,                   bottom - WD_BEVEL_BOTTOM, light, FILLRECT_OPAQUE, rgb_light);
+			GfxFillRect(left + WD_BEVEL_LEFT, top,                right - WD_BEVEL_RIGHT, top,                      light, FILLRECT_OPAQUE, rgb_light);
+			GfxFillRect(right,                top,                right,                  bottom - WD_BEVEL_BOTTOM, dark,  FILLRECT_OPAQUE, rgb_dark);
+			GfxFillRect(left,                 bottom,             right,                  bottom,                   dark,  FILLRECT_OPAQUE, rgb_dark);
 			interior = medium_dark;
+			rgb_interior = rgb_medium_dark;
 		}
 		if (!(flags & FR_BORDERONLY)) {
-			GfxFillRect(left + WD_BEVEL_LEFT, top + WD_BEVEL_TOP, right - WD_BEVEL_RIGHT, bottom - WD_BEVEL_BOTTOM, interior);
+			GfxFillRect(left + WD_BEVEL_LEFT, top + WD_BEVEL_TOP, right - WD_BEVEL_RIGHT, bottom - WD_BEVEL_BOTTOM, interior, FILLRECT_OPAQUE, rgb_interior);
 		}
 	}
 }
@@ -545,7 +568,7 @@ void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str)
 	DrawFrameRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, colour, company_owned ? FR_LOWERED | FR_DARKENED | FR_BORDERONLY : FR_LOWERED | FR_DARKENED);
 
 	if (company_owned) {
-		GfxFillRect(r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, _colour_gradient[_company_colours[owner]][4]);
+		GfxFillRect(r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, _colour_gradient[_company_colours[owner]][4], FILLRECT_OPAQUE, _company_colours_rgb[owner]);
 	}
 
 	if (str != STR_NULL) {

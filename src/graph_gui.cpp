@@ -23,6 +23,7 @@
 #include "sortlist_type.h"
 #include "core/geometry_func.hpp"
 #include "currency.h"
+#include "company_func.h"
 
 #include "widgets/graph_widget.h"
 
@@ -192,6 +193,7 @@ protected:
 	int graph_widget;
 	StringID format_str_y_axis;
 	byte colours[GRAPH_MAX_DATASETS];
+	Colour rgb[GRAPH_MAX_DATASETS];
 	OverflowSafeInt64 cost[GRAPH_MAX_DATASETS][GRAPH_NUM_MONTHS]; ///< Stored costs for the last #GRAPH_NUM_MONTHS months
 
 	/**
@@ -418,6 +420,7 @@ protected:
 				x = r.left + (x_sep / 2);
 
 				byte colour  = this->colours[i];
+				Colour rgb   = this->rgb[i];
 				uint prev_x = INVALID_DATAPOINT_POS;
 				uint prev_y = INVALID_DATAPOINT_POS;
 
@@ -448,10 +451,10 @@ protected:
 						y = r.top + x_axis_offset - ((r.bottom - r.top) * datapoint) / (interval_size >> reduce_range);
 
 						/* Draw the point. */
-						GfxFillRect(x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
+						GfxFillRect(x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour, FILLRECT_OPAQUE, rgb);
 
 						/* Draw the line connected to the previous point. */
-						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine(prev_x, prev_y, x, y, colour, linewidth);
+						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine(prev_x, prev_y, x, y, colour, linewidth, 0, rgb);
 
 						prev_x = x;
 						prev_y = y;
@@ -597,6 +600,7 @@ public:
 			c = Company::GetIfValid(k);
 			if (c != nullptr) {
 				this->colours[numd] = _colour_gradient[c->colour][6];
+				this->rgb[numd]     = _company_colours_rgb[k];
 				for (int j = this->num_on_x_axis, i = 0; --j >= 0;) {
 					this->cost[numd][i] = (j >= c->num_valid_stat_ent) ? INVALID_DATAPOINT : GetGraphData(c, j);
 					i++;
