@@ -17,6 +17,8 @@
 /** Base class for Windows video drivers. */
 class VideoDriver_Win32Base : public VideoDriver {
 public:
+	VideoDriver_Win32Base() : main_wnd(NULL) {}
+
 	/* virtual */ void MakeDirty(int left, int top, int width, int height);
 
 	/* virtual */ void MainLoop();
@@ -34,9 +36,12 @@ public:
 	/* virtual */ void EditBoxLostFocus();
 
 protected:
+	HWND    main_wnd;      ///< Window handle.
+
 	bool MakeWindow(bool full_screen);
 
 	void ClientSizeChanged(int w, int h);
+	void CheckPaletteAnim();
 
 	/** (Re-)create the backing store. */
 	virtual bool AllocateBackingStore(int w, int h, bool force = false) = 0;
@@ -54,6 +59,8 @@ protected:
 /** The GDI video driver for windows. */
 class VideoDriver_Win32GDI : public VideoDriver_Win32Base {
 public:
+	VideoDriver_Win32GDI() : dib_sect(NULL), gdi_palette(NULL) {}
+
 	/* virtual */ const char *Start(const char * const *param);
 
 	/* virtual */ void Stop();
@@ -63,12 +70,23 @@ public:
 	/* virtual */ const char *GetName() const { return "win32"; }
 
 protected:
+	HBITMAP  dib_sect;      ///< Blitter target.
+	HPALETTE gdi_palette;   ///< Handle to windows palette.
+	RECT     update_rect;   ///< Rectangle to update during the next paint event.
+
 	/* virtual */ bool AllocateBackingStore(int w, int h, bool force = false);
 	/* virtual */ void PaletteChanged(HWND hWnd);
 	/* virtual */ void Paint(HWND hWnd, bool in_sizemove);
 	/* virtual */ void PaintThread();
 
+	void MakePalette();
+	void UpdatePalette(HDC dc, uint start, uint count);
 	void PaintWindow(HDC dc);
+
+#ifdef _DEBUG
+public:
+	static int RedrawScreenDebug();
+#endif
 };
 
 /** The factory for Windows' video driver. */
