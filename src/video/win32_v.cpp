@@ -172,6 +172,13 @@ static void CALLBACK TrackMouseTimerProc(HWND hwnd, UINT msg, UINT event, DWORD 
 	}
 }
 
+/** Colour depth to use for fullscreen display modes. */
+/* virtual  */ uint8 VideoDriver_Win32Base::GetFullscreenBpp()
+{
+	/* Check modes for the relevant fullscreen bpp */
+	return _support8bpp != S8BPP_HARDWARE ? 32 : BlitterFactory::GetCurrentBlitter()->GetScreenDepth();
+}
+
 /**
  * Instantiate a new window.
  * @param full_screen Whether to make a full screen window or not.
@@ -200,14 +207,13 @@ bool VideoDriver_Win32Base::MakeWindow(bool full_screen)
 			DM_PELSWIDTH |
 			DM_PELSHEIGHT |
 			(_display_hz != 0 ? DM_DISPLAYFREQUENCY : 0);
-		settings.dmBitsPerPel = BlitterFactory::GetCurrentBlitter()->GetScreenDepth();
+		settings.dmBitsPerPel = this->GetFullscreenBpp();
 		settings.dmPelsWidth  = _wnd.width_org;
 		settings.dmPelsHeight = _wnd.height_org;
 		settings.dmDisplayFrequency = _display_hz;
 
 		/* Check for 8 bpp support. */
-		if (settings.dmBitsPerPel == 8 &&
-				(_support8bpp != S8BPP_HARDWARE || ChangeDisplaySettings(&settings, CDS_FULLSCREEN | CDS_TEST) != DISP_CHANGE_SUCCESSFUL)) {
+		if (settings.dmBitsPerPel == 8 && ChangeDisplaySettings(&settings, CDS_FULLSCREEN | CDS_TEST) != DISP_CHANGE_SUCCESSFUL) {
 			settings.dmBitsPerPel = 32;
 		}
 
@@ -896,7 +902,7 @@ static const Dimension default_resolutions[] = {
 	{ 1920, 1200 }
 };
 
-static void FindResolutions()
+static void FindResolutions(uint8 bpp)
 {
 	uint n = 0;
 #if defined(WINCE)
@@ -906,15 +912,11 @@ static void FindResolutions()
 	uint i;
 	DEVMODEA dm;
 
-	/* Check modes for the relevant fullscreen bpp */
-	uint bpp = _support8bpp != S8BPP_HARDWARE ? 32 : BlitterFactory::GetCurrentBlitter()->GetScreenDepth();
-
 	/* XXX - EnumDisplaySettingsW crashes with unicows.dll on Windows95
 	 * Doesn't really matter since we don't pass a string anyways, but still
 	 * a letdown */
 	for (i = 0; EnumDisplaySettingsA(NULL, i, &dm) != 0; i++) {
-		if (dm.dmBitsPerPel == bpp &&
-				dm.dmPelsWidth >= 640 && dm.dmPelsHeight >= 480) {
+		if (dm.dmBitsPerPel == bpp && dm.dmPelsWidth >= 640 && dm.dmPelsHeight >= 480) {
 			uint j;
 
 			for (j = 0; j < n; j++) {
@@ -944,6 +946,30 @@ static void FindResolutions()
 	SortResolutions(_num_resolutions);
 }
 
+void VideoDriver_Win32Base::Initialize()
+{
+	memset(&_wnd, 0, sizeof(_wnd));
+
+	RegisterWndClass();
+	FindResolutions(this->GetFullscreenBpp());
+
+	/* fullscreen uses those */
+	_wnd.width  = _wnd.width_org  = _cur_resolution.width;
+	_wnd.height = _wnd.height_org = _cur_resolution.height;
+
+	DEBUG(driver, 2, "Resolution for display: %ux%u", _cur_resolution.width, _cur_resolution.height);
+
+}
+
+void VideoDriver_Win32Base::Stop()
+{
+	DestroyWindow(this->main_wnd);
+
+#if !defined(WINCE)
+	if (_wnd.fullscreen) ChangeDisplaySettings(NULL, 0);
+#endif
+	MyShowCursor(true);
+}
 
 void VideoDriver_Win32Base::MakeDirty(int left, int top, int width, int height)
 {
@@ -1154,20 +1180,8 @@ static FVideoDriver_Win32GDI iFVideoDriver_Win32GDI;
 
 const char *VideoDriver_Win32GDI::Start(const char * const *parm)
 {
-	memset(&_wnd, 0, sizeof(_wnd));
-
-	RegisterWndClass();
-
+	this->Initialize();
 	this->MakePalette();
-
-	FindResolutions();
-
-	DEBUG(driver, 2, "Resolution for display: %ux%u", _cur_resolution.width, _cur_resolution.height);
-
-	/* fullscreen uses those */
-	_wnd.width_org = _cur_resolution.width;
-	_wnd.height_org = _cur_resolution.height;
-
 	this->AllocateBackingStore(_cur_resolution.width, _cur_resolution.height);
 	this->MakeWindow(_fullscreen);
 
@@ -1182,12 +1196,8 @@ void VideoDriver_Win32GDI::Stop()
 {
 	DeleteObject(this->gdi_palette);
 	DeleteObject(this->dib_sect);
-	DestroyWindow(this->main_wnd);
 
-#if !defined(WINCE)
-	if (_wnd.fullscreen) ChangeDisplaySettings(NULL, 0);
-#endif
-	MyShowCursor(true);
+	this->VideoDriver_Win32Base::Stop();
 }
 
 bool VideoDriver_Win32GDI::AllocateBackingStore(int w, int h, bool force)

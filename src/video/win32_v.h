@@ -19,6 +19,8 @@ class VideoDriver_Win32Base : public VideoDriver {
 public:
 	VideoDriver_Win32Base() : main_wnd(NULL) {}
 
+	/* virtual */ void Stop();
+
 	/* virtual */ void MakeDirty(int left, int top, int width, int height);
 
 	/* virtual */ void MainLoop();
@@ -38,7 +40,9 @@ public:
 protected:
 	HWND    main_wnd;      ///< Window handle.
 
+	void Initialize();
 	bool MakeWindow(bool full_screen);
+	virtual uint8 GetFullscreenBpp();
 
 	void ClientSizeChanged(int w, int h);
 	void CheckPaletteAnim();
