@@ -14,7 +14,10 @@
 
 #include "../core/alloc_type.hpp"
 
-/** Platform-independent back-end singleton class for OpenGL video drivers. */
+bool IsOpenGLVersionAtLeast(byte major, byte minor);
+void *GetOGLProcAddress(const char *proc);
+
+/** Platform-independent back-end class for OpenGL video drivers. */
 class OpenGLBackend : public ZeroedMemoryAllocator {
 private:
 	static OpenGLBackend *instance; ///< Singleton instance pointer.

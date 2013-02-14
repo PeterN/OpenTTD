@@ -15,6 +15,8 @@
 
 #if defined(WIN32)
 	#include <windows.h>
+#else
+	#include <dlfcn.h>
 #endif
 
 #if defined(__APPLE__)
@@ -23,6 +25,9 @@
 #else
 	#include <GL/gl.h>
 	#include <GL/glext.h>
+#if defined(UNIX)
+	#include <GL/glx.h>
+#endif
 #endif
 
 #include "opengl.h"
@@ -34,6 +39,30 @@
 
 
 /* static */ OpenGLBackend *OpenGLBackend::instance = NULL;
+
+/**
+ * Load an OpenGL extension function.
+ * @param proc Name of the function to load.
+ * @return Pointer to the function or NULL on error.
+ */
+void *GetOGLProcAddress(const char *proc)
+{
+#if defined(WIN32)
+	return wglGetProcAddress(proc);
+#elif defined(UNIX) && !defined(__APPLE__)
+	return glXGetProcAddressARB(proc);
+#else
+	static void *lib = NULL;
+
+#if defined(__APPLE__)
+	if (lib == NULL) lib = dlopen("/System/Library/Frameworks/OpenGL.framework/OpenGL", RTLD_LAZY | RTLD_GLOBAL);
+#else
+	if (lib == NULL) lib = dlopen("libGL.so", RTLD_LAZY);
+#endif
+
+	return lib != NULL ? dlsym(lib, proc) : NULL;
+#endif
+}
 
 /**
  * Find a substring in a string made of space delimited elements. The substring
@@ -68,7 +97,31 @@ static const char *FindStringInExtensionList(const char *string, const char *sub
  */
 static bool IsOpenGLExtensionSupported(const char *extension)
 {
-	return FindStringInExtensionList((const char *)glGetString(GL_EXTENSIONS), extension) != NULL;
+	static PFNGLGETSTRINGIPROC glGetStringi = NULL;
+	static bool glGetStringi_loaded = false;
+
+	/* Starting with OpenGL 3.0 the preferred API to get the extensions
+	 * has changed. Try to load the required function once. */
+	if (!glGetStringi_loaded) {
+		if (IsOpenGLVersionAtLeast(3, 0)) glGetStringi = (PFNGLGETSTRINGIPROC)GetOGLProcAddress("glGetStringi");
+		glGetStringi_loaded = true;
+	}
+
+	if (glGetStringi != NULL) {
+		/* New style: Each supported extension can be queried and compared independently. */
+		GLint num_exts;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &num_exts);
+
+		for (GLint i = 0; i < num_exts; i++) {
+			const char *entry = (const char *)glGetStringi(GL_EXTENSIONS, i);
+			if (strcmp(entry, extension) == 0) return true;
+		}
+	} else {
+		/* Old style: A single, space-delimited string for all extensions. */
+		return FindStringInExtensionList((const char *)glGetString(GL_EXTENSIONS), extension) != NULL;
+	}
+
+	return false;
 }
 
 static byte _gl_major_ver = 0; ///< Major OpenGL version.
@@ -81,7 +134,7 @@ static byte _gl_minor_ver = 0; ///< Minor OpenGL version.
  * @pre OpenGL was initialized.
  * @return True if the OpenGL version is equal or higher than the requested one.
  */
-static bool IsOpenGLVersionAtLeast(byte major, byte minor)
+bool IsOpenGLVersionAtLeast(byte major, byte minor)
 {
 	return (_gl_major_ver > major) || (_gl_major_ver == major && _gl_minor_ver >= minor);
 }
