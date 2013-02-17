@@ -1027,7 +1027,10 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			case 0:
 				if (rgb) {
 					c->livery[scheme].rgb1 = p2;
-					c->livery[scheme].flags |= LF_RGB;
+					if (!(c->livery[scheme].flags & LF_RGB)) {
+						c->livery[scheme].rgb2 = GetCompanyColourRGB(c->livery[scheme].colour2).data;
+						c->livery[scheme].flags |= LF_RGB;
+					}
 				} else {
 					c->livery[scheme].colour1 = colour;
 					c->livery[scheme].flags &= ~LF_RGB;
@@ -1045,7 +1048,10 @@ CommandCost CmdSetCompanyColour(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			case 1:
 				if (rgb) {
 					c->livery[scheme].rgb2 = p2;
-					c->livery[scheme].flags |= LF_RGB;
+					if (!(c->livery[scheme].flags & LF_RGB)) {
+						c->livery[scheme].rgb1 = GetCompanyColourRGB(c->livery[scheme].colour1).data;
+						c->livery[scheme].flags |= LF_RGB;
+					}
 				} else {
 					c->livery[scheme].colour2 = colour;
 					c->livery[scheme].flags &= ~LF_RGB;

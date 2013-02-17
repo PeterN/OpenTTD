@@ -1735,6 +1735,19 @@ void SortResolutions(int count)
 	QSortT(_resolutions, count, &compare_res);
 }
 
+Colour GetCompanyColourRGB(int colour)
+{
+	PaletteID pal = PALETTE_RECOLOUR_START + colour;
+	const byte *map = GetNonSprite(pal, ST_RECOLOUR) + 1;
+
+	Colour rgb;
+	rgb.r = _palette.palette[map[0xCA]].r;
+	rgb.g = _palette.palette[map[0xCA]].g;
+	rgb.b = _palette.palette[map[0xCA]].b;
+	rgb.a = 0x50;
+	return rgb;
+}
+
 PaletteID CreateCompanyColourRemap(Colour rgb1, Colour rgb2, bool twocc, PaletteID basemap, PaletteID hint)
 {
 	DeallocateCustomSprite(hint);

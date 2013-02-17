@@ -929,7 +929,12 @@ public:
 			if (BringWindowToFrontById(WC_RGB_COLOUR, number)) return;
 
 			const Livery *livery = GetSelectedLivery();
-			Colour colour = (widget == WID_SCL_PRI_COL_DROPDOWN) ? livery->rgb1 : livery->rgb2;
+			Colour colour;
+			if (livery->flags & LF_RGB) {
+				colour = (widget == WID_SCL_PRI_COL_DROPDOWN) ? livery->rgb1 : livery->rgb2;
+			} else {
+				colour = GetCompanyColourRGB((widget == WID_SCL_PRI_COL_DROPDOWN) ? livery->colour1 : livery->colour2);
+			}
 			new SelectRGBWindow(&_select_rgb_desc, number, colour, this->sel, this->livery_class, _ctrl_pressed, widget == WID_SCL_PRI_COL_DROPDOWN);
 			return;
 		}
