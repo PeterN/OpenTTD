@@ -13,6 +13,7 @@
 #define VIDEO_OPENGL_H
 
 #include "../core/alloc_type.hpp"
+#include "../core/geometry_type.hpp"
 
 bool IsOpenGLVersionAtLeast(byte major, byte minor);
 void *GetOGLProcAddress(const char *proc);
@@ -40,7 +41,7 @@ public:
 	static void Destroy();
 
 	bool Resize(int w, int h, bool force = false);
-	void Paint();
+	void Paint(Rect update_rect);
 
 	/**
 	 * Get a pointer to the memory for the video driver to draw to.

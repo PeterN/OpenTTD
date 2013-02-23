@@ -28,3 +28,21 @@ Dimension maxdim(const Dimension &d1, const Dimension &d2)
 	d.height = max(d1.height, d2.height);
 	return d;
 }
+
+/**
+ * Compute the bounding rectangle around two rectangles.
+ * @param r1 First rectangle.
+ * @param r2 Second rectangle.
+ * @return The bounding rectangle, the smallest rectangle that contains both arguments.
+ */
+Rect BoundingRect(const Rect &r1, const Rect &r2)
+{
+	Rect r;
+
+	r.top    = min(r1.top,    r2.top);
+	r.bottom = max(r1.bottom, r2.bottom);
+	r.left   = min(r1.left,   r2.left);
+	r.right  = max(r1.right,  r2.right);
+
+	return r;
+}

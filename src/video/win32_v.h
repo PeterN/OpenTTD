@@ -112,6 +112,8 @@ public:
 
 	/* virtual */ void Stop();
 
+	/* virtual */ void MakeDirty(int left, int top, int width, int height);
+
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
 
 	/* virtual */ bool AfterBlitterChange();
@@ -121,6 +123,7 @@ public:
 protected:
 	HDC   dc;          ///< Window device context.
 	HGLRC gl_rc;       ///< OpenGL context.
+	Rect  dirty_rect;  ///< Rectangle encompassing the dirty area of the video buffer.
 
 	/* virtual */ bool AllocateBackingStore(int w, int h, bool force = false);
 	/* virtual */ void PaletteChanged(HWND hWnd);
