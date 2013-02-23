@@ -49,6 +49,8 @@ protected:
 
 	/** (Re-)create the backing store. */
 	virtual bool AllocateBackingStore(int w, int h, bool force = false) = 0;
+	/** Get a pointer to the video buffer. */
+	virtual void *GetVideoPointer() = 0;
 	/** Palette of the window has changed. */
 	virtual void PaletteChanged(HWND hWnd) = 0;
 	/** Window got a paint message. */
@@ -63,7 +65,7 @@ protected:
 /** The GDI video driver for windows. */
 class VideoDriver_Win32GDI : public VideoDriver_Win32Base {
 public:
-	VideoDriver_Win32GDI() : dib_sect(NULL), gdi_palette(NULL) {}
+	VideoDriver_Win32GDI() : dib_sect(NULL), gdi_palette(NULL), buffer_bits(NULL) {}
 
 	/* virtual */ const char *Start(const char * const *param);
 
@@ -77,9 +79,11 @@ protected:
 	HBITMAP  dib_sect;      ///< Blitter target.
 	HPALETTE gdi_palette;   ///< Handle to windows palette.
 	RECT     update_rect;   ///< Rectangle to update during the next paint event.
+	void     *buffer_bits;  ///< Video buffer memory.
 
 	/* virtual */ uint8 GetFullscreenBpp() { return 32; } // OpenGL is always 32 bpp.
 	/* virtual */ bool AllocateBackingStore(int w, int h, bool force = false);
+	/* virtual */ void *GetVideoPointer() { return this->buffer_bits; }
 	/* virtual */ void PaletteChanged(HWND hWnd);
 	/* virtual */ void Paint(HWND hWnd, bool in_sizemove);
 	/* virtual */ void PaintThread();
@@ -126,6 +130,7 @@ protected:
 	Rect  dirty_rect;  ///< Rectangle encompassing the dirty area of the video buffer.
 
 	/* virtual */ bool AllocateBackingStore(int w, int h, bool force = false);
+	/* virtual */ void *GetVideoPointer();
 	/* virtual */ void PaletteChanged(HWND hWnd);
 	/* virtual */ void Paint(HWND hWnd, bool in_sizemove);
 	/* virtual */ void PaintThread() {}
