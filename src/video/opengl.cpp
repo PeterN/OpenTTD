@@ -71,6 +71,11 @@ static PFNGLGETSHADERINFOLOGPROC _glGetShaderInfoLog;
 static PFNGLGETUNIFORMLOCATIONPROC _glGetUniformLocation;
 static PFNGLUNIFORM1IPROC _glUniform1i;
 
+static PFNGLGETATTRIBLOCATIONPROC _glGetAttribLocation;
+static PFNGLENABLEVERTEXATTRIBARRAYPROC _glEnableVertexAttribArray;
+static PFNGLDISABLEVERTEXATTRIBARRAYPROC _glDisableVertexAttribArray;
+static PFNGLVERTEXATTRIBPOINTERARBPROC _glVertexAttribPointer;
+
 /** A simple 2D vertex with just position and texture. */
 struct Simple2DVertex {
 	float x, y;
@@ -238,6 +243,11 @@ static bool BindShaderExtensions()
 		_glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)GetOGLProcAddress("glGetShaderInfoLog");
 		_glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)GetOGLProcAddress("glGetUniformLocation");
 		_glUniform1i = (PFNGLUNIFORM1IPROC)GetOGLProcAddress("glUniform1i");
+
+		_glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)GetOGLProcAddress("glGetAttribLocation");
+		_glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GetOGLProcAddress("glEnableVertexAttribArray");
+		_glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)GetOGLProcAddress("glDisableVertexAttribArray");
+		_glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERARBPROC)GetOGLProcAddress("glVertexAttribPointer");
 	} else {
 		/* In the ARB extension programs and shaders are in the same object space. */
 		_glCreateProgram = (PFNGLCREATEPROGRAMPROC)GetOGLProcAddress("glCreateProgramObjectARB");
@@ -255,11 +265,17 @@ static bool BindShaderExtensions()
 		_glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)GetOGLProcAddress("glGetInfoLogARB");
 		_glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)GetOGLProcAddress("glGetUniformLocationARB");
 		_glUniform1i = (PFNGLUNIFORM1IPROC)GetOGLProcAddress("glUniform1iARB");
+
+		_glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)GetOGLProcAddress("glGetAttribLocationARB");
+		_glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GetOGLProcAddress("glEnableVertexAttribArrayARB");
+		_glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)GetOGLProcAddress("glDisableVertexAttribArrayARB");
+		_glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERARBPROC)GetOGLProcAddress("glVertexAttribPointerARB");
 	}
 
 	return _glCreateProgram != NULL && _glDeleteProgram != NULL && _glLinkProgram != NULL && _glGetProgramiv != NULL && _glGetProgramInfoLog != NULL &&
 		_glCreateShader != NULL && _glDeleteShader != NULL && _glShaderSource != NULL && _glCompileShader != NULL && _glAttachShader != NULL &&
-		_glGetShaderiv != NULL && _glGetShaderInfoLog != NULL && _glGetUniformLocation != NULL && _glUniform1i != NULL;
+		_glGetShaderiv != NULL && _glGetShaderInfoLog != NULL && _glGetUniformLocation != NULL && _glUniform1i != NULL &&
+		_glGetAttribLocation != NULL && _glEnableVertexAttribArray != NULL && _glDisableVertexAttribArray != NULL && _glVertexAttribPointer != NULL;
 }
 
 /** Callback to receive OpenGL debug messages. */
@@ -437,10 +453,12 @@ const char *OpenGLBackend::Init()
 	if (glGetError() != GL_NO_ERROR) return "Can't generate VBO for fullscreen quad";
 
 	/* Set vertex state. */
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(Simple2DVertex), (GLvoid *)offsetof(Simple2DVertex, x));
-	glTexCoordPointer(2, GL_FLOAT, sizeof(Simple2DVertex), (GLvoid *)offsetof(Simple2DVertex, u));
+	GLint loc_position = _glGetAttribLocation(this->vid_program, "position");
+	GLint colour_position = _glGetAttribLocation(this->vid_program, "colour_uv");
+	_glEnableVertexAttribArray(loc_position);
+	_glEnableVertexAttribArray(colour_position);
+	_glVertexAttribPointer(loc_position, 2, GL_FLOAT, GL_FALSE, sizeof(Simple2DVertex), (GLvoid *)offsetof(Simple2DVertex, x));
+	_glVertexAttribPointer(colour_position, 2, GL_FLOAT, GL_FALSE, sizeof(Simple2DVertex), (GLvoid *)offsetof(Simple2DVertex, u));
 	_glBindVertexArray(0);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
