@@ -75,6 +75,7 @@ static PFNGLGETATTRIBLOCATIONPROC _glGetAttribLocation;
 static PFNGLENABLEVERTEXATTRIBARRAYPROC _glEnableVertexAttribArray;
 static PFNGLDISABLEVERTEXATTRIBARRAYPROC _glDisableVertexAttribArray;
 static PFNGLVERTEXATTRIBPOINTERARBPROC _glVertexAttribPointer;
+static PFNGLBINDFRAGDATALOCATIONPROC _glBindFragDataLocation;
 
 /** A simple 2D vertex with just position and texture. */
 struct Simple2DVertex {
@@ -272,6 +273,15 @@ static bool BindShaderExtensions()
 		_glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERARBPROC)GetOGLProcAddress("glVertexAttribPointerARB");
 	}
 
+	/* Bind functions only needed when using GLSL 1.50 shaders. */
+	if (IsOpenGLVersionAtLeast(3, 0)) {
+		_glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC)GetOGLProcAddress("glBindFragDataLocation");
+	} else if (IsOpenGLExtensionSupported("GL_EXT_gpu_shader4")) {
+		_glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC)GetOGLProcAddress("glBindFragDataLocationEXT");
+	} else {
+		_glBindFragDataLocation = NULL;
+	}
+
 	return _glCreateProgram != NULL && _glDeleteProgram != NULL && _glLinkProgram != NULL && _glGetProgramiv != NULL && _glGetProgramInfoLog != NULL &&
 		_glCreateShader != NULL && _glDeleteShader != NULL && _glShaderSource != NULL && _glCompileShader != NULL && _glAttachShader != NULL &&
 		_glGetShaderiv != NULL && _glGetShaderInfoLog != NULL && _glGetUniformLocation != NULL && _glUniform1i != NULL &&
@@ -406,6 +416,7 @@ const char *OpenGLBackend::Init()
 	/* Check for shader objects. */
 	if (!IsOpenGLVersionAtLeast(2, 0) && (!IsOpenGLExtensionSupported("GL_ARB_shader_objects") || !IsOpenGLExtensionSupported("GL_ARB_fragment_shader") || !IsOpenGLExtensionSupported("GL_ARB_vertex_shader"))) return "No shader support";
 	if (!BindShaderExtensions()) return "Failed to bind shader extension functions";
+	if (IsOpenGLVersionAtLeast(3,2) && _glBindFragDataLocation == NULL) return "OpenGL claims to support version 3.2 but doesn't have glBindFragDataLocation";
 
 	DEBUG(driver, 2, "OpenGL shading language version: %s", (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
@@ -543,6 +554,12 @@ bool OpenGLBackend::InitShaders()
 	this->vid_program = _glCreateProgram();
 	_glAttachShader(this->vid_program, vert_shader);
 	_glAttachShader(this->vid_program, frag_shader);
+
+	if (glsl_150) {
+		/* Bind fragment shader outputs. */
+		_glBindFragDataLocation(this->vid_program, 0, "colour");
+	}
+
 	_glLinkProgram(this->vid_program);
 	if (!VerifyProgram(this->vid_program)) return false;
 
