@@ -14,13 +14,9 @@
 
 #include "video_driver.hpp"
 
-/** The video driver for windows. */
-class VideoDriver_Win32 : public VideoDriver {
+/** Base class for Windows video drivers. */
+class VideoDriver_Win32Base : public VideoDriver {
 public:
-	/* virtual */ const char *Start(const char * const *param);
-
-	/* virtual */ void Stop();
-
 	/* virtual */ void MakeDirty(int left, int top, int width, int height);
 
 	/* virtual */ void MainLoop();
@@ -28,8 +24,6 @@ public:
 	/* virtual */ bool ChangeResolution(int w, int h);
 
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
-
-	/* virtual */ bool AfterBlitterChange();
 
 	/* virtual */ void AcquireBlitterLock();
 
@@ -39,16 +33,29 @@ public:
 
 	/* virtual */ void EditBoxLostFocus();
 
-	/* virtual */ const char *GetName() const { return "win32"; }
-
+protected:
 	bool MakeWindow(bool full_screen);
+
+	friend LRESULT CALLBACK WndProcGdi(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+};
+
+/** The GDI video driver for windows. */
+class VideoDriver_Win32GDI : public VideoDriver_Win32Base {
+public:
+	/* virtual */ const char *Start(const char * const *param);
+
+	/* virtual */ void Stop();
+
+	/* virtual */ bool AfterBlitterChange();
+
+	/* virtual */ const char *GetName() const { return "win32"; }
 };
 
 /** The factory for Windows' video driver. */
-class FVideoDriver_Win32 : public DriverFactoryBase {
+class FVideoDriver_Win32GDI : public DriverFactoryBase {
 public:
-	FVideoDriver_Win32() : DriverFactoryBase(Driver::DT_VIDEO, 10, "win32", "Win32 GDI Video Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Win32(); }
+	FVideoDriver_Win32GDI() : DriverFactoryBase(Driver::DT_VIDEO, 10, "win32", "Win32 GDI Video Driver") {}
+	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Win32GDI(); }
 };
 
 #endif /* VIDEO_WIN32_H */

@@ -114,7 +114,7 @@ static void UpdatePalette(HDC dc, uint start, uint count)
 	SetDIBColorTable(dc, start, count, rgb);
 }
 
-bool VideoDriver_Win32::ClaimMousePointer()
+bool VideoDriver_Win32Base::ClaimMousePointer()
 {
 	MyShowCursor(false, true);
 	return true;
@@ -262,7 +262,7 @@ static void CALLBACK TrackMouseTimerProc(HWND hwnd, UINT msg, UINT event, DWORD 
  * @param full_screen Whether to make a full screen window or not.
  * @return True if the window could be created.
  */
-bool VideoDriver_Win32::MakeWindow(bool full_screen)
+bool VideoDriver_Win32Base::MakeWindow(bool full_screen)
 {
 	_fullscreen = full_screen;
 
@@ -352,7 +352,7 @@ bool VideoDriver_Win32::MakeWindow(bool full_screen)
 
 			_sntprintf(Windowtitle, lengthof(Windowtitle), _T("OpenTTD %s"), MB_TO_WIDE(_openttd_revision));
 
-			_wnd.main_wnd = CreateWindow(_T("OTTD"), Windowtitle, style, x, y, w, h, 0, 0, GetModuleHandle(NULL), 0);
+			_wnd.main_wnd = CreateWindow(_T("OTTD"), Windowtitle, style, x, y, w, h, 0, 0, GetModuleHandle(NULL), this);
 			if (_wnd.main_wnd == NULL) usererror("CreateWindow failed");
 			ShowWindow(_wnd.main_wnd, showstyle);
 		}
@@ -649,8 +649,11 @@ static LRESULT CALLBACK WndProcGdi(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 	static bool console = false;
 	static bool in_sizemove = false;
 
+	VideoDriver_Win32Base *video_driver = (VideoDriver_Win32Base *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
 	switch (msg) {
 		case WM_CREATE:
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((LPCREATESTRUCT)lParam)->lpCreateParams);
 			SetTimer(hwnd, TID_POLLMOUSE, MOUSE_POLL_DELAY, (TIMERPROC)TrackMouseTimerProc);
 			SetCompositionPos(hwnd);
 #if !defined(WINCE) || _WIN32_WCE >= 0x400
@@ -1014,7 +1017,7 @@ static LRESULT CALLBACK WndProcGdi(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 				if (active && minimized) {
 					/* Restore the game window */
 					ShowWindow(hwnd, SW_RESTORE);
-					static_cast<VideoDriver_Win32 *>(VideoDriver::GetInstance())->MakeWindow(true);
+					video_driver->MakeWindow(true);
 				} else if (!active && !minimized) {
 					/* Minimise the window and restore desktop */
 					ShowWindow(hwnd, SW_MINIMIZE);
@@ -1157,47 +1160,8 @@ static void FindResolutions()
 	SortResolutions(_num_resolutions);
 }
 
-static FVideoDriver_Win32 iFVideoDriver_Win32;
 
-const char *VideoDriver_Win32::Start(const char * const *parm)
-{
-	memset(&_wnd, 0, sizeof(_wnd));
-
-	RegisterWndClass();
-
-	MakePalette();
-
-	FindResolutions();
-
-	DEBUG(driver, 2, "Resolution for display: %ux%u", _cur_resolution.width, _cur_resolution.height);
-
-	/* fullscreen uses those */
-	_wnd.width_org  = _cur_resolution.width;
-	_wnd.height_org = _cur_resolution.height;
-
-	AllocateDibSection(_cur_resolution.width, _cur_resolution.height);
-	this->MakeWindow(_fullscreen);
-
-	MarkWholeScreenDirty();
-
-	_draw_threaded = GetDriverParam(parm, "no_threads") == NULL && GetDriverParam(parm, "no_thread") == NULL && GetCPUCoreCount() > 1;
-
-	return NULL;
-}
-
-void VideoDriver_Win32::Stop()
-{
-	DeleteObject(_wnd.gdi_palette);
-	DeleteObject(_wnd.dib_sect);
-	DestroyWindow(_wnd.main_wnd);
-
-#if !defined(WINCE)
-	if (_wnd.fullscreen) ChangeDisplaySettings(NULL, 0);
-#endif
-	MyShowCursor(true);
-}
-
-void VideoDriver_Win32::MakeDirty(int left, int top, int width, int height)
+void VideoDriver_Win32Base::MakeDirty(int left, int top, int width, int height)
 {
 	RECT r = { left, top, left + width, top + height };
 
@@ -1212,7 +1176,7 @@ static void CheckPaletteAnim()
 	InvalidateRect(_wnd.main_wnd, NULL, FALSE);
 }
 
-void VideoDriver_Win32::MainLoop()
+void VideoDriver_Win32Base::MainLoop()
 {
 	MSG mesg;
 	uint32 cur_ticks = GetTickCount();
@@ -1340,7 +1304,7 @@ void VideoDriver_Win32::MainLoop()
 	}
 }
 
-bool VideoDriver_Win32::ChangeResolution(int w, int h)
+bool VideoDriver_Win32Base::ChangeResolution(int w, int h)
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
 	if (_window_maximize) ShowWindow(_wnd.main_wnd, SW_SHOWNORMAL);
@@ -1353,7 +1317,7 @@ bool VideoDriver_Win32::ChangeResolution(int w, int h)
 	return ret;
 }
 
-bool VideoDriver_Win32::ToggleFullscreen(bool full_screen)
+bool VideoDriver_Win32Base::ToggleFullscreen(bool full_screen)
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
 	bool ret = this->MakeWindow(full_screen);
@@ -1361,26 +1325,66 @@ bool VideoDriver_Win32::ToggleFullscreen(bool full_screen)
 	return ret;
 }
 
-bool VideoDriver_Win32::AfterBlitterChange()
-{
-	return AllocateDibSection(_screen.width, _screen.height, true) && this->MakeWindow(_fullscreen);
-}
-
-void VideoDriver_Win32::AcquireBlitterLock()
+void VideoDriver_Win32Base::AcquireBlitterLock()
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
 }
 
-void VideoDriver_Win32::ReleaseBlitterLock()
+void VideoDriver_Win32Base::ReleaseBlitterLock()
 {
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
 }
 
-void VideoDriver_Win32::EditBoxLostFocus()
+void VideoDriver_Win32Base::EditBoxLostFocus()
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
 	CancelIMEComposition(_wnd.main_wnd);
 	SetCompositionPos(_wnd.main_wnd);
 	SetCandidatePos(_wnd.main_wnd);
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
+}
+
+static FVideoDriver_Win32GDI iFVideoDriver_Win32GDI;
+
+const char *VideoDriver_Win32GDI::Start(const char * const *parm)
+{
+	memset(&_wnd, 0, sizeof(_wnd));
+
+	RegisterWndClass();
+
+	MakePalette();
+
+	FindResolutions();
+
+	DEBUG(driver, 2, "Resolution for display: %ux%u", _cur_resolution.width, _cur_resolution.height);
+
+	/* fullscreen uses those */
+	_wnd.width_org = _cur_resolution.width;
+	_wnd.height_org = _cur_resolution.height;
+
+	AllocateDibSection(_cur_resolution.width, _cur_resolution.height);
+	this->MakeWindow(_fullscreen);
+
+	MarkWholeScreenDirty();
+
+	_draw_threaded = GetDriverParam(parm, "no_threads") == NULL && GetDriverParam(parm, "no_thread") == NULL && GetCPUCoreCount() > 1;
+
+	return NULL;
+}
+
+void VideoDriver_Win32GDI::Stop()
+{
+	DeleteObject(_wnd.gdi_palette);
+	DeleteObject(_wnd.dib_sect);
+	DestroyWindow(_wnd.main_wnd);
+
+#if !defined(WINCE)
+	if (_wnd.fullscreen) ChangeDisplaySettings(NULL, 0);
+#endif
+	MyShowCursor(true);
+}
+
+bool VideoDriver_Win32GDI::AfterBlitterChange()
+{
+	return AllocateDibSection(_screen.width, _screen.height, true) && this->MakeWindow(_fullscreen);
 }
