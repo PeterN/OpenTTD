@@ -958,7 +958,6 @@ void VideoDriver_Win32Base::Initialize()
 	_wnd.height = _wnd.height_org = _cur_resolution.height;
 
 	DEBUG(driver, 2, "Resolution for display: %ux%u", _cur_resolution.width, _cur_resolution.height);
-
 }
 
 void VideoDriver_Win32Base::Stop()
@@ -1089,6 +1088,7 @@ void VideoDriver_Win32Base::MainLoop()
 
 			if (_force_full_redraw) MarkWholeScreenDirty();
 
+			_screen.dst_ptr = _wnd.buffer_bits;
 			UpdateWindows();
 			this->CheckPaletteAnim();
 		} else {
@@ -1102,6 +1102,7 @@ void VideoDriver_Win32Base::MainLoop()
 			Sleep(1);
 			if (_draw_threaded) _draw_mutex->BeginCritical();
 
+			_screen.dst_ptr = _wnd.buffer_bits;
 			NetworkDrawChatMessage();
 			DrawMouseCursor();
 		}
@@ -1400,3 +1401,165 @@ void VideoDriver_Win32GDI::Paint(HWND hWnd, bool in_sizemove)
 	return _fooctr++;
 }
 #endif
+
+#ifdef WITH_OPENGL
+
+#include <GL/gl.h>
+#include "opengl.h"
+
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
+#ifndef PFD_SUPPORT_COMPOSITION
+#define PFD_SUPPORT_COMPOSITION 0x00008000
+#endif
+
+static FVideoDriver_Win32OpenGL iFVideoDriver_Win32OpenGL;
+
+const char *VideoDriver_Win32OpenGL::Start(const char * const *param)
+{
+	/* Check for a supported blitter. */
+	if (BlitterFactory::GetCurrentBlitter()->GetScreenDepth() != 32) return "Only 32bpp blitters supported";
+
+	Dimension old_res = _cur_resolution; // Save current screen resolution in case of errors, as MakeWindow invalidates it.
+
+	this->Initialize();
+	this->MakeWindow(_fullscreen);
+
+	/* Create and initialize OpenGL context. */
+	const char *err = this->AllocateContext();
+	if (err != NULL) {
+		this->Stop();
+		_cur_resolution = old_res;
+		return err;
+	}
+
+	this->ClientSizeChanged(_wnd.width, _wnd.height);
+
+	_draw_threaded = false;
+	MarkWholeScreenDirty();
+
+	return NULL;
+}
+
+void VideoDriver_Win32OpenGL::Stop()
+{
+	this->DestroyContext();
+	this->VideoDriver_Win32Base::Stop();
+}
+
+void VideoDriver_Win32OpenGL::DestroyContext()
+{
+	OpenGLBackend::Destroy();
+
+	wglMakeCurrent(NULL, NULL);
+	if (this->gl_rc != NULL) {
+		wglDeleteContext(this->gl_rc);
+		this->gl_rc = NULL;
+	}
+	if (this->dc != NULL) {
+		ReleaseDC(this->main_wnd, this->dc);
+		this->dc = NULL;
+	}
+}
+
+const char *VideoDriver_Win32OpenGL::AllocateContext()
+{
+	PIXELFORMATDESCRIPTOR pfd = {
+		sizeof(PIXELFORMATDESCRIPTOR), // Size of this struct.
+		1,                             // Version of this struct.
+		PFD_DRAW_TO_WINDOW |           // Require window support.
+		PFD_SUPPORT_OPENGL |           // Require OpenGL support.
+		PFD_DOUBLEBUFFER   |           // Use double buffering.
+		PFD_DEPTH_DONTCARE,
+		PFD_TYPE_RGBA,                 // Request RGBA format.
+		24,                            // 24 bpp (excluding alpha).
+		0, 0, 0, 0, 0, 0, 0, 0,        // Colour bits and shift ignored.
+		0, 0, 0, 0, 0,                 // No accumulation buffer.
+		0, 0,                          // No depth/stencil buffer.
+		0,                             // No aux buffers.
+		PFD_MAIN_PLANE,                // Main layer.
+		0, 0, 0, 0                     // Ignored/reserved.
+	};
+
+	if (IsWindowsVistaOrGreater()) pfd.dwFlags |= PFD_SUPPORT_COMPOSITION; // Make OpenTTD compatible with Aero.
+
+	this->dc = GetDC(this->main_wnd);
+
+	/* Choose a suitable pixel format. */
+	int format = ChoosePixelFormat(this->dc, &pfd);
+	if (format == 0) return "No suitable pixel format found";
+	if (!SetPixelFormat(this->dc, format, &pfd)) return "Can't set pixel format";
+
+	/* Create OpenGL device context. */
+	this->gl_rc = wglCreateContext(this->dc);
+	if (this->gl_rc == 0) return "Can't create OpenGL context";
+	if (!wglMakeCurrent(this->dc, this->gl_rc)) return "Can't active GL context";
+
+	return OpenGLBackend::Create();
+}
+
+bool VideoDriver_Win32OpenGL::ToggleFullscreen(bool full_screen)
+{
+	this->DestroyContext();
+	bool res = this->VideoDriver_Win32Base::ToggleFullscreen(full_screen);
+	res &= this->AllocateContext() == NULL;
+	this->ClientSizeChanged(_wnd.width, _wnd.height);
+	return res;
+}
+
+bool VideoDriver_Win32OpenGL::AfterBlitterChange()
+{
+	if (BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 0) return false;
+	this->ClientSizeChanged(_wnd.width, _wnd.height);
+	return true;
+}
+
+bool VideoDriver_Win32OpenGL::AllocateBackingStore(int w, int h, bool force)
+{
+	if (this->gl_rc == NULL) return false;
+
+	w = max(w, 64);
+	h = max(h, 64);
+
+	bool res = OpenGLBackend::Get()->Resize(w, h);
+	_wnd.buffer_bits = OpenGLBackend::Get()->GetVideoBuffer();
+	return res;
+}
+
+void VideoDriver_Win32OpenGL::PaletteChanged(HWND hWnd)
+{
+
+}
+
+void VideoDriver_Win32OpenGL::Paint(HWND hWnd, bool in_sizemove)
+{
+	if (_cur_palette.count_dirty != 0) {
+		Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+
+		switch (blitter->UsePaletteAnimation()) {
+			case Blitter::PALETTE_ANIMATION_BLITTER:
+				blitter->PaletteAnimate(_local_palette);
+				break;
+
+			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
+			case Blitter::PALETTE_ANIMATION_NONE:
+				break;
+
+			default:
+				NOT_REACHED();
+		}
+		_cur_palette.count_dirty = 0;
+	}
+
+	/* Get the update rect. */
+	RECT r;
+	GetUpdateRect(hWnd, &r, FALSE);
+	ValidateRect(hWnd, &r);
+
+	OpenGLBackend::Get()->Paint();
+	SwapBuffers(this->dc);
+}
+
+#endif /* WITH_OPENGL */

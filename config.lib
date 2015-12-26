@@ -64,6 +64,7 @@ set_default() {
 	enable_osx_g5="0"
 	enable_cocoa_quartz="1"
 	enable_cocoa_quickdraw="1"
+	enable_opengl="1"
 	with_osx_sysroot="1"
 	with_application_bundle="1"
 	with_menu_entry="1"
@@ -142,6 +143,7 @@ set_default() {
 		enable_osx_g5
 		enable_cocoa_quartz
 		enable_cocoa_quickdraw
+		enable_opengl
 		with_osx_sysroot
 		with_application_bundle
 		with_allegro
@@ -326,6 +328,10 @@ detect_params() {
 			--disable-cocoa-quickdraw)    enable_cocoa_quickdraw="0";;
 			--enable-cocoa-quickdraw)     enable_cocoa_quickdraw="2";;
 			--enable-cocoa-quickdraw=*)   enable_cocoa_quickdraw="$optarg";;
+
+			--disable-opengl)             enable_opengl="0";;
+			--enable-opengl)              enable_opengl="2";;
+			--enable-opengl=*)            enable_opengl="$optarg";;
 
 			--with-allegro)               with_allegro="2";;
 			--without-allegro)            with_allegro="0";;
@@ -756,6 +762,24 @@ check_params() {
 	detect_allegro
 	detect_sdl
 	detect_cocoa
+
+	if [ "$enable_opengl" = "1" ]; then
+		if [ "$enable_dedicated" != "0" ]; then
+			enable_opengl="0"
+		else
+			if [ "$os" = "MINGW" ] || [ "$os" = "CYGWIN" ]; then
+				enable_opengl="2"
+			else
+				enable_opengl="0"
+			fi
+		fi
+	fi
+
+	if [ "$enable_opengl" != "0" ]; then
+		log 1 "checking OpenGL... yes"
+	else
+		log 1 "checking OpenGL... no"
+	fi
 
 	if [ "$enable_dedicated" != "0" ]; then
 		log 1 "checking GDI video driver... dedicated server, skipping"
@@ -1854,6 +1878,17 @@ make_cflags_and_ldflags() {
 
 	if [ "$enable_unicode" != "0" ]; then
 		CFLAGS="$CFLAGS -DUNICODE -D_UNICODE"
+	fi
+
+	if [ "$enable_opengl" != "0" ]; then
+		CFLAGS="$CFLAGS -DWITH_OPENGL"
+		if [ "$os" = "MINGW" ] || [ "$os" = "CYGWIN" ]; then
+			LDFLAGS="$LDFLAGS -lopengl32"
+		elif [ "$os" = "OSX" ]; then
+			LDFLAGS="$LDFLAGS -framework OpenGL"
+		else
+			LDFLAGS="$LDFLAGS -lGL"
+		fi
 	fi
 
 	if [ "$enable_network" != "0" ]; then

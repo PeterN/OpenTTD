@@ -75,6 +75,7 @@ enable_ai="1"
 with_cocoa="0"
 enable_directmusic="1"
 with_threads="1"
+enable_opengl="1"
 file_prefix="..\\\\src\\\\"
 
 safety_check() {
@@ -136,6 +137,7 @@ load_main_data() {
 			if ($0 == "DIRECTMUSIC" && "'$enable_directmusic'" != "1") { next; }
 			if ($0 == "LIBTIMIDITY" && "'$libtimidity'" == "" )        { next; }
 			if ($0 == "HAVE_THREAD" && "'$with_threads'" == "0")       { next; }
+			if ($0 == "OPENGL"      && "'$enable_opengl'" == "0")      { next; }
 
 			skip += 1;
 

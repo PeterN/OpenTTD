@@ -290,6 +290,9 @@ video/null_v.h
 object.h
 object_base.h
 object_type.h
+#if OPENGL
+	video/opengl.h
+#end
 openttd.h
 order_backup.h
 order_base.h
@@ -1077,6 +1080,9 @@ pathfinder/yapf/yapf_type.hpp
 # Video
 video/dedicated_v.cpp
 video/null_v.cpp
+#if OPENGL
+	video/opengl.cpp
+#end
 #if DEDICATED
 #else
 #if ALLEGRO

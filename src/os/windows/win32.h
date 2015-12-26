@@ -12,6 +12,8 @@
 #ifndef WIN32_H
 #define WIN32_H
 
+#include "../../core/bitmath_func.hpp"
+
 #include <windows.h>
 bool MyShowCursor(bool show, bool toggle = false);
 
@@ -38,6 +40,22 @@ HRESULT OTTDSHGetFolderPath(HWND, int, HANDLE, DWORD, LPTSTR);
 #if defined(__MINGW32__) && !defined(__MINGW64__)
 #define SHGFP_TYPE_CURRENT 0
 #endif /* __MINGW32__ */
+
+/* Is the SDK used for compiling at least the Windows 8.1 SDK? */
+#if !defined(__MINGW32__) && defined(_WIN32_WINNT_WINBLUE)
+
+#include <VersionHelpers.h>
+
+#else
+/**
+ * Is the current Windows version Vista or later?
+ * @return True if the current Windows is Vista or later.
+ */
+static inline bool IsWindowsVistaOrGreater()
+{
+	return GB(GetVersion(), 0, 8) >= 6;
+}
+#endif
 
 #ifdef _MSC_VER
 void SetWin32ThreadName(DWORD dwThreadID, const char* threadName);

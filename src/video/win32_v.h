@@ -78,6 +78,7 @@ protected:
 	HPALETTE gdi_palette;   ///< Handle to windows palette.
 	RECT     update_rect;   ///< Rectangle to update during the next paint event.
 
+	/* virtual */ uint8 GetFullscreenBpp() { return 32; } // OpenGL is always 32 bpp.
 	/* virtual */ bool AllocateBackingStore(int w, int h, bool force = false);
 	/* virtual */ void PaletteChanged(HWND hWnd);
 	/* virtual */ void Paint(HWND hWnd, bool in_sizemove);
@@ -99,5 +100,44 @@ public:
 	FVideoDriver_Win32GDI() : DriverFactoryBase(Driver::DT_VIDEO, 10, "win32", "Win32 GDI Video Driver") {}
 	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Win32GDI(); }
 };
+
+#ifdef WITH_OPENGL
+
+/** The OpenGL video driver for windows. */
+class VideoDriver_Win32OpenGL : public VideoDriver_Win32Base {
+public:
+	VideoDriver_Win32OpenGL() : dc(NULL), gl_rc(NULL) {}
+
+	/* virtual */ const char *Start(const char * const *param);
+
+	/* virtual */ void Stop();
+
+	/* virtual */ bool ToggleFullscreen(bool fullscreen);
+
+	/* virtual */ bool AfterBlitterChange();
+
+	/* virtual */ const char *GetName() const { return "win32-opengl"; }
+
+protected:
+	HDC   dc;          ///< Window device context.
+	HGLRC gl_rc;       ///< OpenGL context.
+
+	/* virtual */ bool AllocateBackingStore(int w, int h, bool force = false);
+	/* virtual */ void PaletteChanged(HWND hWnd);
+	/* virtual */ void Paint(HWND hWnd, bool in_sizemove);
+	/* virtual */ void PaintThread() {}
+
+	const char *AllocateContext();
+	void DestroyContext();
+};
+
+/** The factory for Windows' OpenGL video driver. */
+class FVideoDriver_Win32OpenGL : public DriverFactoryBase {
+public:
+	FVideoDriver_Win32OpenGL() : DriverFactoryBase(Driver::DT_VIDEO, 9, "win32-opengl", "Win32 OpenGL Video Driver") {}
+	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Win32OpenGL(); }
+};
+
+#endif /* WITH_OPENGL */
 
 #endif /* VIDEO_WIN32_H */
