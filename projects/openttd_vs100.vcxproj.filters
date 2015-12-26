@@ -1896,6 +1896,9 @@
     <ClInclude Include="..\src\table\object_land.h">
       <Filter>Tables</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\table\opengl_shader.h">
+      <Filter>Tables</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\table\palette_convert.h">
       <Filter>Tables</Filter>
     </ClInclude>

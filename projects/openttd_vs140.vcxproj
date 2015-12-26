@@ -934,6 +934,7 @@
     <ClInclude Include="..\src\table\landscape_sprite.h" />
     <ClInclude Include="..\src\table\newgrf_debug_data.h" />
     <ClInclude Include="..\src\table\object_land.h" />
+    <ClInclude Include="..\src\table\opengl_shader.h" />
     <ClInclude Include="..\src\table\palette_convert.h" />
     <ClInclude Include="..\src\table\palettes.h" />
     <ClInclude Include="..\src\table\pricebase.h" />

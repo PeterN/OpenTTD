@@ -2863,6 +2863,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\table\opengl_shader.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\table\palette_convert.h"
 				>
 			</File>
