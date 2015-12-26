@@ -16,6 +16,7 @@
 #include "../core/geometry_type.hpp"
 
 bool IsOpenGLVersionAtLeast(byte major, byte minor);
+const char *FindStringInExtensionList(const char *string, const char *substring);
 void *GetOGLProcAddress(const char *proc);
 
 /** Platform-independent back-end class for OpenGL video drivers. */
