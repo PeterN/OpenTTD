@@ -44,13 +44,15 @@ protected:
 	bool MakeWindow(bool full_screen);
 	virtual uint8 GetFullscreenBpp();
 
-	void ClientSizeChanged(int w, int h);
+	void ClientSizeChanged(int w, int h, bool force = false);
 	void CheckPaletteAnim();
 
 	/** (Re-)create the backing store. */
 	virtual bool AllocateBackingStore(int w, int h, bool force = false) = 0;
 	/** Get a pointer to the video buffer. */
 	virtual void *GetVideoPointer() = 0;
+	/** Hand video buffer back to the painting backend. */
+	virtual void ReleaseVideoPointer() {}
 	/** Palette of the window has changed. */
 	virtual void PaletteChanged(HWND hWnd) = 0;
 	/** Window got a paint message. */
@@ -122,6 +124,8 @@ public:
 
 	/* virtual */ void MakeDirty(int left, int top, int width, int height);
 
+	/* virtual */ bool ChangeResolution(int w, int h);
+
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
 
 	/* virtual */ bool AfterBlitterChange();
@@ -135,6 +139,7 @@ protected:
 
 	/* virtual */ bool AllocateBackingStore(int w, int h, bool force = false);
 	/* virtual */ void *GetVideoPointer();
+	/* virtual */ void ReleaseVideoPointer();
 	/* virtual */ void PaletteChanged(HWND hWnd);
 	/* virtual */ void Paint(HWND hWnd, bool in_sizemove);
 	/* virtual */ void PaintThread() {}
