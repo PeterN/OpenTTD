@@ -27,7 +27,7 @@ enum BlitterMode {
 /**
  * How all blitters should look like. Extend this class to make your own.
  */
-class Blitter {
+class Blitter : public SpriteEncoder {
 public:
 	/** Parameters related to blitting. */
 	struct BlitterParams {
@@ -60,6 +60,11 @@ public:
 	 */
 	virtual uint8 GetScreenDepth() = 0;
 
+	/* virtual */ bool Is32BppSupported()
+	{
+		return this->GetScreenDepth() > 8;
+	}
+
 	/**
 	 * Draw an image to the screen, given an amount of params defined above.
 	 */
@@ -75,11 +80,6 @@ public:
 	 * @param pal the palette to use.
 	 */
 	virtual void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal) = 0;
-
-	/**
-	 * Convert a sprite from the loader to our own format.
-	 */
-	virtual Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) = 0;
 
 	/**
 	 * Move the destination pointer the requested amount x and y, keeping in mind
