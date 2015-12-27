@@ -512,6 +512,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 				0,  // x_offs
 				0,  // y_offs
 				ST_FONT,
+				SCC_PAL,
 				builtin_questionmark_data
 			};
 
