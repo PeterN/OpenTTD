@@ -38,6 +38,9 @@
 #include "../safeguards.h"
 
 
+static PFNGLDEBUGMESSAGECONTROLPROC _glDebugMessageControl;
+static PFNGLDEBUGMESSAGECALLBACKPROC _glDebugMessageCallback;
+
 /* static */ OpenGLBackend *OpenGLBackend::instance = NULL;
 
 /**
@@ -139,6 +142,59 @@ bool IsOpenGLVersionAtLeast(byte major, byte minor)
 	return (_gl_major_ver > major) || (_gl_major_ver == major && _gl_minor_ver >= minor);
 }
 
+/** Callback to receive OpenGL debug messages. */
+void APIENTRY DebugOutputCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
+{
+	/* Make severity human readable. */
+	const char *severity_str = "";
+	switch (severity) {
+		case GL_DEBUG_SEVERITY_HIGH:   severity_str = "high"; break;
+		case GL_DEBUG_SEVERITY_MEDIUM: severity_str = "medium"; break;
+		case GL_DEBUG_SEVERITY_LOW:    severity_str = "low"; break;
+	}
+
+	/* Make type human readable.*/
+	const char *type_str = "Other";
+	switch (type) {
+		case GL_DEBUG_TYPE_ERROR:               type_str = "Error"; break;
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: type_str = "Deprecated"; break;
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  type_str = "Undefined behaviour"; break;
+		case GL_DEBUG_TYPE_PERFORMANCE:         type_str = "Performance"; break;
+		case GL_DEBUG_TYPE_PORTABILITY:         type_str = "Portability"; break;
+	}
+
+	DEBUG(driver, 6, "OpenGL: %s (%s) - %s", type_str, severity_str, message);
+}
+
+/** Enable OpenGL debug messages if supported. */
+void SetupDebugOutput()
+{
+#ifndef NO_DEBUG_MESSAGES
+	if (_debug_driver_level < 6) return;
+
+	if (IsOpenGLVersionAtLeast(4, 3)) {
+		_glDebugMessageControl = (PFNGLDEBUGMESSAGECONTROLPROC)GetOGLProcAddress("glDebugMessageControl");
+		_glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)GetOGLProcAddress("glDebugMessageCallback");
+	} else if (IsOpenGLExtensionSupported("GL_ARB_debug_output")) {
+		_glDebugMessageControl = (PFNGLDEBUGMESSAGECONTROLPROC)GetOGLProcAddress("glDebugMessageControlARB");
+		_glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)GetOGLProcAddress("glDebugMessageCallbackARB");
+	}
+
+	if (_glDebugMessageControl != NULL && _glDebugMessageCallback != NULL) {
+		/* Enable debug output. As synchronous debug output costs performance, we only enable it with a high debug level. */
+		glEnable(GL_DEBUG_OUTPUT);
+		if (_debug_driver_level >= 8) glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+		_glDebugMessageCallback(&DebugOutputCallback, NULL);
+		/* Enable all messages on highest debug level.*/
+		_glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, _debug_driver_level >= 9 ? GL_TRUE : GL_FALSE);
+		/* Get debug messages for errors and undefined/deprecated behaviour. */
+		_glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
+		_glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR, GL_DONT_CARE, 0, NULL, GL_TRUE);
+		_glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR, GL_DONT_CARE, 0, NULL, GL_TRUE);
+	}
+#endif
+}
 
 /**
  * Create and initialize the singleton back-end class.
@@ -189,6 +245,8 @@ const char *OpenGLBackend::Init()
 
 	_gl_major_ver = ver[0] - '0';
 	_gl_minor_ver = ver[2] - '0';
+
+	SetupDebugOutput();
 
 	/* OpenGL 1.3 is the absolute minimum. */
 	if (!IsOpenGLVersionAtLeast(1, 3)) return "OpenGL versions >= 1.3 required";
