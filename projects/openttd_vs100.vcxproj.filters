@@ -2847,6 +2847,9 @@
     <ClInclude Include="..\src\misc\hashtable.hpp">
       <Filter>Misc</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\misc\lrucache.hpp">
+      <Filter>Misc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\misc\str.hpp">
       <Filter>Misc</Filter>
     </ClInclude>
