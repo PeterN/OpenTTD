@@ -78,6 +78,15 @@ protected:
 		}
 	}
 
+	/**
+	 * Is the blitter usable with the current drivers and hardware config?
+	 * @return True if the blitter can be instantiated.
+	 */
+	virtual bool IsUsable() const
+	{
+		return true;
+	}
+
 public:
 	virtual ~BlitterFactory()
 	{
@@ -135,7 +144,7 @@ public:
 		for (; it != GetBlitters().end(); it++) {
 			BlitterFactory *b = (*it).second;
 			if (strcasecmp(bname, b->name) == 0) {
-				return b;
+				return b->IsUsable() ? b : NULL;
 			}
 		}
 		return NULL;
