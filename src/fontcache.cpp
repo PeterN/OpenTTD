@@ -450,11 +450,6 @@ void FreeTypeFontCache::SetGlyphPtr(GlyphID key, const GlyphEntry *glyph, bool d
 	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].duplicate = duplicate;
 }
 
-static void *AllocateFont(size_t size)
-{
-	return MallocT<byte>(size);
-}
-
 
 /* Check if a glyph should be rendered with antialiasing */
 static bool GetFontAAState(FontSize size)
@@ -516,7 +511,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 				builtin_questionmark_data
 			};
 
-			Sprite *spr = BlitterFactory::GetCurrentBlitter()->Encode(&builtin_questionmark, AllocateFont);
+			Sprite *spr = BlitterFactory::GetCurrentBlitter()->Encode(&builtin_questionmark, SimpleSpriteAlloc);
 			assert(spr != NULL);
 			new_glyph.sprite = spr;
 			new_glyph.width  = spr->width + (this->fs != FS_NORMAL);
@@ -573,7 +568,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 		}
 	}
 
-	new_glyph.sprite = BlitterFactory::GetCurrentBlitter()->Encode(&sprite, AllocateFont);
+	new_glyph.sprite = BlitterFactory::GetCurrentBlitter()->Encode(&sprite, SimpleSpriteAlloc);
 	new_glyph.width  = slot->advance.x >> 6;
 
 	this->SetGlyphPtr(key, &new_glyph);
