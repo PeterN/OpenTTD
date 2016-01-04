@@ -59,6 +59,8 @@ protected:
 	virtual void Paint(HWND hWnd, bool in_sizemove) = 0;
 	/** Thread function for threaded drawing. */
 	virtual void PaintThread() = 0;
+	/** Draw the mouse cursor. */
+	virtual void DrawMouseCursor();
 	/** Lock video buffer for drawing if it isn't already mapped. */
 	virtual bool LockVideoBuffer();
 	/** Unlock video buffer. */
@@ -130,6 +132,13 @@ public:
 
 	/* virtual */ bool AfterBlitterChange();
 
+	/* virtual */ bool UseSystemCursor()
+	{
+		return true;
+	}
+
+	/* virtual */ void ClearSystemSprites();
+
 	/* virtual */ const char *GetName() const { return "win32-opengl"; }
 
 protected:
@@ -143,6 +152,7 @@ protected:
 	/* virtual */ void PaletteChanged(HWND hWnd);
 	/* virtual */ void Paint(HWND hWnd, bool in_sizemove);
 	/* virtual */ void PaintThread() {}
+	/* virtual */ void DrawMouseCursor();
 
 	const char *AllocateContext();
 	void DestroyContext();

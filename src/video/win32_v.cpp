@@ -993,6 +993,11 @@ void VideoDriver_Win32Base::CheckPaletteAnim()
 	_draw_thread->Exit();
 }
 
+void VideoDriver_Win32Base::DrawMouseCursor()
+{
+	::DrawMouseCursor();
+}
+
 void VideoDriver_Win32Base::MainLoop()
 {
 	MSG mesg;
@@ -1102,7 +1107,7 @@ void VideoDriver_Win32Base::MainLoop()
 			this->LockVideoBuffer();
 
 			NetworkDrawChatMessage();
-			DrawMouseCursor();
+			this->DrawMouseCursor();
 		}
 	}
 
@@ -1628,6 +1633,11 @@ bool VideoDriver_Win32OpenGL::AfterBlitterChange()
 	return true;
 }
 
+void VideoDriver_Win32OpenGL::ClearSystemSprites()
+{
+	OpenGLBackend::Get()->ClearCursorCache();
+}
+
 bool VideoDriver_Win32OpenGL::AllocateBackingStore(int w, int h, bool force)
 {
 	if (this->gl_rc == NULL) return false;
@@ -1662,21 +1672,12 @@ void VideoDriver_Win32OpenGL::Paint(HWND hWnd, bool in_sizemove)
 	if (_cur_palette.count_dirty != 0) {
 		Blitter *blitter = BlitterFactory::GetCurrentBlitter();
 
-		switch (blitter->UsePaletteAnimation()) {
-			case Blitter::PALETTE_ANIMATION_BLITTER:
-				blitter->PaletteAnimate(_local_palette);
-				break;
-
-			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
-				OpenGLBackend::Get()->UpdatePalette(_local_palette.palette, _local_palette.first_dirty, _local_palette.count_dirty);
-				break;
-
-			case Blitter::PALETTE_ANIMATION_NONE:
-				break;
-
-			default:
-				NOT_REACHED();
+		/* Always push a changed palette to OpenGL. */
+		OpenGLBackend::Get()->UpdatePalette(_local_palette.palette, _local_palette.first_dirty, _local_palette.count_dirty);
+		if (blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_BLITTER) {
+			blitter->PaletteAnimate(_local_palette);
 		}
+
 		_cur_palette.count_dirty = 0;
 	}
 
@@ -1686,6 +1687,15 @@ void VideoDriver_Win32OpenGL::Paint(HWND hWnd, bool in_sizemove)
 	ValidateRect(hWnd, &r);
 
 	OpenGLBackend::Get()->Paint();
+	if (_cursor.in_window) OpenGLBackend::Get()->DrawMouseCursor();
+
+	SwapBuffers(this->dc);
+}
+
+void VideoDriver_Win32OpenGL::DrawMouseCursor()
+{
+	OpenGLBackend::Get()->Paint();
+	if (_cursor.in_window) OpenGLBackend::Get()->DrawMouseCursor();
 	SwapBuffers(this->dc);
 }
 
