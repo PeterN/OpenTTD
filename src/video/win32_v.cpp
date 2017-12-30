@@ -1083,13 +1083,11 @@ void VideoDriver_Win32Base::MainLoop()
 
 			/* The game loop is the part that can run asynchronously.
 			 * The rest except sleeping can't. */
-			if (_draw_threaded) _draw_mutex->EndCritical();
+			this->UnlockVideoBuffer();
 			GameLoop();
-			if (_draw_threaded) _draw_mutex->BeginCritical();
+			this->LockVideoBuffer();
 
 			if (_force_full_redraw) MarkWholeScreenDirty();
-
-			_screen.dst_ptr = this->GetVideoPointer();
 			UpdateWindows();
 			this->CheckPaletteAnim();
 		} else {
@@ -1099,11 +1097,10 @@ void VideoDriver_Win32Base::MainLoop()
 #endif
 
 			/* Release the thread while sleeping */
-			if (_draw_threaded) _draw_mutex->EndCritical();
+			this->UnlockVideoBuffer();
 			Sleep(1);
-			if (_draw_threaded) _draw_mutex->BeginCritical();
+			this->LockVideoBuffer();
 
-			_screen.dst_ptr = this->GetVideoPointer();
 			NetworkDrawChatMessage();
 			DrawMouseCursor();
 		}
@@ -1121,6 +1118,20 @@ void VideoDriver_Win32Base::MainLoop()
 		delete _draw_mutex;
 		delete _draw_thread;
 	}
+}
+
+bool VideoDriver_Win32Base::LockVideoBuffer()
+{
+	if (_draw_threaded) _draw_mutex->BeginCritical(true);
+
+	_screen.dst_ptr = this->GetVideoPointer();
+
+	return true;
+}
+
+void VideoDriver_Win32Base::UnlockVideoBuffer()
+{
+	if (_draw_threaded) _draw_mutex->EndCritical(true);
 }
 
 void VideoDriver_Win32Base::ClientSizeChanged(int w, int h)

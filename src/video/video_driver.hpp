@@ -88,6 +88,24 @@ public:
 	}
 
 	/**
+	 * Does this video driver support a separate animation buffer in addition to the colour buffer?
+	 * @return True if a separate animation buffer is supported.
+	 */
+	virtual bool HasAnimBuffer()
+	{
+		return false;
+	}
+
+	/**
+	 * Get a pointer to the animation buffer of the video back-end.
+	 * @return Pointer to the buffer or NULL if no animation buffer is supported.
+	 */
+	virtual uint8 *GetAnimBuffer()
+	{
+		return NULL;
+	}
+
+	/**
 	 * An edit box lost the input focus. Abort character compositing if necessary.
 	 */
 	virtual void EditBoxLostFocus() {}
@@ -98,6 +116,40 @@ public:
 	static VideoDriver *GetInstance() {
 		return static_cast<VideoDriver*>(*DriverFactoryBase::GetActiveDriver(Driver::DT_VIDEO));
 	}
+
+	/**
+	 * Helper struct to ensure the video buffer is locked and ready for drawing. The destructor
+	 * will make sure the buffer is unlocked no matter how the scope is exited.
+	 */
+	struct VideoBufferLocker {
+		VideoBufferLocker()
+		{
+			this->unlock = VideoDriver::GetInstance()->LockVideoBuffer();
+		}
+
+		~VideoBufferLocker()
+		{
+			if (this->unlock) VideoDriver::GetInstance()->UnlockVideoBuffer();
+		}
+
+	private:
+		bool unlock; ///< Stores if the lock did anything that has to be undone.
+	};
+
+protected:
+	/**
+	 * Make sure the video buffer is ready for drawing.
+	 * @returns True if the video buffer has to be unlocked.
+	 */
+	virtual bool LockVideoBuffer()
+	{
+		return false;
+	}
+
+	/**
+	 * Unlock a previously locked video buffer.
+	 */
+	virtual void UnlockVideoBuffer() {}
 };
 
 extern char *_ini_videodriver;

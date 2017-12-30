@@ -57,6 +57,10 @@ protected:
 	virtual void Paint(HWND hWnd, bool in_sizemove) = 0;
 	/** Thread function for threaded drawing. */
 	virtual void PaintThread() = 0;
+	/** Lock video buffer for drawing if it isn't already mapped. */
+	virtual bool LockVideoBuffer();
+	/** Unlock video buffer. */
+	virtual void UnlockVideoBuffer();
 
 	static void PaintWindowThreadThunk(void *data);
 	friend LRESULT CALLBACK WndProcGdi(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
