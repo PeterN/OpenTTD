@@ -126,6 +126,18 @@ public:
 	}
 
 	/**
+	 * Make a colour dark grey, for specialized 32bpp remapping.
+	 * @param colour the colour to make dark.
+	 * @return the new colour, now darker.
+	 */
+	static inline Colour MakeDark(Colour colour)
+	{
+		uint8 d = MakeDark(colour.r, colour.g, colour.b);
+
+		return Colour(d, d, d);
+	}
+
+	/**
 	 * Make a colour grey - based.
 	 * @param colour the colour to make grey.
 	 * @return the new colour, now grey.
@@ -170,6 +182,16 @@ public:
 		                     g >= 255 ? 255 : min(g + ob * (255 - g) / 256, 255),
 		                     b >= 255 ? 255 : min(b + ob * (255 - b) / 256, 255),
 		                     colour.a);
+	}
+
+	static inline uint8 GetColourBrightness(Colour colour)
+	{
+		uint8 rgb_max = max(colour.r, max(colour.g, colour.b));
+
+		/* Black pixel (8bpp or old 32bpp image), so use default value */
+		if (rgb_max == 0) rgb_max = DEFAULT_BRIGHTNESS;
+
+		return rgb_max;
 	}
 };
 

@@ -936,6 +936,10 @@ blitter/32bpp_sse4.hpp
 blitter/32bpp_ssse3.cpp
 blitter/32bpp_ssse3.hpp
 #end
+#if OPENGL
+blitter/40bpp_anim.cpp
+blitter/40bpp_anim.hpp
+#end
 blitter/8bpp_base.cpp
 blitter/8bpp_base.hpp
 blitter/8bpp_optimized.cpp

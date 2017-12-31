@@ -3908,6 +3908,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\blitter\40bpp_anim.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\blitter\40bpp_anim.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\blitter\8bpp_base.cpp"
 				>
 			</File>
