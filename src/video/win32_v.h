@@ -118,7 +118,7 @@ public:
 /** The OpenGL video driver for windows. */
 class VideoDriver_Win32OpenGL : public VideoDriver_Win32Base {
 public:
-	VideoDriver_Win32OpenGL() : dc(NULL), gl_rc(NULL) {}
+	VideoDriver_Win32OpenGL() : dc(NULL), gl_rc(NULL), anim_buffer(NULL) {}
 
 	/* virtual */ const char *Start(const char * const *param);
 
@@ -139,12 +139,16 @@ public:
 
 	/* virtual */ void ClearSystemSprites();
 
+	/* virtual */ bool HasAnimBuffer() { return true; }
+	/* virtual */ uint8 *GetAnimBuffer() { return this->anim_buffer; }
+
 	/* virtual */ const char *GetName() const { return "win32-opengl"; }
 
 protected:
 	HDC   dc;          ///< Window device context.
 	HGLRC gl_rc;       ///< OpenGL context.
 	Rect  dirty_rect;  ///< Rectangle encompassing the dirty area of the video buffer.
+	uint8 *anim_buffer;///< Animation buffer from OpenGL back-end.
 
 	/* virtual */ bool AllocateBackingStore(int w, int h, bool force = false);
 	/* virtual */ void *GetVideoPointer();
