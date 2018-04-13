@@ -3260,8 +3260,6 @@ STR_COMPANY_INFRASTRUCTURE_VIEW_CAPTION                         :{WHITE}{COMPANY
 STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT                       :{GOLD}鐵路區塊：
 STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS                         :{WHITE}號誌
 STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD_SECT                       :{GOLD}道路區塊：
-STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD                            :{WHITE}道路
-STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY                         :{WHITE}路面電車
 STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT                      :{GOLD}水道或海運設施：
 STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS                          :{WHITE}運河
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT                    :{GOLD}車站：
@@ -4270,7 +4268,7 @@ STR_ERROR_MUST_REMOVE_SIGNALS_FIRST                             :{WHITE}必須�
 STR_ERROR_NO_SUITABLE_RAILROAD_TRACK                            :{WHITE}沒有適合的鐵軌
 STR_ERROR_MUST_REMOVE_RAILROAD_TRACK                            :{WHITE}必須先移除鐵路
 STR_ERROR_CROSSING_ON_ONEWAY_ROAD                               :{WHITE}道路是單行道或已封閉
-STR_ERROR_CROSSING_DISALLOWED                                   :{WHITE}這種軌道不能建設平交道
+STR_ERROR_CROSSING_DISALLOWED_RAIL                              :{WHITE}這種軌道不能建設平交道
 STR_ERROR_CAN_T_BUILD_SIGNALS_HERE                              :{WHITE}無法在此興建號誌...
 STR_ERROR_CAN_T_BUILD_RAILROAD_TRACK                            :{WHITE}無法在此鋪設鐵路...
 STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK                           :{WHITE}不能從這邊移除鐵路...

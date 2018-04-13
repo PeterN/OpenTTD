@@ -3318,8 +3318,6 @@ STR_COMPANY_INFRASTRUCTURE_VIEW_CAPTION                         :{WHITE}תתיו
 STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT                       :{GOLD}חלקי מסילה:
 STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS                         :{WHITE}רמזורים
 STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD_SECT                       :{GOLD}חלקי כביש:
-STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD                            :{WHITE}כביש
-STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY                         :{WHITE}מסילת רכבת קלה
 STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT                      :{GOLD}משבצות מים:
 STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS                          :{WHITE}תעלות
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT                    :{GOLD}תחנות:
@@ -4345,7 +4343,7 @@ STR_ERROR_MUST_REMOVE_SIGNALS_FIRST                             :{WHITE}יש ל�
 STR_ERROR_NO_SUITABLE_RAILROAD_TRACK                            :{WHITE}אין מסילת רכבת מתאימה
 STR_ERROR_MUST_REMOVE_RAILROAD_TRACK                            :{WHITE}יש להסיר את המסילה הקיימת תחילה
 STR_ERROR_CROSSING_ON_ONEWAY_ROAD                               :{WHITE}כביש חד סיטרי או חסום
-STR_ERROR_CROSSING_DISALLOWED                                   :{WHITE}מפגשי כביש/מסילה אין אפשריים עבור סוג מסילה זה
+STR_ERROR_CROSSING_DISALLOWED_RAIL                              :{WHITE}מפגשי כביש/מסילה אין אפשריים עבור סוג מסילה זה
 STR_ERROR_CAN_T_BUILD_SIGNALS_HERE                              :{WHITE}לא ניתן למקם רמזורים כאן...
 STR_ERROR_CAN_T_BUILD_RAILROAD_TRACK                            :{WHITE}לא ניתן להניח פסי רכבת כאן...
 STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK                           :{WHITE}לא ניתן להסיר פסי רכבת ממשבצת זו...

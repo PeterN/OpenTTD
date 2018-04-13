@@ -3610,8 +3610,6 @@ STR_COMPANY_INFRASTRUCTURE_VIEW_CAPTION                         :{WHITE}Iнфр�
 STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT                       :{GOLD}Чыгуначныя элемэнты:
 STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS                         :{WHITE}Сыґналы
 STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD_SECT                       :{GOLD}Дарожныя элемэнты:
-STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD                            :{WHITE}Дарогi
-STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY                         :{WHITE}Трамваi
 STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT                      :{GOLD}Водныя клеткi:
 STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS                          :{WHITE}Каналы
 STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT                    :{GOLD}Станцыi:
@@ -4656,7 +4654,7 @@ STR_ERROR_MUST_REMOVE_SIGNALS_FIRST                             :{WHITE}Спач
 STR_ERROR_NO_SUITABLE_RAILROAD_TRACK                            :{WHITE}Няма прыдатных рэйкаў
 STR_ERROR_MUST_REMOVE_RAILROAD_TRACK                            :{WHITE}Спачатку выдаліце чыгунку
 STR_ERROR_CROSSING_ON_ONEWAY_ROAD                               :{WHITE}Дарога аднабаковая або блякаваная
-STR_ERROR_CROSSING_DISALLOWED                                   :{WHITE}Праз гэты від рэйкаў забаронена будаваць пераезды
+STR_ERROR_CROSSING_DISALLOWED_RAIL                              :{WHITE}Праз гэты від рэйкаў забаронена будаваць пераезды
 STR_ERROR_CAN_T_BUILD_SIGNALS_HERE                              :{WHITE}Тут немагчыма паставіць сьветлафор...
 STR_ERROR_CAN_T_BUILD_RAILROAD_TRACK                            :{WHITE}Тут немагчыма пракласьцi рэйкі...
 STR_ERROR_CAN_T_REMOVE_RAILROAD_TRACK                           :{WHITE}Не атрымалася выдаліць чыгунку...
