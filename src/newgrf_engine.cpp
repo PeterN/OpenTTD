@@ -632,14 +632,25 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
 
 		/* Variables which use the parameter */
 		case 0x60: // Count consist's engine ID occurrence
+			/* Format: xxllffcc
+			 * ll - Position of last vehicle of this type in the chain.
+			 * ff - Position of first vehicle of this type in the chain.
+			 * cc - Number of engines of this type in the chain.
+			 */
 			if (v->type != VEH_TRAIN) return v->GetEngine()->grf_prop.local_id == parameter ? 1 : 0;
 
 			{
 				uint count = 0;
-				for (; v != NULL; v = v->Next()) {
-					if (v->GetEngine()->grf_prop.local_id == parameter) count++;
+				uint first = 0xFF;
+				uint last = 0xFF;
+				for (uint pos = 0; v != NULL; v = v->Next(), pos++) {
+					if (v->GetEngine()->grf_prop.local_id == parameter) {
+						count++;
+						if (pos < first) first = pos;
+						last = pos;
+					}
 				}
-				return count;
+				return count | (first << 8) | (last << 16);
 			}
 
 		case 0x61: // Get variable of n-th vehicle in chain [signed number relative to vehicle]
