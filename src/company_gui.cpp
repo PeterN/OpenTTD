@@ -1574,7 +1574,7 @@ struct CompanyInfrastructureWindow : Window
 
 	void UpdateRailRoadTypes()
 	{
-		this->railtypes = RAILTYPES_NONE;
+		this->railtypes.reset();
 		this->roadtypes = ROADTYPES_ROAD; // Road is always available.
 
 		/* Find the used railtypes. */
@@ -1646,7 +1646,7 @@ struct CompanyInfrastructureWindow : Window
 						size->width = max(size->width, GetStringBoundingBox(STR_WHITE_STRING).width + WD_FRAMERECT_LEFT);
 					}
 				}
-				if (this->railtypes != RAILTYPES_NONE) {
+				if (this->railtypes.any()) {
 					lines++;
 					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS).width + WD_FRAMERECT_LEFT);
 				}
@@ -1764,7 +1764,7 @@ struct CompanyInfrastructureWindow : Window
 			case WID_CI_RAIL_DESC:
 				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT);
 
-				if (this->railtypes != RAILTYPES_NONE) {
+				if (this->railtypes.any()) {
 					/* Draw name of each valid railtype. */
 					RailType rt;
 					FOR_ALL_SORTED_RAILTYPES(rt) {
@@ -1790,7 +1790,7 @@ struct CompanyInfrastructureWindow : Window
 						this->DrawCountLine(r, y, c->infrastructure.rail[rt], RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total));
 					}
 				}
-				if (this->railtypes != RAILTYPES_NONE) {
+				if (this->railtypes.any()) {
 					this->DrawCountLine(r, y, c->infrastructure.signal, SignalMaintenanceCost(c->infrastructure.signal));
 				}
 				break;

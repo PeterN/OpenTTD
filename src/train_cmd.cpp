@@ -135,7 +135,7 @@ void Train::ConsistChanged(ConsistChangeFlags allowed_changes)
 	const RailVehicleInfo *rvi_v = RailVehInfo(this->engine_type);
 	EngineID first_engine = this->IsFrontEngine() ? this->engine_type : INVALID_ENGINE;
 	this->gcache.cached_total_length = 0;
-	this->compatible_railtypes = RAILTYPES_NONE;
+	this->compatible_railtypes.reset();
 
 	bool train_can_tilt = true;
 
@@ -198,7 +198,7 @@ void Train::ConsistChanged(ConsistChangeFlags allowed_changes)
 			 * existing electric engines when elrails are disabled and then re-enabled */
 			if (HasBit(u->flags, VRF_EL_ENGINE_ALLOWED_NORMAL_RAIL)) {
 				u->railtype = RAILTYPE_RAIL;
-				u->compatible_railtypes |= RAILTYPES_RAIL;
+				u->compatible_railtypes.set(RAILTYPE_RAIL);
 			}
 
 			/* max speed is the minimum of the speed limits of all vehicles in the consist */

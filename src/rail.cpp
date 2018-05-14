@@ -256,7 +256,7 @@ RailTypes AddDateIntroducedRailTypes(RailTypes current, Date date)
  */
 RailTypes GetCompanyRailtypes(CompanyID company)
 {
-	RailTypes rts = RAILTYPES_NONE;
+	RailTypes rts;
 
 	Engine *e;
 	FOR_ALL_ENGINES_OF_TYPE(e, VEH_TRAIN) {

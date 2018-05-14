@@ -1987,7 +1987,7 @@ void InitializeRailGUI()
  */
 DropDownList *GetRailTypeDropDownList(bool for_replacement, bool all_option)
 {
-	RailTypes used_railtypes = RAILTYPES_NONE;
+	RailTypes used_railtypes;
 
 	/* Find the used railtypes. */
 	Engine *e;
