@@ -12,6 +12,8 @@
 #ifndef BITMATH_FUNC_HPP
 #define BITMATH_FUNC_HPP
 
+#include <bitset>
+
 /**
  * Fetch \a n bits from \a x, started at bit \a s.
  *
@@ -108,6 +110,15 @@ static inline bool HasBit(const T x, const uint8 y)
 }
 
 /**
+ * Checks if a bit in a std::bitset is set.
+ */
+template <size_t N>
+static inline bool HasBit(const std::bitset<N> x, const uint8 y)
+{
+	return x.test(y);
+}
+
+/**
  * Set a bit in a variable.
  *
  * This function sets a bit in a variable. The variable is changed
@@ -123,6 +134,15 @@ template <typename T>
 static inline T SetBit(T &x, const uint8 y)
 {
 	return x = (T)(x | ((T)1U << y));
+}
+
+/**
+ * Set a bit in a std::bitset.
+ */
+template <size_t N>
+static inline std::bitset<N> SetBit(const std::bitset<N> &x, const uint8 y)
+{
+	return x.set(y);
 }
 
 /**
@@ -156,6 +176,15 @@ static inline T ClrBit(T &x, const uint8 y)
 }
 
 /**
+ * Clears a bit in a std::bitset.
+ */
+template <size_t N>
+static inline std::bitset<N> ClrBit(const std::bitset<N> &x, const uint8 y)
+{
+	return x.reset(y);
+}
+
+/**
  * Clears several bits in a variable.
  *
  * This macro clears several bits in a variable. The bits to clear are
@@ -185,6 +214,14 @@ static inline T ToggleBit(T &x, const uint8 y)
 	return x = (T)(x ^ ((T)1U << y));
 }
 
+/**
+ * Toggles a bit in a std::bitset.
+ */
+template <size_t N>
+static inline std::bitset<N> ToggleBit(const std::bitset<N> &x, const uint8 y)
+{
+	return x.flip(y);
+}
 
 /** Lookup table to check which bit is set in a 6 bit variable */
 extern const uint8 _ffb_64[64];
@@ -267,6 +304,15 @@ static inline uint CountBits(T value)
 }
 
 /**
+ * Counts the number of set bits in a std::bitset.
+ */
+template <size_t N>
+static inline uint CountBits(const std::bitset<N> value)
+{
+	return (uint)value.count();
+}
+
+/**
  * Test whether \a value has exactly 1 bit set
  *
  * @param value the value to test.
@@ -276,6 +322,15 @@ template <typename T>
 static inline bool HasExactlyOneBit(T value)
 {
 	return value != 0 && (value & (value - 1)) == 0;
+}
+
+/**
+ * Test whether \a std::bitset has exactly 1 bit set.
+ */
+template <size_t N>
+static inline bool HasExactlyOneBit(const std::bitset<N> value)
+{
+	return value.count() == 1;
 }
 
 /**
