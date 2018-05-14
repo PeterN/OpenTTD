@@ -236,7 +236,7 @@ uint8 RoadTypeIdentifier::Pack() const
 bool RoadTypeIdentifier::UnpackIfValid(uint32 data)
 {
 	this->basetype = (RoadType)GB(data, 0, 1);
-	this->subtype = (RoadSubType)GB(data, 1, 4);
+	this->subtype = (RoadSubType)GB(data, 1, 6);
 
 	return this->IsValid();
 }

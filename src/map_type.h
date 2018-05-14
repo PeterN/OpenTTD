@@ -35,6 +35,8 @@ assert_compile(sizeof(Tile) == 8);
 struct TileExtended {
 	byte m6; ///< General purpose
 	byte m7; ///< Primarily used for newgrf support
+	byte m8; ///< General purpose
+	byte m9; ///< General purpose
 };
 
 /**
