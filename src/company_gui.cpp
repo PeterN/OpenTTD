@@ -1574,7 +1574,7 @@ struct CompanyInfrastructureWindow : Window
 
 	void UpdateRailRoadTypes()
 	{
-		this->railtypes = RAILTYPES_NONE;
+		this->railtypes.reset();
 		this->roadtypes = ROADTYPES_ROAD; // Road is always available.
 
 		/* Find the used railtypes. */
@@ -1606,7 +1606,7 @@ struct CompanyInfrastructureWindow : Window
 
 		uint32 rail_total = c->infrastructure.GetRailTotal();
 		for (RailType rt = RAILTYPE_BEGIN; rt != RAILTYPE_END; rt++) {
-			if (HasBit(this->railtypes, rt)) total += RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total);
+			if (this->railtypes.test(rt)) total += RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total);
 		}
 		total += SignalMaintenanceCost(c->infrastructure.signal);
 
@@ -1640,13 +1640,13 @@ struct CompanyInfrastructureWindow : Window
 				size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT).width);
 
 				for (RailType rt = RAILTYPE_BEGIN; rt < RAILTYPE_END; rt++) {
-					if (HasBit(this->railtypes, rt)) {
+					if (this->railtypes.test(rt)) {
 						lines++;
 						SetDParam(0, GetRailTypeInfo(rt)->strings.name);
 						size->width = max(size->width, GetStringBoundingBox(STR_WHITE_STRING).width + WD_FRAMERECT_LEFT);
 					}
 				}
-				if (this->railtypes != RAILTYPES_NONE) {
+				if (this->railtypes.any()) {
 					lines++;
 					size->width = max(size->width, GetStringBoundingBox(STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS).width + WD_FRAMERECT_LEFT);
 				}
@@ -1764,11 +1764,11 @@ struct CompanyInfrastructureWindow : Window
 			case WID_CI_RAIL_DESC:
 				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT);
 
-				if (this->railtypes != RAILTYPES_NONE) {
+				if (this->railtypes.any()) {
 					/* Draw name of each valid railtype. */
 					RailType rt;
 					FOR_ALL_SORTED_RAILTYPES(rt) {
-						if (HasBit(this->railtypes, rt)) {
+						if (this->railtypes.test(rt)) {
 							SetDParam(0, GetRailTypeInfo(rt)->strings.name);
 							DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_WHITE_STRING);
 						}
@@ -1786,11 +1786,11 @@ struct CompanyInfrastructureWindow : Window
 				uint32 rail_total = c->infrastructure.GetRailTotal();
 				RailType rt;
 				FOR_ALL_SORTED_RAILTYPES(rt) {
-					if (HasBit(this->railtypes, rt)) {
+					if (this->railtypes.test(rt)) {
 						this->DrawCountLine(r, y, c->infrastructure.rail[rt], RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total));
 					}
 				}
-				if (this->railtypes != RAILTYPES_NONE) {
+				if (this->railtypes.any()) {
 					this->DrawCountLine(r, y, c->infrastructure.signal, SignalMaintenanceCost(c->infrastructure.signal));
 				}
 				break;

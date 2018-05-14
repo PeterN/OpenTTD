@@ -12,6 +12,8 @@
 #ifndef RAIL_TYPE_H
 #define RAIL_TYPE_H
 
+#include <bitset>
+
 #include "core/enum_type.hpp"
 
 typedef uint32 RailTypeLabel;
@@ -49,14 +51,11 @@ typedef TinyEnumT<RailType> RailTypeByte;
 /**
  * The different roadtypes we support, but then a bitmask of them
  */
-enum RailTypes {
-	RAILTYPES_NONE     = 0,                      ///< No rail types
-	RAILTYPES_RAIL     = 1 << RAILTYPE_RAIL,     ///< Non-electrified rails
-	RAILTYPES_ELECTRIC = 1 << RAILTYPE_ELECTRIC, ///< Electrified rails
-	RAILTYPES_MONO     = 1 << RAILTYPE_MONO,     ///< Monorail!
-	RAILTYPES_MAGLEV   = 1 << RAILTYPE_MAGLEV,   ///< Ever fast maglev
-	INVALID_RAILTYPES  = UINT_MAX,               ///< Invalid railtypes
-};
-DECLARE_ENUM_AS_BIT_SET(RailTypes)
+typedef std::bitset<RAILTYPE_END> RailTypes;
+
+/**
+ * INVALID_RAILTYPES is actually used to mean any, so set all.
+ */
+static const RailTypes INVALID_RAILTYPES = RailTypes().set();
 
 #endif /* RAIL_TYPE_H */

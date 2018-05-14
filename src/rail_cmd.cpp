@@ -74,8 +74,8 @@ void ResetRailTypes()
 		{0,0,0,0,0,0,0,0,{}},
 		{0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0},
-		0, RAILTYPES_NONE, RAILTYPES_NONE, 0, 0, 0, RTFB_NONE, 0, 0, 0, 0, 0,
-		RailTypeLabelList(), 0, 0, RAILTYPES_NONE, RAILTYPES_NONE, 0,
+		0, RailTypes(), RailTypes(), 0, 0, 0, RTFB_NONE, 0, 0, 0, 0, 0,
+		RailTypeLabelList(), 0, 0, RailTypes(), RailTypes(), 0,
 		{}, {} };
 	for (; i < lengthof(_railtypes);          i++) _railtypes[i] = empty_railtype;
 }
@@ -166,11 +166,11 @@ RailType AllocateRailType(RailTypeLabel label)
 			rti->alternate_labels.Clear();
 
 			/* Make us compatible with ourself. */
-			rti->powered_railtypes    = (RailTypes)(1 << rt);
-			rti->compatible_railtypes = (RailTypes)(1 << rt);
+			rti->powered_railtypes    = RailTypes().set(rt);
+			rti->compatible_railtypes = RailTypes().set(rt);
 
 			/* We also introduce ourself. */
-			rti->introduces_railtypes = (RailTypes)(1 << rt);
+			rti->introduces_railtypes = RailTypes().set(rt);
 
 			/* Default sort order; order of allocation, but with some
 			 * offsets so it's easier for NewGRF to pick a spot without

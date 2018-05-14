@@ -310,7 +310,7 @@ static inline const RailtypeInfo *GetRailTypeInfo(RailType railtype)
  */
 static inline bool IsCompatibleRail(RailType enginetype, RailType tiletype)
 {
-	return HasBit(GetRailTypeInfo(enginetype)->compatible_railtypes, tiletype);
+	return GetRailTypeInfo(enginetype)->compatible_railtypes.test(tiletype);
 }
 
 /**
@@ -323,7 +323,7 @@ static inline bool IsCompatibleRail(RailType enginetype, RailType tiletype)
  */
 static inline bool HasPowerOnRail(RailType enginetype, RailType tiletype)
 {
-	return HasBit(GetRailTypeInfo(enginetype)->powered_railtypes, tiletype);
+	return GetRailTypeInfo(enginetype)->powered_railtypes.test(tiletype);
 }
 
 /**

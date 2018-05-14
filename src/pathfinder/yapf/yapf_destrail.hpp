@@ -25,7 +25,7 @@ public:
 
 	bool IsCompatibleRailType(RailType rt)
 	{
-		return HasBit(m_compatible_railtypes, rt);
+		return m_compatible_railtypes.test(rt);
 	}
 
 	RailTypes GetCompatibleRailTypes() const

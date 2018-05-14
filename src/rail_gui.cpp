@@ -1987,7 +1987,7 @@ void InitializeRailGUI()
  */
 DropDownList *GetRailTypeDropDownList(bool for_replacement, bool all_option)
 {
-	RailTypes used_railtypes = RAILTYPES_NONE;
+	RailTypes used_railtypes;
 
 	/* Find the used railtypes. */
 	Engine *e;
@@ -2011,12 +2011,12 @@ DropDownList *GetRailTypeDropDownList(bool for_replacement, bool all_option)
 	RailType rt;
 	FOR_ALL_SORTED_RAILTYPES(rt) {
 		/* If it's not used ever, don't show it to the user. */
-		if (!HasBit(used_railtypes, rt)) continue;
+		if (!used_railtypes.test(rt)) continue;
 
 		const RailtypeInfo *rti = GetRailTypeInfo(rt);
 
 		StringID str = for_replacement ? rti->strings.replace_text : (rti->max_speed > 0 ? STR_TOOLBAR_RAILTYPE_VELOCITY : STR_JUST_STRING);
-		DropDownListParamStringItem *item = new DropDownListParamStringItem(str, rt, !HasBit(c->avail_railtypes, rt));
+		DropDownListParamStringItem *item = new DropDownListParamStringItem(str, rt, !c->avail_railtypes.test(rt));
 		item->SetParam(0, rti->strings.menu_text);
 		item->SetParam(1, rti->max_speed);
 		*list->Append() = item;

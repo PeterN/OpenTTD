@@ -187,7 +187,7 @@ RailType GetTileRailType(TileIndex tile)
  */
 bool HasRailtypeAvail(const CompanyID company, const RailType railtype)
 {
-	return HasBit(Company::Get(company)->avail_railtypes, railtype);
+	return Company::Get(company)->avail_railtypes.test(railtype);
 }
 
 /**
@@ -256,7 +256,7 @@ RailTypes AddDateIntroducedRailTypes(RailTypes current, Date date)
  */
 RailTypes GetCompanyRailtypes(CompanyID company)
 {
-	RailTypes rts = RAILTYPES_NONE;
+	RailTypes rts;
 
 	Engine *e;
 	FOR_ALL_ENGINES_OF_TYPE(e, VEH_TRAIN) {

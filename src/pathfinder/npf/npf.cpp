@@ -782,7 +782,7 @@ static bool CanEnterTile(TileIndex tile, DiagDirection dir, AyStarUserData *user
 	/* check correct rail type (mono, maglev, etc) */
 	if (user->type == TRANSPORT_RAIL) {
 		RailType rail_type = GetTileRailType(tile);
-		if (!HasBit(user->railtypes, rail_type)) return false;
+		if (!user->railtypes.test(rail_type)) return false;
 	}
 
 	/* Depots, standard roadstops and single tram bits can only be entered from one direction */

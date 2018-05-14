@@ -345,7 +345,7 @@ protected:
 		/* rail transport is possible only on compatible rail types */
 		if (IsRailTT()) {
 			RailType rail_type = GetTileRailType(m_new_tile);
-			if (!HasBit(m_railtypes, rail_type)) {
+			if (!m_railtypes.test(rail_type)) {
 				/* incompatible rail type */
 				m_err = EC_RAIL_TYPE;
 				return false;
