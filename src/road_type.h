@@ -36,8 +36,8 @@ typedef TinyEnumT<RoadType> RoadTypeByte;
 enum RoadSubType {
 	ROADSUBTYPE_BEGIN    = 0,   ///< Used for iterations
 	ROADSUBTYPE_NORMAL   = 0,   ///< Normal road/tram
-	ROADSUBTYPE_END      = 15,  ///< Used for iterations
-	INVALID_ROADSUBTYPE  = 0xF, ///< flag for invalid roadsubtype
+	ROADSUBTYPE_END      = 63,  ///< Used for iterations
+	INVALID_ROADSUBTYPE  = 63,  ///< flag for invalid roadsubtype
 };
 DECLARE_POSTFIX_INCREMENT(RoadSubType);
 
@@ -60,8 +60,8 @@ typedef SimpleTinyEnumT<RoadTypes, byte> RoadTypesByte;
  * The different roadsubtypes which exist, but then a bitmask of them.
  */
 enum RoadSubTypes {
-	ROADSUBTYPES_NONE     = 0,                       ///< No roadsubtypes
-	ROADSUBTYPES_NORMAL   = 1 << ROADSUBTYPE_NORMAL, ///< Normal road/tram
+	ROADSUBTYPES_NONE     = 0,                         ///< No roadsubtypes
+	ROADSUBTYPES_NORMAL   = 1LL << ROADSUBTYPE_NORMAL, ///< Normal road/tram
 };
 DECLARE_ENUM_AS_BIT_SET(RoadSubTypes)
 

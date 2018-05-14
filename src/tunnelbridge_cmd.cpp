@@ -221,7 +221,7 @@ CommandCost CheckBridgeAvailability(BridgeType bridge_type, uint bridge_len, DoC
  * @param p1 packed start tile coords (~ dx)
  * @param p2 various bitstuffed elements
  * - p2 = (bit  0- 7) - bridge type (hi bh)
- * - p2 = (bit  8-13) - rail type or road types.
+ * - p2 = (bit  8-14) - rail type or road types.
  * - p2 = (bit 15-16) - transport type.
  * @param text unused
  * @return the cost of this operation or an error
@@ -243,7 +243,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 	/* type of bridge */
 	switch (transport_type) {
 		case TRANSPORT_ROAD:
-			if (!rtid.UnpackIfValid(GB(p2, 8, 5))) return CMD_ERROR;
+			if (!rtid.UnpackIfValid(GB(p2, 8, 7))) return CMD_ERROR;
 			if (!ValParamRoadType(rtid)) return CMD_ERROR;
 			break;
 
@@ -579,7 +579,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
  * Build Tunnel.
  * @param start_tile start tile of tunnel
  * @param flags type of operation
- * @param p1 bit 0-5 railtype or roadtypes
+ * @param p1 bit 0-6 railtype or roadtypes
  *           bit 8-9 transport type
  * @param p2 unused
  * @param text unused
@@ -600,7 +600,7 @@ CommandCost CmdBuildTunnel(TileIndex start_tile, DoCommandFlag flags, uint32 p1,
 			break;
 
 		case TRANSPORT_ROAD:
-			if (!rtid.UnpackIfValid(GB(p1, 0, 5))) return CMD_ERROR;
+			if (!rtid.UnpackIfValid(GB(p1, 0, 7))) return CMD_ERROR;
 			if (!ValParamRoadType(rtid)) return CMD_ERROR;
 			break;
 

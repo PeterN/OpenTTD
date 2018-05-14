@@ -179,13 +179,13 @@ static inline void SetRoadBits(TileIndex t, RoadBits r, RoadType rt)
 static inline RoadSubType GetRoadSubTypeRoad(TileIndex t)
 {
 	assert(MayHaveRoad(t));
-	return (RoadSubType)GB(_m[t].m4, 0, 4);
+	return (RoadSubType)GB(_m[t].m4, 0, 6);
 }
 
 static inline RoadSubType GetRoadSubTypeTram(TileIndex t)
 {
 	assert(MayHaveRoad(t));
-	return (RoadSubType)GB(_m[t].m4, 4, 4);
+	return (RoadSubType)GB(_me[t].m8, 6, 6);
 }
 
 static inline RoadSubType GetRoadSubType(TileIndex t, RoadType rt)
@@ -771,8 +771,8 @@ struct RoadTypeIdentifiers {
 static inline void SetRoadTypes(TileIndex t, RoadTypeIdentifiers rtids)
 {
 	assert(MayHaveRoad(t));
-	SB(_m[t].m4, 0, 4, rtids.road_identifier.subtype);
-	SB(_m[t].m4, 4, 4, rtids.tram_identifier.subtype);
+	SB(_m[t].m4, 0, 6, rtids.road_identifier.subtype);
+	SB(_me[t].m8, 6, 6, rtids.tram_identifier.subtype);
 }
 
 /**
@@ -814,11 +814,11 @@ static inline void MakeRoadCrossing(TileIndex t, Owner road, Owner tram, Owner r
 	SetTileOwner(t, rail);
 	_m[t].m2 = town;
 	_m[t].m3 = 0;
-	_m[t].m4 = INVALID_ROADTYPES;
+	_m[t].m4 = INVALID_ROADSUBTYPE;
 	_m[t].m5 = ROAD_TILE_CROSSING << 6 | roaddir;
 	SB(_me[t].m6, 2, 4, 0);
 	_me[t].m7 = road;
-	_me[t].m8 = rat;
+	_me[t].m8 = INVALID_ROADSUBTYPE << 6 | rat;
 	SetRoadTypes(t, rtids);
 	SetRoadOwner(t, ROADTYPE_TRAM, tram);
 }
@@ -837,10 +837,11 @@ static inline void MakeRoadDepot(TileIndex t, Owner owner, DepotID did, DiagDire
 	SetTileOwner(t, owner);
 	_m[t].m2 = did;
 	_m[t].m3 = 0;
-	_m[t].m4 = INVALID_ROADTYPES;
+	_m[t].m4 = INVALID_ROADSUBTYPE;
 	_m[t].m5 = ROAD_TILE_DEPOT << 6 | dir;
 	SB(_me[t].m6, 2, 4, 0);
 	_me[t].m7 = owner;
+	_me[t].m8 = INVALID_ROADSUBTYPE << 6;
 	SetRoadTypes(t, RoadTypeIdentifiers::FromRoadTypeIdentifier(rtid));
 	SetRoadOwner(t, ROADTYPE_TRAM, owner);
 }

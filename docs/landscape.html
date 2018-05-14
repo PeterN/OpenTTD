@@ -98,23 +98,29 @@
     </li>
    </ul>
   </li>
-  <li><span style="font-weight: bold;">m3:</span><br>
-   <ul>
-    <li>
-     <a name="RailType"></a>
-     Bits 3..0: Railtype. Used for all tiles with rail (road, rail, station, tunnelbridge).
-    </li>
-   </ul>
-  </li>
   <li><span style="font-weight: bold;">m4:</span><br>
    <a name="RoadType"></a>
    Road-(sub-)types. Used for all tiles with road (road, station, tunnelbridge).
    <ul>
     <li>
-     Bits 7..4: Tram sub type, 0xF for no tram.
+     Bits 5..0: Road sub type, 0x1F for no road.
     </li>
+   </ul>
+  </li>
+  <li><span style="font-weight: bold;">m8:</span><br>
+   <a name="RoadType"></a>
+   Tram-(sub-)types. Used for all tiles with road (road, station, tunnelbridge).
+   <ul>
     <li>
-     Bits 3..0: Road sub type, 0xF for no road.
+     Bits 11..6: Tram sub type, 0x1F for no tram.
+    </li>
+   </ul>
+  </li>
+  <li><span style="font-weight: bold;">m8:</span><br>
+   <ul>
+    <li>
+     <a name="RailType"></a>
+     Bits 5..0: Railtype. Used for all tiles with rail (road, rail, station, tunnelbridge).
     </li>
    </ul>
   </li>
@@ -128,7 +134,7 @@
  <table border=1 cellpadding=3>
   <tr bgcolor="#0099FF">
    <th align=left><font color="#FFFFFF">Class</font></th>
-   <th align=left><font color="#FFFFFF">Meaning & details of encoding</font></th>
+   <th align=left><font color="#FFFFFF">Meaning &amp; details of encoding</font></th>
   </tr>
   <tr bgcolor="#CCCCCC">
    <td align=left><strong><a name="Class0"><tt> 0 </tt></a></strong></td>
@@ -558,6 +564,7 @@
      <li>m3 bits 7..4: <a href="#OwnershipInfo">owner</a> of road type 1 (tram); OWNER_NONE (<tt>10</tt>) is stored as OWNER_TOWN (<tt>0F</tt>)
      <li>m4: <a href="#RoadType">Road-(sub-)types</a></li>
      <li>m7 bit 5 set = on snow or desert</li>
+     <li>m8: <a href="#RoadType">Tram-(sub-)types</a></li>
      <li>m5 bits 7 clear: road or level-crossing
       <ul>
        <li>m6 bits 5..3:

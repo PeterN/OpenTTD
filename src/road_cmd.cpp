@@ -149,10 +149,10 @@ RoadTypeIdentifier AllocateRoadType(RoadTypeLabel label, RoadType basetype)
 			rti->alternate_labels.clear();
 
 			/* Make us compatible with ourself. */
-			rti->powered_roadtypes = (RoadSubTypes)(1 << rt);
+			rti->powered_roadtypes = (RoadSubTypes)(1LL << rt);
 
 			/* We also introduce ourself. */
-			rti->introduces_roadtypes = (RoadSubTypes)(1 << rt);
+			rti->introduces_roadtypes = (RoadSubTypes)(1LL << rt);
 
 			/* Default sort order; order of allocation, but with some
 			 * offsets so it's easier for NewGRF to pick a spot without
@@ -160,7 +160,7 @@ RoadTypeIdentifier AllocateRoadType(RoadTypeLabel label, RoadType basetype)
 			 * The << is so you can place other roadtypes in between the
 			 * other roadtypes, the 7 is to be able to place something
 			 * before the first (default) road type. */
-			rti->sorting_order = rt << 4 | 7;
+			rti->sorting_order = rt << 2 | 7;
 
 			rtid.basetype = basetype;
 			rtid.subtype = rt;
@@ -610,8 +610,8 @@ static CommandCost CheckRoadSlope(Slope tileh, RoadBits *pieces, RoadBits existi
  * @param tile tile where to build road
  * @param flags operation to perform
  * @param p1 bit 0..3 road pieces to build (RoadBits)
- *           bit 4..8 road type
- *           bit 9..10 disallowed directions to toggle
+ *           bit 4..10 road type
+ *           bit 11..12 disallowed directions to toggle
  * @param p2 the town that is building the road (0 if not applicable)
  * @param text unused
  * @return the cost of this operation or an error
@@ -647,10 +647,10 @@ CommandCost CmdBuildRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	if (pieces == ROAD_NONE) return CMD_ERROR;
 
 	RoadTypeIdentifier rtid;
-	if (!rtid.UnpackIfValid(GB(p1, 4, 5))) return CMD_ERROR;
+	if (!rtid.UnpackIfValid(GB(p1, 4, 7))) return CMD_ERROR;
 	if (!ValParamRoadType(rtid)) return CMD_ERROR;
 
-	DisallowedRoadDirections toggle_drd = Extract<DisallowedRoadDirections, 9, 2>(p1);
+	DisallowedRoadDirections toggle_drd = Extract<DisallowedRoadDirections, 11, 2>(p1);
 
 	Slope tileh = GetTileSlope(tile);
 
@@ -997,9 +997,9 @@ static bool CanConnectToRoad(TileIndex tile, RoadTypeIdentifier rtid, DiagDirect
  * - p2 = (bit 0) - start tile starts in the 2nd half of tile (p2 & 1). Only used if bit 6 is set or if we are building a single tile
  * - p2 = (bit 1) - end tile starts in the 2nd half of tile (p2 & 2). Only used if bit 6 is set or if we are building a single tile
  * - p2 = (bit 2) - direction: 0 = along x-axis, 1 = along y-axis (p2 & 4)
- * - p2 = (bit 3..7) - road type identifier
- * - p2 = (bit 8) - set road direction
- * - p2 = (bit 9) - defines two different behaviors for this command:
+ * - p2 = (bit 3..9) - road type identifier
+ * - p2 = (bit 10) - set road direction
+ * - p2 = (bit 11) - defines two different behaviors for this command:
  *      - 0 = Build up to an obstacle. Do not build the first and last roadbits unless they can be connected to something, or if we are building a single tile
  *      - 1 = Fail if an obstacle is found. Always take into account bit 0 and 1. This behavior is used for scripts
  * @param text unused
@@ -1013,7 +1013,7 @@ CommandCost CmdBuildLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 p
 
 	TileIndex end_tile = p1;
 	RoadTypeIdentifier rtid;
-	if (!rtid.UnpackIfValid(GB(p2, 3, 5))) return CMD_ERROR;
+	if (!rtid.UnpackIfValid(GB(p2, 3, 7))) return CMD_ERROR;
 	if (!ValParamRoadType(rtid)) return CMD_ERROR;
 
 	Axis axis = Extract<Axis, 2, 1>(p2);
@@ -1035,7 +1035,7 @@ CommandCost CmdBuildLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 p
 	 * when you just 'click' on one tile to build them. */
 	if ((axis == AXIS_Y) == (start_tile == end_tile && HasBit(p2, 0) == HasBit(p2, 1))) drd ^= DRD_BOTH;
 	/* No disallowed direction bits have to be toggled */
-	if (!HasBit(p2, 8)) drd = DRD_NONE;
+	if (!HasBit(p2, 10)) drd = DRD_NONE;
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	CommandCost last_error = CMD_ERROR;
@@ -1043,7 +1043,7 @@ CommandCost CmdBuildLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 p
 	bool had_bridge = false;
 	bool had_tunnel = false;
 	bool had_success = false;
-	bool is_ai = HasBit(p2, 9);
+	bool is_ai = HasBit(p2, 11);
 
 	/* Start tile is the first tile clicked by the user. */
 	for (;;) {
@@ -1063,7 +1063,7 @@ CommandCost CmdBuildLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 p
 			if (tile == start_tile && HasBit(p2, 0)) bits &= DiagDirToRoadBits(dir);
 		}
 
-		CommandCost ret = DoCommand(tile, drd << 9 | rtid.Pack() << 4 | bits, 0, flags, CMD_BUILD_ROAD);
+		CommandCost ret = DoCommand(tile, drd << 11 | rtid.Pack() << 4 | bits, 0, flags, CMD_BUILD_ROAD);
 		if (ret.Failed()) {
 			last_error = ret;
 			if (last_error.GetErrorMessage() != STR_ERROR_ALREADY_BUILT) {
@@ -1108,7 +1108,7 @@ CommandCost CmdBuildLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 p
  * - p2 = (bit 0) - start tile starts in the 2nd half of tile (p2 & 1)
  * - p2 = (bit 1) - end tile starts in the 2nd half of tile (p2 & 2)
  * - p2 = (bit 2) - direction: 0 = along x-axis, 1 = along y-axis (p2 & 4)
- * - p2 = (bit 3 - 7) - road type
+ * - p2 = (bit 3 - 9) - road type
  * @param text unused
  * @return the cost of this operation or an error
  */
@@ -1120,7 +1120,7 @@ CommandCost CmdRemoveLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 
 
 	TileIndex end_tile = p1;
 	RoadTypeIdentifier rtid;
-	if (!rtid.UnpackIfValid(GB(p2, 3, 5))) return CMD_ERROR;
+	if (!rtid.UnpackIfValid(GB(p2, 3, 7))) return CMD_ERROR;
 
 	Axis axis = Extract<Axis, 2, 1>(p2);
 	/* Only drag in X or Y direction dictated by the direction variable */
@@ -1179,7 +1179,7 @@ CommandCost CmdRemoveLongRoad(TileIndex start_tile, DoCommandFlag flags, uint32 
  * @param tile tile where to build the depot
  * @param flags operation to perform
  * @param p1 bit 0..1 entrance direction (DiagDirection)
- *           bit 2..7 road type identifier
+ *           bit 2..8 road type identifier
  * @param p2 unused
  * @param text unused
  * @return the cost of this operation or an error
@@ -1192,7 +1192,7 @@ CommandCost CmdBuildRoadDepot(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 	DiagDirection dir = Extract<DiagDirection, 0, 2>(p1);
 
 	RoadTypeIdentifier rtid;
-	if (!rtid.UnpackIfValid(GB(p1, 2, 5))) return CMD_ERROR;
+	if (!rtid.UnpackIfValid(GB(p1, 2, 7))) return CMD_ERROR;
 	if (!ValParamRoadType(rtid)) return CMD_ERROR;
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
@@ -2328,14 +2328,14 @@ static void ConvertRoadTypeOwner(TileIndex tile, uint num_pieces, Owner owner, R
  * @param flags operation to perform
  * @param p1 start tile of drag
  * @param p2 various bitstuffed elements:
- * - p2 = (bit  0..4) new roadtype to convert to.
+ * - p2 = (bit  0..6) new roadtype to convert to.
  * @param text unused
  * @return the cost of this operation or an error
  */
 CommandCost CmdConvertRoad(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2,  const char *text)
 {
 	RoadTypeIdentifier to_type;
-	if (!to_type.UnpackIfValid(GB(p2, 0, 5))) return CMD_ERROR;
+	if (!to_type.UnpackIfValid(GB(p2, 0, 7))) return CMD_ERROR;
 
 	TileIndex area_start = p1;
 	TileIndex area_end = tile;
