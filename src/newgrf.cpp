@@ -1320,6 +1320,10 @@ static ChangeInfoResult RailVehicleChangeInfo(uint engine, int numinfo, int prop
 				break;
 			}
 
+			case 0x2E: // Engine introduction synchronisation
+				ei->introduction_id = GetNewEngineID(_cur.grffile, VEH_TRAIN, buf->ReadWord());
+				break;
+
 			default:
 				ret = CommonVehicleChangeInfo(ei, prop, buf);
 				break;
@@ -1508,6 +1512,10 @@ static ChangeInfoResult RoadVehicleChangeInfo(uint engine, int numinfo, int prop
 				break;
 			}
 
+			case 0x26: // Engine introduction synchronisation
+				ei->introduction_id = GetNewEngineID(_cur.grffile, VEH_ROAD, buf->ReadWord());
+				break;
+
 			default:
 				ret = CommonVehicleChangeInfo(ei, prop, buf);
 				break;
@@ -1680,6 +1688,10 @@ static ChangeInfoResult ShipVehicleChangeInfo(uint engine, int numinfo, int prop
 				break;
 			}
 
+			case 0x20: // Engine introduction synchronisation
+				ei->introduction_id = GetNewEngineID(_cur.grffile, VEH_SHIP, buf->ReadWord());
+				break;
+
 			default:
 				ret = CommonVehicleChangeInfo(ei, prop, buf);
 				break;
@@ -1832,6 +1844,10 @@ static ChangeInfoResult AircraftVehicleChangeInfo(uint engine, int numinfo, int 
 
 			case PROP_AIRCRAFT_RANGE: // 0x1F Max aircraft range
 				avi->max_range = buf->ReadWord();
+				break;
+
+			case 0x20: // Engine introduction synchronisation
+				ei->introduction_id = GetNewEngineID(_cur.grffile, VEH_AIRCRAFT, buf->ReadWord());
 				break;
 
 			default:

@@ -144,6 +144,7 @@ struct EngineInfo {
 	int8 retire_early;  ///< Number of years early to retire vehicle
 	StringID string_id; ///< Default name of engine
 	uint16 cargo_age_period; ///< Number of ticks before carried cargo is aged.
+	EngineID introduction_id; ///< Engine introduction ID. If set, will introduce/be introduced by matching engine IDs.
 };
 
 /**

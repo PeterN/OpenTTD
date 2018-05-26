@@ -981,6 +981,15 @@ void EnginesMonthlyLoop()
 			if (!(e->flags & ENGINE_AVAILABLE) && _date >= (e->intro_date + DAYS_IN_YEAR)) {
 				/* Introduce it to all companies */
 				NewVehicleAvailable(e);
+
+				/* Introduce matching engines at same time */
+				Engine *es;
+				FOR_ALL_ENGINES_OF_TYPE(es, e->type) {
+					if (es->info.introduction_id == INVALID_ENGINE) continue;
+					if (e->info.introduction_id == es->index || es->info.introduction_id == e->index || e->info.introduction_id == es->info.introduction_id) {
+						NewVehicleAvailable(es);
+					}
+				}
 			} else if (!(e->flags & (ENGINE_AVAILABLE | ENGINE_EXCLUSIVE_PREVIEW)) && _date >= e->intro_date) {
 				/* Introduction date has passed...
 				 * Check if it is allowed to build this vehicle type at all
