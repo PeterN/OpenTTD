@@ -302,7 +302,8 @@ void VideoDriver_Dedicated::MainLoop()
 		cur_ticks = GetTime();
 		_realtime_tick += cur_ticks - prev_cur_ticks;
 		if (cur_ticks >= next_tick || cur_ticks < prev_cur_ticks || _ddc_fastforward) {
-			next_tick = cur_ticks + MILLISECONDS_PER_TICK;
+			if (!_ddc_fastforward) next_tick += MILLISECONDS_PER_TICK;
+			if (cur_ticks > next_tick) next_tick = cur_ticks + MILLISECONDS_PER_TICK;
 
 			GameLoop();
 			UpdateWindows();
