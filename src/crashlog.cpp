@@ -267,8 +267,9 @@ char *CrashLog::LogLibraries(char *buffer, const char *last) const
 #endif /* WITH_PNG */
 
 #ifdef WITH_SDL
-	const SDL_version *v = SDL_Linked_Version();
-	buffer += seprintf(buffer, last, " SDL:        %d.%d.%d\n", v->major, v->minor, v->patch);
+	SDL_version v;
+	SDL_GetVersion(&v);
+	buffer += seprintf(buffer, last, " SDL:        %d.%d.%d\n", v.major, v.minor, v.patch);
 #endif /* WITH_SDL */
 
 #ifdef WITH_ZLIB

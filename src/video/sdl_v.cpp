@@ -30,9 +30,9 @@
 
 static FVideoDriver_SDL iFVideoDriver_SDL;
 
-static SDL_Surface *_sdl_screen;
+static SDL_Window *_sdl_window;
+static SDL_Surface *_sdl_surface;
 static SDL_Surface *_sdl_realscreen;
-static bool _all_modes;
 
 /** Whether the drawing is/may be done in a separate thread. */
 static bool _draw_threaded;
@@ -43,6 +43,7 @@ static ThreadMutex *_draw_mutex = NULL;
 /** Should we keep continue drawing? */
 static volatile bool _draw_continue;
 static Palette _local_palette;
+static SDL_Palette *_sdl_palette;
 
 #define MAX_DIRTY_RECTS 100
 static SDL_Rect _dirty_rects[MAX_DIRTY_RECTS];
@@ -69,14 +70,15 @@ static void UpdatePalette(bool init = false)
 		pal[i].r = _local_palette.palette[_local_palette.first_dirty + i].r;
 		pal[i].g = _local_palette.palette[_local_palette.first_dirty + i].g;
 		pal[i].b = _local_palette.palette[_local_palette.first_dirty + i].b;
-		pal[i].unused = 0;
+		pal[i].a = 0;
 	}
 
-	SDL_SetColors(_sdl_screen, pal, _local_palette.first_dirty, _local_palette.count_dirty);
+	SDL_SetPaletteColors(_sdl_palette, pal, _local_palette.first_dirty, _local_palette.count_dirty);
+	SDL_SetSurfacePalette(_sdl_surface, _sdl_palette);
 
-	if (_sdl_screen != _sdl_realscreen && init) {
+	if (_sdl_surface != _sdl_realscreen && init) {
 		/* When using a shadow surface, also set our palette on the real screen. This lets SDL
-		 * allocate as much colors (or approximations) as
+		 * allocate as many colors (or approximations) as
 		 * possible, instead of using only the default SDL
 		 * palette. This allows us to get more colors exactly
 		 * right and might allow using better approximations for
@@ -95,10 +97,10 @@ static void UpdatePalette(bool init = false)
 		 * palette change and the blitting below, so we only set
 		 * the real palette during initialisation.
 		 */
-		SDL_SetColors(_sdl_realscreen, pal, _local_palette.first_dirty, _local_palette.count_dirty);
+		SDL_SetSurfacePalette(_sdl_realscreen, _sdl_palette);
 	}
 
-	if (_sdl_screen != _sdl_realscreen && !init) {
+	if (_sdl_surface != _sdl_realscreen && !init) {
 		/* We're not using real hardware palette, but are letting SDL
 		 * approximate the palette during shadow -> screen copy. To
 		 * change the palette, we need to recopy the entire screen.
@@ -109,8 +111,8 @@ static void UpdatePalette(bool init = false)
 		 * best mapping of shadow palette colors to real palette
 		 * colors from scratch.
 		 */
-		SDL_BlitSurface(_sdl_screen, NULL, _sdl_realscreen, NULL);
-		SDL_UpdateRect(_sdl_realscreen, 0, 0, 0, 0);
+		SDL_BlitSurface(_sdl_surface, NULL, _sdl_realscreen, NULL);
+		SDL_UpdateWindowSurface(_sdl_window);
 	}
 }
 
@@ -154,18 +156,23 @@ static void DrawSurfaceToScreen()
 	if (n == 0) return;
 
 	_num_dirty_rects = 0;
+
 	if (n > MAX_DIRTY_RECTS) {
-		if (_sdl_screen != _sdl_realscreen) {
-			SDL_BlitSurface(_sdl_screen, NULL, _sdl_realscreen, NULL);
+		if (_sdl_surface != _sdl_realscreen) {
+			SDL_BlitSurface(_sdl_surface, NULL, _sdl_realscreen, NULL);
 		}
-		SDL_UpdateRect(_sdl_realscreen, 0, 0, 0, 0);
+
+		SDL_UpdateWindowSurface(_sdl_window);
 	} else {
-		if (_sdl_screen != _sdl_realscreen) {
+		if (_sdl_surface != _sdl_realscreen) {
 			for (int i = 0; i < n; i++) {
-				SDL_BlitSurface(_sdl_screen, &_dirty_rects[i], _sdl_realscreen, &_dirty_rects[i]);
+				SDL_BlitSurface(
+					_sdl_surface, &_dirty_rects[i],
+					_sdl_realscreen, &_dirty_rects[i]);
 			}
 		}
-		SDL_UpdateRects(_sdl_realscreen, n, _dirty_rects);
+
+		SDL_UpdateWindowSurfaceRects(_sdl_window, _dirty_rects, n);
 	}
 }
 
@@ -189,60 +196,38 @@ static void DrawSurfaceToScreenThread(void *)
 	_draw_thread->Exit();
 }
 
-static const Dimension _default_resolutions[] = {
-	{ 640,  480},
-	{ 800,  600},
-	{1024,  768},
-	{1152,  864},
-	{1280,  800},
-	{1280,  960},
-	{1280, 1024},
-	{1400, 1050},
-	{1600, 1200},
-	{1680, 1050},
-	{1920, 1200}
-};
-
 static void GetVideoModes()
 {
-	SDL_Rect **modes = SDL_ListModes(NULL, SDL_SWSURFACE | SDL_FULLSCREEN);
-	if (modes == NULL) usererror("sdl: no modes available");
+	int modes = SDL_GetNumDisplayModes(0);
+	if (modes == 0) usererror("sdl: no modes available");
 
-	_all_modes = (SDL_ListModes(NULL, SDL_SWSURFACE | (_fullscreen ? SDL_FULLSCREEN : 0)) == (void*)-1);
-	if (modes == (void*)-1) {
-		int n = 0;
-		for (uint i = 0; i < lengthof(_default_resolutions); i++) {
-			if (SDL_VideoModeOK(_default_resolutions[i].width, _default_resolutions[i].height, 8, SDL_FULLSCREEN) != 0) {
-				_resolutions[n] = _default_resolutions[i];
-				if (++n == lengthof(_resolutions)) break;
-			}
-		}
-		_num_resolutions = n;
-	} else {
-		int n = 0;
-		for (int i = 0; modes[i]; i++) {
-			uint w = modes[i]->w;
-			uint h = modes[i]->h;
-			int j;
-			for (j = 0; j < n; j++) {
-				if (_resolutions[j].width == w && _resolutions[j].height == h) break;
-			}
+	SDL_DisplayMode mode;
+	int n = 0;
+	for (int i = 0; i < modes; i++) {
+		SDL_GetDisplayMode(0, i, &mode);
 
-			if (j == n) {
-				_resolutions[j].width  = w;
-				_resolutions[j].height = h;
-				if (++n == lengthof(_resolutions)) break;
-			}
+		uint w = mode.w;
+		uint h = mode.h;
+
+		int j;
+		for (j = 0; j < n; j++) {
+			if (_resolutions[j].width == w && _resolutions[j].height == h) break;
 		}
-		_num_resolutions = n;
-		SortResolutions(_num_resolutions);
+
+		if (j == n) {
+			_resolutions[j].width  = w;
+			_resolutions[j].height = h;
+			if (++n == lengthof(_resolutions)) break;
+		}
 	}
+	_num_resolutions = n;
+	SortResolutions(_num_resolutions);
 }
 
 static void GetAvailableVideoMode(uint *w, uint *h)
 {
 	/* All modes available? */
-	if (_all_modes || _num_resolutions == 0) return;
+	if (!_fullscreen || _num_resolutions == 0) return;
 
 	/* Is the wanted mode among the available modes? */
 	for (int i = 0; i != _num_resolutions; i++) {
@@ -284,8 +269,8 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 			/* Get the colourkey, which will be magenta */
 			uint32 rgbmap = SDL_MapRGB(icon->format, 255, 0, 255);
 
-			SDL_SetColorKey(icon, SDL_SRCCOLORKEY, rgbmap);
-			SDL_WM_SetIcon(icon, NULL);
+			SDL_SetColorKey(icon, SDL_TRUE, rgbmap);
+			SDL_SetWindowIcon(_sdl_window, icon);
 			SDL_FreeSurface(icon);
 		}
 	}
@@ -321,7 +306,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	if (want_hwpalette) DEBUG(driver, 1, "SDL: requesting hardware palette");
 
 	/* Free any previously allocated shadow surface */
-	if (_sdl_screen != NULL && _sdl_screen != _sdl_realscreen) SDL_FreeSurface(_sdl_screen);
+	if (_sdl_surface != NULL && _sdl_surface != _sdl_realscreen) SDL_FreeSurface(_sdl_surface);
 
 	if (_sdl_realscreen != NULL) {
 		if (_requested_hwpalette != want_hwpalette) {
@@ -337,7 +322,6 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 			SDL_QuitSubSystem(SDL_INIT_VIDEO);
 			SDL_InitSubSystem(SDL_INIT_VIDEO);
 			ClaimMousePointer();
-			SetupKeyboard();
 		}
 	}
 	/* Remember if we wanted a hwpalette. We can't reliably query
@@ -346,39 +330,42 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	 * surface, for example). */
 	_requested_hwpalette = want_hwpalette;
 
-	/* DO NOT CHANGE TO HWSURFACE, IT DOES NOT WORK */
-	newscreen = SDL_SetVideoMode(w, h, bpp, SDL_SWSURFACE | (want_hwpalette ? SDL_HWPALETTE : 0) | (_fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE));
-	if (newscreen == NULL) {
+	seprintf(caption, lastof(caption), "OpenTTD %s", _openttd_revision);
+
+	if (_sdl_window == NULL) {
+		Uint32 flags = SDL_WINDOW_SHOWN;
+
+		if (_fullscreen) {
+			flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+		} else {
+			flags |= SDL_WINDOW_RESIZABLE;
+		}
+
+		_sdl_window = SDL_CreateWindow(
+			caption,
+			SDL_WINDOWPOS_UNDEFINED,
+			SDL_WINDOWPOS_UNDEFINED,
+			w, h,
+			flags);
+	}
+
+	if (_sdl_window == NULL) {
 		DEBUG(driver, 0, "SDL: Couldn't allocate a window to draw on");
 		return false;
 	}
+
+	SDL_SetWindowSize(_sdl_window, w, h);
+
+	newscreen = SDL_GetWindowSurface(_sdl_window);
 	_sdl_realscreen = newscreen;
 
-	if (bpp == 8 && (_sdl_realscreen->flags & SDL_HWPALETTE) != SDL_HWPALETTE) {
-		/* Using an 8bpp blitter, if we didn't get a hardware
-		 * palette (most likely because we didn't request one,
-		 * see above), we'll have to set up a shadow surface to
-		 * render on.
-		 *
-		 * Our palette will be applied to this shadow surface,
-		 * while the real screen surface will use the shared
-		 * system palette (which will partly contain our colors,
-		 * but most likely will not have enough free color cells
-		 * for all of our colors). SDL can use these two
-		 * palettes at blit time to approximate colors used in
-		 * the shadow surface using system colors automatically.
-		 *
-		 * Note that when using an 8bpp blitter on a 32bpp
-		 * system, SDL will create an internal shadow surface.
-		 * This shadow surface will have SDL_HWPALLETE set, so
-		 * we won't create a second shadow surface in this case.
-		 */
-		DEBUG(driver, 1, "SDL: using shadow surface");
-		newscreen = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, bpp, 0, 0, 0, 0);
-		if (newscreen == NULL) {
-			DEBUG(driver, 0, "SDL: Couldn't allocate a shadow surface to draw on");
-			return false;
-		}
+	if (_sdl_palette == NULL) {
+		_sdl_palette = SDL_AllocPalette(256);
+	}
+
+	if (_sdl_palette == NULL) {
+		DEBUG(driver, 0, "SDL_AllocPalette() failed: %s", SDL_GetError());
+		return false;
 	}
 
 	/* Delay drawing for this cycle; the next cycle will redraw the whole screen */
@@ -388,7 +375,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	_screen.height = newscreen->h;
 	_screen.pitch = newscreen->pitch / (bpp / 8);
 	_screen.dst_ptr = newscreen->pixels;
-	_sdl_screen = newscreen;
+	_sdl_surface = newscreen;
 
 	/* When in full screen, we will always have the mouse cursor
 	 * within the window, even though SDL does not give us the
@@ -399,9 +386,6 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	blitter->PostResize();
 
 	InitPalette();
-
-	seprintf(caption, lastof(caption), "OpenTTD %s", _openttd_revision);
-	SDL_WM_SetCaption(caption, caption);
 
 	GameSizeChanged();
 
@@ -415,11 +399,7 @@ bool VideoDriver_SDL::ClaimMousePointer()
 }
 
 struct VkMapping {
-#if SDL_VERSION_ATLEAST(1, 3, 0)
 	SDL_Keycode vk_from;
-#else
-	uint16 vk_from;
-#endif
 	byte vk_count;
 	byte map_to;
 };
@@ -457,7 +437,7 @@ static const VkMapping _vk_mapping[] = {
 	AM(SDLK_F1, SDLK_F12, WKC_F1, WKC_F12),
 
 	/* Numeric part. */
-	AM(SDLK_KP0, SDLK_KP9, '0', '9'),
+	AM(SDLK_KP_0, SDLK_KP_9, '0', '9'),
 	AS(SDLK_KP_DIVIDE,   WKC_NUM_DIV),
 	AS(SDLK_KP_MULTIPLY, WKC_NUM_MUL),
 	AS(SDLK_KP_MINUS,    WKC_NUM_MINUS),
@@ -479,7 +459,7 @@ static const VkMapping _vk_mapping[] = {
 	AS(SDLK_PERIOD,  WKC_PERIOD)
 };
 
-static uint ConvertSdlKeyIntoMy(SDL_keysym *sym, WChar *character)
+static uint ConvertSdlKeyIntoMy(SDL_Keysym *sym, WChar *character)
 {
 	const VkMapping *map;
 	uint key = 0;
@@ -506,12 +486,45 @@ static uint ConvertSdlKeyIntoMy(SDL_keysym *sym, WChar *character)
 #endif
 
 	/* META are the command keys on mac */
-	if (sym->mod & KMOD_META)  key |= WKC_META;
+	if (sym->mod & KMOD_GUI)   key |= WKC_META;
 	if (sym->mod & KMOD_SHIFT) key |= WKC_SHIFT;
 	if (sym->mod & KMOD_CTRL)  key |= WKC_CTRL;
 	if (sym->mod & KMOD_ALT)   key |= WKC_ALT;
 
-	*character = sym->unicode;
+	/* The mod keys have no character. Prevent '?' */
+	if (sym->mod & KMOD_GUI ||
+		sym->mod & KMOD_SHIFT ||
+		sym->mod & KMOD_CTRL ||
+		sym->mod & KMOD_ALT) {
+		*character = WKC_NONE;
+	} else {
+		*character = sym->sym;
+	}
+
+	return key;
+}
+
+/**
+ * Like ConvertSdlKeyIntoMy(), but takes an SDL_Keycode as input
+ * instead of an SDL_Keysym.
+ */
+static uint ConvertSdlKeycodeIntoMy(SDL_Keycode kc)
+{
+	const VkMapping *map;
+	uint key = 0;
+
+	for (map = _vk_mapping; map != endof(_vk_mapping); ++map) {
+		if ((uint)(kc - map->vk_from) <= map->vk_count) {
+			key = kc - map->vk_from + map->map_to;
+			break;
+		}
+	}
+
+	/* check scancode for BACKQUOTE key, because we want the key left
+	   of "1", not anything else (on non-US keyboards) */
+	SDL_Scancode sc = SDL_GetScancodeFromKey(kc);
+	if (sc == SDL_SCANCODE_GRAVE) key = WKC_BACKQUOTE;
+
 	return key;
 }
 
@@ -524,9 +537,17 @@ int VideoDriver_SDL::PollEvent()
 	switch (ev.type) {
 		case SDL_MOUSEMOTION:
 			if (_cursor.UpdateCursorPosition(ev.motion.x, ev.motion.y, true)) {
-				SDL_WarpMouse(_cursor.pos.x, _cursor.pos.y);
+				SDL_WarpMouseInWindow(_sdl_window, _cursor.pos.x, _cursor.pos.y);
 			}
 			HandleMouseEvents();
+			break;
+
+		case SDL_MOUSEWHEEL:
+			if (ev.wheel.y > 0) {
+				_cursor.wheel--;
+			} else if (ev.wheel.y < 0) {
+				_cursor.wheel++;
+			}
 			break;
 
 		case SDL_MOUSEBUTTONDOWN:
@@ -543,9 +564,6 @@ int VideoDriver_SDL::PollEvent()
 					_right_button_down = true;
 					_right_button_clicked = true;
 					break;
-
-				case SDL_BUTTON_WHEELUP:   _cursor.wheel--; break;
-				case SDL_BUTTON_WHEELDOWN: _cursor.wheel++; break;
 
 				default: break;
 			}
@@ -566,43 +584,57 @@ int VideoDriver_SDL::PollEvent()
 			HandleMouseEvents();
 			break;
 
-		case SDL_ACTIVEEVENT:
-			if (!(ev.active.state & SDL_APPMOUSEFOCUS)) break;
-
-			if (ev.active.gain) { // mouse entered the window, enable cursor
-				_cursor.in_window = true;
-			} else {
-				UndrawMouseCursor(); // mouse left the window, undraw cursor
-				_cursor.in_window = false;
-			}
-			break;
-
 		case SDL_QUIT:
 			HandleExitGameRequest();
 			break;
 
 		case SDL_KEYDOWN: // Toggle full-screen on ALT + ENTER/F
-			if ((ev.key.keysym.mod & (KMOD_ALT | KMOD_META)) &&
+			if ((ev.key.keysym.mod & (KMOD_ALT | KMOD_GUI)) &&
 					(ev.key.keysym.sym == SDLK_RETURN || ev.key.keysym.sym == SDLK_f)) {
 				ToggleFullScreen(!_fullscreen);
 			} else {
 				WChar character;
+
 				uint keycode = ConvertSdlKeyIntoMy(&ev.key.keysym, &character);
-				HandleKeypress(keycode, character);
+				// Only handle non-text keys here. Text is handled in
+				// SDL_TEXTINPUT below.
+				if (keycode == WKC_DELETE ||
+					keycode & WKC_META ||
+					keycode & WKC_SHIFT ||
+					keycode & WKC_CTRL ||
+					keycode & WKC_ALT ||
+					(keycode >= WKC_F1 && keycode <= WKC_F12) ||
+					!IsValidChar(character, CS_ALPHANUMERAL)) {
+					HandleKeypress(keycode, character);
+				}
 			}
 			break;
 
-		case SDL_VIDEORESIZE: {
-			int w = max(ev.resize.w, 64);
-			int h = max(ev.resize.h, 64);
-			CreateMainSurface(w, h);
+		case SDL_TEXTINPUT: {
+			WChar character;
+			SDL_Keycode kc = SDL_GetKeyFromName(ev.text.text);
+			uint keycode = ConvertSdlKeycodeIntoMy(kc);
+
+			Utf8Decode(&character, ev.text.text);
+			HandleKeypress(keycode, character);
 			break;
 		}
-		case SDL_VIDEOEXPOSE: {
-			/* Force a redraw of the entire screen. Note
-			 * that SDL 1.2 seems to do this automatically
-			 * in most cases, but 1.3 / 2.0 does not. */
-		        _num_dirty_rects = MAX_DIRTY_RECTS + 1;
+		case SDL_WINDOWEVENT: {
+			if (ev.window.event == SDL_WINDOWEVENT_EXPOSED) {
+				// Force a redraw of the entire screen.
+				_num_dirty_rects = MAX_DIRTY_RECTS + 1;
+			} else if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
+				int w = max(ev.window.data1, 64);
+				int h = max(ev.window.data2, 64);
+				CreateMainSurface(w, h);
+			} else if (ev.window.event == SDL_WINDOWEVENT_ENTER) {
+				// mouse entered the window, enable cursor
+				_cursor.in_window = true;
+			} else if (ev.window.event == SDL_WINDOWEVENT_LEAVE) {
+				// mouse left the window, undraw cursor
+				UndrawMouseCursor();
+				_cursor.in_window = false;
+			}
 			break;
 		}
 	}
@@ -611,7 +643,6 @@ int VideoDriver_SDL::PollEvent()
 
 const char *VideoDriver_SDL::Start(const char * const *parm)
 {
-	char buf[30];
 	_use_hwpalette = GetDriverParamInt(parm, "hw_palette", 2);
 
 	/* Just on the offchance the audio subsystem started before the video system,
@@ -619,7 +650,7 @@ const char *VideoDriver_SDL::Start(const char * const *parm)
 	 * Slightly duplicated with sound/sdl_s.cpp */
 	int ret_code = 0;
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == 0) {
-		ret_code = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE);
+		ret_code = SDL_Init(SDL_INIT_VIDEO);
 	} else if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
 		ret_code = SDL_InitSubSystem(SDL_INIT_VIDEO);
 	}
@@ -630,21 +661,14 @@ const char *VideoDriver_SDL::Start(const char * const *parm)
 		return SDL_GetError();
 	}
 
-	SDL_VideoDriverName(buf, sizeof buf);
-	DEBUG(driver, 1, "SDL: using driver '%s'", buf);
+	const char *dname = SDL_GetVideoDriver(0);
+	DEBUG(driver, 1, "SDL: using driver '%s'", dname);
 
 	MarkWholeScreenDirty();
-	SetupKeyboard();
 
 	_draw_threaded = GetDriverParam(parm, "no_threads") == NULL && GetDriverParam(parm, "no_thread") == NULL;
 
 	return NULL;
-}
-
-void VideoDriver_SDL::SetupKeyboard()
-{
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	SDL_EnableUNICODE(1);
 }
 
 void VideoDriver_SDL::Stop()
@@ -662,7 +686,7 @@ void VideoDriver_SDL::MainLoop()
 	uint32 next_tick = cur_ticks + MILLISECONDS_PER_TICK;
 	uint32 mod;
 	int numkeys;
-	Uint8 *keys;
+	const Uint8 *keys;
 
 	CheckPaletteAnim();
 
@@ -700,21 +724,14 @@ void VideoDriver_SDL::MainLoop()
 		if (_exit_game) break;
 
 		mod = SDL_GetModState();
-#if SDL_VERSION_ATLEAST(1, 3, 0)
 		keys = SDL_GetKeyboardState(&numkeys);
-#else
-		keys = SDL_GetKeyState(&numkeys);
-#endif
+
 #if defined(_DEBUG)
 		if (_shift_pressed)
 #else
 		/* Speedup when pressing tab, except when using ALT+TAB
 		 * to switch to another application */
-#if SDL_VERSION_ATLEAST(1, 3, 0)
 		if (keys[SDL_SCANCODE_TAB] && (mod & KMOD_ALT) == 0)
-#else
-		if (keys[SDLK_TAB] && (mod & KMOD_ALT) == 0)
-#endif /* SDL_VERSION_ATLEAST(1, 3, 0) */
 #endif /* defined(_DEBUG) */
 		{
 			if (!_networking && _game_mode != GM_MENU) _fast_forward |= 2;
@@ -735,17 +752,10 @@ void VideoDriver_SDL::MainLoop()
 
 			/* determine which directional keys are down */
 			_dirkeys =
-#if SDL_VERSION_ATLEAST(1, 3, 0)
 				(keys[SDL_SCANCODE_LEFT]  ? 1 : 0) |
 				(keys[SDL_SCANCODE_UP]    ? 2 : 0) |
 				(keys[SDL_SCANCODE_RIGHT] ? 4 : 0) |
 				(keys[SDL_SCANCODE_DOWN]  ? 8 : 0);
-#else
-				(keys[SDLK_LEFT]  ? 1 : 0) |
-				(keys[SDLK_UP]    ? 2 : 0) |
-				(keys[SDLK_RIGHT] ? 4 : 0) |
-				(keys[SDLK_DOWN]  ? 8 : 0);
-#endif
 			if (old_ctrl_pressed != _ctrl_pressed) HandleCtrlChanged();
 
 			/* The gameloop is the part that can run asynchronously. The rest
@@ -812,6 +822,10 @@ bool VideoDriver_SDL::ToggleFullscreen(bool fullscreen)
 	if (!ret) {
 		/* switching resolution failed, put back full_screen to original status */
 		_fullscreen ^= true;
+	} else {
+		/* Switching resolution succeeded, toggle fullscreen value of window. */
+		SDL_SetWindowFullscreen(
+			_sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 	}
 
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
@@ -820,7 +834,9 @@ bool VideoDriver_SDL::ToggleFullscreen(bool fullscreen)
 
 bool VideoDriver_SDL::AfterBlitterChange()
 {
-	return CreateMainSurface(_screen.width, _screen.height);
+	int w, h;
+	SDL_GetWindowSize(_sdl_window, &w, &h);
+	return CreateMainSurface(w, h);
 }
 
 void VideoDriver_SDL::AcquireBlitterLock()

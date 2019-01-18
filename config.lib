@@ -2461,7 +2461,7 @@ detect_sdl() {
 		sleep 5
 	fi
 
-	detect_pkg_config "$with_sdl" "sdl" "sdl_config" "1.2"
+	detect_pkg_config "$with_sdl" "sdl2" "sdl_config" "2.0"
 }
 
 detect_osx_sdk() {

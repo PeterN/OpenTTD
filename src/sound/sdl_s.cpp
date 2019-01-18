@@ -40,7 +40,7 @@ const char *SoundDriver_SDL::Start(const char * const *parm)
 	/* Only initialise SDL if the video driver hasn't done it already */
 	int ret_code = 0;
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == 0) {
-		ret_code = SDL_Init(SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
+		ret_code = SDL_Init(SDL_INIT_AUDIO);
 	} else if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
 		ret_code = SDL_InitSubSystem(SDL_INIT_AUDIO);
 	}

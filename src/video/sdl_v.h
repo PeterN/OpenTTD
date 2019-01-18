@@ -41,7 +41,6 @@ public:
 private:
 	int PollEvent();
 	bool CreateMainSurface(uint w, uint h);
-	void SetupKeyboard();
 };
 
 /** Factory for the SDL video driver. */
