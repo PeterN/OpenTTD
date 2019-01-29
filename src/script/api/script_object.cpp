@@ -278,6 +278,11 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetStorage()->callback_value[index];
 }
 
+/* static */ bool ScriptObject::DoCommand(const CommandContainer &command_container, Script_SuspendCallbackProc *callback)
+{
+	return DoCommand(command_container.tile, command_container.p1, command_container.p2, command_container.cmd, command_container.text, callback);
+}
+
 /* static */ bool ScriptObject::DoCommand(TileIndex tile, uint32 p1, uint32 p2, uint cmd, const char *text, Script_SuspendCallbackProc *callback)
 {
 	if (!ScriptObject::CanSuspend()) {

@@ -15,6 +15,7 @@
 #include "../../misc/countedptr.hpp"
 #include "../../road_type.h"
 #include "../../rail_type.h"
+#include "../../command_type.h"
 
 #include "script_types.hpp"
 #include "../script_suspend.hpp"
@@ -66,6 +67,11 @@ public:
 	static class ScriptInstance *GetActiveInstance();
 
 protected:
+	/**
+	 * Executes a raw DoCommand for the script.
+	 */
+	static bool DoCommand(const CommandContainer &command_container, Script_SuspendCallbackProc *callback = NULL);
+
 	/**
 	 * Executes a raw DoCommand for the script.
 	 */

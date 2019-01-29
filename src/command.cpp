@@ -440,6 +440,19 @@ CommandCost DoCommand(const CommandContainer *container, DoCommandFlag flags)
 	return DoCommand(container->tile, container->p1, container->p2, flags, container->cmd & CMD_ID_MASK, container->text);
 }
 
+/**
+ * Shorthand for calling the long DoCommand with a container.
+ *
+ * @param container Container with (almost) all information
+ * @param flags Flags for the command and how to execute the command
+ * @see CommandProc
+ * @return the cost
+ */
+CommandCost DoCommand(const CommandContainer &container, DoCommandFlag flags)
+{
+	return DoCommand(container.tile, container.p1, container.p2, flags, container.cmd & CMD_ID_MASK, container.text);
+}
+
 /*!
  * This function executes a given command with the parameters from the #CommandProc parameter list.
  * Depending on the flags parameter it execute or test a command.
@@ -529,6 +542,17 @@ Money GetAvailableMoneyForCommand()
 bool DoCommandP(const CommandContainer *container, bool my_cmd)
 {
 	return DoCommandP(container->tile, container->p1, container->p2, container->cmd, container->callback, container->text, my_cmd);
+}
+
+/**
+ * Shortcut for the long DoCommandP when having a container with the data.
+ * @param container the container with information.
+ * @param my_cmd indicator if the command is from a company or server (to display error messages for a user)
+ * @return true if the command succeeded, else false
+ */
+bool DoCommandP(const CommandContainer &container, bool my_cmd)
+{
+	return DoCommandP(container.tile, container.p1, container.p2, container.cmd, container.callback, container.text, my_cmd);
 }
 
 /*!
