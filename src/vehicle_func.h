@@ -180,4 +180,6 @@ void GetVehicleSet(VehicleSet &set, Vehicle *v, uint8 num_vehicles);
 
 void CheckCargoCapacity(Vehicle *v);
 
+CommandContainer PackCmdRefitVehicle(VehicleID vehicle, VehicleType vtype, CargoID cid, uint8 subtype, uint8 count, bool autorefit, bool single);
+
 #endif /* VEHICLE_FUNC_H */

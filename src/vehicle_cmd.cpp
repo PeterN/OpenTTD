@@ -415,6 +415,13 @@ static CommandCost RefitVehicle(Vehicle *v, bool only_this, uint8 num_vehicles, 
 	return cost;
 }
 
+
+CommandContainer PackCmdRefitVehicle(VehicleID vehicle, VehicleType vtype, CargoID cid, uint8 subtype, uint8 count, bool autorefit, bool single)
+{
+	return CommandContainer { 0, vehicle, cid | subtype << 8 | count << 16 | (uint)autorefit << 24 | (uint)single << 25, GetCmdRefitVeh(vtype), NULL, "" };
+}
+
+
 /**
  * Refits a vehicle to the specified cargo type.
  * @param tile unused
@@ -900,7 +907,7 @@ CommandCost CmdCloneVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 				/* Find out what's the best sub type */
 				byte subtype = GetBestFittingSubType(v, w, v->cargo_type);
 				if (w->cargo_type != v->cargo_type || w->cargo_subtype != subtype) {
-					CommandCost cost = DoCommand(0, w->index, v->cargo_type | 1U << 25 | (subtype << 8), flags, GetCmdRefitVeh(v));
+					CommandCost cost = DoCommand(PackCmdRefitVehicle(w->index, w->type, v->cargo_type, subtype, 0, true, false), flags);
 					if (cost.Succeeded()) total_cost.AddCost(cost);
 				}
 

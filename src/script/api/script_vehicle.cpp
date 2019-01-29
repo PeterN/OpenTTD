@@ -121,7 +121,7 @@
 	if (!IsValidVehicle(vehicle_id)) return -1;
 	if (!ScriptCargo::IsValidCargo(cargo)) return -1;
 
-	CommandCost res = ::DoCommand(0, vehicle_id, cargo, DC_QUERY_COST, GetCmdRefitVeh(::Vehicle::Get(vehicle_id)));
+	CommandCost res = ::DoCommand(PackCmdRefitVehicle(vehicle_id, ::Vehicle::Get(vehicle_id)->type, cargo, 0, 0, false, false), DC_QUERY_COST);
 	return res.Succeeded() ? _returned_refit_capacity : -1;
 }
 
@@ -130,7 +130,7 @@
 	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
 	EnforcePrecondition(false, IsValidVehicle(vehicle_id) && ScriptCargo::IsValidCargo(cargo));
 
-	return ScriptObject::DoCommand(0, vehicle_id, cargo, GetCmdRefitVeh(::Vehicle::Get(vehicle_id)));
+	return ScriptObject::DoCommand(PackCmdRefitVehicle(vehicle_id, ::Vehicle::Get(vehicle_id)->type, cargo, 0, 0, false, false));
 }
 
 

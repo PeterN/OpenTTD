@@ -304,7 +304,7 @@ static CommandCost BuildReplacementVehicle(Vehicle *old_veh, Vehicle **new_vehic
 	if (refit_cargo != CT_NO_REFIT) {
 		byte subtype = GetBestFittingSubType(old_veh, new_veh, refit_cargo);
 
-		cost.AddCost(DoCommand(0, new_veh->index, refit_cargo | (subtype << 8), DC_EXEC, GetCmdRefitVeh(new_veh)));
+		cost.AddCost(DoCommand(PackCmdRefitVehicle(new_veh->index, new_veh->type, refit_cargo, subtype, 0, false, false), DC_EXEC));
 		assert(cost.Succeeded()); // This should be ensured by GetNewCargoTypeForReplace()
 	}
 
