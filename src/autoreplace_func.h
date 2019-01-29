@@ -99,4 +99,9 @@ static inline CommandCost RemoveEngineReplacementForCompany(Company *c, EngineID
 
 bool CheckAutoreplaceValidity(EngineID from, EngineID to, CompanyID company);
 
+static inline CommandContainer PackCmdAutoreplaceVehicle(VehicleID vehicle, CommandCallback *callback = NULL)
+{
+	return CommandContainer { 0, vehicle, 0, CMD_AUTOREPLACE_VEHICLE, callback, "" };
+}
+
 #endif /* AUTOREPLACE_FUNC_H */

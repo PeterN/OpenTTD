@@ -26,6 +26,7 @@
 #include "engine_func.h"
 #include "articulated_vehicles.h"
 #include "autoreplace_gui.h"
+#include "autoreplace_func.h"
 #include "group.h"
 #include "order_backup.h"
 #include "ship.h"
@@ -696,7 +697,7 @@ CommandCost CmdDepotMassAutoReplace(TileIndex tile, DoCommandFlag flags, uint32 
 		/* Ensure that the vehicle completely in the depot */
 		if (!v->IsChainInDepot()) continue;
 
-		CommandCost ret = DoCommand(0, v->index, 0, flags, CMD_AUTOREPLACE_VEHICLE);
+		CommandCost ret = DoCommand(PackCmdAutoreplaceVehicle(v->index), flags);
 
 		if (ret.Succeeded()) cost.AddCost(ret);
 	}
