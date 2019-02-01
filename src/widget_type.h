@@ -82,6 +82,8 @@ enum WidgetType {
 	NWID_BUTTON_DROPDOWN, ///< Button with a drop-down.
 	NWID_HSCROLLBAR,      ///< Horizontal scrollbar
 	NWID_VSCROLLBAR,      ///< Vertical scrollbar
+	NWID_HRESIZEBAR,      ///< Horizontal resizebar (resizes vertically)
+	NWID_VRESIZEBAR,      ///< Vertical resizebar (resizes horizontally)
 
 	/* Nested widget part types. */
 	WPT_RESIZE,       ///< Widget part for specifying resizing.
@@ -761,6 +763,64 @@ public:
 private:
 	static Dimension vertical_dimension;   ///< Cached size of vertical scrollbar button.
 	static Dimension horizontal_dimension; ///< Cached size of horizontal scrollbar button.
+};
+
+/**
+ * Resizebar data structure
+ */
+class Resizebar {
+private:
+	const bool is_vertical;     ///< Resizebar has vertical orientation.
+	uint16 topleft_minsize;     ///< Top/left minimum pixel size.
+	uint16 bottomright_minsize; ///< Bottom/right minimum pixel size.
+	uint16 topleft_maxsize;     ///< Top/left maximum pixel size.
+	uint16 bottomright_maxsize; ///< Bottom/right maximum pixel size.
+	uint16 stepsize;            ///< Distance to step when resizing.
+
+public:
+	Resizebar(bool is_vertical) : is_vertical(is_vertical), stepsize(1)
+	{
+	}
+
+	/**
+	 * Is the scrollbar vertical or not?
+	 * @return True iff the scrollbar is vertical.
+	 */
+	inline bool IsVertical() const
+	{
+		return this->is_vertical;
+	}
+
+	/**
+	 * Set the distance to scroll when using the buttons or the wheel.
+	 * @param stepsize Scrolling speed.
+	 */
+	void SetStepSize(uint16 stepsize)
+	{
+		assert(stepsize > 0);
+		this->stepsize = stepsize;
+	}
+};
+
+/**
+ * Nested widget to display and control a scrollbar in a window.
+ * Also assign the scrollbar to other widgets using #SetScrollbar() to make the mousewheel work.
+ * @ingroup NestedWidgets
+ */
+class NWidgetResizebar : public NWidgetCore, public Resizebar {
+public:
+	NWidgetResizebar(WidgetType tp, Colours colour, int index);
+
+	/* virtual */ void SetupSmallestSize(Window *w, bool init_array);
+	/* virtual */ void Draw(const Window *w);
+
+	static void InvalidateDimensionCache();
+	static Dimension GetVerticalDimension();
+	static Dimension GetHorizontalDimension();
+
+private:
+	static Dimension vertical_dimension;   ///< Cached size of vertical resizebar button.
+	static Dimension horizontal_dimension; ///< Cached size of horizontal resizebar button.
 };
 
 /**
