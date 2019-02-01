@@ -2082,6 +2082,108 @@ void NWidgetScrollbar::Draw(const Window *w)
 Dimension NWidgetScrollbar::vertical_dimension = {0, 0};
 Dimension NWidgetScrollbar::horizontal_dimension = {0, 0};
 
+/**
+ * Resizebar widget.
+ * @param tp     Resizebar type. (horizontal/vertical)
+ * @param colour Colour of the resizebar.
+ * @param index  Index in the widget array used by the window system.
+ */
+NWidgetResizebar::NWidgetResizebar(WidgetType tp, Colours colour, int index) : NWidgetCore(tp, colour, 1, 1, 0x0, STR_NULL), Resizebar(tp != NWID_HRESIZEBAR)
+{
+	assert(tp == NWID_HRESIZEBAR || tp == NWID_VRESIZEBAR);
+	this->SetIndex(index);
+}
+
+void NWidgetResizebar::SetupSmallestSize(Window *w, bool init_array)
+{
+	if (init_array && this->index >= 0) {
+		assert(w->nested_array_size > (uint)this->index);
+		w->nested_array[this->index] = this;
+	}
+	this->min_x = 0;
+	this->min_y = 0;
+
+	switch (this->type) {
+		case NWID_HRESIZEBAR:
+			this->SetMinimalSize(NWidgetScrollbar::GetHorizontalDimension().width * 3, NWidgetScrollbar::GetHorizontalDimension().height);
+			this->SetResize(1, 0);
+			this->SetFill(1, 0);
+			this->SetDataTip(0x0, STR_TOOLTIP_HSCROLL_BAR_SCROLLS_LIST);
+			break;
+
+		case NWID_VRESIZEBAR:
+			this->SetMinimalSize(NWidgetScrollbar::GetVerticalDimension().width, NWidgetScrollbar::GetVerticalDimension().height * 3);
+			this->SetResize(0, 1);
+			this->SetFill(0, 1);
+			this->SetDataTip(0x0, STR_TOOLTIP_VSCROLL_BAR_SCROLLS_LIST);
+			break;
+
+		default: NOT_REACHED();
+	}
+
+	this->smallest_x = this->min_x;
+	this->smallest_y = this->min_y;
+}
+
+void NWidgetResizebar::Draw(const Window *w)
+{
+	if (this->current_x == 0 || this->current_y == 0) return;
+
+	Rect r;
+	r.left = this->pos_x;
+	r.right = this->pos_x + this->current_x - 1;
+	r.top = this->pos_y;
+	r.bottom = this->pos_y + this->current_y - 1;
+
+	const DrawPixelInfo *dpi = _cur_dpi;
+	if (dpi->left > r.right || dpi->left + dpi->width <= r.left || dpi->top > r.bottom || dpi->top + dpi->height <= r.top) return;
+
+	bool up_lowered = HasBit(this->disp_flags, NDB_SCROLLBAR_UP);
+	bool down_lowered = HasBit(this->disp_flags, NDB_SCROLLBAR_DOWN);
+	bool middle_lowered = !(this->disp_flags & ND_SCROLLBAR_BTN) && w->scrolling_scrollbar == this->index;
+
+	if (this->type == NWID_HSCROLLBAR) {
+	//	DrawHorizontalScrollbar(r, this->colour, up_lowered, middle_lowered, down_lowered, this);
+	} else {
+	//	DrawVerticalScrollbar(r, this->colour, up_lowered, middle_lowered, down_lowered, this);
+	}
+
+	if (this->IsDisabled()) {
+		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
+	}
+}
+
+/* static */ void NWidgetResizebar::InvalidateDimensionCache()
+{
+	vertical_dimension.width   = vertical_dimension.height   = 0;
+	horizontal_dimension.width = horizontal_dimension.height = 0;
+}
+
+/* static */ Dimension NWidgetResizebar::GetVerticalDimension()
+{
+	static const Dimension extra = {WD_SCROLLBAR_LEFT + WD_SCROLLBAR_RIGHT, WD_SCROLLBAR_TOP + WD_SCROLLBAR_BOTTOM};
+	if (vertical_dimension.width == 0) {
+		vertical_dimension = maxdim(GetSpriteSize(SPR_ARROW_UP), GetSpriteSize(SPR_ARROW_DOWN));
+		vertical_dimension.width += extra.width;
+		vertical_dimension.height += extra.height;
+	}
+	return vertical_dimension;
+}
+
+/* static */ Dimension NWidgetResizebar::GetHorizontalDimension()
+{
+	static const Dimension extra = {WD_SCROLLBAR_LEFT + WD_SCROLLBAR_RIGHT, WD_SCROLLBAR_TOP + WD_SCROLLBAR_BOTTOM};
+	if (horizontal_dimension.width == 0) {
+		horizontal_dimension = maxdim(GetSpriteSize(SPR_ARROW_LEFT), GetSpriteSize(SPR_ARROW_RIGHT));
+		horizontal_dimension.width += extra.width;
+		horizontal_dimension.height += extra.height;
+	}
+	return horizontal_dimension;
+}
+
+Dimension NWidgetResizebar::vertical_dimension = {0, 0};
+Dimension NWidgetResizebar::horizontal_dimension = {0, 0};
+
 /** Reset the cached dimensions. */
 /* static */ void NWidgetLeaf::InvalidateDimensionCache()
 {
@@ -2697,6 +2799,13 @@ static int MakeNWidget(const NWidgetPart *parts, int count, NWidgetBase **dest, 
 			case NWID_VSCROLLBAR:
 				if (*dest != NULL) return num_used;
 				*dest = new NWidgetScrollbar(parts->type, parts->u.widget.colour, parts->u.widget.index);
+				*biggest_index = max(*biggest_index, (int)parts->u.widget.index);
+				break;
+
+			case NWID_HRESIZEBAR:
+			case NWID_VRESIZEBAR:
+				if (*dest != NULL) return num_used;
+				*dest = new NWidgetResizebar(parts->type, parts->u.widget.colour, parts->u.widget.index);
 				*biggest_index = max(*biggest_index, (int)parts->u.widget.index);
 				break;
 

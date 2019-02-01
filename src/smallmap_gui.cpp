@@ -1760,6 +1760,7 @@ static const NWidgetPart _nested_smallmap_display[] = {
 
 /** Widget parts of the smallmap legend bar + image buttons. */
 static const NWidgetPart _nested_smallmap_bar[] = {
+	NWidget(NWID_HRESIZEBAR, COLOUR_BROWN, WID_SM_RESIZEBAR),
 	NWidget(WWT_PANEL, COLOUR_BROWN),
 		NWidget(NWID_HORIZONTAL),
 			NWidget(WWT_EMPTY, INVALID_COLOUR, WID_SM_LEGEND), SetResize(1, 1),

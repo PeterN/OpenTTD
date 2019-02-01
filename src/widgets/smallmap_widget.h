@@ -17,6 +17,7 @@ enum SmallMapWidgets {
 	WID_SM_CAPTION,        ///< Caption of the window.
 	WID_SM_MAP_BORDER,     ///< Border around the smallmap.
 	WID_SM_MAP,            ///< Panel containing the smallmap.
+	WID_SM_RESIZEBAR,      ///< Resizebar.
 	WID_SM_LEGEND,         ///< Bottom panel to display smallmap legends.
 	WID_SM_BLANK,          ///< Empty button as placeholder.
 	WID_SM_ZOOM_IN,        ///< Button to zoom in one step.

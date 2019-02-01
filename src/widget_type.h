@@ -771,10 +771,6 @@ private:
 class Resizebar {
 private:
 	const bool is_vertical;     ///< Resizebar has vertical orientation.
-	uint16 topleft_minsize;     ///< Top/left minimum pixel size.
-	uint16 bottomright_minsize; ///< Bottom/right minimum pixel size.
-	uint16 topleft_maxsize;     ///< Top/left maximum pixel size.
-	uint16 bottomright_maxsize; ///< Bottom/right maximum pixel size.
 	uint16 stepsize;            ///< Distance to step when resizing.
 
 public:
