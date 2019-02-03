@@ -503,6 +503,22 @@ static const StringID _colour_dropdown[] = {
 	STR_COLOUR_BROWN,
 	STR_COLOUR_GREY,
 	STR_COLOUR_WHITE,
+	STR_COLOUR_CUSTOM1,
+	STR_COLOUR_CUSTOM2,
+	STR_COLOUR_CUSTOM3,
+	STR_COLOUR_CUSTOM4,
+	STR_COLOUR_CUSTOM5,
+	STR_COLOUR_CUSTOM6,
+	STR_COLOUR_CUSTOM7,
+	STR_COLOUR_CUSTOM8,
+	STR_COLOUR_CUSTOM9,
+	STR_COLOUR_CUSTOM10,
+	STR_COLOUR_CUSTOM11,
+	STR_COLOUR_CUSTOM12,
+	STR_COLOUR_CUSTOM13,
+	STR_COLOUR_CUSTOM14,
+	STR_COLOUR_CUSTOM15,
+	STR_COLOUR_CUSTOM16,
 };
 
 /* Association of liveries to livery classes */
@@ -542,7 +558,7 @@ public:
 		int height = bottom - top;
 		int icon_y_offset = height / 2;
 		int text_y_offset = (height - FONT_HEIGHT_NORMAL) / 2 + 1;
-		DrawSprite(SPR_VEH_BUS_SIDE_VIEW, PALETTE_RECOLOUR_START + (this->result % COLOUR_END),
+		DrawSprite(SPR_VEH_BUS_SIDE_VIEW, GetRecolourMap(this->result % COLOUR_END, INVALID_COLOUR),
 				rtl ? right - 2 - ScaleGUITrad(14) : left + ScaleGUITrad(14) + 2,
 				top + icon_y_offset);
 		DrawString(rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
@@ -784,8 +800,10 @@ public:
 				FALLTHROUGH;
 
 			case WID_SCL_PRI_COL_DROPDOWN: {
-				this->square = GetSpriteSize(SPR_SQUARE);
-				int padding = this->square.width + NWidgetScrollbar::GetVerticalDimension().width + 10;
+				Point offset;
+			        Dimension d = GetSpriteSize(SPR_VEH_BUS_SW_VIEW, &offset);
+				d.width -= offset.x;
+				int padding = d.width + NWidgetScrollbar::GetVerticalDimension().width + 10;
 				for (const StringID *id = _colour_dropdown; id != endof(_colour_dropdown); id++) {
 					size->width = max(size->width, GetStringBoundingBox(*id).width + padding);
 				}

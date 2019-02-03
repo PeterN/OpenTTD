@@ -16,8 +16,8 @@
 
 #include "table/sprites.h"
 
-#define GENERAL_SPRITE_COLOUR(colour) ((colour) + PALETTE_RECOLOUR_START)
-#define COMPANY_SPRITE_COLOUR(owner) (GENERAL_SPRITE_COLOUR(_company_colours[owner]))
+#define GENERAL_SPRITE_COLOUR(colour) (GetRecolourMap(colour, INVALID_COLOUR))
+#define COMPANY_SPRITE_COLOUR(owner) (GetRecolourMap(_company_colours[owner], INVALID_COLOUR))
 
 /* The following describes bunch of sprites to be drawn together in a single 3D
  * bounding box. Used especially for various multi-sprite buildings (like

@@ -1954,8 +1954,13 @@ static PaletteID GetEngineColourMap(EngineID engine_type, CompanyID company, Eng
 
 	const Livery *livery = GetEngineLivery(engine_type, company, parent_engine_type, v, _settings_client.gui.liveries);
 
-	map += livery->colour1;
-	if (twocc) map += livery->colour2 * 16;
+	if (map == SPR_2CCMAP_BASE || map == PALETTE_RECOLOUR_START || livery->colour1 >= 16 || livery->colour2 >= 16) {
+		extern PaletteID GetRecolourMap(byte first, byte second);
+		map = GetRecolourMap((Colours)livery->colour1, twocc ? (Colours)livery->colour2 : INVALID_COLOUR);
+	} else {
+		map += livery->colour1;
+		if (twocc) map += livery->colour2 * 16;
+	}
 
 	/* Update cache */
 	if (v != NULL) const_cast<Vehicle *>(v)->colourmap = map;

@@ -137,7 +137,8 @@ void DrawDirtyBlocks();
 void SetDirtyBlocks(int left, int top, int right, int bottom);
 void MarkWholeScreenDirty();
 
-void GfxInitPalettes();
+void GfxInitPalettes(bool fake_gradients = false);
+PaletteID GetRecolourMap(byte first, byte second);
 void CheckBlitter();
 
 bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int height);
@@ -193,7 +194,8 @@ TextColour GetContrastColour(uint8 background, uint8 threshold = 128);
  * All 16 colour gradients
  * 8 colours per gradient from darkest (0) to lightest (7)
  */
-extern byte _colour_gradient[COLOUR_END][8];
+//extern byte _colour_gradient[COLOUR_END][8];
+const byte *GetColourGradient(Colours colour);
 
 extern bool _palette_remap_grf[];
 

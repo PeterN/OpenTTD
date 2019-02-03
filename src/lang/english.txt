@@ -189,6 +189,22 @@ STR_COLOUR_ORANGE                                               :Orange
 STR_COLOUR_BROWN                                                :Brown
 STR_COLOUR_GREY                                                 :Grey
 STR_COLOUR_WHITE                                                :White
+STR_COLOUR_CUSTOM1                                              :Dark Red
+STR_COLOUR_CUSTOM2                                              :New Yellow
+STR_COLOUR_CUSTOM3                                              :New Red
+STR_COLOUR_CUSTOM4                                              :Turquoise
+STR_COLOUR_CUSTOM5                                              :New Green
+STR_COLOUR_CUSTOM6                                              :New Dark Green
+STR_COLOUR_CUSTOM7                                              :Grey Black
+STR_COLOUR_CUSTOM8                                              :Beige 1
+STR_COLOUR_CUSTOM9                                              :Beige 2
+STR_COLOUR_CUSTOM10                                             :Red Brown
+STR_COLOUR_CUSTOM11                                             :New Purple
+STR_COLOUR_CUSTOM12                                             :New Orange
+STR_COLOUR_CUSTOM13                                             :New Brown
+STR_COLOUR_CUSTOM14                                             :New White
+STR_COLOUR_CUSTOM15                                             :Grey OLD
+STR_COLOUR_CUSTOM16                                             :Teal Green
 STR_COLOUR_RANDOM                                               :Random
 STR_COLOUR_DEFAULT                                              :Default
 

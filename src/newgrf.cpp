@@ -8318,6 +8318,9 @@ void ResetNewGRFData()
 
 	InitializeSoundPool();
 	_spritegroup_pool.CleanPool();
+
+	extern void ResetRecolourMaps();
+	ResetRecolourMaps();
 }
 
 /**

@@ -557,6 +557,7 @@ void SetupColoursAndInitialWindow()
 		const byte *b = GetNonSprite(PALETTE_RECOLOUR_START + i, ST_RECOLOUR);
 
 		assert(b);
+		extern byte _colour_gradient[16][8];
 		memcpy(_colour_gradient[i], b + 0xC6, sizeof(_colour_gradient[i]));
 	}
 

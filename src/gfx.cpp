@@ -26,6 +26,7 @@
 #include "table/string_colours.h"
 #include "table/sprites.h"
 #include "table/control_codes.h"
+#include "table/strings.h"
 
 #include "safeguards.h"
 
@@ -50,7 +51,18 @@ Palette _cur_palette;
 
 static byte _stringwidth_table[FS_END][224]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
 DrawPixelInfo *_cur_dpi;
-byte _colour_gradient[COLOUR_END][8];
+
+/**
+ * All 16 colour gradients
+ * 8 colours per gradient from darkest (0) to lightest (7)
+ */
+static byte _colour_gradient[COLOUR_END][8];
+
+const byte *GetColourGradient(Colours colour)
+{
+	assert(colour < lengthof(_colour_gradient));
+	return _colour_gradient[colour];
+}
 
 static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
 static void GfxMainBlitter(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
@@ -990,8 +1002,17 @@ static void GfxMainBlitter(const Sprite *sprite, int x, int y, BlitterMode mode,
 
 void DoPaletteAnimations();
 
-void GfxInitPalettes()
+void GfxInitPalettes(bool fake_gradients)
 {
+	if (fake_gradients) {
+	        static const int offsets[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0x04, 0x08 };
+	        for (uint i = 0; i != 16; i++) {
+	                for (int j = 0; j < 8; j++) {
+	                        _colour_gradient[i][j] = offsets[i] + j;
+	                }
+	        }
+	}
+
 	memcpy(&_cur_palette, &_palette, sizeof(_cur_palette));
 	DoPaletteAnimations();
 }
@@ -1712,3 +1733,98 @@ void SortResolutions(int count)
 {
 	QSortT(_resolutions, count, &compare_res);
 }
+
+PaletteID GenerateCustomRecolourMap(const byte *first_remap, const byte *second_remap)
+{
+	const byte PRIMARY_START = 0xc6;
+	const byte SECONDARY_START = 0x50;
+
+	PaletteID pal = AllocateCustomSprite();
+
+	byte *p = (byte *)InjectSprite(ST_RECOLOUR, pal, 1 + 256);
+	p++;
+
+	for (uint i = 0; i < 256; i++) {
+		if (i >= PRIMARY_START && i < PRIMARY_START + 8) {
+			*p++ = first_remap[i - PRIMARY_START];
+		} else if (second_remap != NULL && i >= SECONDARY_START && i < SECONDARY_START + 8) {
+			*p++ = second_remap[i - SECONDARY_START];
+		} else {
+			*p++ = i;
+		}
+	}
+
+	return pal;
+}
+
+struct CustomRecolourMap {
+	StringID name;
+	const byte colours[8];
+};
+
+/* These colour maps are taken from NewCC by EmperorJake */
+static const struct CustomRecolourMap _custom_remaps[] = {
+	{ STR_EMPTY, { 0x46, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8 } }, // Dark red
+	{ STR_EMPTY, { 0x3f, 0x40, 0x41, 0x42, 0x43, 0xbe, 0x33, 0x44 } }, // Yellow
+	{ STR_EMPTY, { 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xa4, 0xa5 } }, // Red
+	{ STR_EMPTY, { 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f, 0xa0, 0xa1 } }, // Turquoise
+	{ STR_EMPTY, { 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57 } }, // Green
+	{ STR_EMPTY, { 0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f } }, // Dark green
+	{ STR_EMPTY, { 0x01, 0x02, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 } }, // Grey black
+	{ STR_EMPTY, { 0x23, 0x24, 0x25, 0x25, 0x26, 0x26, 0x27, 0x27 } }, // Beige OLD ?
+	{ STR_EMPTY, { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27 } }, // Beige
+	{ STR_EMPTY, { 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e } }, // Red-brown
+	{ STR_EMPTY, { 0x88, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xb1 } }, // Purple
+	{ STR_EMPTY, { 0x40, 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0x27 } }, // Orange
+	{ STR_EMPTY, { 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f } }, // Brown
+	{ STR_EMPTY, { 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d } }, // White
+	{ STR_EMPTY, { 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b } }, // Grey OLD ?
+	{ STR_EMPTY, { 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67 } }, // Teal green
+};
+
+#include <map>
+
+typedef std::map<uint16, PaletteID> PaletteMap;
+static PaletteMap _palette_cache;
+
+void ResetRecolourMaps()
+{
+	_palette_cache.clear();
+}
+
+const byte *GetOriginalRemap(byte colour)
+{
+	assert(colour < 16);
+	const byte *b = GetNonSprite(PALETTE_RECOLOUR_START + colour, ST_RECOLOUR) + 1;
+	return &b[0xc6];
+}
+
+static PaletteID CreateRecolourMap(byte first, byte second)
+{
+	if (second == INVALID_COLOUR) {
+		if (first < 16) return PALETTE_RECOLOUR_START + first;
+		assert(first < 16 + lengthof(_custom_remaps));
+
+		return GenerateCustomRecolourMap(_custom_remaps[first - 16].colours, NULL);
+	} else {
+		if (first < 16 && second < 16) return SPR_2CCMAP_BASE + first + second * 16;
+		assert(first < 16 + lengthof(_custom_remaps));
+		assert(second < 16 + lengthof(_custom_remaps));
+
+		const byte *first_map = first < 16 ? GetOriginalRemap(first) : _custom_remaps[first - 16].colours;
+		const byte *second_map = second < 16 ? GetOriginalRemap(second) : _custom_remaps[second - 16].colours;
+		return GenerateCustomRecolourMap(first_map, second_map);
+	}
+}
+
+PaletteID GetRecolourMap(byte first, byte second)
+{
+	PaletteMap::iterator it = _palette_cache.find(first | second << 8);
+	if (it != _palette_cache.end())
+		return it->second;
+
+	PaletteID pal = CreateRecolourMap(first, second);
+	_palette_cache[first | second << 8] = pal;
+	return pal;
+}
+

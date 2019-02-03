@@ -294,7 +294,7 @@ protected:
 		assert_compile(GRAPH_MAX_DATASETS >= (int)NUM_CARGO && GRAPH_MAX_DATASETS >= (int)MAX_COMPANIES);
 		assert(this->num_vert_lines > 0);
 
-		byte grid_colour = _colour_gradient[COLOUR_GREY][4];
+		byte grid_colour = GetColourGradient(COLOUR_GREY)[4];
 
 		/* Rect r will be adjusted to contain just the graph, with labels being
 		 * placed outside the area. */
@@ -596,7 +596,7 @@ public:
 		for (CompanyID k = COMPANY_FIRST; k < MAX_COMPANIES; k++) {
 			c = Company::GetIfValid(k);
 			if (c != NULL) {
-				this->colours[numd] = _colour_gradient[c->colour][6];
+				this->colours[numd] = GetColourGradient((Colours)c->colour)[6];
 				for (int j = this->num_on_x_axis, i = 0; --j >= 0;) {
 					this->cost[numd][i] = (j >= c->num_valid_stat_ent) ? INVALID_DATAPOINT : GetGraphData(c, j);
 					i++;
@@ -1395,8 +1395,8 @@ struct PerformanceRatingDetailWindow : Window {
 		ScoreID score_type = (ScoreID)(widget - WID_PRD_SCORE_FIRST);
 
 		/* The colours used to show how the progress is going */
-		int colour_done = _colour_gradient[COLOUR_GREEN][4];
-		int colour_notdone = _colour_gradient[COLOUR_RED][4];
+		int colour_done = GetColourGradient(COLOUR_GREEN)[4];
+		int colour_notdone = GetColourGradient(COLOUR_RED)[4];
 
 		/* Draw all the score parts */
 		int64 val    = _score_part[company][score_type];

@@ -380,7 +380,7 @@ struct DepotWindow : Window {
 		 */
 		if (this->type == VEH_TRAIN && _consistent_train_width != 0) {
 			int w = ScaleGUITrad(2 * _consistent_train_width);
-			int col = _colour_gradient[wid->colour][4];
+			int col = GetColourGradient(wid->colour)[4];
 			int image_left  = rtl ? r.left  + this->count_width  : r.left  + this->header_width;
 			int image_right = rtl ? r.right - this->header_width : r.right - this->count_width;
 			int first_line = w + (-this->hscroll->GetPosition()) % w;

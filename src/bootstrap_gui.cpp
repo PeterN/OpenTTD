@@ -233,13 +233,7 @@ bool HandleBootstrap()
 
 	/* Initialise the palette. The biggest step is 'faking' some recolour sprites.
 	 * This way the mauve and gray colours work and we can show the user interface. */
-	GfxInitPalettes();
-	static const int offsets[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0x04, 0x08 };
-	for (uint i = 0; i != 16; i++) {
-		for (int j = 0; j < 8; j++) {
-			_colour_gradient[i][j] = offsets[i] + j;
-		}
-	}
+	GfxInitPalettes(true);
 
 	/* Finally ask the question. */
 	new BootstrapBackground();
