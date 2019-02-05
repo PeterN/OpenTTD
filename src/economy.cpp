@@ -1034,7 +1034,7 @@ static SmallIndustryList _cargo_delivery_destinations;
  */
 static uint DeliverGoodsToIndustry(const Station *st, CargoID cargo_type, uint num_pieces, IndustryID source)
 {
-	/* Find the nearest industrytile to the station sign inside the catchment area, whose industry accepts the cargo.
+	/* Find a random industry near the station sign inside the catchment area, whose industry accepts the cargo.
 	 * This fails in three cases:
 	 *  1) The station accepts the cargo because there are enough houses around it accepting the cargo.
 	 *  2) The industries in the catchment area temporarily reject the cargo, and the daily station loop has not yet updated station acceptance.
@@ -1042,30 +1042,47 @@ static uint DeliverGoodsToIndustry(const Station *st, CargoID cargo_type, uint n
 	 */
 
 	uint accepted = 0;
+	if (st->industries_near.Length() == 0) return accepted;
 
-	for (uint i = 0; i < st->industries_near.Length() && num_pieces != 0; i++) {
-		Industry *ind = st->industries_near[i];
-		if (ind->index == source) continue;
-
+	SmallIndustryList rejected;
+	do {
+		Industry *ind = st->industries_near[RandomRange(st->industries_near.Length())];
+		if (ind->index == source) {
+			rejected.Include(ind);
+			continue;
+		}
 		uint cargo_index;
 		for (cargo_index = 0; cargo_index < lengthof(ind->accepts_cargo); cargo_index++) {
 			if (cargo_type == ind->accepts_cargo[cargo_index]) break;
 		}
+
 		/* Check if matching cargo has been found */
-		if (cargo_index >= lengthof(ind->accepts_cargo)) continue;
+		if (cargo_index >= lengthof(ind->accepts_cargo)) {
+			rejected.Include(ind);
+			continue;
+		}
 
 		/* Check if industry temporarily refuses acceptance */
-		if (IndustryTemporarilyRefusesCargo(ind, cargo_type)) continue;
+		if (IndustryTemporarilyRefusesCargo(ind, cargo_type)) {
+			rejected.Include(ind);
+			continue;
+		}
 
 		/* Insert the industry into _cargo_delivery_destinations, if not yet contained */
 		_cargo_delivery_destinations.Include(ind);
 
-		uint amount = min(num_pieces, 0xFFFFU - ind->incoming_cargo_waiting[cargo_index]);
+		/* Deliver one piece at a time */
+		uint amount = min(1, 0xFFFFU - ind->incoming_cargo_waiting[cargo_index]);
+		if (amount == 0) {
+			rejected.Include(ind);
+			continue;
+		}
+
 		ind->incoming_cargo_waiting[cargo_index] += amount;
 		ind->last_cargo_accepted_at[cargo_index] = _date;
 		num_pieces -= amount;
 		accepted += amount;
-	}
+	} while (num_pieces != 0 && rejected.Length() != st->industries_near.Length());
 
 	return accepted;
 }
