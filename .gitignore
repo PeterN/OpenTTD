@@ -20,6 +20,7 @@ bin/scripts/*
 
 src/ai/ai_instance.cpp
 src/game/game_instance.cpp
+src/script/api/script_window.hpp
 
 *.aps
 bundle/*
