@@ -1067,9 +1067,11 @@ static uint DeliverGoodsToIndustry(const Station *st, CargoID cargo_type, uint n
 	uint accepted = 0;
 	if (st->industries_near.Length() == 0) return accepted;
 
+	uint index = RandomRange(st->industries_near.Length());
 	SmallIndustryList rejected;
 	do {
-		Industry *ind = st->industries_near[RandomRange(st->industries_near.Length())];
+		Industry *ind = st->industries_near[index];
+		index = (index + 1) % st->industries_near.Length();
 
 		uint amount = TestDeliverGoodsToIndustry(const Station *st, CargoID cargo_type, IndustryID source, Industry *ind);
 		if (amount == 0) {
