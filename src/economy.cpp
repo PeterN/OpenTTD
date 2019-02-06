@@ -1023,6 +1023,29 @@ Money GetTransportedGoodsIncome(uint num_pieces, uint dist, byte transit_days, C
 /** The industries we've currently brought cargo to. */
 static SmallIndustryList _cargo_delivery_destinations;
 
+static uint TestDeliverGoodsToIndustry(const Station *st, CargoID cargo_type, uint num_pieces, IndustryID source, Industry *ind)
+{
+	if (ind->index == source) return 0;
+
+	uint cargo_index;
+	for (cargo_index = 0; cargo_index < lengthof(ind->accepts_cargo); cargo_index++) {
+		if (cargo_type == ind->accepts_cargo[cargo_index]) break;
+	}
+
+	/* Check if matching cargo has been found */
+	if (cargo_index >= lengthof(ind->accepts_cargo)) return 0;
+
+	/* Check if industry temporarily refuses acceptance */
+	if (IndustryTemporarilyRefusesCargo(ind, cargo_type)) return 0;
+
+	/* Insert the industry into _cargo_delivery_destinations, if not yet contained */
+	_cargo_delivery_destinations.Include(ind);
+
+	/* Deliver one piece at a time */
+	uint amount = min(num_pieces, 0xFFFFU - ind->incoming_cargo_waiting[cargo_index]);
+	return amount;
+}
+
 /**
  * Transfer goods from station to industry.
  * All cargo is delivered to the nearest (Manhattan) industry to the station sign, which is inside the acceptance rectangle and actually accepts the cargo.
@@ -1047,32 +1070,8 @@ static uint DeliverGoodsToIndustry(const Station *st, CargoID cargo_type, uint n
 	SmallIndustryList rejected;
 	do {
 		Industry *ind = st->industries_near[RandomRange(st->industries_near.Length())];
-		if (ind->index == source) {
-			rejected.Include(ind);
-			continue;
-		}
-		uint cargo_index;
-		for (cargo_index = 0; cargo_index < lengthof(ind->accepts_cargo); cargo_index++) {
-			if (cargo_type == ind->accepts_cargo[cargo_index]) break;
-		}
 
-		/* Check if matching cargo has been found */
-		if (cargo_index >= lengthof(ind->accepts_cargo)) {
-			rejected.Include(ind);
-			continue;
-		}
-
-		/* Check if industry temporarily refuses acceptance */
-		if (IndustryTemporarilyRefusesCargo(ind, cargo_type)) {
-			rejected.Include(ind);
-			continue;
-		}
-
-		/* Insert the industry into _cargo_delivery_destinations, if not yet contained */
-		_cargo_delivery_destinations.Include(ind);
-
-		/* Deliver one piece at a time */
-		uint amount = min(1, 0xFFFFU - ind->incoming_cargo_waiting[cargo_index]);
+		uint amount = TestDeliverGoodsToIndustry(const Station *st, CargoID cargo_type, IndustryID source, Industry *ind);
 		if (amount == 0) {
 			rejected.Include(ind);
 			continue;
