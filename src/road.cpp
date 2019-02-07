@@ -107,7 +107,7 @@ RoadBits CleanUpRoadBits(const TileIndex tile, RoadBits org_rb)
 }
 
 /**
- * Finds out, whether given company has all given RoadTypes available
+ * Finds out, whether given company has a given RoadType available for construction.
  * @param company ID of company
  * @param rtid RoadType to test
  * @return true if company has the requested RoadType available
@@ -119,8 +119,18 @@ bool HasRoadTypeAvail(const CompanyID company, RoadTypeIdentifier rtid)
 	} else {
 		const Company *c = Company::GetIfValid(company);
 		if (c == NULL) return false;
-		return HasBit(c->avail_roadtypes[rtid.basetype], rtid.subtype);
+		return !HasBit(_roadtypes_hidden_mask[rtid.basetype], rtid.subtype) && HasBit(c->avail_roadtypes[rtid.basetype], rtid.subtype);
 	}
+}
+
+/**
+ * Test if any buildable RoadType is available for a company.
+ * @param company the company in question
+ * @return true if company has any RoadTypes available
+ */
+bool HasAnyRoadTypesAvail(CompanyID company, RoadType type)
+{
+	return (Company::Get(company)->avail_roadtypes[type] & ~_roadtypes_hidden_mask[type]) != 0;
 }
 
 /**
@@ -302,6 +312,7 @@ bool CanBuildRoadTypeInfrastructure(RoadTypeIdentifier rtid, CompanyID company)
 {
 	if (_game_mode != GM_EDITOR && !Company::IsValidID(company)) return false;
 	if (!_settings_client.gui.disable_unsuitable_building) return true;
+	if (!HasAnyRoadTypesAvail(company, rtid.basetype)) return false;
 
 	RoadSubTypes roadsubtypes = ExistingRoadSubTypesForRoadType(rtid.basetype, company);
 

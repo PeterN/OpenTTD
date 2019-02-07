@@ -51,6 +51,7 @@ typedef SmallVector<RoadVehicle *, 16> RoadVehicleList;
 RoadtypeInfo _roadtypes[ROADTYPE_END][ROADSUBTYPE_END];
 RoadTypeIdentifier _sorted_roadtypes[ROADTYPE_END][ROADSUBTYPE_END];
 uint8 _sorted_roadtypes_size[ROADTYPE_END];
+RoadSubTypes _roadtypes_hidden_mask[ROADTYPE_END];
 
 /**
  * Reset all road type information to its default values.
@@ -70,12 +71,14 @@ void ResetRoadTypes()
 	uint i = 0;
 	for (; i < lengthof(_original_roadtypes);       i++) _roadtypes[ROADTYPE_ROAD][i] = _original_roadtypes[i];
 	for (; i < lengthof(_roadtypes[ROADTYPE_ROAD]); i++) _roadtypes[ROADTYPE_ROAD][i] = empty_roadtype;
+	_roadtypes_hidden_mask[ROADTYPE_ROAD] = ROADSUBTYPES_NONE;
 
 	/* Tram type */
 	assert_compile(lengthof(_original_tramtypes) <= lengthof(_roadtypes[ROADTYPE_TRAM]));
 	i = 0;
 	for (; i < lengthof(_original_tramtypes);       i++) _roadtypes[ROADTYPE_TRAM][i] = _original_tramtypes[i];
 	for (; i < lengthof(_roadtypes[ROADTYPE_TRAM]); i++) _roadtypes[ROADTYPE_TRAM][i] = empty_roadtype;
+	_roadtypes_hidden_mask[ROADTYPE_TRAM] = ROADSUBTYPES_NONE;
 }
 
 void ResolveRoadTypeGUISprites(RoadtypeInfo *rti)
@@ -117,11 +120,12 @@ void InitRoadTypes()
 		for (RoadSubType rst = ROADSUBTYPE_BEGIN; rst != ROADSUBTYPE_END; rst++) {
 			RoadtypeInfo *rti = &_roadtypes[rt][rst];
 			ResolveRoadTypeGUISprites(rti);
+			if (HasBit(rti->flags, ROTF_HIDDEN)) SetBit(_roadtypes_hidden_mask[rt], rst);
 		}
 
 		_sorted_roadtypes_size[rt] = 0;
 		for (RoadSubType rst = ROADSUBTYPE_BEGIN; rst != ROADSUBTYPE_END; rst++) {
-			if (_roadtypes[rt][rst].label != 0) {
+			if (_roadtypes[rt][rst].label != 0 && !HasBit(_roadtypes_hidden_mask[rt], rt)) {
 				_sorted_roadtypes[rt][_sorted_roadtypes_size[rt]++] = RoadTypeIdentifier(rt, rst);
 			}
 		}
