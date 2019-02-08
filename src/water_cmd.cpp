@@ -348,8 +348,10 @@ static CommandCost DoBuildLock(TileIndex tile, DiagDirection dir, DoCommandFlags
 	}
 	WaterClass wc_upper = IsWaterTile(tile + delta) ? GetWaterClass(tile + delta) : WATER_CLASS_CANAL;
 
-	if (IsBridgeAbove(tile) || IsBridgeAbove(tile - delta) || IsBridgeAbove(tile + delta)) {
-		return CommandCost(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+	for (TileIndex t : {tile, tile - delta, tile + delta}) {
+		if (IsBridgeAbove(t) && GetBridgeHeight(GetSouthernBridgeEnd(t)) < GetTileMaxZ(t) + 2) {
+			return CommandCost(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		}
 	}
 
 	if (flags.Test(DoCommandFlag::Execute)) {
@@ -939,6 +941,9 @@ static void DrawTile_Water(TileInfo *ti)
 
 		case WATER_TILE_LOCK:
 			DrawWaterLock(ti);
+			DrawBridgeMiddle(ti, DiagDirToAxis(GetLockDirection(ti->tile)) == AXIS_X
+				? BridgePillarFlags{BridgePillarFlag::EdgeNE, BridgePillarFlag::EdgeSW}
+				: BridgePillarFlags{BridgePillarFlag::EdgeNW, BridgePillarFlag::EdgeSE});
 			break;
 
 		case WATER_TILE_DEPOT:
@@ -1412,9 +1417,10 @@ static CommandCost TerraformTile_Water(TileIndex tile, DoCommandFlags flags, int
 	return Command<CMD_LANDSCAPE_CLEAR>::Do(flags, tile);
 }
 
-static CommandCost CheckBuildAbove_Water(TileIndex tile, DoCommandFlags flags, Axis, int)
+static CommandCost CheckBuildAbove_Water(TileIndex tile, DoCommandFlags flags, Axis, int height)
 {
 	if (IsWater(tile) || IsCoast(tile)) return CommandCost();
+	if (IsLock(tile) && GetTileMaxZ(tile) + 2 <= height) return CommandCost();
 	return Command<CMD_LANDSCAPE_CLEAR>::Do(flags, tile);
 }
 
