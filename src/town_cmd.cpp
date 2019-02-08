@@ -889,6 +889,9 @@ static RoadTypeIdentifier GetTownRoadType(const Town *t)
 		/* Unused road type. */
 		if (rti->label == 0) continue;
 
+		/* Can town build this road. */
+		if (!HasBit(rti->flags, ROTF_TOWN_BUILD)) continue;
+
 		/* Not yet introduced at this date. */
 		if (IsInsideMM(rti->introduction_date, 0, MAX_DAY) && rti->introduction_date > _date) continue;
 

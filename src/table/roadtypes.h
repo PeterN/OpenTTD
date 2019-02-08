@@ -63,7 +63,7 @@ static const RoadtypeInfo _original_roadtypes[] = {
 		ROADSUBTYPES_NORMAL,
 
 		/* flags */
-		ROTFB_NONE,
+		ROTFB_TOWN_BUILD,
 
 		/* cost multiplier */
 		8,
