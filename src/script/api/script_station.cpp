@@ -206,10 +206,10 @@ template<bool Tfrom, bool Tvia>
 	return (::Station::Get(station_id)->facilities & station_type) != 0;
 }
 
-/* static */ bool ScriptStation::HasRoadType(StationID station_id, ScriptRoad::RoadType road_type)
+/* static */ bool ScriptStation::HasRoadType(StationID station_id, ScriptRoad::RoadType road_type, ScriptRoad::RoadSubType road_sub_type)
 {
 	if (!IsValidStation(station_id)) return false;
-	if (!ScriptRoad::IsRoadTypeAvailable(road_type)) return false;
+	if (!ScriptRoad::IsRoadTypeAvailable(road_type, road_sub_type)) return false;
 
 	::RoadTypes r = RoadTypeToRoadTypes((::RoadType)road_type);
 

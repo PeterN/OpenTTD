@@ -41,6 +41,9 @@ public:
 
 		/** This roadtype cannot have crossings */
 		ERR_ROADTYPE_DISALLOWS_CROSSING,              // [STR_ERROR_CROSSING_DISALLOWED_ROAD]
+
+		/** No suitable road could be found */
+		ERR_UNSUITABLE_ROAD,                          // [STR_ERROR_NO_SUITABLE_ROAD, STR_ERROR_NO_SUITABLE_TRAMWAY, STR_ERROR_INCOMPATIBLE_ROAD]
 	};
 
 	/**
@@ -53,6 +56,14 @@ public:
 
 		/* Custom added value, only valid for this API */
 		ROADTYPE_INVALID = -1,                 ///< Invalid RoadType.
+	};
+
+	/**
+	 * Subtypes of road known to the game.
+	 */
+	enum RoadSubType {
+		/* Note: these values represent part of the in-game static values */
+		ROADSUBTYPE_INVALID  = ::INVALID_ROADSUBTYPE, ///< Invalid RoadSubType.
 	};
 
 	/**
@@ -72,6 +83,19 @@ public:
 		BT_BUS_STOP,   ///< Build a bus stop
 		BT_TRUCK_STOP, ///< Build a truck stop
 	};
+
+	/**
+	 * Get the name of a road sub type.
+	 * @param road_type The road type to get the name of.
+	 * @param road_sub_type The road sub type to get the name of.
+	 * @pre IsRoadTypeAvailable(road_type, road_sub_type).
+	 * @return The name the road type has.
+	 * @note Since there is no string with only the name of the road, the text which
+	 *  is shown in the dropdown where you can chose a road type is returned. This
+	 *  means that the name could be something like "Road construction" instead
+	 *  of just "Road".
+	 */
+	static char *GetName(RoadType road_type, RoadSubType road_sub_type);
 
 	/**
 	 * Determines whether a busstop or a truckstop is needed to transport a certain cargo.
@@ -122,10 +146,11 @@ public:
 	/**
 	 * Check if a given RoadType is available.
 	 * @param road_type The RoadType to check for.
+	 * @param road_sub_type The RoadSubType to check for.
 	 * @game @pre Valid ScriptCompanyMode active in scope.
 	 * @return True if this RoadType can be used.
 	 */
-	static bool IsRoadTypeAvailable(RoadType road_type);
+	static bool IsRoadTypeAvailable(RoadType road_type, RoadSubType road_sub_type);
 
 	/**
 	 * Get the current RoadType set for all ScriptRoad functions.
@@ -134,20 +159,75 @@ public:
 	static RoadType GetCurrentRoadType();
 
 	/**
-	 * Set the RoadType for all further ScriptRoad functions.
-	 * @param road_type The RoadType to set.
+	 * Get the current RoadSubType set for all ScriptRoad functions.
+	 * @return The RoadSubType currently set.
 	 */
-	static void SetCurrentRoadType(RoadType road_type);
+	static RoadSubType GetCurrentRoadSubType();
+
+	/**
+	 * Set the RoadType and RoadSubType for all further ScriptRoad functions.
+	 * @param road_type The RoadType to set.
+	 * @param road_sub_type The RoadSubType to set.
+	 */
+	static void SetCurrentRoadType(RoadType road_type, RoadSubType road_sub_type);
+
+	/**
+	 * Get the RoadSubType that is used on a tile.
+	 * @param tile The tile to check.
+	 * @param road_type The road type to check.
+	 * @pre ScriptTile::HasTransportType(tile, ScriptTile.TRANSPORT_ROAD).
+	 * @return The RoadSubType that is used on a tile.
+	 */
+	static RoadSubType GetRoadSubType(TileIndex tile, RoadType road_type);
+
+	/**
+	 * Check if a road vehicle built for a road sub type can run on another road sub type.
+	 * @param road_type Road type to check.
+	 * @param engine_road_sub_type The road sub type the road vehicle is built for.
+	 * @param road_road_sub_type The road sub type you want to check.
+	 * @pre ScriptRoad::IsRoadTypeAvailable(road_type, engine_road_sub_type).
+	 * @pre ScriptRoad::IsRoadTypeAvailable(road_type, road_road_sub_type).
+	 * @return Whether a road vehicle built for 'engine_road_sub_type' can run on 'road_road_sub_type'.
+	 */
+	static bool RoadVehCanRunOnRoad(RoadType road_type, RoadSubType engine_road_sub_type, RoadSubType road_road_sub_type);
+
+	/**
+	 * Check if a road vehicle built for a road sub type has power on another road sub type.
+	 * @param road_type Road type to check.
+	 * @param engine_road_sub_type The road sub type the road vehicle is built for.
+	 * @param road_road_sub_type The road sub type you want to check.
+	 * @pre ScriptRoad::IsRoadTypeAvailable(road_type, engine_road_sub_type).
+	 * @pre ScriptRoad::IsRoadTypeAvailable(road_type, road_road_sub_type).
+	 * @return Whether a road vehicle built for 'engine_road_sub_type' has power on 'road_road_sub_type'.
+	 */
+	static bool RoadVehHasPowerOnRoad(RoadType road_type, RoadSubType engine_road_sub_type, RoadSubType road_road_sub_type);
+
+
+	/**
+	 * Convert the road on all tiles within a rectangle to another RoadSubType.
+	 * @param start_tile One corner of the rectangle.
+	 * @param end_tile The opposite corner of the rectangle.
+	 * @param road_type The RoadType you want to convert.
+	 * @param road_sub_type The RoadSubType you want to convert this road_type to.
+	 * @pre ScriptMap::IsValidTile(start_tile).
+	 * @pre ScriptMap::IsValidTile(end_tile).
+	 * @pre IsRoadTypeAvailable(road_type, road_sub_type).
+	 * @game @pre Valid ScriptCompanyMode active in scope.
+	 * @exception ScriptRoad::ERR_UNSUITABLE_ROAD
+	 * @return Whether at least some road has been converted successfully.
+	 */
+	static bool ConvertRoadType(TileIndex start_tile, TileIndex end_tile, RoadType road_type, RoadSubType road_sub_type);
 
 	/**
 	 * Check if a given tile has RoadType.
 	 * @param tile The tile to check.
 	 * @param road_type The RoadType to check for.
+	 * @param road_sub_type The RoadSubType to check for.
 	 * @pre ScriptMap::IsValidTile(tile).
-	 * @pre IsRoadTypeAvailable(road_type).
+	 * @pre IsRoadTypeAvailable(road_type, road_sub_type).
 	 * @return True if the tile contains a RoadType object.
 	 */
-	static bool HasRoadType(TileIndex tile, RoadType road_type);
+	static bool HasRoadType(TileIndex tile, RoadType road_type, RoadSubType road_sub_type);
 
 	/**
 	 * Checks whether the given tiles are directly connected, i.e. whether
@@ -155,7 +235,7 @@ public:
 	 * center of the second tile.
 	 * @param tile_from The source tile.
 	 * @param tile_to The destination tile.
-	 * @pre IsRoadTypeAvailable(GetCurrentRoadType()).
+	 * @pre IsRoadTypeAvailable(GetCurrentRoadType(), GetCurrentRoadSubType()).
 	 * @pre ScriptMap::IsValidTile(tile_from).
 	 * @pre ScriptMap::IsValidTile(tile_to).
 	 * @pre 'tile_from' and 'tile_to' are directly neighbouring tiles.
@@ -484,20 +564,35 @@ public:
 
 	/**
 	 * Get the baseprice of building a road-related object.
-	 * @param roadtype the roadtype that is build (on)
+	 * @param roadtype the roadtype of the object to build
+	 * @param road_sub_type The roadsubtype of the object to build
 	 * @param build_type the type of object to build
-	 * @pre IsRoadTypeAvailable(railtype)
+	 * @pre IsRoadTypeAvailable(roadtype, road_sub_type)
 	 * @return The baseprice of building the given object.
 	 */
-	static Money GetBuildCost(RoadType roadtype, BuildType build_type);
+	static Money GetBuildCost(RoadType roadtype, RoadSubType road_sub_type, BuildType build_type);
 
 	/**
-	 * Get the maintenance cost factor of a roadtype.
-	 * @param roadtype The roadtype to get the maintenance factor of.
+	 * Get the maximum speed of road vehicles running on this roadtype.
+	 * @param road_type The roadtype to get the maximum speed of.
+	 * @param road_sub_type The roadsubtype to get the maximum speed of.
+	 * @pre IsRoadTypeAvailable(road_type, road_sub_type)
+	 * @return The maximum speed road vehicles can run on this roadtype
+	 *   or 0 if there is no limit.
+	 * @note The speed is in OpenTTD's internal speed unit.
+	 *       This is mph / 0.8, which is roughly 0.5 km/h.
+	 *       To get km/h multiply this number by 2.01168.
+	 */
+	static int32 GetMaxSpeed(RoadType road_type, RoadSubType road_sub_type);
+
+	/**
+	 * Get the maintenance cost factor of a roadsubtype.
+	 * @param roadtype The roadtype of the roadsubtype to get the maintenance factor of.
+	 * @param roadsubtype The roadsubtype to get the maintenance factor of.
 	 * @pre IsRoadTypeAvailable(roadtype)
 	 * @return Maintenance cost factor of the roadtype.
 	 */
-	static uint16 GetMaintenanceCostFactor(RoadType roadtype);
+	static uint16 GetMaintenanceCostFactor(RoadType roadtype, RoadSubType road_sub_type);
 
 private:
 

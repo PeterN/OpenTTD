@@ -583,6 +583,7 @@
     <ClInclude Include="..\src\newgrf_object.h" />
     <ClInclude Include="..\src\newgrf_properties.h" />
     <ClInclude Include="..\src\newgrf_railtype.h" />
+    <ClInclude Include="..\src\newgrf_roadtype.h" />
     <ClInclude Include="..\src\newgrf_sound.h" />
     <ClInclude Include="..\src\newgrf_spritegroup.h" />
     <ClInclude Include="..\src\newgrf_station.h" />
@@ -613,6 +614,7 @@
     <ClInclude Include="..\src\rail_gui.h" />
     <ClInclude Include="..\src\rail_type.h" />
     <ClInclude Include="..\src\rev.h" />
+    <ClInclude Include="..\src\road.h" />
     <ClInclude Include="..\src\road_cmd.h" />
     <ClInclude Include="..\src\road_func.h" />
     <ClInclude Include="..\src\road_gui.h" />
@@ -947,6 +949,7 @@
     <ClInclude Include="..\src\table\railtypes.h" />
     <ClInclude Include="..\src\table\road_land.h" />
     <ClInclude Include="..\src\table\roadveh_movement.h" />
+    <ClInclude Include="..\src\table\roadtypes.h" />
     <ClInclude Include="..\src\..\objs\settings\table\settings.h" />
     <ClInclude Include="..\src\table\sprites.h" />
     <ClInclude Include="..\src\table\station_land.h" />
@@ -1085,6 +1088,7 @@
     <ClInclude Include="..\src\script\api\script_rail.hpp" />
     <ClInclude Include="..\src\script\api\script_railtypelist.hpp" />
     <ClInclude Include="..\src\script\api\script_road.hpp" />
+    <ClInclude Include="..\src\script\api\script_roadsubtypelist.hpp" />
     <ClInclude Include="..\src\script\api\script_sign.hpp" />
     <ClInclude Include="..\src\script\api\script_signlist.hpp" />
     <ClInclude Include="..\src\script\api\script_station.hpp" />
@@ -1151,6 +1155,7 @@
     <ClCompile Include="..\src\script\api\script_rail.cpp" />
     <ClCompile Include="..\src\script\api\script_railtypelist.cpp" />
     <ClCompile Include="..\src\script\api\script_road.cpp" />
+    <ClCompile Include="..\src\script\api\script_roadsubtypelist.cpp" />
     <ClCompile Include="..\src\script\api\script_sign.cpp" />
     <ClCompile Include="..\src\script\api\script_signlist.cpp" />
     <ClCompile Include="..\src\script\api\script_station.cpp" />
@@ -1224,6 +1229,7 @@
     <ClCompile Include="..\src\newgrf_industrytiles.cpp" />
     <ClCompile Include="..\src\newgrf_object.cpp" />
     <ClCompile Include="..\src\newgrf_railtype.cpp" />
+    <ClCompile Include="..\src\newgrf_roadtype.cpp" />
     <ClCompile Include="..\src\newgrf_sound.cpp" />
     <ClCompile Include="..\src\newgrf_spritegroup.cpp" />
     <ClCompile Include="..\src\newgrf_station.cpp" />

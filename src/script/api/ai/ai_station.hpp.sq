@@ -61,7 +61,7 @@ void SQAIStation_Register(Squirrel *engine)
 	SQAIStation.DefSQStaticMethod(engine, &ScriptStation::GetDistanceSquareToTile,    "GetDistanceSquareToTile",    3, ".ii");
 	SQAIStation.DefSQStaticMethod(engine, &ScriptStation::IsWithinTownInfluence,      "IsWithinTownInfluence",      3, ".ii");
 	SQAIStation.DefSQStaticMethod(engine, &ScriptStation::HasStationType,             "HasStationType",             3, ".ii");
-	SQAIStation.DefSQStaticMethod(engine, &ScriptStation::HasRoadType,                "HasRoadType",                3, ".ii");
+	SQAIStation.DefSQStaticMethod(engine, &ScriptStation::HasRoadType,                "HasRoadType",                4, ".iii");
 	SQAIStation.DefSQStaticMethod(engine, &ScriptStation::GetNearestTown,             "GetNearestTown",             2, ".i");
 	SQAIStation.DefSQStaticMethod(engine, &ScriptStation::IsAirportClosed,            "IsAirportClosed",            2, ".i");
 	SQAIStation.DefSQStaticMethod(engine, &ScriptStation::OpenCloseAirport,           "OpenCloseAirport",           2, ".i");

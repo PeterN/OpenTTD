@@ -29,7 +29,7 @@ void SQGSInfrastructure_Register(Squirrel *engine)
 	SQGSInfrastructure.DefSQConst(engine, ScriptInfrastructure::INFRASTRUCTURE_AIRPORT, "INFRASTRUCTURE_AIRPORT");
 
 	SQGSInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetRailPieceCount,             "GetRailPieceCount",             3, ".ii");
-	SQGSInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetRoadPieceCount,             "GetRoadPieceCount",             3, ".ii");
+	SQGSInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetRoadPieceCount,             "GetRoadPieceCount",             4, ".iii");
 	SQGSInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetInfrastructurePieceCount,   "GetInfrastructurePieceCount",   3, ".ii");
 	SQGSInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetMonthlyRailCosts,           "GetMonthlyRailCosts",           3, ".ii");
 	SQGSInfrastructure.DefSQStaticMethod(engine, &ScriptInfrastructure::GetMonthlyRoadCosts,           "GetMonthlyRoadCosts",           3, ".ii");

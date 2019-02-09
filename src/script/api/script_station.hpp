@@ -261,9 +261,10 @@ public:
 	 *  RoadType.
 	 * @param station_id The station to look at.
 	 * @param road_type The RoadType to look for.
+	 * @param road_sub_type The RoadSubType to look for.
 	 * @return True if the station has a station part of the type RoadType.
 	 */
-	static bool HasRoadType(StationID station_id, ScriptRoad::RoadType road_type);
+	static bool HasRoadType(StationID station_id, ScriptRoad::RoadType road_type, ScriptRoad::RoadSubType road_sub_type);
 
 	/**
 	 * Get the town that was nearest to the given station when the station was built.

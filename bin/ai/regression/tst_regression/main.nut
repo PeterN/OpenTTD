@@ -203,7 +203,7 @@ function Regression::Base()
 	print("  Chance(1, 2): " + AIBase.Chance(1, 2));
 	print("  Chance(1, 2): " + AIBase.Chance(1, 2));
 
-	AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD);
+	AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_ROAD, 0);
 }
 
 function Regression::Airport()
@@ -535,14 +535,14 @@ function Regression::Prices()
 	print("  1,BT_STATION:  " + AIRail.GetBuildCost(1, AIRail.BT_STATION));
 	print("  1,BT_WAYPOINT: " + AIRail.GetBuildCost(1, AIRail.BT_WAYPOINT));
 	print(" -Road-");
-	print("  ROADTYPE_ROAD,BT_ROAD:       " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, AIRoad.BT_ROAD));
-	print("  ROADTYPE_ROAD,BT_DEPOT:      " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, AIRoad.BT_DEPOT));
-	print("  ROADTYPE_ROAD,BT_BUS_STOP:   " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, AIRoad.BT_BUS_STOP));
-	print("  ROADTYPE_ROAD,BT_TRUCK_STOP: " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, AIRoad.BT_TRUCK_STOP));
-	print("  ROADTYPE_TRAM,BT_ROAD:       " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_TRAM, AIRoad.BT_ROAD));
-	print("  ROADTYPE_TRAM,BT_DEPOT:      " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_TRAM, AIRoad.BT_DEPOT));
-	print("  ROADTYPE_TRAM,BT_BUS_STOP:   " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_TRAM, AIRoad.BT_BUS_STOP));
-	print("  ROADTYPE_TRAM,BT_TRUCK_STOP: " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_TRAM, AIRoad.BT_TRUCK_STOP));
+	print("  ROADTYPE_ROAD,0,BT_ROAD:       " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, 0, AIRoad.BT_ROAD));
+	print("  ROADTYPE_ROAD,0,BT_DEPOT:      " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, 0, AIRoad.BT_DEPOT));
+	print("  ROADTYPE_ROAD,0,BT_BUS_STOP:   " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, 0, AIRoad.BT_BUS_STOP));
+	print("  ROADTYPE_ROAD,0,BT_TRUCK_STOP: " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_ROAD, 0, AIRoad.BT_TRUCK_STOP));
+	print("  ROADTYPE_TRAM,0,BT_ROAD:       " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_TRAM, 0, AIRoad.BT_ROAD));
+	print("  ROADTYPE_TRAM,0,BT_DEPOT:      " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_TRAM, 0, AIRoad.BT_DEPOT));
+	print("  ROADTYPE_TRAM,0,BT_BUS_STOP:   " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_TRAM, 0, AIRoad.BT_BUS_STOP));
+	print("  ROADTYPE_TRAM,0,BT_TRUCK_STOP: " + AIRoad.GetBuildCost(AIRoad.ROADTYPE_TRAM, 0, AIRoad.BT_TRUCK_STOP));
 	print(" -Water-");
 	print("  BT_DOCK:  " + AIMarine.GetBuildCost(AIMarine.BT_DOCK));
 	print("  BT_DEPOT: " + AIMarine.GetBuildCost(AIMarine.BT_DEPOT));
@@ -1126,8 +1126,8 @@ function Regression::Road()
 	print("    HasTransportType():            " + AITile.HasTransportType(33413, AITile.TRANSPORT_ROAD));
 	print("    AreRoadTilesConnected():       " + AIRoad.AreRoadTilesConnected(33412, 33413));
 	print("    IsRoadTile():                  " + AIRoad.IsRoadTile(33411));
-	print("    HasRoadType(Road):             " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_ROAD));
-	print("    HasRoadType(Tram):             " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_TRAM));
+	print("    HasRoadType(Road, 0):          " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_ROAD, 0));
+	print("    HasRoadType(Tram, 0):          " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_TRAM, 0));
 	print("    GetNeighbourRoadCount():       " + AIRoad.GetNeighbourRoadCount(33412));
 	print("    RemoveRoad():                  " + AIRoad.RemoveRoad(33411, 33411));
 	print("    RemoveRoad():                  " + AIRoad.RemoveRoad(33411, 33412));
@@ -1144,9 +1144,9 @@ function Regression::Road()
 	print("    AreRoadTilesConnected():       " + AIRoad.AreRoadTilesConnected(33412, 33413));
 	print("    AreRoadTilesConnected():       " + AIRoad.AreRoadTilesConnected(33413, 33412));
 	print("    RemoveRoad():                  " + AIRoad.RemoveRoad(33411, 33412));
-	print("    IsRoadTypeAvailable(Road):     " + AIRoad.IsRoadTypeAvailable(AIRoad.ROADTYPE_ROAD));
-	print("    IsRoadTypeAvailable(Tram):     " + AIRoad.IsRoadTypeAvailable(AIRoad.ROADTYPE_TRAM));
-	print("    SetCurrentRoadType(Tram):      " + AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_TRAM));
+	print("    IsRoadTypeAvailable(Road, 0):  " + AIRoad.IsRoadTypeAvailable(AIRoad.ROADTYPE_ROAD, 0));
+	print("    IsRoadTypeAvailable(Tram, 0):  " + AIRoad.IsRoadTypeAvailable(AIRoad.ROADTYPE_TRAM, 0));
+	print("    SetCurrentRoadType(Tram, 0):   " + AIRoad.SetCurrentRoadType(AIRoad.ROADTYPE_TRAM, 0));
 	print("    GetCurrentRoadType():          " + AIRoad.GetCurrentRoadType());
 
 	print("  Depot");
@@ -1155,8 +1155,8 @@ function Regression::Road()
 	print("    BuildRoadDepot():              " + AIRoad.BuildRoadDepot(33411, 33411));
 	print("    BuildRoadDepot():              " + AIRoad.BuildRoadDepot(33411, 33414));
 	print("    BuildRoadDepot():              " + AIRoad.BuildRoadDepot(33411, 33412));
-	print("    HasRoadType(Road):             " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_ROAD));
-	print("    HasRoadType(Tram):             " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_TRAM));
+	print("    HasRoadType(Road, 0):          " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_ROAD, 0));
+	print("    HasRoadType(Tram, 0):          " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_TRAM, 0));
 	print("    GetLastError():                " + AIError.GetLastError());
 	print("    GetLastErrorString():          " + AIError.GetLastErrorString());
 	print("    GetErrorCategory():            " + AIError.GetErrorCategory());
@@ -1183,8 +1183,8 @@ function Regression::Road()
 	print("    BuildRoadStation():            " + AIRoad.BuildRoadStation(33411, 33412, AIRoad.ROADVEHTYPE_BUS, AIStation.STATION_JOIN_ADJACENT));
 	print("    IsStationTile():               " + AITile.IsStationTile(33411));
 	print("    IsStationTile():               " + AITile.IsStationTile(33412));
-	print("    HasRoadType(Road):             " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_ROAD));
-	print("    HasRoadType(Tram):             " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_TRAM));
+	print("    HasRoadType(Road, 0):          " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_ROAD, 0));
+	print("    HasRoadType(Tram, 0):          " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_TRAM, 0));
 	print("    IsRoadTile():                  " + AIRoad.IsRoadTile(33411));
 	print("    GetDriveThroughBackTile():     " + AIRoad.GetDriveThroughBackTile(33411));
 	print("    GetRoadStationFrontTile():     " + AIRoad.GetRoadStationFrontTile(33411));
@@ -1242,30 +1242,30 @@ function Regression::Station()
 {
 	print("");
 	print("--Station--");
-	print("  IsValidStation(0):        " + AIStation.IsValidStation(0));
-	print("  IsValidStation(1000):     " + AIStation.IsValidStation(1000));
-	print("  GetName(0):               " + AIStation.GetName(0));
-	print("  SetName(0):               " + AIStation.SetName(0, "Look, a station"));
-	print("  GetName(0):               " + AIStation.GetName(0));
-	print("  GetLocation(1):           " + AIStation.GetLocation(1));
-	print("  GetLocation(1000):        " + AIStation.GetLocation(1000));
-	print("  GetStationID(33411):      " + AIStation.GetStationID(33411));
-	print("  GetStationID(34411):      " + AIStation.GetStationID(34411));
-	print("  GetStationID(33411):      " + AIStation.GetStationID(33411));
-	print("  HasRoadType(3, TRAM):     " + AIStation.HasRoadType(3, AIRoad.ROADTYPE_TRAM));
-	print("  HasRoadType(3, ROAD):     " + AIStation.HasRoadType(3, AIRoad.ROADTYPE_ROAD));
-	print("  HasRoadType(33411, TRAM): " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_TRAM));
-	print("  HasRoadType(33411, ROAD): " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_ROAD));
-	print("  HasStationType(3, BUS):   " + AIStation.HasStationType(3, AIStation.STATION_BUS_STOP));
-	print("  HasStationType(3, TRAIN): " + AIStation.HasStationType(3, AIStation.STATION_TRAIN));
+	print("  IsValidStation(0):           " + AIStation.IsValidStation(0));
+	print("  IsValidStation(1000):        " + AIStation.IsValidStation(1000));
+	print("  GetName(0):                  " + AIStation.GetName(0));
+	print("  SetName(0):                  " + AIStation.SetName(0, "Look, a station"));
+	print("  GetName(0):                  " + AIStation.GetName(0));
+	print("  GetLocation(1):              " + AIStation.GetLocation(1));
+	print("  GetLocation(1000):           " + AIStation.GetLocation(1000));
+	print("  GetStationID(33411):         " + AIStation.GetStationID(33411));
+	print("  GetStationID(34411):         " + AIStation.GetStationID(34411));
+	print("  GetStationID(33411):         " + AIStation.GetStationID(33411));
+	print("  HasRoadType(3, TRAM, 0):     " + AIStation.HasRoadType(3, AIRoad.ROADTYPE_TRAM, 0));
+	print("  HasRoadType(3, ROAD, 0):     " + AIStation.HasRoadType(3, AIRoad.ROADTYPE_ROAD, 0));
+	print("  HasRoadType(33411, TRAM, 0): " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_TRAM, 0));
+	print("  HasRoadType(33411, ROAD, 0): " + AIRoad.HasRoadType(33411, AIRoad.ROADTYPE_ROAD, 0));
+	print("  HasStationType(3, BUS):      " + AIStation.HasStationType(3, AIStation.STATION_BUS_STOP));
+	print("  HasStationType(3, TRAIN):    " + AIStation.HasStationType(3, AIStation.STATION_TRAIN));
 
-	print("  GetCoverageRadius(BUS):   " + AIStation.GetCoverageRadius(AIStation.STATION_BUS_STOP));
-	print("  GetCoverageRadius(TRUCK): " + AIStation.GetCoverageRadius(AIStation.STATION_TRUCK_STOP));
-	print("  GetCoverageRadius(TRAIN): " + AIStation.GetCoverageRadius(AIStation.STATION_TRAIN));
+	print("  GetCoverageRadius(BUS):      " + AIStation.GetCoverageRadius(AIStation.STATION_BUS_STOP));
+	print("  GetCoverageRadius(TRUCK):    " + AIStation.GetCoverageRadius(AIStation.STATION_TRUCK_STOP));
+	print("  GetCoverageRadius(TRAIN):    " + AIStation.GetCoverageRadius(AIStation.STATION_TRAIN));
 
-	print("  GetNearestTown():         " + AIStation.GetNearestTown(0));
-	print("  GetNearestTown():         " + AIStation.GetNearestTown(10000));
-	print("  GetNearestTown():         " + AIStation.GetNearestTown(3));
+	print("  GetNearestTown():            " + AIStation.GetNearestTown(0));
+	print("  GetNearestTown():            " + AIStation.GetNearestTown(10000));
+	print("  GetNearestTown():            " + AIStation.GetNearestTown(3));
 
 	print("");
 	print("--CargoWaiting--");

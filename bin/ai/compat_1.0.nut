@@ -133,3 +133,5 @@ AIGroup.CreateGroup <- function(vehicle_type)
 {
 	return AIGroup._CreateGroup(vehicle_type, AIGroup.GROUP_INVALID);
 }
+
+require("compat_roadtypes.nut");

@@ -43,9 +43,10 @@ public:
 	 * Return the number of road pieces of a specific road type for a company.
 	 * @param company The company to get the count for.
 	 * @param roadtype Road type to get the count of.
+	 * @param road_sub_type Road sub type to get the count of.
 	 * @return Count for the road type.
 	 */
-	static uint32 GetRoadPieceCount(ScriptCompany::CompanyID company, ScriptRoad::RoadType roadtype);
+	static uint32 GetRoadPieceCount(ScriptCompany::CompanyID company, ScriptRoad::RoadType roadtype, ScriptRoad::RoadSubType road_sub_type);
 
 	/**
 	 * Return the number of pieces of an infrastructure category for a company.

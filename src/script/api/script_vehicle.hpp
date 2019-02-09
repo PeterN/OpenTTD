@@ -285,6 +285,15 @@ public:
 	static ScriptRoad::RoadType GetRoadType(VehicleID vehicle_id);
 
 	/**
+	 * Get the RoadSubType of the vehicle.
+	 * @param vehicle_id The vehicle to get the RoadSubType of.
+	 * @pre IsValidVehicle(vehicle_id).
+	 * @pre GetVehicleType(vehicle_id) == VT_ROAD.
+	 * @return The RoadType the vehicle has.
+	 */
+	static ScriptRoad::RoadSubType GetRoadSubType(VehicleID vehicle_id);
+
+	/**
 	 * Check if a vehicle is in a depot.
 	 * @param vehicle_id The vehicle to check.
 	 * @pre IsValidVehicle(vehicle_id).

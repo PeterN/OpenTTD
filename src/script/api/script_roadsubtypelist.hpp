@@ -7,6 +7,22 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-AILog.Info("1.9 API compatibility in effect.");
+/** @file script_roadsubtypelist.hpp List all available roadsubtypes. */
 
-require("compat_roadtypes.nut");
+#ifndef SCRIPT_ROADSUBTYPELIST_HPP
+#define SCRIPT_ROADSUBTYPELIST_HPP
+
+#include "script_list.hpp"
+#include "script_road.hpp"
+
+/**
+ * Creates a list of all available roadsubtypes.
+ * @api ai game
+ * @ingroup ScriptList
+ */
+class ScriptRoadSubTypeList : public ScriptList {
+public:
+	ScriptRoadSubTypeList(ScriptRoad::RoadType road_type);
+};
+
+#endif /* SCRIPT_ROADSUBTYPELIST_HPP */

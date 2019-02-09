@@ -7,13 +7,19 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-GSLog.Info("1.5 API compatibility in effect.");
+/** @file script_roadsubtypelist.cpp Implementation of ScriptRoadSubTypeList and friends. */
 
-/* 1.9 adds a vehicle type parameter. */
-GSBridge._GetName <- GSBridge.GetName;
-GSBridge.GetName <- function(bridge_id)
+#include "../../stdafx.h"
+#include "script_roadsubtypelist.hpp"
+#include "../../road_func.h"
+
+#include "../../safeguards.h"
+
+ScriptRoadSubTypeList::ScriptRoadSubTypeList(ScriptRoad::RoadType road_type)
 {
-	return GSBridge._GetName(bridge_id, GSVehicle.VT_RAIL);
+	RoadTypeIdentifier rtid((::RoadType)road_type, ::INVALID_ROADSUBTYPE);
+	for (RoadSubType rst = ROADSUBTYPE_BEGIN; rst != ROADSUBTYPE_END; rst++) {
+		rtid.subtype = rst;
+		if (ScriptObject::GetCompany() == OWNER_DEITY || ::HasRoadTypeAvail(ScriptObject::GetCompany(), rtid)) this->AddItem(rst);
+	}
 }
-
-require("compat_roadtypes.nut");

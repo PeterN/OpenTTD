@@ -24,6 +24,24 @@
  * \li AIGroup::SetSecondaryColour
  * \li AIGroup::GetPrimaryColour
  * \li AIGroup::GetSecondaryColour
+ * \li AIRoad::GetName
+ * \li AIRoad::GetCurrentRoadSubType
+ * \li AIRoad::GetRoadSubType
+ * \li AIRoad::RoadVehCanRunOnRoad
+ * \li AIRoad::RoadVehHasPowerOnRoad
+ * \li AIRoad::ConvertRoadType
+ * \li AIRoad::GetMaxSpeed
+ * \li AIVehicle::GetRoadSubType
+ * \li AIRoadSubTypeList
+ *
+ * Other changes:
+ * \li AIRoad::IsRoadTypeAvailable gains a RoadSubType parameter
+ * \li AIRoad::SetCurrentRoadType gains a RoadSubType parameter
+ * \li AIRoad::HasRoadType gains a RoadSubType parameter
+ * \li AIRoad::GetBuildCost gains a RoadSubType parameter
+ * \li AIRoad::GetMaintenanceCostFactor gains a RoadSubType parameter
+ * \li AIInfrastructure::GetRoadPieceCount gains a RoadSubType parameter
+ * \li AIStation::HasRoadType gains a RoadSubType parameter
  *
  * \b 1.9.0
  *

@@ -378,7 +378,15 @@
 	if (!IsValidVehicle(vehicle_id)) return ScriptRoad::ROADTYPE_INVALID;
 	if (GetVehicleType(vehicle_id) != VT_ROAD) return ScriptRoad::ROADTYPE_INVALID;
 
-	return (ScriptRoad::RoadType)(::RoadVehicle::Get(vehicle_id))->rtid.basetype; // TODO
+	return (ScriptRoad::RoadType)(::RoadVehicle::Get(vehicle_id))->rtid.basetype;
+}
+
+/* static */ ScriptRoad::RoadSubType ScriptVehicle::GetRoadSubType(VehicleID vehicle_id)
+{
+	if (!IsValidVehicle(vehicle_id)) return ScriptRoad::ROADSUBTYPE_INVALID;
+	if (GetVehicleType(vehicle_id) != VT_ROAD) return ScriptRoad::ROADSUBTYPE_INVALID;
+
+	return (ScriptRoad::RoadSubType)(::RoadVehicle::Get(vehicle_id))->rtid.subtype;
 }
 
 /* static */ int32 ScriptVehicle::GetCapacity(VehicleID vehicle_id, CargoID cargo)

@@ -28,12 +28,12 @@
 	return ::Company::Get((::CompanyID)company)->infrastructure.rail[railtype];
 }
 
-/* static */ uint32 ScriptInfrastructure::GetRoadPieceCount(ScriptCompany::CompanyID company, ScriptRoad::RoadType roadtype)
+/* static */ uint32 ScriptInfrastructure::GetRoadPieceCount(ScriptCompany::CompanyID company, ScriptRoad::RoadType roadtype, ScriptRoad::RoadSubType road_sub_type)
 {
 	company = ScriptCompany::ResolveCompanyID(company);
-	if (company == ScriptCompany::COMPANY_INVALID || (::RoadType)roadtype >= ROADTYPE_END) return 0;
+	if (company == ScriptCompany::COMPANY_INVALID || (::RoadType)roadtype >= ROADTYPE_END || (::RoadSubType)road_sub_type >= ROADSUBTYPE_END) return 0;
 
-	return ::Company::Get((::CompanyID)company)->infrastructure.GetRoadTotal((::RoadType)roadtype); // TODO
+	return ::Company::Get((::CompanyID)company)->infrastructure.road[roadtype][road_sub_type];
 }
 
 /* static */ uint32 ScriptInfrastructure::GetInfrastructurePieceCount(ScriptCompany::CompanyID company, Infrastructure infra_type)

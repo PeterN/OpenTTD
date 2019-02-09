@@ -15,3 +15,5 @@ GSBridge.GetName <- function(bridge_id)
 {
 	return GSBridge._GetName(bridge_id, GSVehicle.VT_RAIL);
 }
+
+require("compat_roadtypes.nut");

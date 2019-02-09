@@ -119,6 +119,7 @@ void SQAIVehicle_Register(Squirrel *engine)
 	SQAIVehicle.DefSQStaticMethod(engine, &ScriptVehicle::GetCurrentValue,                "GetCurrentValue",                2, ".i");
 	SQAIVehicle.DefSQStaticMethod(engine, &ScriptVehicle::GetVehicleType,                 "GetVehicleType",                 2, ".i");
 	SQAIVehicle.DefSQStaticMethod(engine, &ScriptVehicle::GetRoadType,                    "GetRoadType",                    2, ".i");
+	SQAIVehicle.DefSQStaticMethod(engine, &ScriptVehicle::GetRoadSubType,                 "GetRoadSubType",                 2, ".i");
 	SQAIVehicle.DefSQStaticMethod(engine, &ScriptVehicle::IsInDepot,                      "IsInDepot",                      2, ".i");
 	SQAIVehicle.DefSQStaticMethod(engine, &ScriptVehicle::IsStoppedInDepot,               "IsStoppedInDepot",               2, ".i");
 	SQAIVehicle.DefSQStaticMethod(engine, &ScriptVehicle::BuildVehicle,                   "BuildVehicle",                   3, ".ii");

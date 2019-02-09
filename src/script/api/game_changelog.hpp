@@ -19,6 +19,25 @@
  *
  * This version is not yet released. The following changes are not set in stone yet.
  *
+ * API additions:
+ * \li GSRoad::GetName
+ * \li GSRoad::GetCurrentRoadSubType
+ * \li GSRoad::GetRoadSubType
+ * \li GSRoad::RoadVehCanRunOnRoad
+ * \li GSRoad::RoadVehHasPowerOnRoad
+ * \li GSRoad::ConvertRoadType
+ * \li GSRoad::GetMaxSpeed
+ * \li GSVehicle::GetRoadSubType
+ *
+ * Other changes:
+ * \li GSRoad::IsRoadTypeAvailable gains a RoadSubType parameter
+ * \li GSRoad::SetCurrentRoadType gains a RoadSubType parameter
+ * \li GSRoad::HasRoadType gains a RoadSubType parameter
+ * \li GSRoad::GetBuildCost gains a RoadSubType parameter
+ * \li GSRoad::GetMaintenanceCostFactor gains a RoadSubType parameter
+ * \li GSInfrastructure::GetRoadPieceCount gains a RoadSubType parameter
+ * \li GSStation::HasRoadType gains a RoadSubType parameter
+ *
  * \b 1.9.0
  *
  * API additions:
