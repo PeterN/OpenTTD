@@ -21,6 +21,12 @@ bin/scripts/*
 src/ai/ai_instance.cpp
 src/game/game_instance.cpp
 src/script/api/script_window.hpp
+src/script/api/ai/*
+!src/script/api/ai/ai_controller.hpp.sq
+src/script/api/game/*
+!src/script/api/game/game_controller.hpp.sq
+src/script/api/template/*
+!src/script/api/template/README
 
 *.aps
 bundle/*
