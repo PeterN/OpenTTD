@@ -117,7 +117,7 @@ echo "
 { print \$0; }
 " > ${f}.awk
 
-${AWK} -v BINMODE=1 -f ${f}.awk ${f} > ${f}.tmp
+${AWK} -v BINMODE=1 -f ${f}.awk ${f}.in > ${f}.tmp
 
 if ! [ -f "${f}" ] || [ -n "`diff -I '$Id' ${f} ${f}.tmp 2> /dev/null || echo boo`" ]; then
 	mv ${f}.tmp ${f}

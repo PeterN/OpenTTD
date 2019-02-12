@@ -933,7 +933,7 @@ Sub Main
 
 	' Add stuff to ${apilc}_instance.cpp
 	f = "..\..\..\" & apilc & "\" & apilc & "_instance.cpp"
-	ExportInstance apiuc, apilc, f, f & ".tmp"
+	ExportInstance apiuc, apilc, f & ".in", f & ".tmp"
 	If Not FSO.FileExists(f) Or Not CompareFiles(f, f & ".tmp") Then
 		If FSO.FileExists(f) Then FSO.DeleteFile f
 		FSO.MoveFile f & ".tmp", f
