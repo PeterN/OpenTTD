@@ -3784,44 +3784,36 @@ CommandCost CmdRenameStation(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
  */
 void FindStationsAroundTiles(const TileArea &location, StationList *stations)
 {
-	/* area to search = producer plus station catchment radius */
-	uint max_rad = (_settings_game.station.modified_catchment ? MAX_CATCHMENT : CA_UNMODIFIED);
-
 	uint x = TileX(location.tile);
 	uint y = TileY(location.tile);
 
-	uint min_x = (x > max_rad) ? x - max_rad : 0;
-	uint max_x = x + location.w + max_rad;
-	uint min_y = (y > max_rad) ? y - max_rad : 0;
-	uint max_y = y + location.h + max_rad;
+	/* Station top-corner must be within the tile range defined below. This allows us to filter
+	 * eligible stations before checking their catchment area which can improve performance
+	 * significantly. We use maximum catchment size for this so that we don't have to calculate
+	 * a catchment rectangle for every station. */
+	uint max_c = _settings_game.station.modified_catchment ? MAX_CATCHMENT : CA_UNMODIFIED;
+	uint min_x = x - min(x, max_c); /* Ensure no wrap */
+	uint min_y = y - min(y, max_c); /* Ensure no wrap */
+	uint max_x = x + location.w + max_c + _settings_game.station.station_spread;
+	uint max_y = y + location.h + max_c + _settings_game.station.station_spread;
 
-	if (min_x == 0 && _settings_game.construction.freeform_edges) min_x = 1;
-	if (min_y == 0 && _settings_game.construction.freeform_edges) min_y = 1;
-	if (max_x >= MapSizeX()) max_x = MapSizeX() - 1;
-	if (max_y >= MapSizeY()) max_y = MapSizeY() - 1;
+	Station *st;
+	FOR_ALL_STATIONS(st) {
+		uint sx = TileX(st->xy);
+		if (sx < min_x || sx > max_x) continue;
+		uint sy = TileY(st->xy);
+		if (sy < min_y || sy > max_y) continue;
 
-	for (uint cy = min_y; cy < max_y; cy++) {
-		for (uint cx = min_x; cx < max_x; cx++) {
-			TileIndex cur_tile = TileXY(cx, cy);
-			if (!IsTileType(cur_tile, MP_STATION)) continue;
+		/* Station may be in range, check if any tile is in its catchment. */
+		bool included = false;
+		for (uint cy = y; cy < y + location.h && !included; cy++) {
+			for (uint cx = x; cx < x + location.w; cx++) {
+				if (!st->TileIsInCatchment(TileXY(cx, cy))) continue;
 
-			Station *st = Station::GetByTile(cur_tile);
-			/* st can be NULL in case of waypoints */
-			if (st == NULL) continue;
-
-			if (_settings_game.station.modified_catchment) {
-				int rad = st->GetCatchmentRadius();
-				int rad_x = cx - x;
-				int rad_y = cy - y;
-
-				if (rad_x < -rad || rad_x >= rad + location.w) continue;
-				if (rad_y < -rad || rad_y >= rad + location.h) continue;
+				stations->Include(st);
+				included = true;
+				break;
 			}
-
-			/* Insert the station in the set. This will fail if it has
-			 * already been added.
-			 */
-			stations->Include(st);
 		}
 	}
 }

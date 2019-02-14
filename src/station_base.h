@@ -19,6 +19,7 @@
 #include "industry_type.h"
 #include "linkgraph/linkgraph_type.h"
 #include "newgrf_storage.h"
+#include "core/bitmap_type.hpp"
 #include <map>
 
 typedef Pool<BaseStation, StationID, 32, 64000> StationPool;
@@ -465,6 +466,8 @@ public:
 
 	IndustryType indtype;   ///< Industry type to get the name from
 
+	BitmapTileArea catchment_tiles; ///< NOSAVE: Set of individual tiles covered by catchment area
+
 	StationHadVehicleOfTypeByte had_vehicle_of_type;
 
 	byte time_since_load;
@@ -495,6 +498,12 @@ public:
 
 	uint GetCatchmentRadius() const;
 	Rect GetCatchmentRect() const;
+	void RefreshCatchment();
+
+	inline bool TileIsInCatchment(TileIndex tile) const
+	{
+		return this->catchment_tiles.HasTile(tile);
+	}
 
 	/* virtual */ inline bool TileBelongsToRailStation(TileIndex tile) const
 	{

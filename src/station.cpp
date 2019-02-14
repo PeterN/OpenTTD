@@ -262,6 +262,39 @@ void Station::MarkTilesDirty(bool cargo_change) const
 }
 
 /**
+ * Get the catchment size of an individual station tile.
+ * @param tile Station tile to get catchment size of.
+ * @param st Associated station of station tile.
+ * @pre IsTileType(tile, MP_STATION)
+ * @return The catchment size of the station tile.
+ */
+static uint GetTileCatchmentRadius(TileIndex tile, const Station *st)
+{
+	assert(IsTileType(tile, MP_STATION));
+
+	if (_settings_game.station.modified_catchment) {
+		switch (GetStationType(tile)) {
+			case STATION_RAIL:    return CA_TRAIN;
+			case STATION_OILRIG:  return CA_UNMODIFIED;
+			case STATION_AIRPORT: return st->airport.GetSpec()->catchment;
+			case STATION_TRUCK:   return CA_TRUCK;
+			case STATION_BUS:     return CA_BUS;
+			case STATION_DOCK:    return CA_DOCK;
+
+			default: NOT_REACHED();
+			case STATION_BUOY:
+			case STATION_WAYPOINT: return CA_NONE;
+		}
+	} else {
+		switch (GetStationType(tile)) {
+			default:               return CA_UNMODIFIED;
+			case STATION_BUOY:
+			case STATION_WAYPOINT: return CA_NONE;
+		}
+	}
+}
+
+/**
  * Determines the catchment radius of the station
  * @return The radius
  */
@@ -305,18 +338,33 @@ Rect Station::GetCatchmentRect() const
 	return ret;
 }
 
-/** Rect and pointer to IndustryVector */
-struct RectAndIndustryVector {
-	Rect rect;                       ///< The rectangle to search the industries in.
-	IndustryVector *industries_near; ///< The nearby industries.
-};
+void Station::RefreshCatchment()
+{
+	/* Newer catchment, catchment of individual pieces matters. */
+	this->catchment_tiles.Initialize(GetCatchmentRect());
+
+	if (this->rect.IsEmpty()) return;
+
+	/* Loop finding all station tiles */
+	TileArea ta(TileXY(this->rect.left, this->rect.top), TileXY(this->rect.right, this->rect.bottom));
+	TILE_AREA_LOOP(tile, ta) {
+		if (!IsTileType(tile, MP_STATION) || GetStationIndex(tile) != this->index) continue;
+
+		uint r = GetTileCatchmentRadius(tile, this);
+		if (r == CA_NONE) continue;
+
+		/* This tile sub-loop doesn't need to test any tiles, they are simply added to the catchment set. */
+		TileArea ta2(TileXY(max<int>(TileX(tile) - r, 0), max<int>(TileY(tile) - r, 0)), TileXY(min<int>(TileX(tile) + r, MapMaxX()), min<int>(TileY(tile) + r, MapMaxY())));
+		TILE_AREA_LOOP(tile2, ta2) this->catchment_tiles.SetTile(tile2);
+	}
+}
 
 /**
  * Callback function for Station::RecomputeIndustriesNear()
  * Tests whether tile is an industry and possibly adds
  * the industry to station's industries_near list.
  * @param ind_tile tile to check
- * @param user_data pointer to RectAndIndustryVector
+ * @param user_data pointer to Station
  * @return always false, we want to search all tiles
  */
 static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
@@ -324,16 +372,14 @@ static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
 	/* Only process industry tiles */
 	if (!IsTileType(ind_tile, MP_INDUSTRY)) return false;
 
-	RectAndIndustryVector *riv = (RectAndIndustryVector *)user_data;
+	Station *st = (Station *)user_data;
 	Industry *ind = Industry::GetByTile(ind_tile);
 
 	/* Don't check further if this industry is already in the list */
-	if (riv->industries_near->Contains(ind)) return false;
+	if (st->industries_near.Contains(ind)) return false;
 
 	/* Only process tiles in the station acceptance rectangle */
-	int x = TileX(ind_tile);
-	int y = TileY(ind_tile);
-	if (x < riv->rect.left || x > riv->rect.right || y < riv->rect.top || y > riv->rect.bottom) return false;
+	if (!st->TileIsInCatchment(ind_tile)) return false;
 
 	/* Include only industries that can accept cargo */
 	uint cargo_index;
@@ -342,7 +388,7 @@ static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
 	}
 	if (cargo_index >= lengthof(ind->accepts_cargo)) return false;
 
-	*riv->industries_near->Append() = ind;
+	*st->industries_near.Append() = ind;
 
 	return false;
 }
@@ -354,21 +400,21 @@ static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
 void Station::RecomputeIndustriesNear()
 {
 	this->industries_near.Clear();
+	this->catchment_tiles.Reset();
 	if (this->rect.IsEmpty()) return;
 
-	RectAndIndustryVector riv = {
-		this->GetCatchmentRect(),
-		&this->industries_near
-	};
+	this->RefreshCatchment();
+
+	Rect rect = this->GetCatchmentRect();
 
 	/* Compute maximum extent of acceptance rectangle wrt. station sign */
 	TileIndex start_tile = this->xy;
 	uint max_radius = max(
-		max(DistanceManhattan(start_tile, TileXY(riv.rect.left,  riv.rect.top)), DistanceManhattan(start_tile, TileXY(riv.rect.left,  riv.rect.bottom))),
-		max(DistanceManhattan(start_tile, TileXY(riv.rect.right, riv.rect.top)), DistanceManhattan(start_tile, TileXY(riv.rect.right, riv.rect.bottom)))
+		max(DistanceManhattan(start_tile, TileXY(rect.left,  rect.top)), DistanceManhattan(start_tile, TileXY(rect.left,  rect.bottom))),
+		max(DistanceManhattan(start_tile, TileXY(rect.right, rect.top)), DistanceManhattan(start_tile, TileXY(rect.right, rect.bottom)))
 	);
 
-	CircularTileSearch(&start_tile, 2 * max_radius + 1, &FindIndustryToDeliver, &riv);
+	CircularTileSearch(&start_tile, 2 * max_radius + 1, &FindIndustryToDeliver, this);
 }
 
 /**
