@@ -32,6 +32,7 @@
 #include "core/geometry_func.hpp"
 #include "genworld.h"
 #include "widgets/dropdown_func.h"
+#include "industry.h"
 
 #include "widgets/town_widget.h"
 
@@ -322,6 +323,15 @@ public:
 		this->SetWidgetDisabledState(WID_TV_CHANGE_NAME, _networking && !_network_server);
 	}
 
+	~TownViewWindow()
+	{
+		extern const Town *_town_th;
+		if (_town_th != NULL && _town_th->index == this->window_number) {
+			_town_th = NULL;
+			MarkWholeScreenDirty();
+		}
+	}
+
 	virtual void SetStringParameters(int widget) const
 	{
 		if (widget == WID_TV_CAPTION) SetDParam(0, this->town->index);
@@ -603,6 +613,15 @@ void ShowTownViewWindow(TownID town)
 	} else {
 		AllocateWindowDescFront<TownViewWindow>(&_town_game_view_desc, town);
 	}
+
+	extern const Town *_town_th;
+	const Town *t = Town::Get(town);
+	_town_th = _town_th == t ? NULL : t;
+	extern const Station *_station_th;
+	_station_th = NULL;
+	extern const Industry *_industry_th;
+	_industry_th = NULL;
+	MarkWholeScreenDirty();
 }
 
 static const NWidgetPart _nested_town_directory_widgets[] = {

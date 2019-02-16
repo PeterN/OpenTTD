@@ -88,6 +88,7 @@
 #include "command_func.h"
 #include "network/network_func.h"
 #include "framerate_type.h"
+#include "industry.h"
 
 #include <map>
 
@@ -200,6 +201,10 @@ void DeleteWindowViewport(Window *w)
 	free(w->viewport);
 	w->viewport = NULL;
 }
+
+const Station *_station_th;
+const Town *_town_th;
+const Industry *_industry_th;
 
 /**
  * Initialize viewport of the window for use.
@@ -979,6 +984,58 @@ static void DrawTileSelection(const TileInfo *ti)
 	/* Draw a red error square? */
 	bool is_redsq = _thd.redsq == ti->tile;
 	if (is_redsq) DrawTileSelectionRect(ti, PALETTE_TILE_RED_PULSATING);
+
+	if (_station_th != NULL) {
+		if (IsTileType(ti->tile, MP_STATION) && GetStationIndex(ti->tile) == _station_th->index) {
+			DrawTileSelectionRect(ti, PAL_NONE);
+		} else if (_station_th->TileIsInCatchment(ti->tile)) {
+			DrawTileSelectionRect(ti, PALETTE_SEL_TILE_BLUE);
+		}
+	}
+	if (_town_th != NULL) {
+		int type = 0;
+		for (auto it = _town_th->stations_near.Begin(); it != _town_th->stations_near.End(); ++it) {
+			Station *st = *it;
+			if (IsTileType(ti->tile, MP_STATION) && GetStationIndex(ti->tile) == st->index) {
+				type = 1; break;
+			} else if (IsTileType(ti->tile, MP_HOUSE)) {
+				if (GetTownIndex(ti->tile) == _town_th->index) {
+					type = st->TileIsInCatchment(ti->tile) ? 2 : 3;
+					if (type == 2) break;
+				}
+			} else if ((IsTileType(ti->tile, MP_CLEAR) || IsTileType(ti->tile, MP_TREES)) && st->TileIsInCatchment(ti->tile)) {
+				type = 4;
+			}
+		}
+
+		if (type == 1) {
+			DrawTileSelectionRect(ti, PAL_NONE);
+		} else if (type == 2 || type == 4) {
+			DrawTileSelectionRect(ti, PALETTE_SEL_TILE_BLUE);
+		} else if (type == 3) {
+			DrawTileSelectionRect(ti, PALETTE_TILE_RED_PULSATING);
+		}
+	}
+	if (_industry_th != NULL) {
+		int type = 0;
+		for (auto it = _industry_th->stations_near.Begin(); it != _industry_th->stations_near.End(); ++it) {
+			Station *st = *it;
+			if (IsTileType(ti->tile, MP_STATION) && GetStationIndex(ti->tile) == st->index) {
+				type = 1; break;
+			} else if (st->TileIsInCatchment(ti->tile)) {
+				type = 2;
+			}
+		}
+
+		if (type == 1) {
+			DrawTileSelectionRect(ti, PAL_NONE);
+		} else if (type == 2 || type == 4) {
+			DrawTileSelectionRect(ti, PALETTE_SEL_TILE_BLUE);
+		} else if (type == 3) {
+			DrawTileSelectionRect(ti, PALETTE_TILE_RED_PULSATING);
+		}
+	}
+
 
 	/* No tile selection active? */
 	if ((_thd.drawstyle & HT_DRAG_MASK) == HT_NONE) return;

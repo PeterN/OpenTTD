@@ -182,6 +182,11 @@ Industry::~Industry()
 
 	DeleteSubsidyWith(ST_INDUSTRY, this->index);
 	CargoPacket::InvalidateAllFrom(ST_INDUSTRY, this->index);
+
+	for (auto it = this->stations_near.Begin(); it != this->stations_near.End(); ++it) {
+		Station *st = *it;
+		st->industries_near.Erase(this);
+	}
 }
 
 /**
@@ -191,7 +196,6 @@ Industry::~Industry()
 void Industry::PostDestructor(size_t index)
 {
 	InvalidateWindowData(WC_INDUSTRY_DIRECTORY, 0, 0);
-	Station::RecomputeIndustriesNearForAll();
 }
 
 

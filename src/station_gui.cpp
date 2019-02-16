@@ -1313,6 +1313,12 @@ struct StationViewWindow : public Window {
 		DeleteWindowById(WC_ROADVEH_LIST,  VehicleListIdentifier(VL_STATION_LIST, VEH_ROAD,     this->owner, this->window_number).Pack(), false);
 		DeleteWindowById(WC_SHIPS_LIST,    VehicleListIdentifier(VL_STATION_LIST, VEH_SHIP,     this->owner, this->window_number).Pack(), false);
 		DeleteWindowById(WC_AIRCRAFT_LIST, VehicleListIdentifier(VL_STATION_LIST, VEH_AIRCRAFT, this->owner, this->window_number).Pack(), false);
+
+		extern const Station *_station_th;
+		if (_station_th != NULL && _station_th->index == this->window_number) {
+			_station_th = NULL;
+			MarkWholeScreenDirty();
+		}
 	}
 
 	/**
@@ -2108,6 +2114,15 @@ static WindowDesc _station_view_desc(
 void ShowStationViewWindow(StationID station)
 {
 	AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
+
+	extern const Station *_station_th;
+	const Station *st = Station::Get(station);
+	_station_th = _station_th == st ? NULL : st;
+	extern const Town *_town_th;
+	_town_th = NULL;
+	extern const Industry *_industry_th;
+	_industry_th = NULL;
+	MarkWholeScreenDirty();
 }
 
 /** Struct containing TileIndex and StationID */

@@ -787,6 +787,15 @@ public:
 		this->InvalidateData();
 	}
 
+	~IndustryViewWindow()
+	{
+		extern const Industry *_industry_th;
+		if (_industry_th != NULL && _industry_th->index == this->window_number) {
+			_industry_th = NULL;
+			MarkWholeScreenDirty();
+		}
+	}
+
 	virtual void OnPaint()
 	{
 		this->DrawWidgets();
@@ -1152,6 +1161,16 @@ static WindowDesc _industry_view_desc(
 void ShowIndustryViewWindow(int industry)
 {
 	AllocateWindowDescFront<IndustryViewWindow>(&_industry_view_desc, industry);
+
+	extern const Industry *_industry_th;
+	const Industry *i = Industry::Get(industry);
+	_industry_th = _industry_th == i ? NULL : i;
+	extern const Town *_town_th;
+	_town_th = NULL;
+	extern const Station *_station_th;
+	_station_th = NULL;
+
+	MarkWholeScreenDirty();
 }
 
 /** Widget definition of the industry directory gui */
