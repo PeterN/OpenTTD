@@ -1239,6 +1239,9 @@
     <ClInclude Include="..\src\core\backup_type.hpp">
       <Filter>Core Source Code</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\bitmap_type.hpp">
+      <Filter>Core Source Code</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\core\bitmath_func.cpp">
       <Filter>Core Source Code</Filter>
     </ClCompile>
