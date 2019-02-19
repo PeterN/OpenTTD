@@ -957,9 +957,22 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection
 		return_track(FindFirstBit2x64(trackdirs));
 	}
 
+	/* Attempt to follow cached path. */
+	if (!v->path.empty()) {
+		Trackdir trackdir = v->path.front();
+
+		if (HasBit(trackdirs, trackdir)) {
+			v->path.pop_front();
+			return_track(trackdir);
+		}
+
+		/* Cached path is invalid so continue with pathfinder. */
+		v->path.clear();
+	}
+
 	switch (_settings_game.pf.pathfinder_for_roadvehs) {
 		case VPF_NPF:  best_track = NPFRoadVehicleChooseTrack(v, tile, enterdir, path_found); break;
-		case VPF_YAPF: best_track = YapfRoadVehicleChooseTrack(v, tile, enterdir, trackdirs, path_found); break;
+		case VPF_YAPF: best_track = YapfRoadVehicleChooseTrack(v, tile, enterdir, trackdirs, path_found, v->path); break;
 
 		default: NOT_REACHED();
 	}
@@ -1598,6 +1611,13 @@ bool RoadVehicle::Tick()
 	}
 
 	return true;
+}
+
+void RoadVehicle::SetDestTile(TileIndex tile)
+{
+	if (tile == this->dest_tile) return;
+	this->path.clear();
+	this->dest_tile = tile;
 }
 
 static void CheckIfRoadVehNeedsService(RoadVehicle *v)
