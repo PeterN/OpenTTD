@@ -3789,18 +3789,20 @@ static void AddNearbyStationsByCatchment(TileIndex tile, StationList *stations, 
  * @param location The location/area of the producer
  * @param stations The list to store the stations in
  */
-void FindStationsAroundTiles(const TileArea &location, StationList *stations)
+void FindStationsAroundTiles(const TileArea &location, StationList *stations, bool use_nearby)
 {
-	/* Industries and towns maintain a list of nearby stations */
-	if (IsTileType(location.tile, MP_INDUSTRY)) {
-		/* Industry nearby stations are already filtered by catchment. */
-		stations = &Industry::GetByTile(location.tile)->stations_near;
-		return;
-	} else if (IsTileType(location.tile, MP_HOUSE)) {
-		/* Town nearby stations need to be filtered per tile. */
-		assert(location.w == 1 && location.h == 1);
-		AddNearbyStationsByCatchment(location.tile, stations, Town::GetByTile(location.tile)->stations_near);
-		return;
+	if (use_nearby) {
+		/* Industries and towns maintain a list of nearby stations */
+		if (IsTileType(location.tile, MP_INDUSTRY)) {
+			/* Industry nearby stations are already filtered by catchment. */
+			stations = &Industry::GetByTile(location.tile)->stations_near;
+			return;
+		} else if (IsTileType(location.tile, MP_HOUSE)) {
+			/* Town nearby stations need to be filtered per tile. */
+			assert(location.w == 1 && location.h == 1);
+			AddNearbyStationsByCatchment(location.tile, stations, Town::GetByTile(location.tile)->stations_near);
+			return;
+		}
 	}
 
 	/* No nearby station list so we need to check all stations. This can be slow. */

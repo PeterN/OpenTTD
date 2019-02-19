@@ -22,7 +22,7 @@
 
 void ModifyStationRatingAround(TileIndex tile, Owner owner, int amount, uint radius);
 
-void FindStationsAroundTiles(const TileArea &location, StationList *stations);
+void FindStationsAroundTiles(const TileArea &location, StationList *stations, bool use_nearby = true);
 
 void ShowStationViewWindow(StationID station);
 void UpdateAllStationVirtCoords();
