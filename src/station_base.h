@@ -497,7 +497,6 @@ public:
 	void RecomputeIndustriesNear();
 	void RecomputeCatchment();
 	static void RecomputeTownsNearForAll();
-	static void RecomputeIndustriesNearForAll();
 	static void RecomputeCatchmentForAll();
 
 	uint GetCatchmentRadius() const;

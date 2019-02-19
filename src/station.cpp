@@ -486,17 +486,6 @@ void Station::RecomputeIndustriesNear()
 }
 
 /**
- * Recomputes nearby stations of all industries.
- */
-/* static */ void Station::RecomputeIndustriesNearForAll()
-{
-	Station *st;
-	FOR_ALL_STATIONS(st) {
-		if (!st->rect.IsEmpty()) st->RecomputeIndustriesNear();
-	}
-}
-
-/**
  * Recomputes catchment of all stations.
  * This will additionally recompute nearby stations for all towns and industries.
  */
