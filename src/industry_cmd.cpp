@@ -1815,7 +1815,22 @@ static void DoCreateNewIndustry(Industry *i, TileIndex tile, IndustryType type, 
 	}
 	InvalidateWindowData(WC_INDUSTRY_DIRECTORY, 0, 0);
 
-	Station::RecomputeIndustriesNearForAll();
+	/* Get our list of nearby stations. */
+	FindStationsAroundTiles(i->location, &i->stations_near, false);
+
+	/* Do we accept any cargo? */
+	uint cargo_index;
+	for (cargo_index = 0; cargo_index < lengthof(i->accepts_cargo); cargo_index++) {
+		if (i->accepts_cargo[cargo_index] != CT_INVALID) break;
+	}
+
+	if (cargo_index < lengthof(i->accepts_cargo)) {
+		/* Cargo is accepted, add industry to nearby stations nearby industry list. */
+		for (auto it = i->stations_near.Begin(); it != i->stations_near.End(); ++it) {
+			Station *st = *it;
+			st->industries_near.Include(i);
+		}
+	}
 }
 
 /**
