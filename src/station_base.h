@@ -440,7 +440,10 @@ private:
 	}
 };
 
-typedef SmallVector<Industry *, 2> IndustryVector;
+class IndustryVector : public SmallVector<Industry *, 2> {
+public:
+	void Include(Industry *i);
+};
 
 /** Station data structure */
 struct Station FINAL : SpecializedStation<Station, false> {

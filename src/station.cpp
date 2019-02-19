@@ -566,6 +566,22 @@ Money AirportMaintenanceCost(Owner owner)
 	return total_cost >> 3;
 }
 
+void IndustryVector::Include(Industry *i)
+{
+	for (auto it = this->Begin(); it != this->End(); ++it) {
+		/* Do nothing further if industry is already in the list. */
+		if (*it == i) return;
+
+		if ((*it)->index > i->index) {
+			*Insert(it) = i;
+			return;
+		}
+	}
+
+	/* Tag this industry on the end. */
+	*this->Append() = i;
+}
+
 void StationList::Include(Station *st)
 {
 	for (auto it = this->Begin(); it != this->End(); ++it) {
