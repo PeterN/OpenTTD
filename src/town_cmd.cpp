@@ -1729,9 +1729,6 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 	UpdateTownGrowthRate(t);
 	UpdateTownMaxPass(t);
 	UpdateAirportsNoise();
-
-	/* New town doesn't happen very often so recomputing all stations should be fine. */
-	Station::RecomputeTownsNearForAll();
 }
 
 /**
