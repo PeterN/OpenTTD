@@ -493,12 +493,17 @@ public:
 
 	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
 	/* virtual */ uint GetPlatformLength(TileIndex tile) const;
+	void RecomputeTownsNear();
 	void RecomputeIndustriesNear();
+	void RecomputeCatchment();
+	static void RecomputeTownsNearForAll();
 	static void RecomputeIndustriesNearForAll();
+	static void RecomputeCatchmentForAll();
 
 	uint GetCatchmentRadius() const;
 	Rect GetCatchmentRect() const;
-	void RefreshCatchment();
+	bool CatchmentCoversTown(TownID t);
+	void RemoveFromAllNearbyLists();
 
 	inline bool TileIsInCatchment(TileIndex tile) const
 	{

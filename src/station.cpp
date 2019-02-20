@@ -23,9 +23,11 @@
 #include "station_base.h"
 #include "roadstop_base.h"
 #include "industry.h"
+#include "town.h"
 #include "core/random_func.hpp"
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/linkgraphschedule.h"
+#include <set>
 
 #include "table/strings.h"
 
@@ -118,6 +120,9 @@ Station::~Station()
 			v->last_loading_station = INVALID_STATION;
 		}
 	}
+
+	/* Remove station from industries and towns that reference it. */
+	this->RemoveFromAllNearbyLists();
 
 	/* Clear the persistent storage. */
 	delete this->airport.psa;
@@ -338,12 +343,66 @@ Rect Station::GetCatchmentRect() const
 	return ret;
 }
 
-void Station::RefreshCatchment()
+/**
+ * Add nearby industry to station's industries_near list if it accepts cargo.
+ * @param ind Industry
+ * @param st Station
+ */
+static void AddIndustryToDeliver(Industry *ind, Station *st)
 {
-	/* Newer catchment, catchment of individual pieces matters. */
-	this->catchment_tiles.Initialize(GetCatchmentRect());
+	/* Don't check further if this industry is already in the list */
+	if (st->industries_near.Contains(ind)) return;
 
-	if (this->rect.IsEmpty()) return;
+	/* Include only industries that can accept cargo */
+	uint cargo_index;
+	for (cargo_index = 0; cargo_index < lengthof(ind->accepts_cargo); cargo_index++) {
+		if (ind->accepts_cargo[cargo_index] != CT_INVALID) break;
+	}
+	if (cargo_index >= lengthof(ind->accepts_cargo)) return;
+
+	st->industries_near.Include(ind);
+}
+
+/**
+ * Remove this station from the nearby stations lists of all towns and industries.
+ */
+void Station::RemoveFromAllNearbyLists()
+{
+	Town *t;
+	FOR_ALL_TOWNS(t) t->stations_near.Erase(this);
+	Industry *i;
+	FOR_ALL_INDUSTRIES(i) i->stations_near.Erase(this);
+}
+
+/**
+ * Test if the given town ID is covered by our catchment area.
+ * This is used when removing a house tile to determine if it was the last house tile
+ * within our catchment.
+ * @param t TownID to test.
+ * @return true if at least one house tile of TownID is covered.
+ */
+bool Station::CatchmentCoversTown(TownID t)
+{
+	BitmapTileIterator it(this->catchment_tiles);
+	for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
+		if (IsTileType(tile, MP_HOUSE) && GetTownIndex(tile) == t) return true;
+	}
+	return false;
+}
+
+/**
+ * Recompute tiles covered in our catchment area.
+ * This will additionally recompute nearby towns and industries.
+ */
+void Station::RecomputeCatchment()
+{
+	if (this->rect.IsEmpty()) {
+		this->catchment_tiles.Reset();
+		this->industries_near.Clear();
+		this->RemoveFromAllNearbyLists();
+		return;
+	}
+	this->catchment_tiles.Initialize(GetCatchmentRect());
 
 	/* Loop finding all station tiles */
 	TileArea ta(TileXY(this->rect.left, this->rect.top), TileXY(this->rect.right, this->rect.bottom));
@@ -357,73 +416,94 @@ void Station::RefreshCatchment()
 		TileArea ta2(TileXY(max<int>(TileX(tile) - r, 0), max<int>(TileY(tile) - r, 0)), TileXY(min<int>(TileX(tile) + r, MapMaxX()), min<int>(TileY(tile) + r, MapMaxY())));
 		TILE_AREA_LOOP(tile2, ta2) this->catchment_tiles.SetTile(tile2);
 	}
+
+	this->RecomputeTownsNear();
+	this->RecomputeIndustriesNear();
 }
 
 /**
- * Callback function for Station::RecomputeIndustriesNear()
- * Tests whether tile is an industry and possibly adds
- * the industry to station's industries_near list.
- * @param ind_tile tile to check
- * @param user_data pointer to Station
- * @return always false, we want to search all tiles
+ * Recompute towns near to station, and populate their nearby stations list.
  */
-static bool FindIndustryToDeliver(TileIndex ind_tile, void *user_data)
+void Station::RecomputeTownsNear()
 {
-	/* Only process industry tiles */
-	if (!IsTileType(ind_tile, MP_INDUSTRY)) return false;
+	Town *t;
+	FOR_ALL_TOWNS(t) t->stations_near.Erase(this);
 
-	Station *st = (Station *)user_data;
-	Industry *ind = Industry::GetByTile(ind_tile);
+	/* Temporary set of nearby IDs within catchment. */
+	std::set<TownID> towns_seen;
 
-	/* Don't check further if this industry is already in the list */
-	if (st->industries_near.Contains(ind)) return false;
-
-	/* Only process tiles in the station acceptance rectangle */
-	if (!st->TileIsInCatchment(ind_tile)) return false;
-
-	/* Include only industries that can accept cargo */
-	uint cargo_index;
-	for (cargo_index = 0; cargo_index < lengthof(ind->accepts_cargo); cargo_index++) {
-		if (ind->accepts_cargo[cargo_index] != CT_INVALID) break;
+	/* Search catchment tiles for towns */
+	BitmapTileIterator it(this->catchment_tiles);
+	for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
+		if (IsTileType(tile, MP_HOUSE)) towns_seen.insert(GetTownIndex(tile));
 	}
-	if (cargo_index >= lengthof(ind->accepts_cargo)) return false;
 
-	*st->industries_near.Append() = ind;
-
-	return false;
+	/* Add references back to this station */
+	for (auto it = towns_seen.begin(); it != towns_seen.end(); ++it) {
+		Town *t = Town::Get(*it);
+		t->stations_near.Include(this);
+	}
 }
 
 /**
- * Recomputes Station::industries_near, list of industries possibly
- * accepting cargo in station's catchment radius
+ * Recompute industries near to station, and populate their nearby stations list.
+ * This also adds each industry to the stations industries_near list.
  */
 void Station::RecomputeIndustriesNear()
 {
+	Industry *i;
+	FOR_ALL_INDUSTRIES(i) i->stations_near.Erase(this);
+
 	this->industries_near.Clear();
-	this->catchment_tiles.Reset();
-	if (this->rect.IsEmpty()) return;
 
-	this->RefreshCatchment();
+	/* Temporary set of nearby IDs within catchment. */
+	std::set<IndustryID> industries_seen;
 
-	Rect rect = this->GetCatchmentRect();
+	/* Search catchment tiles for industries */
+	BitmapTileIterator it(this->catchment_tiles);
+	for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
+		if (IsTileType(tile, MP_INDUSTRY)) industries_seen.insert(GetIndustryIndex(tile));
+	}
 
-	/* Compute maximum extent of acceptance rectangle wrt. station sign */
-	TileIndex start_tile = this->xy;
-	uint max_radius = max(
-		max(DistanceManhattan(start_tile, TileXY(rect.left,  rect.top)), DistanceManhattan(start_tile, TileXY(rect.left,  rect.bottom))),
-		max(DistanceManhattan(start_tile, TileXY(rect.right, rect.top)), DistanceManhattan(start_tile, TileXY(rect.right, rect.bottom)))
-	);
+	for (auto it = industries_seen.begin(); it != industries_seen.end(); ++it) {
+		Industry *i = Industry::Get(*it);
+		i->stations_near.Include(this);
 
-	CircularTileSearch(&start_tile, 2 * max_radius + 1, &FindIndustryToDeliver, this);
+		/* Add if we can deliver to this industry as well */
+		AddIndustryToDeliver(i, this);
+	}
 }
 
 /**
- * Recomputes Station::industries_near for all stations
+ * Recomputes nearby stations of all towns.
+ */
+/* static */ void Station::RecomputeTownsNearForAll()
+{
+	Station *st;
+	FOR_ALL_STATIONS(st) {
+		if (!st->rect.IsEmpty()) st->RecomputeTownsNear();
+	}
+}
+
+/**
+ * Recomputes nearby stations of all industries.
  */
 /* static */ void Station::RecomputeIndustriesNearForAll()
 {
 	Station *st;
-	FOR_ALL_STATIONS(st) st->RecomputeIndustriesNear();
+	FOR_ALL_STATIONS(st) {
+		if (!st->rect.IsEmpty()) st->RecomputeIndustriesNear();
+	}
+}
+
+/**
+ * Recomputes catchment of all stations.
+ * This will additionally recompute nearby stations for all towns and industries.
+ */
+/* static */ void Station::RecomputeCatchmentForAll()
+{
+	Station *st;
+	FOR_ALL_STATIONS(st) st->RecomputeCatchment();
 }
 
 /************************************************************************/

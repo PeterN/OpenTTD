@@ -516,8 +516,6 @@ static bool TransportIndustryGoods(TileIndex tile)
 	const IndustrySpec *indspec = GetIndustrySpec(i->type);
 	bool moved_cargo = false;
 
-	StationFinder stations(i->location);
-
 	for (uint j = 0; j < lengthof(i->produced_cargo_waiting); j++) {
 		uint cw = min(i->produced_cargo_waiting[j], 255);
 		if (cw > indspec->minimal_cargo && i->produced_cargo[j] != CT_INVALID) {
@@ -528,7 +526,7 @@ static bool TransportIndustryGoods(TileIndex tile)
 
 			i->this_month_production[j] += cw;
 
-			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, stations.GetStations());
+			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, &i->stations_near);
 			i->this_month_transported[j] += am;
 
 			moved_cargo |= (am != 0);
@@ -2422,11 +2420,7 @@ static void CanCargoServiceIndustry(CargoID cargo, Industry *ind, bool *c_accept
  */
 static int WhoCanServiceIndustry(Industry *ind)
 {
-	/* Find all stations within reach of the industry */
-	StationList stations;
-	FindStationsAroundTiles(ind->location, &stations);
-
-	if (stations.Length() == 0) return 0; // No stations found at all => nobody services
+	if (ind->stations_near.Length() == 0) return 0; // No stations nearby => nobody services
 
 	const Vehicle *v;
 	int result = 0;
@@ -2462,7 +2456,7 @@ static int WhoCanServiceIndustry(Industry *ind)
 				/* Same cargo produced by industry is dropped here => not serviced by vehicle v */
 				if ((o->GetUnloadType() & OUFB_UNLOAD) && !c_accepts) break;
 
-				if (stations.Contains(st)) {
+				if (ind->stations_near.Contains(st)) {
 					if (v->owner == _local_company) return 2; // Company services industry
 					result = 1; // Competitor services industry
 				}

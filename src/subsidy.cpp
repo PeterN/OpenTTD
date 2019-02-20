@@ -579,6 +579,7 @@ bool CheckSubsidised(CargoID cargo_type, CompanyID company, SourceType src_type,
 				for (int x = rect.left; x <= rect.right; x++) {
 					TileIndex tile = TileXY(x, y);
 					if (!IsTileType(tile, MP_HOUSE)) continue;
+					if (!st->TileIsInCatchment(tile)) continue;
 					const Town *t = Town::GetByTile(tile);
 					if (t->cache.part_of_subsidy & POS_DST) towns_near.Include(t);
 				}

@@ -422,6 +422,68 @@ uint32 GetWorldPopulation()
 }
 
 /**
+ * Remove stations from nearby station list if a town is no longer in the catchment area of each.
+ * @param t Town to work on
+ */
+static void RemoveNearbyStations(Town *t)
+{
+	for (auto it = t->stations_near.Begin(); it != t->stations_near.End(); /* incremented inside loop */) {
+		Station *st = *it;
+		if (!st->CatchmentCoversTown(t->index)) {
+			t->stations_near.Erase(it);
+			/* SmallVector moves the next pointers down, so the iterator will automatically be pointing at the next item. */
+		} else {
+			++it;
+		}
+	}
+}
+
+/**
+ * Search for nearby stations and add them our nearby stations list, called when
+ * a new building is created.
+ * This is similar in function to Station::RecomputeTownsNear, but has to work
+ * in reverse where we don't know which stations are near (that's what we're
+ * calculating.) This could be done by scanning over all stations, however that
+ * becomes a massive performance hit, hence this bit of duplicate function.
+ * @param t Town to work on
+ * @param tile TileIndex of new building
+ * @param sx Building x-dimension
+ * @param sy Building y-dimension
+ */
+static void AddNearbyStations(Town *t, TileIndex tile, int sx = 0, int sy = 0)
+{
+	uint x = TileX(tile);
+	uint y = TileY(tile);
+
+	std::set<StationID> seen_stations;
+
+	/* Scan an area around the building covering the maximum possible station
+	 * to find the possible nearby stations. */
+	uint max_c = _settings_game.station.modified_catchment ? MAX_CATCHMENT : CA_UNMODIFIED;
+	TileArea ta(TileXY(max<int>(0, x - max_c), max<int>(0, y - max_c)), TileXY(min<int>(MapMaxX(), x + sx + max_c), min<int>(MapMaxY(), y + sy + max_c)));
+	TILE_AREA_LOOP(tile2, ta) {
+		if (IsTileType(tile2, MP_STATION)) seen_stations.insert(GetStationIndex(tile2));
+	}
+
+	for (auto it = seen_stations.begin(); it != seen_stations.end(); ++it) {
+		Station *st = Station::GetIfValid(*it);
+		if (st == NULL) continue; /* Waypoint */
+
+		/* Station is already in our nearby list, so no need to scan it */
+		if (t->stations_near.Contains(st)) continue;
+
+		/* Test if the new building is within the station's catchment */
+		TileArea ta(tile, sx + 1, sy + 1);
+		TILE_AREA_LOOP(tile2, ta) {
+			if (st->TileIsInCatchment(tile2)) {
+				t->stations_near.Include(st);
+				break;
+			}
+		}
+	}
+}
+
+/**
  * Helper function for house completion stages progression
  * @param tile TileIndex of the house (or parts of it) to "grow"
  */
@@ -540,7 +602,12 @@ static void TileLoop_Town(TileIndex tile)
 		ClearTownHouse(t, tile);
 
 		/* Rebuild with another house? */
-		if (GB(r, 24, 8) >= 12) BuildTownHouse(t, tile);
+		if (GB(r, 24, 8) < 12 || !BuildTownHouse(t, tile))
+		{
+			/* House wasn't replaced, so remove it */
+			// XXX This doesn't need to happen instantly
+			RemoveNearbyStations(t);
+		}
 	}
 
 	cur_company.Restore();
@@ -569,6 +636,8 @@ static CommandCost ClearTile_Town(TileIndex tile, DoCommandFlag flags)
 	ChangeTownRating(t, -rating, RATING_HOUSE_MINIMUM, flags);
 	if (flags & DC_EXEC) {
 		ClearTownHouse(t, tile);
+		// XXX This doesn't need to happen instantly
+		RemoveNearbyStations(t);
 	}
 
 	return cost;
@@ -1660,6 +1729,9 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 	UpdateTownGrowthRate(t);
 	UpdateTownMaxPass(t);
 	UpdateAirportsNoise();
+
+	/* New town doesn't happen very often so recomputing all stations should be fine. */
+	Station::RecomputeTownsNearForAll();
 }
 
 /**
@@ -2092,6 +2164,8 @@ static void MakeTownHouse(TileIndex t, Town *town, byte counter, byte stage, Hou
 	if (size & BUILDING_2_TILES_Y)   ClearMakeHouseTile(t + TileDiffXY(0, 1), town, counter, stage, ++type, random_bits);
 	if (size & BUILDING_2_TILES_X)   ClearMakeHouseTile(t + TileDiffXY(1, 0), town, counter, stage, ++type, random_bits);
 	if (size & BUILDING_HAS_4_TILES) ClearMakeHouseTile(t + TileDiffXY(1, 1), town, counter, stage, ++type, random_bits);
+
+	AddNearbyStations(town, t, (size & BUILDING_2_TILES_X) ? 1 : 0, (size & BUILDING_2_TILES_Y) ? 1 : 0);
 }
 
 

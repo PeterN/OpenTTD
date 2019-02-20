@@ -723,7 +723,7 @@ static void DeleteStationIfEmpty(BaseStation *st)
 void Station::AfterStationTileSetChange(bool adding, StationType type)
 {
 	this->UpdateVirtCoord();
-	this->RecomputeIndustriesNear();
+	this->RecomputeCatchment();
 	DirtyCompanyInfrastructureWindows(this->owner);
 	if (adding) InvalidateWindowData(WC_STATION_LIST, this->owner, 0);
 
@@ -1630,7 +1630,7 @@ CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint3
 
 		if (st->train_station.tile == INVALID_TILE) SetWindowWidgetDirty(WC_STATION_VIEW, st->index, WID_SV_TRAINS);
 		st->MarkTilesDirty(false);
-		st->RecomputeIndustriesNear();
+		st->RecomputeCatchment();
 	}
 
 	/* Now apply the rail cost to the number that we deleted */
@@ -1713,7 +1713,7 @@ static CommandCost RemoveRailStation(TileIndex tile, DoCommandFlag flags)
 	Station *st = Station::GetByTile(tile);
 	CommandCost cost = RemoveRailStation(st, flags, _price[PR_CLEAR_STATION_RAIL]);
 
-	if (flags & DC_EXEC) st->RecomputeIndustriesNear();
+	if (flags & DC_EXEC) st->RecomputeCatchment();
 
 	return cost;
 }
@@ -3776,6 +3776,14 @@ CommandCost CmdRenameStation(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	return CommandCost();
 }
 
+static void AddNearbyStationsByCatchment(TileIndex tile, StationList *stations, StationList &nearby)
+{
+	for (auto it = nearby.Begin(); it != nearby.End(); ++it) {
+		Station *st = *it;
+		if (st->TileIsInCatchment(tile)) stations->Include(st);
+	}
+}
+
 /**
  * Find all stations around a rectangular producer (industry, house, headquarter, ...)
  *
@@ -3784,6 +3792,19 @@ CommandCost CmdRenameStation(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
  */
 void FindStationsAroundTiles(const TileArea &location, StationList *stations)
 {
+	/* Industries and towns maintain a list of nearby stations */
+	if (IsTileType(location.tile, MP_INDUSTRY)) {
+		/* Industry nearby stations are already filtered by catchment. */
+		stations = &Industry::GetByTile(location.tile)->stations_near;
+		return;
+	} else if (IsTileType(location.tile, MP_HOUSE)) {
+		/* Town nearby stations need to be filtered per tile. */
+		assert(location.w == 1 && location.h == 1);
+		AddNearbyStationsByCatchment(location.tile, stations, Town::GetByTile(location.tile)->stations_near);
+		return;
+	}
+
+	/* No nearby station list so we need to check all stations. This can be slow. */
 	uint x = TileX(location.tile);
 	uint y = TileY(location.tile);
 
@@ -3923,8 +3944,8 @@ void BuildOilRig(TileIndex tile)
 	st->rect.BeforeAddTile(tile, StationRect::ADD_FORCE);
 
 	st->UpdateVirtCoord();
+	st->RecomputeCatchment();
 	UpdateStationAcceptance(st, false);
-	st->RecomputeIndustriesNear();
 }
 
 void DeleteOilRig(TileIndex tile)
@@ -3941,7 +3962,7 @@ void DeleteOilRig(TileIndex tile)
 	st->rect.AfterRemoveTile(st, tile);
 
 	st->UpdateVirtCoord();
-	st->RecomputeIndustriesNear();
+	st->RecomputeCatchment();
 	if (!st->IsInUse()) delete st;
 }
 
