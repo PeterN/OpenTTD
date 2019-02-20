@@ -27,7 +27,6 @@
 #include "core/random_func.hpp"
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/linkgraphschedule.h"
-#include <set>
 
 #include "table/strings.h"
 
@@ -396,10 +395,11 @@ bool Station::CatchmentCoversTown(TownID t)
  */
 void Station::RecomputeCatchment()
 {
+	this->industries_near.Clear();
+	this->RemoveFromAllNearbyLists();
+
 	if (this->rect.IsEmpty()) {
 		this->catchment_tiles.Reset();
-		this->industries_near.Clear();
-		this->RemoveFromAllNearbyLists();
 		return;
 	}
 	this->catchment_tiles.Initialize(GetCatchmentRect());
@@ -417,71 +417,20 @@ void Station::RecomputeCatchment()
 		TILE_AREA_LOOP(tile2, ta2) this->catchment_tiles.SetTile(tile2);
 	}
 
-	this->RecomputeTownsNear();
-	this->RecomputeIndustriesNear();
-}
-
-/**
- * Recompute towns near to station, and populate their nearby stations list.
- */
-void Station::RecomputeTownsNear()
-{
-	Town *t;
-	FOR_ALL_TOWNS(t) t->stations_near.Erase(this);
-
-	/* Temporary set of nearby IDs within catchment. */
-	std::set<TownID> towns_seen;
-
-	/* Search catchment tiles for towns */
+	/* Search catchment tiles for towns and industries */
 	BitmapTileIterator it(this->catchment_tiles);
 	for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
-		if (IsTileType(tile, MP_HOUSE)) towns_seen.insert(GetTownIndex(tile));
-	}
+		if (IsTileType(tile, MP_HOUSE)) {
+			Town *t = Town::GetByTile(tile);
+			t->stations_near.Include(this);
+		}
+		if (IsTileType(tile, MP_INDUSTRY)) {
+			Industry *i = Industry::GetByTile(tile);
+			i->stations_near.Include(this);
 
-	/* Add references back to this station */
-	for (auto it = towns_seen.begin(); it != towns_seen.end(); ++it) {
-		Town *t = Town::Get(*it);
-		t->stations_near.Include(this);
-	}
-}
-
-/**
- * Recompute industries near to station, and populate their nearby stations list.
- * This also adds each industry to the stations industries_near list.
- */
-void Station::RecomputeIndustriesNear()
-{
-	Industry *i;
-	FOR_ALL_INDUSTRIES(i) i->stations_near.Erase(this);
-
-	this->industries_near.Clear();
-
-	/* Temporary set of nearby IDs within catchment. */
-	std::set<IndustryID> industries_seen;
-
-	/* Search catchment tiles for industries */
-	BitmapTileIterator it(this->catchment_tiles);
-	for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
-		if (IsTileType(tile, MP_INDUSTRY)) industries_seen.insert(GetIndustryIndex(tile));
-	}
-
-	for (auto it = industries_seen.begin(); it != industries_seen.end(); ++it) {
-		Industry *i = Industry::Get(*it);
-		i->stations_near.Include(this);
-
-		/* Add if we can deliver to this industry as well */
-		AddIndustryToDeliver(i, this);
-	}
-}
-
-/**
- * Recomputes nearby stations of all towns.
- */
-/* static */ void Station::RecomputeTownsNearForAll()
-{
-	Station *st;
-	FOR_ALL_STATIONS(st) {
-		if (!st->rect.IsEmpty()) st->RecomputeTownsNear();
+			/* Add if we can deliver to this industry as well */
+			AddIndustryToDeliver(i, this);
+		}
 	}
 }
 

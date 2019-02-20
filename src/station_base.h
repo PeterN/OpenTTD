@@ -493,10 +493,7 @@ public:
 
 	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
 	/* virtual */ uint GetPlatformLength(TileIndex tile) const;
-	void RecomputeTownsNear();
-	void RecomputeIndustriesNear();
 	void RecomputeCatchment();
-	static void RecomputeTownsNearForAll();
 	static void RecomputeCatchmentForAll();
 
 	uint GetCatchmentRadius() const;
