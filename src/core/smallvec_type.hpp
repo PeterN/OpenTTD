@@ -244,6 +244,16 @@ public:
 	}
 
 	/**
+	 * Removes given item from this vector if it exists.
+	 * @param item item to remove
+	 */
+	inline void Erase(const T &item)
+	{
+		T *pos = this->Find(item);
+		if (pos != this->End()) this->ErasePreservingOrder(pos);
+	}
+
+	/**
 	 * Remove items from the vector while preserving the order of other items.
 	 * @param pos First item to remove.
 	 * @param count Number of consecutive items to remove.
