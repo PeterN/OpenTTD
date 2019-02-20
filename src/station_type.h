@@ -95,7 +95,10 @@ static const uint MAX_LENGTH_STATION_NAME_CHARS = 32; ///< The maximum length of
 typedef std::list<StationID> StationIDList;
 
 /** List of stations */
-typedef SmallVector<Station *, 2> StationList;
+class StationList : public SmallVector<Station *, 2> {
+public:
+	void Include(Station *st);
+};
 
 /**
  * Structure contains cached list of stations nearby. The list

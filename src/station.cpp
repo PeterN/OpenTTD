@@ -565,3 +565,19 @@ Money AirportMaintenanceCost(Owner owner)
 	/* 3 bits fraction for the maintenance cost factor. */
 	return total_cost >> 3;
 }
+
+void StationList::Include(Station *st)
+{
+	for (auto it = this->Begin(); it != this->End(); ++it) {
+		/* Do nothing further if st is already in the list. */
+		if (*it == st) return;
+
+		if ((*it)->index > st->index) {
+			*Insert(it) = st;
+			return;
+		}
+	}
+
+	/* Tag this homeless st on the end. */
+	*this->Append() = st;
+}
