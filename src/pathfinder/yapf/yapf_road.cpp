@@ -388,7 +388,8 @@ public:
 			/* path was found or at least suggested
 			 * walk through the path back to its origin */
 			while (pNode->m_parent != NULL) {
-				if (steps > 1 && --steps < YAPF_ROADVEH_PATH_CACHE_SEGMENTS) {
+				steps--;
+				if (steps > 0 && steps < YAPF_ROADVEH_PATH_CACHE_SEGMENTS) {
 					TrackdirByte td;
 					td = pNode->GetTrackdir();
 					path_cache.push_front(td);
