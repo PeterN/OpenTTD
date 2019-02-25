@@ -16,6 +16,8 @@
 #include "../core/geometry_type.hpp"
 #include <vector>
 
+#include <chrono>
+
 /** The base of all video drivers. */
 class VideoDriver : public Driver {
 public:
@@ -98,6 +100,11 @@ public:
 	 */
 	static VideoDriver *GetInstance() {
 		return static_cast<VideoDriver*>(*DriverFactoryBase::GetActiveDriver(Driver::DT_VIDEO));
+	}
+
+	static long GetTimer() {
+		using namespace std::chrono;
+		return time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
 	}
 };
 

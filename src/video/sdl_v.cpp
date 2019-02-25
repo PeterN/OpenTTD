@@ -646,7 +646,7 @@ void VideoDriver_SDL::Stop()
 
 void VideoDriver_SDL::MainLoop()
 {
-	uint32 cur_ticks = SDL_GetTicks();
+	uint32 cur_ticks = this->GetTimer();
 	uint32 last_cur_ticks = cur_ticks;
 	uint32 next_tick = cur_ticks + MILLISECONDS_PER_TICK;
 	uint32 mod;
@@ -717,7 +717,7 @@ void VideoDriver_SDL::MainLoop()
 			_fast_forward = 0;
 		}
 
-		cur_ticks = SDL_GetTicks();
+		cur_ticks = this->GetTimer();
 		if (cur_ticks >= next_tick || (_fast_forward && !_pause_mode) || cur_ticks < prev_cur_ticks) {
 			_realtime_tick += cur_ticks - last_cur_ticks;
 			last_cur_ticks = cur_ticks;
