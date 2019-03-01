@@ -389,7 +389,7 @@ public:
 			 * walk through the path back to its origin */
 			while (pNode->m_parent != NULL) {
 				steps--;
-				if (steps > 0 && steps < YAPF_ROADVEH_PATH_CACHE_SEGMENTS) {
+				if (pNode->GetIsChoice() && steps < YAPF_ROADVEH_PATH_CACHE_SEGMENTS) {
 					TrackdirByte td;
 					td = pNode->GetTrackdir();
 					path_cache.push_front(td);
