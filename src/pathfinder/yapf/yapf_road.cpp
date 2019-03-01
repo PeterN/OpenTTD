@@ -390,9 +390,10 @@ public:
 			while (pNode->m_parent != NULL) {
 				steps--;
 				if (pNode->GetIsChoice() && steps < YAPF_ROADVEH_PATH_CACHE_SEGMENTS) {
-					TrackdirByte td;
-					td = pNode->GetTrackdir();
-					path_cache.push_front(td);
+					TrackdirTile tdt;
+					tdt.SetTile(pNode->GetTile());
+					tdt.SetTrackdir(pNode->GetTrackdir());
+					path_cache.push_front(tdt);
 				}
 				pNode = pNode->m_parent;
 			}
@@ -401,7 +402,9 @@ public:
 			assert(best_next_node.GetTile() == tile);
 			next_trackdir = best_next_node.GetTrackdir();
 			/* remove last element for the special case when tile == dest_tile */
-			if (path_found && !path_cache.empty()) path_cache.pop_back();
+			if (path_found && !path_cache.empty() && tile == v->dest_tile) {
+				path_cache.pop_back();
+			}
 		}
 		return next_trackdir;
 	}
