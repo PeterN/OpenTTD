@@ -84,15 +84,16 @@ void RoadVehUpdateCache(RoadVehicle *v, bool same_length = false);
 void GetRoadVehSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type);
 
 struct TrackdirTile {
-	uint32 data;
+	TileIndex tile;
+	TrackdirByte trackdir;
 
-	inline void SetTile(TileIndex tile) { SB(data, 0, 24, tile); }
+	inline void SetTile(TileIndex tile) { this->tile = tile; }
 
-	inline void SetTrackdir(Trackdir trackdir) { SB(data, 24, 8, trackdir); }
+	inline void SetTrackdir(Trackdir trackdir) { this->trackdir = trackdir; }
 
-	inline TileIndex GetTile() const { return (TileIndex)GB(data, 0, 24); }
+	inline TileIndex GetTile() const { return this->tile; }
 
-	inline Trackdir GetTrackdir() const { return (Trackdir)GB(data, 24, 8); }
+	inline Trackdir GetTrackdir() const { return this->trackdir; }
 };
 
 typedef std::deque<TrackdirTile> RoadVehPathCache;

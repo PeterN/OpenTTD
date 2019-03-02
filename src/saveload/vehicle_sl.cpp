@@ -585,6 +585,8 @@ static uint16 _cargo_paid_for;
 static Money  _cargo_feeder_share;
 static uint32 _cargo_loaded_at_xy;
 
+static uint32 _path_cache_len;
+
 /**
  * Make it possible to make the saveload tables "friends" of other classes.
  * @param vt the vehicle type. Can be VEH_END for the common vehicle description data
@@ -759,7 +761,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		      SLE_VAR(RoadVehicle, overtaking_ctr,       SLE_UINT8),
 		      SLE_VAR(RoadVehicle, crashed_ctr,          SLE_UINT16),
 		      SLE_VAR(RoadVehicle, reverse_ctr,          SLE_UINT8),
-		SLE_CONDDEQUE(RoadVehicle, path,                 SLE_UINT32,                 SLV_ROADVEH_PATH_CACHE, SL_MAX_VERSION),
+		 SLEG_CONDVAR(             _path_cache_len,      SLE_UINT32,               SLV_ROADVEH_PATH_CACHE, SL_MAX_VERSION),
 
 		 SLE_CONDNULL(2,                                                               SLV_6,  SLV_69),
 		  SLE_CONDVAR(RoadVehicle, gv_flags,             SLE_UINT16,                 SLV_139, SL_MAX_VERSION),
@@ -890,6 +892,28 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 	return _veh_descs[vt];
 }
 
+static const SaveLoad _roadveh_path_cache_desc[] = {
+	      SLE_VAR(TrackdirTile, tile,     SLE_UINT32),
+	      SLE_VAR(TrackdirTile, trackdir, SLE_UINT8),
+
+	      SLE_END()
+};
+
+
+static void RealSave_VEHS(Vehicle *v)
+{
+	if (v->type == VEH_ROAD) _path_cache_len = RoadVehicle::From(v)->path.size();
+
+	SlObject(v, GetVehicleDescription(v->type));
+
+	if (v->type == VEH_ROAD) {
+		RoadVehicle *rv = RoadVehicle::From(v);
+		for (size_t i = 0; i < _path_cache_len; i++) {
+			SlObject(&rv->path[i], _roadveh_path_cache_desc);
+		}
+	}
+}
+
 /** Will be called when the vehicles need to be saved. */
 static void Save_VEHS()
 {
@@ -897,7 +921,7 @@ static void Save_VEHS()
 	/* Write the vehicles */
 	FOR_ALL_VEHICLES(v) {
 		SlSetArrayIndex(v->index);
-		SlObject(v, GetVehicleDescription(v->type));
+		SlAutolength((AutolengthProc*)RealSave_VEHS, v);
 	}
 }
 
@@ -924,6 +948,14 @@ void Load_VEHS()
 		}
 
 		SlObject(v, GetVehicleDescription(vtype));
+
+		if (vtype == VEH_ROAD && !IsSavegameVersionBefore(SLV_ROADVEH_PATH_CACHE)) {
+			RoadVehicle *rv = RoadVehicle::From(v);
+			rv->path.resize(_path_cache_len);
+			for (size_t i = 0; i < rv->path.size(); i++) {
+				SlObject(&rv->path[i], _roadveh_path_cache_desc);
+			}
+		}
 
 		if (_cargo_count != 0 && IsCompanyBuildableVehicleType(v) && CargoPacket::CanAllocateItem()) {
 			/* Don't construct the packet with station here, because that'll fail with old savegames */
