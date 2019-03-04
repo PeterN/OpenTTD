@@ -193,6 +193,7 @@ CommandCost CmdSellVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 		if (flags & DC_EXEC) {
 			if (front->IsPrimaryVehicle() && p1 & MAKE_ORDER_BACKUP_FLAG) OrderBackup::Backup(front, p2);
+			RemoveVehicleFromTickList(front);
 			delete front;
 		}
 	}

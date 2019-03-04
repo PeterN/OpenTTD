@@ -35,7 +35,6 @@
 #include "order_backup.h"
 #include "zoom_func.h"
 #include "newgrf_debug.h"
-#include "framerate_type.h"
 
 #include "table/strings.h"
 #include "table/train_cmd.h"
@@ -1413,6 +1412,7 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint3
 		InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
 
 		/* Actually delete the sold 'goods' */
+		RemoveVehicleFromTickList(sell_head);
 		delete sell_head;
 	} else {
 		/* We don't want to execute what we're just tried. */
@@ -3901,8 +3901,6 @@ Money Train::GetRunningCost() const
  */
 bool Train::Tick()
 {
-	PerformanceAccumulator framerate(PFE_GL_TRAINS);
-
 	this->tick_counter++;
 
 	if (this->IsFrontEngine()) {

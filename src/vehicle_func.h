@@ -180,4 +180,8 @@ void GetVehicleSet(VehicleSet &set, Vehicle *v, uint8 num_vehicles);
 
 void CheckCargoCapacity(Vehicle *v);
 
+void AddVehicleToTickList(Vehicle *v);
+void RemoveVehicleFromTickList(Vehicle *v);
+void ComputeVehicleTickList();
+
 #endif /* VEHICLE_FUNC_H */

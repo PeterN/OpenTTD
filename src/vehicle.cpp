@@ -93,6 +93,64 @@ VehiclePool _vehicle_pool("Vehicle");
 INSTANTIATE_POOL_METHODS(Vehicle)
 
 
+struct VehicleCompare {
+	inline bool operator() (const Vehicle *lhs, const Vehicle *rhs) const
+       	{
+	       	return lhs->index < rhs->index;
+	}
+};
+
+/* List of vehicles split by type. */
+typedef std::set<Vehicle *, VehicleCompare> VehicleTickList;
+
+VehicleTickList _train_list;
+VehicleTickList _roadveh_list;
+VehicleTickList _ship_list;
+VehicleTickList _aircraft_list;
+VehicleTickList _other_list;
+
+
+void AddVehicleToTickList(Vehicle *v)
+{
+	switch (v->type) {
+		case VEH_TRAIN:    _train_list.insert(v); break;
+		case VEH_ROAD:     _roadveh_list.insert(v); break;
+		case VEH_SHIP:     _ship_list.insert(v); break;
+		case VEH_AIRCRAFT: _aircraft_list.insert(v); break;
+		default:           _other_list.insert(v); break;
+	}
+}
+
+void RemoveVehicleFromTickList(Vehicle *v)
+{
+	while (v != NULL)
+	{
+		switch (v->type) {
+			case VEH_TRAIN:    _train_list.erase(v); break;
+			case VEH_ROAD:     _roadveh_list.erase(v); break;
+			case VEH_SHIP:     _ship_list.erase(v); break;
+			case VEH_AIRCRAFT: _aircraft_list.erase(v); break;
+			default:           _other_list.erase(v); break;
+		}
+		v = v->Next();
+	}
+}
+
+void ComputeVehicleTickList()
+{
+	_train_list.clear();
+	_roadveh_list.clear();
+	_ship_list.clear();
+	_aircraft_list.clear();
+	_other_list.clear();
+
+	Vehicle *v;
+	FOR_ALL_VEHICLES(v) {
+		AddVehicleToTickList(v);
+	}
+}
+
+
 /**
  * Determine shared bounds of all sprites.
  * @param[out] bounds Shared bounds.
@@ -354,6 +412,8 @@ Vehicle::Vehicle(VehicleType type)
 	this->cargo_age_counter  = 1;
 	this->last_station_visited = INVALID_STATION;
 	this->last_loading_station = INVALID_STATION;
+
+	if (this->type != VEH_INVALID) AddVehicleToTickList(this);
 }
 
 /**
@@ -940,6 +1000,88 @@ static void RunVehicleDayProc()
 	}
 }
 
+
+static bool CallVehicleTick(Vehicle *v)
+{
+	/* Vehicle could be deleted in this tick */
+	if (!v->Tick()) {
+		return false;
+	}
+
+	switch (v->type) {
+		default: break;
+
+		case VEH_TRAIN:
+		case VEH_ROAD:
+		case VEH_AIRCRAFT:
+		case VEH_SHIP: {
+			Vehicle *front = v->First();
+
+			if (v->vcache.cached_cargo_age_period != 0) {
+				v->cargo_age_counter = min(v->cargo_age_counter, v->vcache.cached_cargo_age_period);
+				if (--v->cargo_age_counter == 0) {
+					v->cargo.AgeCargo();
+					v->cargo_age_counter = v->vcache.cached_cargo_age_period;
+				}
+			}
+
+			/* Do not play any sound when crashed */
+			if (front->vehstatus & VS_CRASHED) break;
+
+			/* Do not play any sound when in depot or tunnel */
+			if (v->vehstatus & VS_HIDDEN) break;
+
+			/* Do not play any sound when stopped */
+			if ((front->vehstatus & VS_STOPPED) && (front->type != VEH_TRAIN || front->cur_speed == 0)) break;
+
+			/* Check vehicle type specifics */
+			switch (v->type) {
+				case VEH_TRAIN:
+					if (Train::From(v)->IsWagon()) break;
+					break;
+
+				case VEH_ROAD:
+					if (!RoadVehicle::From(v)->IsFrontEngine()) break;
+					break;
+
+				case VEH_AIRCRAFT:
+					if (!Aircraft::From(v)->IsNormalAircraft()) break;
+					break;
+
+				default:
+					break;
+			}
+
+			v->motion_counter += front->cur_speed;
+			/* Play a running sound if the motion counter passes 256 (Do we not skip sounds?) */
+			if (GB(v->motion_counter, 0, 8) < front->cur_speed) PlayVehicleSound(v, VSE_RUNNING);
+
+			/* Play an alternating running sound every 16 ticks */
+			if (GB(v->tick_counter, 0, 4) == 0) {
+				/* Play running sound when speed > 0 and not braking */
+				bool running = (front->cur_speed > 0) && !(front->vehstatus & (VS_STOPPED | VS_TRAIN_SLOWING));
+				PlayVehicleSound(v, running ? VSE_RUNNING_16 : VSE_STOPPED_16);
+			}
+
+			break;
+		}
+	}
+
+	return true;
+}
+
+static void CallVehicleTicks(PerformanceElement element, VehicleTickList &list)
+{
+	PerformanceMeasurer framerate(element);
+	for (auto it = list.begin(); it != list.end(); /* incremented in loop */) {
+		if (CallVehicleTick(*it)) {
+			++it;
+		} else {
+			it = list.erase(it);
+		}
+	}
+}
+
 void CallVehicleTicks()
 {
 	_vehicles_to_autoreplace.Clear();
@@ -951,84 +1093,16 @@ void CallVehicleTicks()
 		Station *st;
 		FOR_ALL_STATIONS(st) LoadUnloadStation(st);
 	}
-	PerformanceAccumulator::Reset(PFE_GL_TRAINS);
-	PerformanceAccumulator::Reset(PFE_GL_ROADVEHS);
-	PerformanceAccumulator::Reset(PFE_GL_SHIPS);
-	PerformanceAccumulator::Reset(PFE_GL_AIRCRAFT);
 
-	Vehicle *v;
-	FOR_ALL_VEHICLES(v) {
-		/* Vehicle could be deleted in this tick */
-		if (!v->Tick()) {
-			assert(Vehicle::Get(vehicle_index) == NULL);
-			continue;
-		}
-
-		assert(Vehicle::Get(vehicle_index) == v);
-
-		switch (v->type) {
-			default: break;
-
-			case VEH_TRAIN:
-			case VEH_ROAD:
-			case VEH_AIRCRAFT:
-			case VEH_SHIP: {
-				Vehicle *front = v->First();
-
-				if (v->vcache.cached_cargo_age_period != 0) {
-					v->cargo_age_counter = min(v->cargo_age_counter, v->vcache.cached_cargo_age_period);
-					if (--v->cargo_age_counter == 0) {
-						v->cargo.AgeCargo();
-						v->cargo_age_counter = v->vcache.cached_cargo_age_period;
-					}
-				}
-
-				/* Do not play any sound when crashed */
-				if (front->vehstatus & VS_CRASHED) continue;
-
-				/* Do not play any sound when in depot or tunnel */
-				if (v->vehstatus & VS_HIDDEN) continue;
-
-				/* Do not play any sound when stopped */
-				if ((front->vehstatus & VS_STOPPED) && (front->type != VEH_TRAIN || front->cur_speed == 0)) continue;
-
-				/* Check vehicle type specifics */
-				switch (v->type) {
-					case VEH_TRAIN:
-						if (Train::From(v)->IsWagon()) continue;
-						break;
-
-					case VEH_ROAD:
-						if (!RoadVehicle::From(v)->IsFrontEngine()) continue;
-						break;
-
-					case VEH_AIRCRAFT:
-						if (!Aircraft::From(v)->IsNormalAircraft()) continue;
-						break;
-
-					default:
-						break;
-				}
-
-				v->motion_counter += front->cur_speed;
-				/* Play a running sound if the motion counter passes 256 (Do we not skip sounds?) */
-				if (GB(v->motion_counter, 0, 8) < front->cur_speed) PlayVehicleSound(v, VSE_RUNNING);
-
-				/* Play an alternating running sound every 16 ticks */
-				if (GB(v->tick_counter, 0, 4) == 0) {
-					/* Play running sound when speed > 0 and not braking */
-					bool running = (front->cur_speed > 0) && !(front->vehstatus & (VS_STOPPED | VS_TRAIN_SLOWING));
-					PlayVehicleSound(v, running ? VSE_RUNNING_16 : VSE_STOPPED_16);
-				}
-
-				break;
-			}
-		}
-	}
-
+	CallVehicleTicks(PFE_GL_TRAINS, _train_list);
+	CallVehicleTicks(PFE_GL_ROADVEHS, _roadveh_list);
+	CallVehicleTicks(PFE_GL_SHIPS, _ship_list);
+	CallVehicleTicks(PFE_GL_AIRCRAFT, _aircraft_list);
+	CallVehicleTicks(PFE_GL_LANDSCAPE, _other_list); // XXX wrong performance element
+	
 	Backup<CompanyByte> cur_company(_current_company, FILE_LINE);
 	for (AutoreplaceMap::iterator it = _vehicles_to_autoreplace.Begin(); it != _vehicles_to_autoreplace.End(); it++) {
-		v = it->first;
+		Vehicle *v = it->first;
 		/* Autoreplace needs the current company set as the vehicle owner */
 		cur_company.Change(v->owner);
 
