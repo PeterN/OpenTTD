@@ -248,7 +248,7 @@ static void GetAvailableVideoMode(uint *w, uint *h)
 	*h = _resolutions[best].height;
 }
 
-bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
+bool VideoDriver_SDL::CreateMainSurface(uint w, uint h, bool resize)
 {
 	SDL_Surface *newscreen, *icon;
 	char caption[50];
@@ -354,7 +354,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 		return false;
 	}
 
-	SDL_SetWindowSize(_sdl_window, w, h);
+	if (resize) SDL_SetWindowSize(_sdl_window, w, h);
 
 	newscreen = SDL_GetWindowSurface(_sdl_window);
 	_sdl_realscreen = newscreen;
@@ -626,7 +626,7 @@ int VideoDriver_SDL::PollEvent()
 			} else if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
 				int w = max(ev.window.data1, 64);
 				int h = max(ev.window.data2, 64);
-				CreateMainSurface(w, h);
+				CreateMainSurface(w, h, false);
 			} else if (ev.window.event == SDL_WINDOWEVENT_ENTER) {
 				// mouse entered the window, enable cursor
 				_cursor.in_window = true;
@@ -657,7 +657,7 @@ const char *VideoDriver_SDL::Start(const char * const *parm)
 	if (ret_code == -1) return SDL_GetError();
 
 	GetVideoModes();
-	if (!CreateMainSurface(_cur_resolution.width, _cur_resolution.height)) {
+	if (!CreateMainSurface(_cur_resolution.width, _cur_resolution.height, false)) {
 		return SDL_GetError();
 	}
 
@@ -807,7 +807,7 @@ void VideoDriver_SDL::MainLoop()
 bool VideoDriver_SDL::ChangeResolution(int w, int h)
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
-	bool ret = CreateMainSurface(w, h);
+	bool ret = CreateMainSurface(w, h, true);
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
 	return ret;
 }
@@ -817,7 +817,7 @@ bool VideoDriver_SDL::ToggleFullscreen(bool fullscreen)
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
 	_fullscreen = fullscreen;
 	GetVideoModes(); // get the list of available video modes
-	bool ret = _num_resolutions != 0 && CreateMainSurface(_cur_resolution.width, _cur_resolution.height);
+	bool ret = _num_resolutions != 0 && CreateMainSurface(_cur_resolution.width, _cur_resolution.height, false);
 
 	if (!ret) {
 		/* switching resolution failed, put back full_screen to original status */
@@ -836,7 +836,7 @@ bool VideoDriver_SDL::AfterBlitterChange()
 {
 	int w, h;
 	SDL_GetWindowSize(_sdl_window, &w, &h);
-	return CreateMainSurface(w, h);
+	return CreateMainSurface(w, h, false);
 }
 
 void VideoDriver_SDL::AcquireBlitterLock()
