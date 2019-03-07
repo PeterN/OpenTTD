@@ -626,7 +626,7 @@ int VideoDriver_SDL::PollEvent()
 			} else if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
 				int w = max(ev.window.data1, 64);
 				int h = max(ev.window.data2, 64);
-				CreateMainSurface(w, h, false);
+				CreateMainSurface(w, h, w != ev.window.data1 || h != ev.window.data2);
 			} else if (ev.window.event == SDL_WINDOWEVENT_ENTER) {
 				// mouse entered the window, enable cursor
 				_cursor.in_window = true;
