@@ -591,7 +591,7 @@ int VideoDriver_SDL::PollEvent()
 		case SDL_KEYDOWN: // Toggle full-screen on ALT + ENTER/F
 			if ((ev.key.keysym.mod & (KMOD_ALT | KMOD_GUI)) &&
 					(ev.key.keysym.sym == SDLK_RETURN || ev.key.keysym.sym == SDLK_f)) {
-				ToggleFullScreen(!_fullscreen);
+				if (ev.key.repeat == 0) ToggleFullScreen(!_fullscreen);
 			} else {
 				WChar character;
 
