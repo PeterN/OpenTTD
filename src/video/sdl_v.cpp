@@ -623,7 +623,7 @@ int VideoDriver_SDL::PollEvent()
 			if (ev.window.event == SDL_WINDOWEVENT_EXPOSED) {
 				// Force a redraw of the entire screen.
 				_num_dirty_rects = MAX_DIRTY_RECTS + 1;
-			} else if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
+			} else if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 				int w = max(ev.window.data1, 64);
 				int h = max(ev.window.data2, 64);
 				CreateMainSurface(w, h, w != ev.window.data1 || h != ev.window.data2);
