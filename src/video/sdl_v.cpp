@@ -51,6 +51,10 @@ static int _num_dirty_rects;
 static int _use_hwpalette;
 static int _requested_hwpalette; /* Did we request a HWPALETTE for the current video mode? */
 
+/* Size of window */
+static int _window_size_w;
+static int _window_size_h;
+
 void VideoDriver_SDL::MakeDirty(int left, int top, int width, int height)
 {
 	if (_num_dirty_rects < MAX_DIRTY_RECTS) {
@@ -815,21 +819,22 @@ bool VideoDriver_SDL::ChangeResolution(int w, int h)
 bool VideoDriver_SDL::ToggleFullscreen(bool fullscreen)
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
-	_fullscreen = fullscreen;
-	GetVideoModes(); // get the list of available video modes
-	bool ret = _num_resolutions != 0 && CreateMainSurface(_cur_resolution.width, _cur_resolution.height, false);
 
-	if (!ret) {
-		/* switching resolution failed, put back full_screen to original status */
-		_fullscreen ^= true;
+	/* Remember current window size */
+	if (fullscreen) SDL_GetWindowSize(_sdl_window, &_window_size_w, &_window_size_h);
+
+	DEBUG(driver, 1, "SDL: Setting %s", fullscreen ? "fullscreen" : "windowed");
+	int ret = SDL_SetWindowFullscreen(_sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+	if (ret == 0) {
+		/* Switching resolution succeeded, set fullscreen value of window. */
+		_fullscreen = fullscreen;
+		if (!fullscreen) SDL_SetWindowSize(_sdl_window, _window_size_w, _window_size_h);
 	} else {
-		/* Switching resolution succeeded, toggle fullscreen value of window. */
-		SDL_SetWindowFullscreen(
-			_sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+		DEBUG(driver, 0, "SDL_SetWindowFullscreen() failed: %s", SDL_GetError());
 	}
 
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
-	return ret;
+	return ret == 0;
 }
 
 bool VideoDriver_SDL::AfterBlitterChange()
