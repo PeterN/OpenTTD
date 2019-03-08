@@ -32,7 +32,6 @@ static FVideoDriver_SDL iFVideoDriver_SDL;
 
 static SDL_Window *_sdl_window;
 static SDL_Surface *_sdl_surface;
-static SDL_Surface *_sdl_realscreen;
 
 /** Whether the drawing is/may be done in a separate thread. */
 static bool _draw_threaded;
@@ -104,20 +103,8 @@ static void DrawSurfaceToScreen()
 	_num_dirty_rects = 0;
 
 	if (n > MAX_DIRTY_RECTS) {
-		if (_sdl_surface != _sdl_realscreen) {
-			SDL_BlitSurface(_sdl_surface, NULL, _sdl_realscreen, NULL);
-		}
-
 		SDL_UpdateWindowSurface(_sdl_window);
 	} else {
-		if (_sdl_surface != _sdl_realscreen) {
-			for (int i = 0; i < n; i++) {
-				SDL_BlitSurface(
-					_sdl_surface, &_dirty_rects[i],
-					_sdl_realscreen, &_dirty_rects[i]);
-			}
-		}
-
 		SDL_UpdateWindowSurfaceRects(_sdl_window, _dirty_rects, n);
 	}
 }
@@ -220,8 +207,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h, bool resize)
 		}
 	}
 
-	/* Free any previously allocated shadow surface */
-	if (_sdl_surface != NULL && _sdl_surface != _sdl_realscreen) SDL_FreeSurface(_sdl_surface);
+	SDL_FreeSurface(_sdl_surface);
 
 	seprintf(caption, lastof(caption), "OpenTTD %s", _openttd_revision);
 
@@ -249,17 +235,15 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h, bool resize)
 
 	if (resize) SDL_SetWindowSize(_sdl_window, w, h);
 
-	newscreen = SDL_GetWindowSurface(_sdl_window);
-	_sdl_realscreen = newscreen;
+	_sdl_surface = SDL_GetWindowSurface(_sdl_window);
 
 	/* Delay drawing for this cycle; the next cycle will redraw the whole screen */
 	_num_dirty_rects = 0;
 
-	_screen.width = newscreen->w;
-	_screen.height = newscreen->h;
-	_screen.pitch = newscreen->pitch / (bpp / 8);
-	_screen.dst_ptr = newscreen->pixels;
-	_sdl_surface = newscreen;
+	_screen.width = _sdl_surface->w;
+	_screen.height = _sdl_surface->h;
+	_screen.pitch = _sdl_surface->pitch / (bpp / 8);
+	_screen.dst_ptr = _sdl_surface->pixels;
 
 	/* When in full screen, we will always have the mouse cursor
 	 * within the window, even though SDL does not give us the
