@@ -43,13 +43,10 @@ static ThreadMutex *_draw_mutex = NULL;
 /** Should we keep continue drawing? */
 static volatile bool _draw_continue;
 static Palette _local_palette;
-static SDL_Palette *_sdl_palette;
 
 #define MAX_DIRTY_RECTS 100
 static SDL_Rect _dirty_rects[MAX_DIRTY_RECTS];
 static int _num_dirty_rects;
-static int _use_hwpalette;
-static int _requested_hwpalette; /* Did we request a HWPALETTE for the current video mode? */
 
 /* Size of window */
 static int _window_size_w;
@@ -66,66 +63,11 @@ void VideoDriver_SDL::MakeDirty(int left, int top, int width, int height)
 	_num_dirty_rects++;
 }
 
-static void UpdatePalette(bool init = false)
-{
-	SDL_Color pal[256];
-
-	for (int i = 0; i != _local_palette.count_dirty; i++) {
-		pal[i].r = _local_palette.palette[_local_palette.first_dirty + i].r;
-		pal[i].g = _local_palette.palette[_local_palette.first_dirty + i].g;
-		pal[i].b = _local_palette.palette[_local_palette.first_dirty + i].b;
-		pal[i].a = 0;
-	}
-
-	SDL_SetPaletteColors(_sdl_palette, pal, _local_palette.first_dirty, _local_palette.count_dirty);
-	SDL_SetSurfacePalette(_sdl_surface, _sdl_palette);
-
-	if (_sdl_surface != _sdl_realscreen && init) {
-		/* When using a shadow surface, also set our palette on the real screen. This lets SDL
-		 * allocate as many colors (or approximations) as
-		 * possible, instead of using only the default SDL
-		 * palette. This allows us to get more colors exactly
-		 * right and might allow using better approximations for
-		 * other colors.
-		 *
-		 * Note that colors allocations are tried in-order, so
-		 * this favors colors further up into the palette. Also
-		 * note that if two colors from the same animation
-		 * sequence are approximated using the same color, that
-		 * animation will stop working.
-		 *
-		 * Since changing the system palette causes the colours
-		 * to change right away, and allocations might
-		 * drastically change, we can't use this for animation,
-		 * since that could cause weird coloring between the
-		 * palette change and the blitting below, so we only set
-		 * the real palette during initialisation.
-		 */
-		SDL_SetSurfacePalette(_sdl_realscreen, _sdl_palette);
-	}
-
-	if (_sdl_surface != _sdl_realscreen && !init) {
-		/* We're not using real hardware palette, but are letting SDL
-		 * approximate the palette during shadow -> screen copy. To
-		 * change the palette, we need to recopy the entire screen.
-		 *
-		 * Note that this operation can slow down the rendering
-		 * considerably, especially since changing the shadow
-		 * palette will need the next blit to re-detect the
-		 * best mapping of shadow palette colors to real palette
-		 * colors from scratch.
-		 */
-		SDL_BlitSurface(_sdl_surface, NULL, _sdl_realscreen, NULL);
-		SDL_UpdateWindowSurface(_sdl_window);
-	}
-}
-
 static void InitPalette()
 {
 	_local_palette = _cur_palette;
 	_local_palette.first_dirty = 0;
 	_local_palette.count_dirty = 256;
-	UpdatePalette(true);
 }
 
 static void CheckPaletteAnim()
@@ -135,7 +77,7 @@ static void CheckPaletteAnim()
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
-				UpdatePalette();
+				/* Backend animation not supported. */
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
@@ -257,13 +199,12 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h, bool resize)
 	SDL_Surface *newscreen, *icon;
 	char caption[50];
 	int bpp = BlitterFactory::GetCurrentBlitter()->GetScreenDepth();
-	bool want_hwpalette;
 
 	GetAvailableVideoMode(&w, &h);
 
 	DEBUG(driver, 1, "SDL: using mode %ux%ux%d", w, h, bpp);
 
-	if (bpp == 0) usererror("Can't use a blitter that blits 0 bpp for normal visuals");
+	if (bpp != 32) usererror("Can't use a blitter that does not blit 32 bpp for normal visuals");
 
 	char icon_path[MAX_PATH];
 	if (FioFindFullPath(icon_path, lastof(icon_path), BASESET_DIR, "openttd.32.bmp") != NULL) {
@@ -279,60 +220,8 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h, bool resize)
 		}
 	}
 
-	if (_use_hwpalette == 2) {
-		/* Default is to autodetect when to use SDL_HWPALETTE.
-		 * In this case, SDL_HWPALETTE is only used for 8bpp
-		 * blitters in fullscreen.
-		 *
-		 * When using an 8bpp blitter on a 8bpp system in
-		 * windowed mode with SDL_HWPALETTE, OpenTTD will claim
-		 * the system palette, making all other applications
-		 * get the wrong colours. In this case, we're better of
-		 * trying to approximate the colors we need using system
-		 * colors, using a shadow surface (see below).
-		 *
-		 * On a 32bpp system, SDL_HWPALETTE is ignored, so it
-		 * doesn't matter what we do.
-		 *
-		 * When using a 32bpp blitter on a 8bpp system, setting
-		 * SDL_HWPALETTE messes up rendering (at least on X11),
-		 * so we don't do that. In this case, SDL takes care of
-		 * color approximation using its own shadow surface
-		 * (which we can't force in 8bpp on 8bpp mode,
-		 * unfortunately).
-		 */
-		want_hwpalette = bpp == 8 && _fullscreen && _support8bpp == S8BPP_HARDWARE;
-	} else {
-		/* User specified a value manually */
-		want_hwpalette = _use_hwpalette;
-	}
-
-	if (want_hwpalette) DEBUG(driver, 1, "SDL: requesting hardware palette");
-
 	/* Free any previously allocated shadow surface */
 	if (_sdl_surface != NULL && _sdl_surface != _sdl_realscreen) SDL_FreeSurface(_sdl_surface);
-
-	if (_sdl_realscreen != NULL) {
-		if (_requested_hwpalette != want_hwpalette) {
-			/* SDL (at least the X11 driver), reuses the
-			 * same window and palette settings when the bpp
-			 * (and a few flags) are the same. Since we need
-			 * to hwpalette value to change (in particular
-			 * when switching between fullscreen and
-			 * windowed), we restart the entire video
-			 * subsystem to force creating a new window.
-			 */
-			DEBUG(driver, 0, "SDL: Restarting SDL video subsystem, to force hwpalette change");
-			SDL_QuitSubSystem(SDL_INIT_VIDEO);
-			SDL_InitSubSystem(SDL_INIT_VIDEO);
-			ClaimMousePointer();
-		}
-	}
-	/* Remember if we wanted a hwpalette. We can't reliably query
-	 * SDL for the SDL_HWPALETTE flag, since it might get set even
-	 * though we didn't ask for it (when SDL creates a shadow
-	 * surface, for example). */
-	_requested_hwpalette = want_hwpalette;
 
 	seprintf(caption, lastof(caption), "OpenTTD %s", _openttd_revision);
 
@@ -362,15 +251,6 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h, bool resize)
 
 	newscreen = SDL_GetWindowSurface(_sdl_window);
 	_sdl_realscreen = newscreen;
-
-	if (_sdl_palette == NULL) {
-		_sdl_palette = SDL_AllocPalette(256);
-	}
-
-	if (_sdl_palette == NULL) {
-		DEBUG(driver, 0, "SDL_AllocPalette() failed: %s", SDL_GetError());
-		return false;
-	}
 
 	/* Delay drawing for this cycle; the next cycle will redraw the whole screen */
 	_num_dirty_rects = 0;
@@ -647,8 +527,6 @@ int VideoDriver_SDL::PollEvent()
 
 const char *VideoDriver_SDL::Start(const char * const *parm)
 {
-	_use_hwpalette = GetDriverParamInt(parm, "hw_palette", 2);
-
 	/* Just on the offchance the audio subsystem started before the video system,
 	 * check whether any part of SDL has been initialised before getting here.
 	 * Slightly duplicated with sound/sdl_s.cpp */
