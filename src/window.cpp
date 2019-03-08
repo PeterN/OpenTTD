@@ -79,6 +79,8 @@ byte _scroller_click_timeout = 0;
 bool _scrolling_viewport;  ///< A viewport is being scrolled with the mouse.
 bool _mouse_hovering;      ///< The mouse is hovering over the same point.
 
+bool _window_timer_elapsed; ///< Set if window timer has elapsed.
+
 SpecialMouseMode _special_mouse_mode; ///< Mode of the mouse.
 
 /**
@@ -3133,6 +3135,8 @@ void UpdateWindows()
 	static GUITimer window_timer = GUITimer(1);
 	if (window_timer.Elapsed(delta_ms)) {
 		if (_network_dedicated) window_timer.SetInterval(MILLISECONDS_PER_TICK);
+
+		_window_timer_elapsed = true;
 
 		extern int _caret_timer;
 		_caret_timer += 3;

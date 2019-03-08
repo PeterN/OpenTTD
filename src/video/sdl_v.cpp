@@ -50,6 +50,8 @@ static int _num_dirty_rects;
 static int _use_hwpalette;
 static int _requested_hwpalette; /* Did we request a HWPALETTE for the current video mode? */
 
+extern bool _window_timer_elapsed;
+
 void VideoDriver_SDL::MakeDirty(int left, int top, int width, int height)
 {
 	if (_num_dirty_rects < MAX_DIRTY_RECTS) {
@@ -179,7 +181,10 @@ static void DrawSurfaceToScreenThread(void *)
 	_draw_mutex->WaitForSignal();
 
 	while (_draw_continue) {
-		CheckPaletteAnim();
+		if (_window_timer_elapsed) {
+			_window_timer_elapsed = false;
+			CheckPaletteAnim();
+		}
 		/* Then just draw and wait till we stop */
 		DrawSurfaceToScreen();
 		_draw_mutex->WaitForSignal();
@@ -773,7 +778,10 @@ void VideoDriver_SDL::MainLoop()
 			_draw_mutex->SendSignal();
 		} else {
 			/* Oh, we didn't have threads, then just draw unthreaded */
-			CheckPaletteAnim();
+			if (_window_timer_elapsed) {
+				_window_timer_elapsed = false;
+				CheckPaletteAnim();
+			}
 			DrawSurfaceToScreen();
 		}
 	}
