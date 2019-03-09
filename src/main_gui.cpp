@@ -553,14 +553,6 @@ void ShowSelectGameWindow();
  */
 void SetupColoursAndInitialWindow()
 {
-	for (uint i = 0; i != 16; i++) {
-		const byte *b = GetNonSprite(PALETTE_RECOLOUR_START + i, ST_RECOLOUR);
-
-		assert(b);
-		extern byte _colour_gradient[16][8];
-		memcpy(_colour_gradient[i], b + 0xC6, sizeof(_colour_gradient[i]));
-	}
-
 	new MainWindow(&_main_window_desc);
 
 	/* XXX: these are not done */

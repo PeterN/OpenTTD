@@ -1787,16 +1787,24 @@ static const struct CustomRecolourMap _custom_remaps[] = {
 typedef std::map<uint16, PaletteID> PaletteMap;
 static PaletteMap _palette_cache;
 
-void ResetRecolourMaps()
-{
-	_palette_cache.clear();
-}
-
 const byte *GetOriginalRemap(byte colour)
 {
 	assert(colour < 16);
-	const byte *b = GetNonSprite(PALETTE_RECOLOUR_START + colour, ST_RECOLOUR) + 1;
+	const byte *b = GetNonSprite(PALETTE_RECOLOUR_START + colour, ST_RECOLOUR);
 	return &b[0xc6];
+}
+
+void ResetRecolourMaps()
+{
+	_palette_cache.clear();
+
+	for (uint i = 0; i < 16; i++) {
+		const byte *b = GetOriginalRemap(i);
+		memcpy(_colour_gradient[i], b, sizeof(_colour_gradient[i]));
+	}
+	for (uint i = 0; i < lengthof(_custom_remaps); i++) {
+		memcpy(_colour_gradient[i + 16], _custom_remaps[i].colours, sizeof(_colour_gradient[i + 16]));
+	}
 }
 
 static PaletteID CreateRecolourMap(byte first, byte second)
