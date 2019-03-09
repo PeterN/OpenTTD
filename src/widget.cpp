@@ -178,10 +178,11 @@ void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, Fra
 {
 	assert(colour < COLOUR_END);
 
-	uint dark         = _colour_gradient[colour][3];
-	uint medium_dark  = _colour_gradient[colour][5];
-	uint medium_light = _colour_gradient[colour][6];
-	uint light        = _colour_gradient[colour][7];
+	const byte *colour_gradient = GetColourGradient(colour);
+	uint dark         = colour_gradient[3];
+	uint medium_dark  = colour_gradient[5];
+	uint medium_light = colour_gradient[6];
+	uint light        = colour_gradient[7];
 
 	if (flags & FR_TRANSPARENT) {
 		GfxFillRect(left, top, right, bottom, PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR);
@@ -297,7 +298,7 @@ static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint1
 		row_height = (r.bottom - r.top + 1) / num_rows;
 	}
 
-	int col = _colour_gradient[colour & 0xF][6];
+	int col = GetColourGradient(colour)[6];
 
 	int x = r.left;
 	for (int ctr = num_columns; ctr > 1; ctr--) {
@@ -311,7 +312,7 @@ static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint1
 		GfxFillRect(r.left + 1, x, r.right - 1, x, col);
 	}
 
-	col = _colour_gradient[colour & 0xF][4];
+	col = GetColourGradient(colour)[4];
 
 	x = r.left - 1;
 	for (int ctr = num_columns; ctr > 1; ctr--) {
@@ -347,8 +348,8 @@ static inline void DrawVerticalScrollbar(const Rect &r, Colours colour, bool up_
 	DrawFrameRect(r.left, r.bottom - (height - 1), r.right, r.bottom, colour, (down_clicked) ? FR_LOWERED : FR_NONE);
 	DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.left + 1 + down_clicked, r.bottom - (height - 2) + down_clicked);
 
-	int c1 = _colour_gradient[colour & 0xF][3];
-	int c2 = _colour_gradient[colour & 0xF][7];
+	int c1 = GetColourGradient(colour)[3];
+	int c2 = GetColourGradient(colour)[7];
 
 	/* draw "shaded" background */
 	GfxFillRect(r.left, r.top + height, r.right, r.bottom - height, c2);
@@ -384,8 +385,8 @@ static inline void DrawHorizontalScrollbar(const Rect &r, Colours colour, bool l
 	DrawFrameRect(r.right - (width - 1), r.top, r.right, r.bottom, colour, right_clicked ? FR_LOWERED : FR_NONE);
 	DrawSprite(SPR_ARROW_RIGHT, PAL_NONE, r.right - (width - 2) + right_clicked, r.top + 1 + right_clicked);
 
-	int c1 = _colour_gradient[colour & 0xF][3];
-	int c2 = _colour_gradient[colour & 0xF][7];
+	int c1 = GetColourGradient(colour)[3];
+	int c2 = GetColourGradient(colour)[7];
 
 	/* draw "shaded" background */
 	GfxFillRect(r.left + width, r.top, r.right - width, r.bottom, c2);
@@ -414,8 +415,8 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 
 	if (str != STR_NULL) x2 = DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top, str);
 
-	int c1 = _colour_gradient[colour][3];
-	int c2 = _colour_gradient[colour][7];
+	int c1 = GetColourGradient(colour)[3];
+	int c2 = GetColourGradient(colour)[7];
 
 	/* If the frame has text, adjust the top bar to fit half-way through */
 	int dy1 = 4;
@@ -545,7 +546,7 @@ void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str)
 	DrawFrameRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, colour, company_owned ? FR_LOWERED | FR_DARKENED | FR_BORDERONLY : FR_LOWERED | FR_DARKENED);
 
 	if (company_owned) {
-		GfxFillRect(r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, _colour_gradient[_company_colours[owner]][4]);
+		GfxFillRect(r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, GetColourGradient(_company_colours[owner])[4]);
 	}
 
 	if (str != STR_NULL) {
@@ -1626,7 +1627,7 @@ NWidgetCore *NWidgetMatrix::GetWidgetFromPos(int x, int y)
 /* virtual */ void NWidgetMatrix::Draw(const Window *w)
 {
 	/* Fill the background. */
-	GfxFillRect(this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1, _colour_gradient[this->colour & 0xF][5]);
+	GfxFillRect(this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1, GetColourGradient(this->colour)[5]);
 
 	/* Set up a clipping area for the previews. */
 	bool rtl = _current_text_dir == TD_RTL;
@@ -1863,7 +1864,7 @@ void NWidgetBackground::Draw(const Window *w)
 	if (this->child != NULL) this->child->Draw(w);
 
 	if (this->IsDisabled()) {
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
+		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, GetColourGradient(this->colour)[2], FILLRECT_CHECKER);
 	}
 }
 
@@ -2047,7 +2048,7 @@ void NWidgetScrollbar::Draw(const Window *w)
 	}
 
 	if (this->IsDisabled()) {
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
+		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, GetColourGradient(this->colour)[2], FILLRECT_CHECKER);
 	}
 }
 
@@ -2518,7 +2519,7 @@ void NWidgetLeaf::Draw(const Window *w)
 	if (this->index >= 0) w->DrawWidget(r, this->index);
 
 	if (this->IsDisabled()) {
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
+		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, GetColourGradient(this->colour)[2], FILLRECT_CHECKER);
 	}
 
 	_cur_dpi = old_dpi;

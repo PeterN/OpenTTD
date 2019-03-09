@@ -338,7 +338,7 @@ void BuildOwnerLegend()
 	int i = NUM_NO_COMPANY_ENTRIES;
 	const Company *c;
 	FOR_ALL_COMPANIES(c) {
-		_legend_land_owners[i].colour = _colour_gradient[c->colour][5];
+		_legend_land_owners[i].colour = GetColourGradient((Colours)c->colour)[5];
 		_legend_land_owners[i].company = c->index;
 		_legend_land_owners[i].show_on_map = true;
 		_legend_land_owners[i].col_break = false;

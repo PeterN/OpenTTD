@@ -941,7 +941,7 @@ uint BaseSettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int
 
 	int x = rtl ? right : left;
 	if (cur_row >= first_row) {
-		int colour = _colour_gradient[COLOUR_ORANGE][4];
+		int colour = GetColourGradient(COLOUR_ORANGE)[4];
 		y += (cur_row - first_row) * SETTING_HEIGHT; // Compute correct y start position
 
 		/* Draw vertical for parent nesting levels */
@@ -2428,7 +2428,7 @@ void ShowGameSettings()
  */
 void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clickable_left, bool clickable_right)
 {
-	int colour = _colour_gradient[button_colour][2];
+	int colour = GetColourGradient(button_colour)[2];
 	Dimension dim = NWidgetScrollbar::GetHorizontalDimension();
 
 	DrawFrameRect(x,             y, x + dim.width - 1,             y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
@@ -2456,7 +2456,7 @@ void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clic
  */
 void DrawDropDownButton(int x, int y, Colours button_colour, bool state, bool clickable)
 {
-	int colour = _colour_gradient[button_colour][2];
+	int colour = GetColourGradient(button_colour)[2];
 
 	DrawFrameRect(x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, button_colour, state ? FR_LOWERED : FR_NONE);
 	DrawSprite(SPR_ARROW_DOWN, PAL_NONE, x + (SETTING_BUTTON_WIDTH - NWidgetScrollbar::GetVerticalDimension().width) / 2 + state, y + 2 + state);

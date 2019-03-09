@@ -56,7 +56,7 @@ DrawPixelInfo *_cur_dpi;
  * All 16 colour gradients
  * 8 colours per gradient from darkest (0) to lightest (7)
  */
-static byte _colour_gradient[COLOUR_END][8];
+byte _colour_gradient[COLOUR_END][8];
 
 const byte *GetColourGradient(Colours colour)
 {

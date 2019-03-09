@@ -24,8 +24,8 @@
 
 void DropDownListItem::Draw(int left, int right, int top, int bottom, bool sel, Colours bg_colour) const
 {
-	int c1 = _colour_gradient[bg_colour][3];
-	int c2 = _colour_gradient[bg_colour][7];
+	int c1 = GetColourGradient(bg_colour)[3];
+	int c2 = GetColourGradient(bg_colour)[7];
 
 	int mid = top + this->Height(0) / 2;
 	GfxFillRect(left + 1, mid - 2, right - 1, mid - 2, c1);
@@ -239,7 +239,7 @@ struct DropdownWindow : Window {
 				item->Draw(r.left, r.right, y, y + item_height, selected, colour);
 
 				if (item->masked) {
-					GfxFillRect(r.left + 1, y, r.right - 1, y + item_height - 1, _colour_gradient[colour][5], FILLRECT_CHECKER);
+					GfxFillRect(r.left + 1, y, r.right - 1, y + item_height - 1, GetColourGradient(colour)[5], FILLRECT_CHECKER);
 				}
 			}
 			y += item_height;
