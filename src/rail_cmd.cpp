@@ -71,7 +71,7 @@ void ResetRailTypes()
 	for (; i < lengthof(_original_railtypes); i++) _railtypes[i] = _original_railtypes[i];
 
 	static const RailtypeInfo empty_railtype = {
-		{0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,{}},
 		{0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0},
@@ -2285,23 +2285,31 @@ static void DrawTrackBits(TileInfo *ti, TrackBits track)
 			image = _track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.track_y;
 		} else {
 			/* track on flat ground */
-			(image = rti->base_sprites.track_y, track == TRACK_BIT_Y) ||
-			(image++,                           track == TRACK_BIT_X) ||
-			(image++,                           track == TRACK_BIT_UPPER) ||
-			(image++,                           track == TRACK_BIT_LOWER) ||
-			(image++,                           track == TRACK_BIT_RIGHT) ||
-			(image++,                           track == TRACK_BIT_LEFT) ||
-			(image++,                           track == TRACK_BIT_CROSS) ||
+			switch (track) {
+				/* Single track bits have specific ground sprites */
+				case TRACK_BIT_Y:     image = rti->base_sprites.track_y;     break;
+				case TRACK_BIT_X:     image = rti->base_sprites.track_x;     break;
+				case TRACK_BIT_UPPER: image = rti->base_sprites.track_upper; break;
+				case TRACK_BIT_LOWER: image = rti->base_sprites.track_lower; break;
+				case TRACK_BIT_RIGHT: image = rti->base_sprites.track_right; break;
+				case TRACK_BIT_LEFT:  image = rti->base_sprites.track_left;  break;
 
-			(image = rti->base_sprites.track_ns, track == TRACK_BIT_HORZ) ||
-			(image++,                            track == TRACK_BIT_VERT) ||
+				/* Perpendicular and parallel tracks also have specific ground sprites */
+				case TRACK_BIT_CROSS: image = rti->base_sprites.track_cross; break;
+				case TRACK_BIT_HORZ:  image = rti->base_sprites.track_horz;  break;
+				case TRACK_BIT_VERT:  image = rti->base_sprites.track_vert;  break;
 
-			(junction = true, false) ||
-			(image = rti->base_sprites.ground, (track & TRACK_BIT_3WAY_NE) == 0) ||
-			(image++,                          (track & TRACK_BIT_3WAY_SW) == 0) ||
-			(image++,                          (track & TRACK_BIT_3WAY_NW) == 0) ||
-			(image++,                          (track & TRACK_BIT_3WAY_SE) == 0) ||
-			(image++, true);
+				default:
+					/* Remaining track bit combinations are drawn as a ground sprite
+					 * with track bits overlaid. */
+					junction = true;
+					if ((track & TRACK_BIT_3WAY_NE) == 0) { image = rti->base_sprites.ground_3way_ne; break; }
+					if ((track & TRACK_BIT_3WAY_SW) == 0) { image = rti->base_sprites.ground_3way_sw; break; }
+					if ((track & TRACK_BIT_3WAY_NW) == 0) { image = rti->base_sprites.ground_3way_nw; break; }
+					if ((track & TRACK_BIT_3WAY_SE) == 0) { image = rti->base_sprites.ground_3way_se; break; }
+					image = rti->base_sprites.ground_4way;
+					break;
+			}
 		}
 
 		switch (rgt) {

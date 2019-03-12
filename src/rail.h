@@ -130,18 +130,29 @@ public:
 	 *  the ones used directly in the code
 	 */
 	struct {
-		SpriteID track_y;      ///< single piece of rail in Y direction, with ground
-		SpriteID track_ns;     ///< two pieces of rail in North and South corner (East-West direction)
-		SpriteID ground;       ///< ground sprite for a 3-way switch
-		SpriteID single_x;     ///< single piece of rail in X direction, without ground
-		SpriteID single_y;     ///< single piece of rail in Y direction, without ground
-		SpriteID single_n;     ///< single piece of rail in the northern corner
-		SpriteID single_s;     ///< single piece of rail in the southern corner
-		SpriteID single_e;     ///< single piece of rail in the eastern corner
-		SpriteID single_w;     ///< single piece of rail in the western corner
-		SpriteID single_sloped;///< single piece of rail for slopes
-		SpriteID crossing;     ///< level crossing, rail in X direction
-		SpriteID tunnel;       ///< tunnel sprites base
+		SpriteID track_y;        ///< single piece of rail in Y direction, with ground
+		SpriteID track_x;        ///< single piece of rail in X direciton, with ground
+		SpriteID track_upper;    ///< horizontal rail, upper side, with ground
+		SpriteID track_lower;    ///< horizontal rail, lower side, with ground
+		SpriteID track_right;    ///< vertical rail, right side, with ground
+		SpriteID track_left;     ///< vertical rail, left side, with ground
+		SpriteID track_cross;    ///< two pieces of rail, X and Y direction, with ground
+		SpriteID track_horz;     ///< two pieces of rail in North and South corners (East-West direction)
+		SpriteID track_vert;     ///< two pieces of rail in West and East corners (North-South direction)
+		SpriteID ground_3way_ne; ///< ground sprite for a 3-way switch, NE arrow
+		SpriteID ground_3way_sw; ///< ground sprite for a 3-way switch, SW arrow
+		SpriteID ground_3way_nw; ///< ground sprite for a 3-way switch, NW arrow
+		SpriteID ground_3way_se; ///< ground sprite for a 3-way switch, SE arrow
+		SpriteID ground_4way;    ///< ground sprite for a 4-way+ switch
+		SpriteID single_x;       ///< single piece of rail in X direction, without ground
+		SpriteID single_y;       ///< single piece of rail in Y direction, without ground
+		SpriteID single_n;       ///< single piece of rail in the northern corner
+		SpriteID single_s;       ///< single piece of rail in the southern corner
+		SpriteID single_e;       ///< single piece of rail in the eastern corner
+		SpriteID single_w;       ///< single piece of rail in the western corner
+		SpriteID single_sloped;  ///< single piece of rail for slopes
+		SpriteID crossing;       ///< level crossing, rail in X direction
+		SpriteID tunnel;         ///< tunnel sprites base
 	} base_sprites;
 
 	/**
