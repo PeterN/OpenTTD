@@ -163,6 +163,9 @@ Station::~Station()
 
 	CargoPacket::InvalidateAllFrom(this->index);
 
+	extern bool _afterloadgame;
+	if (_afterloadgame) return;
+
 	_station_kdtree.Remove(this->index);
 	_viewport_sign_kdtree.Remove(ViewportSignKdtreeItem::MakeStation(this->index));
 }

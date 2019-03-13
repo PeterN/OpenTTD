@@ -67,6 +67,8 @@
 
 extern Company *DoStartupNewCompany(bool is_ai, CompanyID company = INVALID_COMPANY);
 
+bool _afterloadgame;
+
 /**
  * Makes a tile canal or water depending on the surroundings.
  *
@@ -222,7 +224,7 @@ void UpdateAllVirtCoords()
 	UpdateAllStationVirtCoords();
 	UpdateAllSignVirtCoords();
 	UpdateAllTownVirtCoords();
-	RebuildViewportKdtree();
+	if (!_afterloadgame) RebuildViewportKdtree();
 }
 
 /**
@@ -525,6 +527,8 @@ static inline bool MayHaveBridgeAbove(TileIndex t)
  */
 bool AfterLoadGame()
 {
+	_afterloadgame = true;
+
 	SetSignalHandlers();
 
 	TileIndex map_size = MapSize();
@@ -538,12 +542,6 @@ bool AfterLoadGame()
 	GamelogTestRevision();
 	GamelogTestMode();
 
-	RebuildTownKdtree();
-	RebuildStationKdtree();
-	/* This needs to be done even before conversion, because some conversions will destroy objects
-	 * that otherwise won't exist in the tree. */
-	RebuildViewportKdtree();
-
 	if (IsSavegameVersionBefore(SLV_98)) GamelogGRFAddList(_grfconfig);
 
 	if (IsSavegameVersionBefore(SLV_119)) {
@@ -553,6 +551,7 @@ bool AfterLoadGame()
 		DEBUG(net, 0, "  The savegame cannot be used for multiplayer!");
 		/* Restore the signals */
 		ResetSignalHandlers();
+		_afterloadgame = false;
 		return false;
 	} else if (!_networking || _network_server) {
 		/* If we are in single player, i.e. not networking, and loading the
@@ -688,6 +687,7 @@ bool AfterLoadGame()
 		SetSaveLoadError(STR_NETWORK_ERROR_CLIENT_NEWGRF_MISMATCH);
 		/* Restore the signals */
 		ResetSignalHandlers();
+		_afterloadgame = false;
 		return false;
 	}
 
@@ -796,6 +796,7 @@ bool AfterLoadGame()
 		SetSaveLoadError(STR_ERROR_NO_TOWN_IN_SCENARIO);
 		/* Restore the signals */
 		ResetSignalHandlers();
+		_afterloadgame = false;
 		return false;
 	}
 
@@ -869,6 +870,7 @@ bool AfterLoadGame()
 					} else {
 						/* Restore the signals */
 						ResetSignalHandlers();
+						_afterloadgame = false;
 						return false;
 					}
 					SB(_me[t].m6, 3, 3, st);
@@ -3131,6 +3133,14 @@ bool AfterLoadGame()
 	InitializeWindowsAndCaches();
 	/* Restore the signals */
 	ResetSignalHandlers();
+
+	_afterloadgame = false;
+
+	RebuildTownKdtree();
+	RebuildStationKdtree();
+	/* This needs to be done even before conversion, because some conversions will destroy objects
+	 * that otherwise won't exist in the tree. */
+	RebuildViewportKdtree();
 
 	AfterLoadLinkGraphs();
 	return true;

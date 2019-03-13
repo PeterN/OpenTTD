@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <limits>
 
+extern bool _afterloadgame;
+
 /**
  * K-dimensional tree, specialised for 2-dimensional space.
  * This is not intended as a primary storage of data, but as an index into existing data.
@@ -351,7 +353,10 @@ class Kdtree {
 
 public:
 	/** Construct a new Kdtree with the given xyfunc */
-	Kdtree(TxyFunc xyfunc) : root(INVALID_NODE), xyfunc(xyfunc), unbalanced(0) { }
+	Kdtree(TxyFunc xyfunc) : root(INVALID_NODE), xyfunc(xyfunc), unbalanced(0)
+	{
+		assert(!_afterloadgame);
+	}
 
 	/**
 	 * Clear and rebuild the tree from a new sequence of elements,
@@ -362,6 +367,7 @@ public:
 	template <typename It>
 	void Build(It begin, It end)
 	{
+		assert(!_afterloadgame);
 		this->nodes.clear();
 		this->free_list.clear();
 		this->unbalanced = 0;
@@ -377,6 +383,7 @@ public:
 	 */
 	void Rebuild()
 	{
+		assert(!_afterloadgame);
 		this->Rebuild(NULL, NULL);
 	}
 
@@ -387,6 +394,7 @@ public:
 	 */
 	void Insert(const T &element)
 	{
+		assert(!_afterloadgame);
 		if (this->Count() == 0) {
 			this->root = this->AddNode(element);
 		} else {
@@ -406,6 +414,7 @@ public:
 	 */
 	void Remove(const T &element)
 	{
+		assert(!_afterloadgame);
 		size_t count = this->Count();
 		if (count == 0) return;
 		if (!this->IsUnbalanced() || !this->Rebuild(NULL, &element)) {
@@ -419,6 +428,7 @@ public:
 	/** Get number of elements stored in tree */
 	size_t Count() const
 	{
+		assert(!_afterloadgame);
 		assert(this->free_list.size() <= this->nodes.size());
 		return this->nodes.size() - this->free_list.size();
 	}
@@ -430,6 +440,7 @@ public:
 	 */
 	T FindNearest(CoordT x, CoordT y) const
 	{
+		assert(!_afterloadgame);
 		assert(this->Count() > 0);
 
 		CoordT xy[2] = { x, y };
@@ -448,6 +459,7 @@ public:
 	template <typename Outputter>
 	void FindContained(CoordT x1, CoordT y1, CoordT x2, CoordT y2, Outputter outputter) const
 	{
+		assert(!_afterloadgame);
 		assert(x1 < x2);
 		assert(y1 < y2);
 
@@ -464,6 +476,7 @@ public:
 	 */
 	std::vector<T> FindContained(CoordT x1, CoordT y1, CoordT x2, CoordT y2) const
 	{
+		assert(!_afterloadgame);
 		std::vector<T> result;
 		this->FindContained(x1, y1, x2, y2, [&result](T e) {result.push_back(e); });
 		return result;

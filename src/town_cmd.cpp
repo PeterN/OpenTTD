@@ -3405,8 +3405,36 @@ CommandCost CheckIfAuthorityAllowsNewStation(TileIndex tile, DoCommandFlag flags
  *
  * @note This function only uses distance, the #ClosestTownFromTile function also takes town ownership into account.
  */
+static Town *OldCalcClosestTownFromTile(TileIndex tile, uint threshold = UINT_MAX)
+{
+	Town *t;
+	uint best = threshold;
+	Town *best_town = NULL;
+
+	FOR_ALL_TOWNS(t) {
+		uint dist = DistanceManhattan(tile, t->xy);
+		if (dist < best) {
+			best = dist;
+			best_town = t;
+		}
+	}
+
+	return best_town;
+}
+
+/**
+ * Return the town closest to the given tile within \a threshold.
+ * @param tile      Starting point of the search.
+ * @param threshold Biggest allowed distance to the town.
+ * @return Closest town to \a tile within \a threshold, or \c NULL if there is no such town.
+ *
+ * @note This function only uses distance, the #ClosestTownFromTile function also takes town ownership into account.
+ */
 Town *CalcClosestTownFromTile(TileIndex tile, uint threshold)
 {
+	extern bool _afterloadgame;
+	if (_afterloadgame) return OldCalcClosestTownFromTile(tile, threshold);
+
 	if (Town::GetNumItems() == 0) return NULL;
 
 	TownID tid = _town_kdtree.FindNearest(TileX(tile), TileY(tile));

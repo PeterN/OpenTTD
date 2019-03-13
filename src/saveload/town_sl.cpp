@@ -28,7 +28,9 @@ void RebuildTownCaches()
 {
 	Town *town;
 	InitializeBuildingCounts();
-	RebuildTownKdtree();
+
+	extern bool _afterloadgame;
+	if (!_afterloadgame) RebuildTownKdtree();
 
 	/* Reset town population and num_houses */
 	FOR_ALL_TOWNS(town) {
