@@ -2412,6 +2412,9 @@ STR_BRIDGE_NAME_CONCRETE                                        :Concrete
 STR_BRIDGE_NAME_TUBULAR_STEEL                                   :Tubular, Steel
 STR_BRIDGE_TUBULAR_SILICON                                      :Tubular, Silicon
 
+STR_SELECT_RAIL_TUNNEL_CAPTION                                  :{WHITE}Select Rail Tunnel
+STR_SELECT_TUNNEL_SELECTION_TOOLTIP                             :{BLACK}Tunnel selection - click on your preferred tunnel to build it
+
 
 # Road construction toolbar
 STR_ROAD_TOOLBAR_ROAD_CONSTRUCTION_CAPTION                      :{WHITE}Road Construction

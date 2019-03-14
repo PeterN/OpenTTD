@@ -506,6 +506,7 @@ town_gui.cpp
 train_gui.cpp
 transparency_gui.cpp
 tree_gui.cpp
+tunnel_gui.cpp
 vehicle_gui.cpp
 viewport_gui.cpp
 waypoint_gui.cpp
@@ -566,6 +567,7 @@ widgets/toolbar_widget.h
 widgets/town_widget.h
 widgets/transparency_widget.h
 widgets/tree_widget.h
+widgets/tunnel_widget.h
 widgets/vehicle_widget.h
 widgets/viewport_widget.h
 widgets/waypoint_widget.h

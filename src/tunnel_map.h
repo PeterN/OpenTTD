@@ -41,6 +41,18 @@ TileIndex GetOtherTunnelEnd(TileIndex);
 bool IsTunnelInWay(TileIndex, int z);
 bool IsTunnelInWayDir(TileIndex tile, int z, DiagDirection dir);
 
+static inline uint8 GetTunnelVariant(TileIndex t)
+{
+	assert(IsTunnelTile(t));
+	return GB(_m[t].m3, 0, 4);
+}
+
+static inline void SetTunnelVariant(TileIndex t, uint8 variant)
+{
+	assert(IsTunnelTile(t));
+	SB(_m[t].m3, 0, 4, variant);
+}
+
 /**
  * Makes a road tunnel entrance
  * @param t the entrance of the tunnel

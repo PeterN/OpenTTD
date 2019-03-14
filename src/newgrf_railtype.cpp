@@ -52,6 +52,7 @@
 			}
 			return t != NULL ? GetTownRadiusGroup(t, this->tile) : HZB_TOWN_EDGE;
 		}
+		case 0x45: return IsTunnelTile(this->tile) ? GetTunnelVariant(this->tile) : 0;
 	}
 
 	DEBUG(grf, 1, "Unhandled rail type tile variable 0x%X", variable);
@@ -73,11 +74,12 @@
  * @param tile %Tile containing the track. For track on a bridge this is the southern bridgehead.
  * @param context Are we resolving sprites for the upper halftile, or on a bridge?
  * @param rtsg Railpart of interest
- * @param param1 Extra parameter (first parameter of the callback, except railtypes do not have callbacks).
- * @param param2 Extra parameter (second parameter of the callback, except railtypes do not have callbacks).
+ * @param callback Callback to evaluate.
+ * @param param1 Extra parameter (first parameter of the callback).
+ * @param param2 Extra parameter (second parameter of the callback).
  */
-RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg, uint32 param1, uint32 param2)
-	: ResolverObject(rti != NULL ? rti->grffile[rtsg] : NULL, CBID_NO_CALLBACK, param1, param2), railtype_scope(*this, tile, context)
+RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg, CallbackID callback, uint32 param1, uint32 param2)
+	: ResolverObject(rti != NULL ? rti->grffile[rtsg] : NULL, callback, param1, param2), railtype_scope(*this, tile, context)
 {
 	this->root_spritegroup = rti != NULL ? rti->group[rtsg] : NULL;
 }
@@ -91,13 +93,13 @@ RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileInde
  * @param[out] num_results If not NULL, return the number of sprites in the spriteset.
  * @return The sprite to draw.
  */
-SpriteID GetCustomRailSprite(const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context, uint *num_results)
+SpriteID GetCustomRailSprite(const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context, uint *num_results, uint32 param1, uint32 param2)
 {
 	assert(rtsg < RTSG_END);
 
 	if (rti->group[rtsg] == NULL) return 0;
 
-	RailTypeResolverObject object(rti, tile, context, rtsg);
+	RailTypeResolverObject object(rti, tile, context, rtsg, CBID_NO_CALLBACK, param1, param2);
 	const SpriteGroup *group = object.Resolve();
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
@@ -122,13 +124,30 @@ SpriteID GetCustomSignalSprite(const RailtypeInfo *rti, TileIndex tile, SignalTy
 
 	uint32 param1 = gui ? 0x10 : 0x00;
 	uint32 param2 = (type << 16) | (var << 8) | state;
-	RailTypeResolverObject object(rti, tile, TCX_NORMAL, RTSG_SIGNALS, param1, param2);
+	RailTypeResolverObject object(rti, tile, TCX_NORMAL, RTSG_SIGNALS, CBID_NO_CALLBACK, param1, param2);
 
 	const SpriteGroup *group = object.Resolve();
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
 	return group->GetResult();
 }
+
+/**
+ * Evaluate a newgrf callback for railtypes.
+ * @param callback The callback to evaluate
+ * @param param1   First parameter of the callback
+ * @param param2   Second parameter of the callback
+ * @param rti      Rail type info to evaluate the callback for
+ * @param tile     Tile to evaluate the callback for.
+ * @param rtsg     Railpart of interest.
+ * @return The value the callback returned, or CALLBACK_FAILED if it failed
+ */
+uint16 GetRailTypeCallback(CallbackID callback, uint32 param1, uint32 param2, const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg)
+{
+	RailTypeResolverObject object(rti, tile, TCX_NORMAL, rtsg, callback, param1, param2);
+	return object.ResolveCallback();
+}
+
 
 /**
  * Perform a reverse railtype lookup to get the GRF internal ID.

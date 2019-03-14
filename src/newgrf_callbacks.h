@@ -281,6 +281,9 @@ enum CallbackID {
 
 	/** Called to spawn visual effects for vehicles. */
 	CBID_VEHICLE_SPAWN_VISUAL_EFFECT     = 0x160, // 15 bit callback
+
+	/** Called to determine which tunnel variants are available (currently rail types only.) */
+	CBID_TUNNEL_AVAILABLE_VARIANTS       = 0x161, // 15 bit callback
 };
 
 /**

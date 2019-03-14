@@ -668,9 +668,12 @@ struct BuildRailToolbarWindow : Window {
 				PlaceRail_Bridge(tile, this);
 				break;
 
-			case WID_RAT_BUILD_TUNNEL:
-				DoCommandP(tile, _cur_railtype | (TRANSPORT_RAIL << 8), 0, CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE), CcBuildRailTunnel);
+			case WID_RAT_BUILD_TUNNEL: {
+				extern void ShowBuildTunnelWindow(TileIndex start, TileIndex end, TransportType transport_type, byte road_rail_type);
+				ShowBuildTunnelWindow(tile, INVALID_TILE, TRANSPORT_RAIL, _cur_railtype);
+//				DoCommandP(tile, _cur_railtype | (TRANSPORT_RAIL << 8), 0, CMD_BUILD_TUNNEL | CMD_MSG(STR_ERROR_CAN_T_BUILD_TUNNEL_HERE), CcBuildRailTunnel);
 				break;
+			}
 
 			case WID_RAT_CONVERT_RAIL:
 				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_CONVERT_RAIL);

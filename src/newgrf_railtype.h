@@ -15,11 +15,12 @@
 #include "rail.h"
 #include "newgrf_commons.h"
 #include "newgrf_spritegroup.h"
+#include "tunnel_map.h"
 
 /** Resolver for the railtype scope. */
 struct RailTypeScopeResolver : public ScopeResolver {
-	TileIndex tile;      ///< Tracktile. For track on a bridge this is the southern bridgehead.
-	TileContext context; ///< Are we resolving sprites for the upper halftile, or on a bridge?
+	TileIndex tile;       ///< Tracktile. For track on a bridge this is the southern bridgehead.
+	TileContext context;  ///< Are we resolving sprites for the upper halftile, or on a bridge?
 
 	/**
 	 * Constructor of the railtype scope resolvers.
@@ -40,7 +41,7 @@ struct RailTypeScopeResolver : public ScopeResolver {
 struct RailTypeResolverObject : public ResolverObject {
 	RailTypeScopeResolver railtype_scope; ///< Resolver for the railtype scope.
 
-	RailTypeResolverObject(const RailtypeInfo *rti, TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg, uint32 param1 = 0, uint32 param2 = 0);
+	RailTypeResolverObject(const RailtypeInfo *rti, TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg, CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0);
 
 	/* virtual */ ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0)
 	{
@@ -53,8 +54,10 @@ struct RailTypeResolverObject : public ResolverObject {
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
 };
 
-SpriteID GetCustomRailSprite(const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context = TCX_NORMAL, uint *num_results = NULL);
+SpriteID GetCustomRailSprite(const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context = TCX_NORMAL, uint *num_results = NULL, uint32 param1 = 0, uint32 param2 = 0);
 SpriteID GetCustomSignalSprite(const RailtypeInfo *rti, TileIndex tile, SignalType type, SignalVariant var, SignalState state, bool gui = false);
+
+uint16 GetRailTypeCallback(CallbackID callback, uint32 param1, uint32 param2, const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg);
 
 uint8 GetReverseRailTypeTranslation(RailType railtype, const GRFFile *grffile);
 

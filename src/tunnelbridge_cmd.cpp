@@ -564,6 +564,7 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
  * @param flags type of operation
  * @param p1 bit 0-5 railtype or roadtypes
  *           bit 8-9 transport type
+ *           bit 10-13 tunnel variant
  * @param p2 unused
  * @param text unused
  * @return the cost of this operation or an error
