@@ -21,6 +21,7 @@
 #include "table/sprites.h"
 #include "table/strings.h"
 #include "table/string_colours.h"
+#include "table/widget_distances.h"
 
 #include "safeguards.h"
 
@@ -181,26 +182,31 @@ void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, Fra
 	uint medium_light = _colour_gradient[colour][6];
 	uint light        = _colour_gradient[colour][7];
 
+	/* Frame offset */
+	int o = ScaleGUITrad(1);
+	/* Frame thickness */
+	int t = o - 1;
+
 	if (flags & FR_TRANSPARENT) {
 		GfxFillRect(left, top, right, bottom, PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR);
 	} else {
 		uint interior;
 
 		if (flags & FR_LOWERED) {
-			GfxFillRect(left,                 top,                left,                   bottom,                   dark);
-			GfxFillRect(left + WD_BEVEL_LEFT, top,                right,                  top,                      dark);
-			GfxFillRect(right,                top + WD_BEVEL_TOP, right,                  bottom - WD_BEVEL_BOTTOM, light);
-			GfxFillRect(left + WD_BEVEL_LEFT, bottom,             right,                  bottom,                   light);
+			GfxFillRect(left,      top,        left + t,  bottom,     dark);
+			GfxFillRect(left  + o, top,        right,     top + t,    dark);
+			GfxFillRect(right - t, top + o,    right,     bottom - o, light);
+			GfxFillRect(left  + o, bottom - t, right,     bottom,     light);
 			interior = (flags & FR_DARKENED ? medium_dark : medium_light);
 		} else {
-			GfxFillRect(left,                 top,                left,                   bottom - WD_BEVEL_BOTTOM, light);
-			GfxFillRect(left + WD_BEVEL_LEFT, top,                right - WD_BEVEL_RIGHT, top,                      light);
-			GfxFillRect(right,                top,                right,                  bottom - WD_BEVEL_BOTTOM, dark);
-			GfxFillRect(left,                 bottom,             right,                  bottom,                   dark);
+			GfxFillRect(left,      top,        left + t,  bottom - o, light);
+			GfxFillRect(left  + o, top,        right - o, top + t,    light);
+			GfxFillRect(right - t, top,        right,     bottom - o, dark);
+			GfxFillRect(left,      bottom - t, right,     bottom,     dark);
 			interior = medium_dark;
 		}
 		if (!(flags & FR_BORDERONLY)) {
-			GfxFillRect(left + WD_BEVEL_LEFT, top + WD_BEVEL_TOP, right - WD_BEVEL_RIGHT, bottom - WD_BEVEL_BOTTOM, interior);
+			GfxFillRect(left + o,  top + o,    right - o, bottom - o, interior);
 		}
 	}
 }
@@ -277,6 +283,9 @@ static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint1
 {
 	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
 
+	/* Frame offset */
+	int t = ScaleGUITrad(1);
+
 	int num_columns = GB(data, MAT_COL_START, MAT_COL_BITS);  // Lower 8 bits of the widget data: Number of columns in the matrix.
 	int column_width; // Width of a single column in the matrix.
 	if (num_columns == 0) {
@@ -300,27 +309,27 @@ static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint1
 	int x = r.left;
 	for (int ctr = num_columns; ctr > 1; ctr--) {
 		x += column_width;
-		GfxFillRect(x, r.top + 1, x, r.bottom - 1, col);
+		GfxFillRect(x, r.top + t, x, r.bottom - t, col);
 	}
 
 	x = r.top;
 	for (int ctr = num_rows; ctr > 1; ctr--) {
 		x += row_height;
-		GfxFillRect(r.left + 1, x, r.right - 1, x, col);
+		GfxFillRect(r.left + t, x, r.right - t, x, col);
 	}
 
 	col = _colour_gradient[colour & 0xF][4];
 
-	x = r.left - 1;
+	x = r.left - t;
 	for (int ctr = num_columns; ctr > 1; ctr--) {
 		x += column_width;
-		GfxFillRect(x, r.top + 1, x, r.bottom - 1, col);
+		GfxFillRect(x, r.top + t, x, r.bottom - t, col);
 	}
 
-	x = r.top - 1;
+	x = r.top - t;
 	for (int ctr = num_rows; ctr > 1; ctr--) {
 		x += row_height;
-		GfxFillRect(r.left + 1, x, r.right - 1, x, col);
+		GfxFillRect(r.left + t, x, r.right - t, x, col);
 	}
 }
 
@@ -352,11 +361,17 @@ static inline void DrawVerticalScrollbar(const Rect &r, Colours colour, bool up_
 	GfxFillRect(r.left, r.top + height, r.right, r.bottom - height, c2);
 	GfxFillRect(r.left, r.top + height, r.right, r.bottom - height, c1, FILLRECT_CHECKER);
 
+	/* Line thickness */
+	int t = ScaleGUITrad(1) - 1;
+	/* Line offset */
+	int o2 = ScaleGUITrad(2);
+	int o3 = ScaleGUITrad(3);
+
 	/* draw shaded lines */
-	GfxFillRect(r.left + centre - 3, r.top + height, r.left + centre - 3, r.bottom - height, c1);
-	GfxFillRect(r.left + centre - 2, r.top + height, r.left + centre - 2, r.bottom - height, c2);
-	GfxFillRect(r.left + centre + 2, r.top + height, r.left + centre + 2, r.bottom - height, c1);
-	GfxFillRect(r.left + centre + 3, r.top + height, r.left + centre + 3, r.bottom - height, c2);
+	GfxFillRect(r.left + centre - o3 - t, r.top + height, r.left + centre - o3, r.bottom - height, c1);
+	GfxFillRect(r.left + centre - o2 - t, r.top + height, r.left + centre - o2, r.bottom - height, c2);
+	GfxFillRect(r.left + centre + o2, r.top + height, r.left + centre + o2 + t, r.bottom - height, c1);
+	GfxFillRect(r.left + centre + o3, r.top + height, r.left + centre + o3 + t, r.bottom - height, c2);
 
 	Point pt = HandleScrollbarHittest(scrollbar, r.top, r.bottom, false);
 	DrawFrameRect(r.left, pt.x, r.right, pt.y, colour, bar_dragged ? FR_LOWERED : FR_NONE);
@@ -420,33 +435,36 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 	if (str != STR_NULL) dy1 = FONT_HEIGHT_NORMAL / 2 - 1;
 	int dy2 = dy1 + 1;
 
+	/* Frame offset */
+	int t = ScaleGUITrad(1);
+
 	if (_current_text_dir == TD_LTR) {
 		/* Line from upper left corner to start of text */
-		GfxFillRect(r.left, r.top + dy1, r.left + 4, r.top + dy1, c1);
-		GfxFillRect(r.left + 1, r.top + dy2, r.left + 4, r.top + dy2, c2);
+		GfxFillRect(r.left, r.top + dy1, r.left + t * 4, r.top + dy1, c1);
+		GfxFillRect(r.left + t, r.top + dy2, r.left + t * 4, r.top + dy2, c2);
 
 		/* Line from end of text to upper right corner */
-		GfxFillRect(x2, r.top + dy1, r.right - 1, r.top + dy1, c1);
-		GfxFillRect(x2, r.top + dy2, r.right - 2, r.top + dy2, c2);
+		GfxFillRect(x2, r.top + dy1, r.right - t, r.top + dy1, c1);
+		GfxFillRect(x2, r.top + dy2, r.right - t - t, r.top + dy2, c2);
 	} else {
 		/* Line from upper left corner to start of text */
-		GfxFillRect(r.left, r.top + dy1, x2 - 2, r.top + dy1, c1);
-		GfxFillRect(r.left + 1, r.top + dy2, x2 - 2, r.top + dy2, c2);
+		GfxFillRect(r.left, r.top + dy1, x2 - t - t, r.top + dy1, c1);
+		GfxFillRect(r.left + t, r.top + dy2, x2 - t - t, r.top + dy2, c2);
 
 		/* Line from end of text to upper right corner */
-		GfxFillRect(r.right - 5, r.top + dy1, r.right - 1, r.top + dy1, c1);
-		GfxFillRect(r.right - 5, r.top + dy2, r.right - 2, r.top + dy2, c2);
+		GfxFillRect(r.right - t * 5, r.top + dy1, r.right - t, r.top + dy1, c1);
+		GfxFillRect(r.right - t * 5, r.top + dy2, r.right - t - t, r.top + dy2, c2);
 	}
 
 	/* Line from upper left corner to bottom left corner */
-	GfxFillRect(r.left, r.top + dy2, r.left, r.bottom - 1, c1);
-	GfxFillRect(r.left + 1, r.top + dy2 + 1, r.left + 1, r.bottom - 2, c2);
+	GfxFillRect(r.left, r.top + dy2, r.left, r.bottom - t, c1);
+	GfxFillRect(r.left + t, r.top + dy2 + t, r.left + t, r.bottom - t - t, c2);
 
 	/* Line from upper right corner to bottom right corner */
-	GfxFillRect(r.right - 1, r.top + dy2, r.right - 1, r.bottom - 2, c1);
-	GfxFillRect(r.right, r.top + dy1, r.right, r.bottom - 1, c2);
+	GfxFillRect(r.right - t, r.top + dy2, r.right - t, r.bottom - t - t, c1);
+	GfxFillRect(r.right, r.top + dy1, r.right, r.bottom - t, c2);
 
-	GfxFillRect(r.left + 1, r.bottom - 1, r.right - 1, r.bottom - 1, c1);
+	GfxFillRect(r.left + t, r.bottom - t, r.right - t, r.bottom - t, c1);
 	GfxFillRect(r.left, r.bottom, r.right, r.bottom, c2);
 }
 
@@ -539,11 +557,14 @@ void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str)
 {
 	bool company_owned = owner < MAX_COMPANIES;
 
-	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, FR_BORDERONLY);
-	DrawFrameRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, colour, company_owned ? FR_LOWERED | FR_DARKENED | FR_BORDERONLY : FR_LOWERED | FR_DARKENED);
+	/* Frame offset */
+	int t = ScaleGUITrad(1);
+
+	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, FR_NONE);//, FR_BORDERONLY);
+	DrawFrameRect(r.left + t, r.top + t, r.right - t, r.bottom - t, colour, company_owned ? FR_LOWERED | FR_DARKENED | FR_BORDERONLY : FR_LOWERED | FR_DARKENED);
 
 	if (company_owned) {
-		GfxFillRect(r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, _colour_gradient[_company_colours[owner]][4]);
+		GfxFillRect(r.left + t + t, r.top + t + t, r.right - t - t, r.bottom - t - t, _colour_gradient[_company_colours[owner]][4]);
 	}
 
 	if (str != STR_NULL) {
@@ -618,12 +639,15 @@ void Window::DrawWidgets() const
 			int right  = left + widget->current_x - 1;
 			int bottom = top  + widget->current_y - 1;
 
+			/* Frame thickness */
+			int t = ScaleGUITrad(1) - 1;
+
 			int colour = _string_colourmap[_window_highlight_colour ? widget->GetHighlightColour() : TC_WHITE];
 
-			GfxFillRect(left,                 top,    left,                   bottom - WD_BEVEL_BOTTOM, colour);
-			GfxFillRect(left + WD_BEVEL_LEFT, top,    right - WD_BEVEL_RIGHT, top,                      colour);
-			GfxFillRect(right,                top,    right,                  bottom - WD_BEVEL_BOTTOM, colour);
-			GfxFillRect(left,                 bottom, right,                  bottom,                   colour);
+			GfxFillRect(left,                 top,        left + t,               bottom - WD_BEVEL_BOTTOM, colour);
+			GfxFillRect(left + WD_BEVEL_LEFT, top,        right - WD_BEVEL_RIGHT, top + t,                  colour);
+			GfxFillRect(right - t,            top,        right,                  bottom - WD_BEVEL_BOTTOM, colour);
+			GfxFillRect(left,                 bottom - t, right,                  bottom,                   colour);
 		}
 	}
 }

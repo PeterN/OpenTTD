@@ -873,7 +873,7 @@ Point QueryString::GetCaretPosition(const Window *w, int wid) const
 	int delta = std::min(0, (right - left) - tb->pixels - 10);
 	if (tb->caretxoffs + delta < 0) delta = -tb->caretxoffs;
 
-	Point pt = {left + WD_FRAMERECT_LEFT + tb->caretxoffs + delta, (int)wi->pos_y + WD_FRAMERECT_TOP};
+	Point pt = {left + (int)WD_FRAMERECT_LEFT + tb->caretxoffs + delta, (int)wi->pos_y + (int)WD_FRAMERECT_TOP};
 	return pt;
 }
 

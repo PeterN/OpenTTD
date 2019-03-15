@@ -468,12 +468,12 @@ public:
 							 * the space. */
 							if (rtl) {
 								x -= 20;
-								if (x < r.left + WD_FRAMERECT_LEFT) break;
+								if (x < r.left + (int)WD_FRAMERECT_LEFT) break;
 							}
 							StationsWndShowStationRating(x, x + 16, y, cid, st->goods[cid].cargo.TotalCount(), st->goods[cid].rating);
 							if (!rtl) {
 								x += 20;
-								if (x > r.right - WD_FRAMERECT_RIGHT) break;
+								if (x > r.right - (int)WD_FRAMERECT_RIGHT) break;
 							}
 						}
 					}

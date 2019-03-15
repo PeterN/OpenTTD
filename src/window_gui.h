@@ -18,6 +18,7 @@
 #include "core/smallvec_type.hpp"
 #include "core/smallmap_type.hpp"
 #include "string_type.h"
+#include "zoom_func.h"
 
 /**
  * Flags to describe the look of the frame
@@ -32,111 +33,222 @@ enum FrameFlags {
 
 DECLARE_ENUM_AS_BIT_SET(FrameFlags)
 
-/** Distances used in drawing widgets. */
 enum WidgetDrawDistances {
 	/* WWT_IMGBTN(_2) */
-	WD_IMGBTN_LEFT    = 1,      ///< Left offset of the image in the button.
-	WD_IMGBTN_RIGHT   = 2,      ///< Right offset of the image in the button.
-	WD_IMGBTN_TOP     = 1,      ///< Top offset of image in the button.
-	WD_IMGBTN_BOTTOM  = 2,      ///< Bottom offset of image in the button.
+	WDD_IMGBTN_LEFT,            ///< Left offset of the image in the button.
+	WDD_IMGBTN_RIGHT,           ///< Right offset of the image in the button.
+	WDD_IMGBTN_TOP,             ///< Top offset of image in the button.
+	WDD_IMGBTN_BOTTOM,          ///< Bottom offset of image in the button.
 
 	/* WWT_INSET */
-	WD_INSET_LEFT  = 2,         ///< Left offset of string.
-	WD_INSET_RIGHT = 2,         ///< Right offset of string.
-	WD_INSET_TOP   = 1,         ///< Top offset of string.
+	WDD_INSET_LEFT,             ///< Left offset of string.
+	WDD_INSET_RIGHT,            ///< Right offset of string.
+	WDD_INSET_TOP,              ///< Top offset of string.
 
-	WD_SCROLLBAR_LEFT   = 2,    ///< Left offset of scrollbar.
-	WD_SCROLLBAR_RIGHT  = 2,    ///< Right offset of scrollbar.
-	WD_SCROLLBAR_TOP    = 2,    ///< Top offset of scrollbar.
-	WD_SCROLLBAR_BOTTOM = 2,    ///< Bottom offset of scrollbar.
+	WDD_SCROLLBAR_LEFT,         ///< Left offset of scrollbar.
+	WDD_SCROLLBAR_RIGHT,        ///< Right offset of scrollbar.
+	WDD_SCROLLBAR_TOP,          ///< Top offset of scrollbar.
+	WDD_SCROLLBAR_BOTTOM,       ///< Bottom offset of scrollbar.
 
 	/* Size of the pure frame bevel without any padding. */
-	WD_BEVEL_LEFT       = 1,    ///< Width of left bevel border.
-	WD_BEVEL_RIGHT      = 1,    ///< Width of right bevel border.
-	WD_BEVEL_TOP        = 1,    ///< Height of top bevel border.
-	WD_BEVEL_BOTTOM     = 1,    ///< Height of bottom bevel border.
+	WDD_BEVEL_LEFT,             ///< Width of left bevel border.
+	WDD_BEVEL_RIGHT,            ///< Width of right bevel border.
+	WDD_BEVEL_TOP,              ///< Height of top bevel border.
+	WDD_BEVEL_BOTTOM,           ///< Height of bottom bevel border.
 
 	/* FrameRect widgets, all text buttons, panel, editbox */
-	WD_FRAMERECT_LEFT   = 2,    ///< Offset at left to draw the frame rectangular area
-	WD_FRAMERECT_RIGHT  = 2,    ///< Offset at right to draw the frame rectangular area
-	WD_FRAMERECT_TOP    = 1,    ///< Offset at top to draw the frame rectangular area
-	WD_FRAMERECT_BOTTOM = 1,    ///< Offset at bottom to draw the frame rectangular area
+	WDD_FRAMERECT_LEFT,         ///< Offset at left to draw the frame rectangular area
+	WDD_FRAMERECT_RIGHT,        ///< Offset at right to draw the frame rectangular area
+	WDD_FRAMERECT_TOP,          ///< Offset at top to draw the frame rectangular area
+	WDD_FRAMERECT_BOTTOM,       ///< Offset at bottom to draw the frame rectangular area
 
 	/* Extra space at top/bottom of text panels */
-	WD_TEXTPANEL_TOP    = 6,    ///< Offset at top to draw above the text
-	WD_TEXTPANEL_BOTTOM = 6,    ///< Offset at bottom to draw below the text
+	WDD_TEXTPANEL_TOP,          ///< Offset at top to draw above the text
+	WDD_TEXTPANEL_BOTTOM,       ///< Offset at bottom to draw below the text
 
 	/* WWT_FRAME */
-	WD_FRAMETEXT_LEFT   = 6,    ///< Left offset of the text of the frame.
-	WD_FRAMETEXT_RIGHT  = 6,    ///< Right offset of the text of the frame.
-	WD_FRAMETEXT_TOP    = 6,    ///< Top offset of the text of the frame
-	WD_FRAMETEXT_BOTTOM = 6,    ///< Bottom offset of the text of the frame
+	WDD_FRAMETEXT_LEFT,         ///< Left offset of the text of the frame.
+	WDD_FRAMETEXT_RIGHT,        ///< Right offset of the text of the frame.
+	WDD_FRAMETEXT_TOP,          ///< Top offset of the text of the frame
+	WDD_FRAMETEXT_BOTTOM,       ///< Bottom offset of the text of the frame
 
 	/* WWT_MATRIX */
-	WD_MATRIX_LEFT   = 2,       ///< Offset at left of a matrix cell.
-	WD_MATRIX_RIGHT  = 2,       ///< Offset at right of a matrix cell.
-	WD_MATRIX_TOP    = 3,       ///< Offset at top of a matrix cell.
-	WD_MATRIX_BOTTOM = 1,       ///< Offset at bottom of a matrix cell.
+	WDD_MATRIX_LEFT,            ///< Offset at left of a matrix cell.
+	WDD_MATRIX_RIGHT,           ///< Offset at right of a matrix cell.
+	WDD_MATRIX_TOP,             ///< Offset at top of a matrix cell.
+	WDD_MATRIX_BOTTOM,          ///< Offset at bottom of a matrix cell.
 
 	/* WWT_SHADEBOX */
-	WD_SHADEBOX_WIDTH  = 12,    ///< Width of a standard shade box widget.
-	WD_SHADEBOX_LEFT   = 2,     ///< Left offset of shade sprite.
-	WD_SHADEBOX_RIGHT  = 2,     ///< Right offset of shade sprite.
-	WD_SHADEBOX_TOP    = 3,     ///< Top offset of shade sprite.
-	WD_SHADEBOX_BOTTOM = 3,     ///< Bottom offset of shade sprite.
+	WDD_SHADEBOX_WIDTH,         ///< Width of a standard shade box widget.
+	WDD_SHADEBOX_LEFT,          ///< Left offset of shade sprite.
+	WDD_SHADEBOX_RIGHT,         ///< Right offset of shade sprite.
+	WDD_SHADEBOX_TOP,           ///< Top offset of shade sprite.
+	WDD_SHADEBOX_BOTTOM,        ///< Bottom offset of shade sprite.
 
 	/* WWT_STICKYBOX */
-	WD_STICKYBOX_WIDTH  = 12,   ///< Width of a standard sticky box widget.
-	WD_STICKYBOX_LEFT   = 2,    ///< Left offset of sticky sprite.
-	WD_STICKYBOX_RIGHT  = 2,    ///< Right offset of sticky sprite.
-	WD_STICKYBOX_TOP    = 3,    ///< Top offset of sticky sprite.
-	WD_STICKYBOX_BOTTOM = 3,    ///< Bottom offset of sticky sprite.
+	WDD_STICKYBOX_WIDTH,        ///< Width of a standard sticky box widget.
+	WDD_STICKYBOX_LEFT,         ///< Left offset of sticky sprite.
+	WDD_STICKYBOX_RIGHT,        ///< Right offset of sticky sprite.
+	WDD_STICKYBOX_TOP,          ///< Top offset of sticky sprite.
+	WDD_STICKYBOX_BOTTOM,       ///< Bottom offset of sticky sprite.
 
 	/* WWT_DEBUGBOX */
-	WD_DEBUGBOX_WIDTH  = 12,    ///< Width of a standard debug box widget.
-	WD_DEBUGBOX_LEFT   = 2,     ///< Left offset of debug sprite.
-	WD_DEBUGBOX_RIGHT  = 2,     ///< Right offset of debug sprite.
-	WD_DEBUGBOX_TOP    = 3,     ///< Top offset of debug sprite.
-	WD_DEBUGBOX_BOTTOM = 3,     ///< Bottom offset of debug sprite.
+	WDD_DEBUGBOX_WIDTH,         ///< Width of a standard debug box widget.
+	WDD_DEBUGBOX_LEFT,          ///< Left offset of debug sprite.
+	WDD_DEBUGBOX_RIGHT,         ///< Right offset of debug sprite.
+	WDD_DEBUGBOX_TOP,           ///< Top offset of debug sprite.
+	WDD_DEBUGBOX_BOTTOM,        ///< Bottom offset of debug sprite.
 
 	/* WWT_DEFSIZEBOX */
-	WD_DEFSIZEBOX_WIDTH  = 12,  ///< Width of a standard defsize box widget.
-	WD_DEFSIZEBOX_LEFT   = 2,   ///< Left offset of defsize sprite.
-	WD_DEFSIZEBOX_RIGHT  = 2,   ///< Right offset of defsize sprite.
-	WD_DEFSIZEBOX_TOP    = 3,   ///< Top offset of defsize sprite.
-	WD_DEFSIZEBOX_BOTTOM = 3,   ///< Bottom offset of defsize sprite.
+	WDD_DEFSIZEBOX_WIDTH,       ///< Width of a standard defsize box widget.
+	WDD_DEFSIZEBOX_LEFT,        ///< Left offset of defsize sprite.
+	WDD_DEFSIZEBOX_RIGHT,       ///< Right offset of defsize sprite.
+	WDD_DEFSIZEBOX_TOP,         ///< Top offset of defsize sprite.
+	WDD_DEFSIZEBOX_BOTTOM,      ///< Bottom offset of defsize sprite.
 
 	/* WWT_RESIZEBOX */
-	WD_RESIZEBOX_WIDTH  = 12,   ///< Width of a resize box widget.
-	WD_RESIZEBOX_LEFT   = 3,    ///< Left offset of resize sprite.
-	WD_RESIZEBOX_RIGHT  = 2,    ///< Right offset of resize sprite.
-	WD_RESIZEBOX_TOP    = 3,    ///< Top offset of resize sprite.
-	WD_RESIZEBOX_BOTTOM = 2,    ///< Bottom offset of resize sprite.
+	WDD_RESIZEBOX_WIDTH,        ///< Width of a resize box widget.
+	WDD_RESIZEBOX_LEFT,         ///< Left offset of resize sprite.
+	WDD_RESIZEBOX_RIGHT,        ///< Right offset of resize sprite.
+	WDD_RESIZEBOX_TOP,          ///< Top offset of resize sprite.
+	WDD_RESIZEBOX_BOTTOM,       ///< Bottom offset of resize sprite.
 
 	/* WWT_CLOSEBOX */
-	WD_CLOSEBOX_WIDTH  = 11,    ///< Width of a close box widget.
-	WD_CLOSEBOX_LEFT   = 2,     ///< Left offset of closebox string.
-	WD_CLOSEBOX_RIGHT  = 1,     ///< Right offset of closebox string.
-	WD_CLOSEBOX_TOP    = 2,     ///< Top offset of closebox string.
-	WD_CLOSEBOX_BOTTOM = 2,     ///< Bottom offset of closebox string.
+	WDD_CLOSEBOX_WIDTH,         ///< Width of a close box widget.
+	WDD_CLOSEBOX_LEFT,          ///< Left offset of closebox string.
+	WDD_CLOSEBOX_RIGHT,         ///< Right offset of closebox string.
+	WDD_CLOSEBOX_TOP,           ///< Top offset of closebox string.
+	WDD_CLOSEBOX_BOTTOM,        ///< Bottom offset of closebox string.
 
 	/* WWT_CAPTION */
-	WD_CAPTION_HEIGHT     = 14, ///< Height of a title bar.
-	WD_CAPTIONTEXT_LEFT   = 2,  ///< Offset of the caption text at the left.
-	WD_CAPTIONTEXT_RIGHT  = 2,  ///< Offset of the caption text at the right.
-	WD_CAPTIONTEXT_TOP    = 2,  ///< Offset of the caption text at the top.
-	WD_CAPTIONTEXT_BOTTOM = 2,  ///< Offset of the caption text at the bottom.
+	WDD_CAPTION_HEIGHT,         ///< Height of a title bar.
+	WDD_CAPTIONTEXT_LEFT,       ///< Offset of the caption text at the left.
+	WDD_CAPTIONTEXT_RIGHT,      ///< Offset of the caption text at the right.
+	WDD_CAPTIONTEXT_TOP,        ///< Offset of the caption text at the top.
+	WDD_CAPTIONTEXT_BOTTOM,     ///< Offset of the caption text at the bottom.
 
 	/* Dropdown widget. */
-	WD_DROPDOWN_HEIGHT     = 12, ///< Height of a drop down widget.
-	WD_DROPDOWNTEXT_LEFT   = 2,  ///< Left offset of the dropdown widget string.
-	WD_DROPDOWNTEXT_RIGHT  = 2,  ///< Right offset of the dropdown widget string.
-	WD_DROPDOWNTEXT_TOP    = 1,  ///< Top offset of the dropdown widget string.
-	WD_DROPDOWNTEXT_BOTTOM = 1,  ///< Bottom offset of the dropdown widget string.
+	WDD_DROPDOWN_HEIGHT,        ///< Height of a drop down widget.
+	WDD_DROPDOWNTEXT_LEFT,      ///< Left offset of the dropdown widget string.
+	WDD_DROPDOWNTEXT_RIGHT,     ///< Right offset of the dropdown widget string.
+	WDD_DROPDOWNTEXT_TOP,       ///< Top offset of the dropdown widget string.
+	WDD_DROPDOWNTEXT_BOTTOM,    ///< Bottom offset of the dropdown widget string.
 
-	WD_PAR_VSEP_NORMAL = 2,      ///< Normal amount of vertical space between two paragraphs of text.
-	WD_PAR_VSEP_WIDE   = 8,      ///< Large amount of vertical space between two paragraphs of text.
+	WDD_PAR_VSEP_NORMAL,        ///< Normal amount of vertical space between two paragraphs of text.
+	WDD_PAR_VSEP_WIDE,          ///< Large amount of vertical space between two paragraphs of text.
+
+	WDD_END
 };
+
+extern const byte _widget_distances[WDD_END];
+
+#define WD(x) (ScaleGUITrad(_widget_distances[(x)]))
+//#define WD(x) ((uint)_widget_distances[(x)])
+
+/** Distances used in drawing widgets. */
+
+	/* WWT_IMGBTN(_2) */
+#define WD_IMGBTN_LEFT    WD(WDD_IMGBTN_LEFT)       ///< Left offset of the image in the button.
+#define WD_IMGBTN_RIGHT   WD(WDD_IMGBTN_RIGHT)      ///< Right offset of the image in the button.
+#define WD_IMGBTN_TOP     WD(WDD_IMGBTN_TOP)        ///< Top offset of image in the button.
+#define WD_IMGBTN_BOTTOM  WD(WDD_IMGBTN_BOTTOM)     ///< Bottom offset of image in the button.
+
+	/* WWT_INSET */
+#define WD_INSET_LEFT   WD(WDD_INSET_LEFT)          ///< Left offset of string.
+#define WD_INSET_RIGHT  WD(WDD_INSET_RIGHT)         ///< Right offset of string.
+#define WD_INSET_TOP    WD(WDD_INSET_TOP)           ///< Top offset of string.
+
+#define WD_SCROLLBAR_LEFT    WD(WDD_SCROLLBAR_LEFT)       ///< Left offset of scrollbar.
+#define WD_SCROLLBAR_RIGHT   WD(WDD_SCROLLBAR_RIGHT)      ///< Right offset of scrollbar.
+#define WD_SCROLLBAR_TOP     WD(WDD_SCROLLBAR_TOP)        ///< Top offset of scrollbar.
+#define WD_SCROLLBAR_BOTTOM  WD(WDD_SCROLLBAR_BOTTOM)     ///< Bottom offset of scrollbar.
+
+	/* Size of the pure frame bevel without any padding. */
+#define WD_BEVEL_LEFT        WD(WDD_BEVEL_LEFT)           ///< Width of left bevel border.
+#define WD_BEVEL_RIGHT       WD(WDD_BEVEL_RIGHT)          ///< Width of right bevel border.
+#define WD_BEVEL_TOP         WD(WDD_BEVEL_TOP)            ///< Height of top bevel border.
+#define WD_BEVEL_BOTTOM      WD(WDD_BEVEL_BOTTOM)         ///< Height of bottom bevel border.
+
+	/* FrameRect widgets, all text buttons, panel, editbox */
+#define WD_FRAMERECT_LEFT    WD(WDD_FRAMERECT_LEFT)       ///< Offset at left to draw the frame rectangular area
+#define WD_FRAMERECT_RIGHT   WD(WDD_FRAMERECT_RIGHT)      ///< Offset at right to draw the frame rectangular area
+#define WD_FRAMERECT_TOP     WD(WDD_FRAMERECT_TOP)        ///< Offset at top to draw the frame rectangular area
+#define WD_FRAMERECT_BOTTOM  WD(WDD_FRAMERECT_BOTTOM)     ///< Offset at bottom to draw the frame rectangular area
+
+	/* Extra space at top/bottom of text panels */
+#define WD_TEXTPANEL_TOP     WD(WDD_TEXTPANEL_TOP)        ///< Offset at top to draw above the text
+#define WD_TEXTPANEL_BOTTOM  WD(WDD_TEXTPANEL_BOTTOM)     ///< Offset at bottom to draw below the text
+
+	/* WWT_FRAME */
+#define WD_FRAMETEXT_LEFT    WD(WDD_FRAMETEXT_LEFT)       ///< Left offset of the text of the frame.
+#define WD_FRAMETEXT_RIGHT   WD(WDD_FRAMETEXT_RIGHT)      ///< Right offset of the text of the frame.
+#define WD_FRAMETEXT_TOP     WD(WDD_FRAMETEXT_TOP)        ///< Top offset of the text of the frame
+#define WD_FRAMETEXT_BOTTOM  WD(WDD_FRAMETEXT_BOTTOM)     ///< Bottom offset of the text of the frame
+
+	/* WWT_MATRIX */
+#define WD_MATRIX_LEFT    WD(WDD_MATRIX_LEFT)          ///< Offset at left of a matrix cell.
+#define WD_MATRIX_RIGHT   WD(WDD_MATRIX_RIGHT)         ///< Offset at right of a matrix cell.
+#define WD_MATRIX_TOP     WD(WDD_MATRIX_TOP)           ///< Offset at top of a matrix cell.
+#define WD_MATRIX_BOTTOM  WD(WDD_MATRIX_BOTTOM)        ///< Offset at bottom of a matrix cell.
+
+	/* WWT_SHADEBOX */
+#define WD_SHADEBOX_WIDTH   WD(WDD_SHADEBOX_WIDTH)       ///< Width of a standard shade box widget.
+#define WD_SHADEBOX_LEFT    WD(WDD_SHADEBOX_LEFT)        ///< Left offset of shade sprite.
+#define WD_SHADEBOX_RIGHT   WD(WDD_SHADEBOX_RIGHT)       ///< Right offset of shade sprite.
+#define WD_SHADEBOX_TOP     WD(WDD_SHADEBOX_TOP)         ///< Top offset of shade sprite.
+#define WD_SHADEBOX_BOTTOM  WD(WDD_SHADEBOX_BOTTOM)      ///< Bottom offset of shade sprite.
+
+	/* WWT_STICKYBOX */
+#define WD_STICKYBOX_WIDTH   WD(WDD_STICKYBOX_WIDTH)      ///< Width of a standard sticky box widget.
+#define WD_STICKYBOX_LEFT    WD(WDD_STICKYBOX_LEFT)       ///< Left offset of sticky sprite.
+#define WD_STICKYBOX_RIGHT   WD(WDD_STICKYBOX_RIGHT)      ///< Right offset of sticky sprite.
+#define WD_STICKYBOX_TOP     WD(WDD_STICKYBOX_TOP)        ///< Top offset of sticky sprite.
+#define WD_STICKYBOX_BOTTOM  WD(WDD_STICKYBOX_BOTTOM)     ///< Bottom offset of sticky sprite.
+
+	/* WWT_DEBUGBOX */
+#define WD_DEBUGBOX_WIDTH   WD(WDD_DEBUGBOX_WIDTH)       ///< Width of a standard debug box widget.
+#define WD_DEBUGBOX_LEFT    WD(WDD_DEBUGBOX_LEFT)        ///< Left offset of debug sprite.
+#define WD_DEBUGBOX_RIGHT   WD(WDD_DEBUGBOX_RIGHT)       ///< Right offset of debug sprite.
+#define WD_DEBUGBOX_TOP     WD(WDD_DEBUGBOX_TOP)         ///< Top offset of debug sprite.
+#define WD_DEBUGBOX_BOTTOM  WD(WDD_DEBUGBOX_BOTTOM)      ///< Bottom offset of debug sprite.
+
+	/* WWT_DEFSIZEBOX */
+#define WD_DEFSIZEBOX_WIDTH   WD(WDD_DEFSIZEBOX_WIDTH)     ///< Width of a standard defsize box widget.
+#define WD_DEFSIZEBOX_LEFT    WD(WDD_DEFSIZEBOX_LEFT)      ///< Left offset of defsize sprite.
+#define WD_DEFSIZEBOX_RIGHT   WD(WDD_DEFSIZEBOX_RIGHT)     ///< Right offset of defsize sprite.
+#define WD_DEFSIZEBOX_TOP     WD(WDD_DEFSIZEBOX_TOP)       ///< Top offset of defsize sprite.
+#define WD_DEFSIZEBOX_BOTTOM  WD(WDD_DEFSIZEBOX_BOTTOM)    ///< Bottom offset of defsize sprite.
+
+	/* WWT_RESIZEBOX */
+#define WD_RESIZEBOX_WIDTH   WD(WDD_RESIZEBOX_WIDTH)      ///< Width of a resize box widget.
+#define WD_RESIZEBOX_LEFT    WD(WDD_RESIZEBOX_LEFT)       ///< Left offset of resize sprite.
+#define WD_RESIZEBOX_RIGHT   WD(WDD_RESIZEBOX_RIGHT)      ///< Right offset of resize sprite.
+#define WD_RESIZEBOX_TOP     WD(WDD_RESIZEBOX_TOP)        ///< Top offset of resize sprite.
+#define WD_RESIZEBOX_BOTTOM  WD(WDD_RESIZEBOX_BOTTOM)     ///< Bottom offset of resize sprite.
+
+	/* WWT_CLOSEBOX */
+#define WD_CLOSEBOX_WIDTH   WD(WDD_CLOSEBOX_WIDTH)       ///< Width of a close box widget.
+#define WD_CLOSEBOX_LEFT    WD(WDD_CLOSEBOX_LEFT)        ///< Left offset of closebox string.
+#define WD_CLOSEBOX_RIGHT   WD(WDD_CLOSEBOX_RIGHT)       ///< Right offset of closebox string.
+#define WD_CLOSEBOX_TOP     WD(WDD_CLOSEBOX_TOP)         ///< Top offset of closebox string.
+#define WD_CLOSEBOX_BOTTOM  WD(WDD_CLOSEBOX_BOTTOM)      ///< Bottom offset of closebox string.
+
+	/* WWT_CAPTION */
+#define WD_CAPTION_HEIGHT      WD(WDD_CAPTION_HEIGHT)       ///< Height of a title bar.
+#define WD_CAPTIONTEXT_LEFT    WD(WDD_CAPTIONTEXT_LEFT)     ///< Offset of the caption text at the left.
+#define WD_CAPTIONTEXT_RIGHT   WD(WDD_CAPTIONTEXT_RIGHT)    ///< Offset of the caption text at the right.
+#define WD_CAPTIONTEXT_TOP     WD(WDD_CAPTIONTEXT_TOP)      ///< Offset of the caption text at the top.
+#define WD_CAPTIONTEXT_BOTTOM  WD(WDD_CAPTIONTEXT_BOTTOM)   ///< Offset of the caption text at the bottom.
+
+	/* Dropdown widget. */
+#define WD_DROPDOWN_HEIGHT      WD(WDD_DROPDOWN_HEIGHT)       ///< Height of a drop down widget.
+#define WD_DROPDOWNTEXT_LEFT    WD(WDD_DROPDOWNTEXT_LEFT)     ///< Left offset of the dropdown widget string.
+#define WD_DROPDOWNTEXT_RIGHT   WD(WDD_DROPDOWNTEXT_RIGHT)    ///< Right offset of the dropdown widget string.
+#define WD_DROPDOWNTEXT_TOP     WD(WDD_DROPDOWNTEXT_TOP)      ///< Top offset of the dropdown widget string.
+#define WD_DROPDOWNTEXT_BOTTOM  WD(WDD_DROPDOWNTEXT_BOTTOM)   ///< Bottom offset of the dropdown widget string.
+
+#define WD_PAR_VSEP_NORMAL  WD(WDD_PAR_VSEP_NORMAL)       ///< Normal amount of vertical space between two paragraphs of text.
+#define WD_PAR_VSEP_WIDE    WD(WDD_PAR_VSEP_WIDE)         ///< Large amount of vertical space between two paragraphs of text.
 
 /* widget.cpp */
 void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, FrameFlags flags);

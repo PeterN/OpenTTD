@@ -84,6 +84,7 @@ add_files(
     tree_land.h
     unicode.h
     water_land.h
+    widget_distances.h
 )
 
 add_files(
