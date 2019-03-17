@@ -33,6 +33,7 @@
 #include "newgrf_airporttiles.h"
 #include "newgrf_airport.h"
 #include "newgrf_object.h"
+#include "newgrf_dock.h"
 #include "rev.h"
 #include "fios.h"
 #include "strings_func.h"
@@ -4677,6 +4678,139 @@ static ChangeInfoResult AirportTilesChangeInfo(uint airtid, int numinfo, int pro
 	return ret;
 }
 
+/**
+ * Define properties for docks
+ * @param id Local ID of the dock
+ * @param numinfo Number of subsequent dockIDs to change the property for.
+ * @param prop The property to change.
+ * @param buf The property value.
+ * @return ChangeInfoResult.
+ */
+static ChangeInfoResult DockChangeInfo(uint id, int numinfo, int prop, ByteReader *buf)
+{
+	ChangeInfoResult ret = CIR_SUCCESS;
+
+	if (id + numinfo > NUM_DOCKS_PER_GRF) {
+		grfmsg(1, "DockChangeInfo: Too many docks loaded (%u), max (%u). Ignoring.", id + numinfo, NUM_DOCKS_PER_GRF);
+		return CIR_INVALID_ID;
+	}
+
+	/* Allocate dock specs if they haven't been allocated already. */
+	if (_cur.grffile->dockspec == NULL) {
+		_cur.grffile->dockspec = CallocT<DockSpec*>(NUM_DOCKS_PER_GRF);
+	}
+
+	for (int i = 0; i < numinfo; i++) {
+		DockSpec *spec = _cur.grffile->dockspec[id + i];
+
+		if (prop != 0x08 && spec == NULL) {
+			/* If the dock property 08 is not yet set, ignore this property */
+			ChangeInfoResult cir = IgnoreObjectProperty(prop, buf);
+			if (cir > ret) ret = cir;
+			continue;
+		}
+
+		switch (prop) {
+			case 0x08: { // Class ID
+				DockSpec **dspec = &_cur.grffile->dockspec[id + i];
+
+				/* Allocate space for this object. */
+				if (*dspec == NULL) {
+					*dspec = CallocT<DockSpec>(1);
+					(*dspec)->views = 1; // Default for NewGRFs that don't set it.
+				}
+
+				/* Swap classid because we read it in BE. */
+				uint32 classid = buf->ReadDWord();
+				(*dspec)->cls_id = DockClass::Allocate(BSWAP32(classid));
+				(*dspec)->enabled = true;
+				break;
+			}
+
+			case 0x09: { // Class name
+				DockClass *dockclass = DockClass::Get(spec->cls_id);
+				AddStringForMapping(buf->ReadWord(), &dockclass->name);
+				break;
+			}
+
+			case 0x0A: // Dock name
+				AddStringForMapping(buf->ReadWord(), &spec->name);
+				break;
+
+			case 0x0B: // Climate mask
+				spec->climate = buf->ReadByte();
+				break;
+
+			case 0x0C: // Size
+				spec->size = buf->ReadByte();
+				break;
+
+			case 0x0D: // Build cost multipler
+				spec->build_cost_multiplier = buf->ReadByte();
+				spec->clear_cost_multiplier = spec->build_cost_multiplier;
+				break;
+
+			case 0x0E: // Introduction date
+				spec->introduction_date = buf->ReadDWord();
+				break;
+
+			case 0x0F: // End of life
+				spec->end_of_life_date = buf->ReadDWord();
+				break;
+
+			case 0x10: // Flags
+				spec->flags = (DockFlags)buf->ReadWord();
+				_loaded_newgrf_features.has_2CC |= (spec->flags & DOCK_FLAG_2CC_COLOUR) != 0;
+				break;
+
+			case 0x11: // Animation info
+				spec->animation.frames = buf->ReadByte();
+				spec->animation.status = buf->ReadByte();
+				break;
+
+			case 0x12: // Animation speed
+				spec->animation.speed = buf->ReadByte();
+				break;
+
+			case 0x13: // Animation triggers
+				spec->animation.triggers = buf->ReadWord();
+				break;
+
+			case 0x14: // Removal cost multiplier
+				spec->clear_cost_multiplier = buf->ReadByte();
+				break;
+
+			case 0x15: // Callback mask
+				spec->callback_mask = buf->ReadWord();
+				break;
+
+			case 0x16: // Building height
+				spec->height = buf->ReadByte();
+				break;
+
+			case 0x17: // Views
+				spec->views = buf->ReadByte();
+				if (spec->views != 1 && spec->views != 2 && spec->views != 4) {
+					grfmsg(2, "DockChangeInfo: Invalid number of views (%u) for object id %u. Ignoring.", spec->views, id + i);
+					spec->views = 1;
+				}
+				break;
+/*
+			case 0x18: // Amount placed on 256^2 map on map creation
+				spec->generate_amount = buf->ReadByte();
+				break;
+*/
+			default:
+				ret = CIR_UNKNOWN;
+				break;
+		}
+	}
+
+	return ret;
+}
+
+
+
 static bool HandleChangeInfoResult(const char *caller, ChangeInfoResult cir, uint8 feature, uint8 property)
 {
 	switch (cir) {
@@ -4741,6 +4875,7 @@ static void FeatureChangeInfo(ByteReader *buf)
 		/* GSF_AIRPORTTILES */  AirportTilesChangeInfo,
 		/* GSF_ROADTYPES */     RoadTypeChangeInfo,
 		/* GSF_TRAMTYPES */     TramTypeChangeInfo,
+		/* GSF_DOCKS */         DockChangeInfo,
 	};
 
 	uint8 feature  = buf->ReadByte();
@@ -5200,7 +5335,8 @@ static void NewSpriteGroup(ByteReader *buf)
 				case GSF_HOUSES:
 				case GSF_AIRPORTTILES:
 				case GSF_OBJECTS:
-				case GSF_INDUSTRYTILES: {
+				case GSF_INDUSTRYTILES:
+				case GSF_DOCKS: {
 					byte num_building_sprites = std::max((uint8)1, type);
 
 					assert(TileLayoutSpriteGroup::CanAllocateItem());
@@ -5835,6 +5971,61 @@ static void AirportTileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 	}
 }
 
+static void DockMapSpriteGroup(ByteReader *buf, uint8 idcount)
+{
+	if (_cur.grffile->dockspec == NULL) {
+		grfmsg(1, "DockMapSpriteGroup: No docks defined, skipping");
+		return;
+	}
+
+	uint8 *docks = AllocaM(uint8, idcount);
+	for (uint i = 0; i < idcount; i++) {
+		docks[i] = buf->ReadByte();
+	}
+
+	uint8 cidcount = buf->ReadByte();
+	for (uint c = 0; c < cidcount; c++) {
+		uint8 ctype = buf->ReadByte();
+		uint16 groupid = buf->ReadWord();
+		if (!IsValidGroupID(groupid, "DockMapSpriteGroup")) continue;
+
+		ctype = TranslateCargo(GSF_DOCKS, ctype);
+		if (ctype == CT_INVALID) continue;
+
+		for (uint i = 0; i < idcount; i++) {
+			DockSpec *spec = _cur.grffile->dockspec[docks[i]];
+
+			if (spec == NULL) {
+				grfmsg(1, "DockMapSpriteGroup: Dock with ID 0x%02X undefined, skipping", docks[i]);
+				continue;
+			}
+
+			spec->grf_prop.spritegroup[ctype] = _cur.spritegroups[groupid];
+		}
+	}
+
+	uint16 groupid = buf->ReadWord();
+	if (!IsValidGroupID(groupid, "DockMapSpriteGroup")) return;
+
+	for (uint i = 0; i < idcount; i++) {
+		DockSpec *spec = _cur.grffile->dockspec[docks[i]];
+
+		if (spec == NULL) {
+			grfmsg(1, "DockMapSpriteGroup: Dock with ID 0x%02X undefined, skipping", docks[i]);
+			continue;
+		}
+
+		if (spec->grf_prop.grffile != NULL) {
+			grfmsg(1, "DockMapSpriteGroup: Dock with ID 0x%02X mapped multiple times, skipping", docks[i]);
+			continue;
+		}
+
+		spec->grf_prop.spritegroup[0] = _cur.spritegroups[groupid];
+		spec->grf_prop.grffile        = _cur.grffile;
+		spec->grf_prop.local_id       = docks[i];
+	}
+}
+
 
 /* Action 0x03 */
 static void FeatureMapSpriteGroup(ByteReader *buf)
@@ -5934,6 +6125,10 @@ static void FeatureMapSpriteGroup(ByteReader *buf)
 		case GSF_AIRPORTTILES:
 			AirportTileMapSpriteGroup(buf, idcount);
 			return;
+
+		case GSF_DOCKS:
+			DockMapSpriteGroup(buf, idcount);
+			break;
 
 		default:
 			grfmsg(1, "FeatureMapSpriteGroup: Unsupported feature 0x%02X, skipping", feature);
@@ -8527,6 +8722,22 @@ static void ResetCustomObjects()
 	}
 }
 
+/** Reset and clear all NewObjects */
+static void ResetCustomDocks()
+{
+	const GRFFile * const *end = _grf_files.End();
+	for (GRFFile **file = _grf_files.Begin(); file != end; file++) {
+		DockSpec **&dockspec = (*file)->dockspec;
+		if (dockspec == NULL) continue;
+		for (uint i = 0; i < NUM_DOCKS_PER_GRF; i++) {
+			free(dockspec[i]);
+		}
+
+		free(dockspec);
+		dockspec = NULL;
+	}
+}
+
 /** Reset and clear all NewGRFs */
 static void ResetNewGRF()
 {
@@ -8612,6 +8823,10 @@ void ResetNewGRFData()
 	ResetCustomAirports();
 	AirportSpec::ResetAirports();
 	AirportTileSpec::ResetAirportTiles();
+
+	DockClass::Reset();
+	ResetCustomDocks();
+	ResetDocks();
 
 	/* Reset canal sprite groups and flags */
 	memset(_water_feature, 0, sizeof(_water_feature));
@@ -9226,6 +9441,26 @@ static void FinaliseAirportsArray()
 	}
 }
 
+/**
+ * Add all new docks to the dock array. Dock properties can be set at any
+ * time in the GRF file, so we can only add a dock spec to the dock array
+ * after the file has finished loading.
+ */
+static void FinaliseDocksArray()
+{
+	const GRFFile * const *end = _grf_files.End();
+	for (GRFFile **file = _grf_files.Begin(); file != end; file++) {
+		DockSpec **&dockspec = (*file)->dockspec;
+		if (dockspec != NULL) {
+			for (int i = 0; i < NUM_DOCKS_PER_GRF; i++) {
+				if (dockspec[i] != NULL && dockspec[i]->grf_prop.grffile != NULL && dockspec[i]->enabled) {
+					_dock_mngr.SetEntitySpec(dockspec[i]);
+				}
+			}
+		}
+	}
+}
+
 /* Here we perform initial decoding of some special sprites (as are they
  * described at http://www.ttdpatch.net/src/newgrf.txt, but this is only a very
  * partial implementation yet).
@@ -9677,6 +9912,9 @@ static void AfterLoadGRFs()
 	/* Add all new airports to the airports array. */
 	FinaliseAirportsArray();
 	BindAirportSpecs();
+
+	/* All all new docks to the docks array. */
+	FinaliseDocksArray();
 
 	/* Update the townname generators list */
 	InitGRFTownGeneratorNames();

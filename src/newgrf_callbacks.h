@@ -279,6 +279,12 @@ enum CallbackID {
 
 	/** Called to spawn visual effects for vehicles. */
 	CBID_VEHICLE_SPAWN_VISUAL_EFFECT     = 0x160, // 15 bit callback
+
+	CBID_DOCK_ANIM_NEXT_FRAME            = 0x161, // 15 bit callback
+
+	CBID_DOCK_ANIM_START_STOP            = 0x162, // 15 bit callback
+
+	CBID_DOCK_ANIM_SPEED                 = 0x163, // 8 bit callback
 };
 
 /**
@@ -396,6 +402,17 @@ enum AirportTileCallbackMask {
 	CBM_AIRT_SHAPE_CHECK              = 4,  ///< decides slope suitability
 	CBM_AIRT_DRAW_FOUNDATIONS         = 5,  ///< decides if default foundations need to be drawn
 	CBM_AIRT_AUTOSLOPE                = 6,  ///< decides allowance of autosloping
+};
+
+/**
+ * Callback masks for stations.
+ */
+enum DockCallbackMask {
+	CBM_DOCK_SLOPE_CHECK          = 0, ///< Check slope of new dock tiles
+	CBM_DOCK_AVAIL                = 1, ///< Availability of dock in construction window
+	CBM_DOCK_ANIM_NEXT_FRAME      = 2, ///< Use a custom next frame callback
+	CBM_DOCK_ANIM_SPEED           = 3, ///< Customize the animation speed of the dock
+	CBM_DOCK_AUTOSLOPE            = 4, ///< decides allowance of autosloping
 };
 
 /**

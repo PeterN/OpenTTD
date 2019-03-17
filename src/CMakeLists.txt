@@ -128,6 +128,7 @@ add_files(
     disaster_vehicle.cpp
     disaster_vehicle.h
     dock_gui.cpp
+    dock_type.h
     driver.cpp
     driver.h
     economy.cpp
@@ -243,6 +244,8 @@ add_files(
     newgrf_config.h
     newgrf_debug.h
     newgrf_debug_gui.cpp
+    newgrf_dock.cpp
+    newgrf_dock.h
     newgrf_engine.cpp
     newgrf_engine.h
     newgrf_generic.cpp

@@ -58,6 +58,7 @@ add_files(
     cargo_const.h
     clear_land.h
     control_codes.h
+    dock_land.h
     elrail_data.h
     engines.h
     genland.h

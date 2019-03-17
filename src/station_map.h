@@ -484,6 +484,12 @@ static inline void SetCustomStationSpecIndex(TileIndex t, byte specindex)
 	_m[t].m4 = specindex;
 }
 
+static inline void SetCustomDockSpecIndex(TileIndex t, byte specindex)
+{
+	assert(IsDockTile(t));
+	_m[t].m4 = specindex;
+}
+
 /**
  * Get the custom station spec for this tile.
  * @param t Tile to query
@@ -493,6 +499,12 @@ static inline void SetCustomStationSpecIndex(TileIndex t, byte specindex)
 static inline uint GetCustomStationSpecIndex(TileIndex t)
 {
 	assert(HasStationTileRail(t));
+	return _m[t].m4;
+}
+
+static inline uint GetCustomDockSpecIndex(TileIndex t)
+{
+	assert(IsDockTile(t));
 	return _m[t].m4;
 }
 

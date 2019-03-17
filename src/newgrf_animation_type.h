@@ -33,6 +33,17 @@ enum StationAnimationTrigger {
 	SAT_250_TICKS,     ///< Trigger station every 250 ticks.
 };
 
+/** Animation triggers for docks. */
+enum DockAnimationTrigger {
+	DAT_BUILT,         ///< Trigger tile when built.
+	DAT_NEW_CARGO,     ///< Trigger station on new cargo arrival.
+	DAT_CARGO_TAKEN,   ///< Trigger station when cargo is completely taken.
+	DAT_DOCK_ARRIVES,  ///< Trigger dock when ship arrives.
+	DAT_DOCK_DEPARTS,  ///< Trigger dock when ship leaves.
+	DAT_DOCK_LOADS,    ///< Trigger dock when ship loads/unloads.
+	DAT_250_TICKS,     ///< Trigger station every 250 ticks.
+};
+
 /** Animation triggers of the industries. */
 enum IndustryAnimationTrigger {
 	IAT_CONSTRUCTION_STATE_CHANGE,  ///< Trigger whenever the construction state changes.

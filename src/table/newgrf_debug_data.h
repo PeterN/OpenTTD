@@ -628,6 +628,7 @@ static const NIFeature * const _nifeatures[] = {
 	&_nif_airporttile,  // GSF_AIRPORTTILES
 	&_nif_roadtype,     // GSF_ROADTYPES
 	&_nif_tramtype,     // GSF_TRAMTYPES
+	NULL,               // GSF_DOCKS
 	&_nif_town,         // GSF_FAKE_TOWNS
 };
 static_assert(lengthof(_nifeatures) == GSF_FAKE_END);
