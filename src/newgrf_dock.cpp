@@ -120,7 +120,7 @@ void DockOverrideManager::SetEntitySpec(DockSpec *spec)
 	/* First step : We need to find if this dock is already specified in the savegame data. */
 	DockType type = this->GetID(spec->grf_prop.local_id, spec->grf_prop.grffile->grfid);
 
-	if (type == invalid_ID) {
+	if (type == this->invalid_ID) {
 		/* Not found.
 		 * Or it has already been overridden, so you've lost your place old boy.
 		 * Or it is a simple substitute.
@@ -128,7 +128,7 @@ void DockOverrideManager::SetEntitySpec(DockSpec *spec)
 		type = this->AddEntityID(spec->grf_prop.local_id, spec->grf_prop.grffile->grfid, DOCK_ORIGINAL);
 	}
 
-	if (type == invalid_ID) {
+	if (type == this->invalid_ID) {
 		grfmsg(1, "Dock.SetEntitySpec: Too many docks allocated. Ignoring.");
 		return;
 	}
@@ -136,6 +136,8 @@ void DockOverrideManager::SetEntitySpec(DockSpec *spec)
 	/* Now that we know we can use the given id, copy the spec to its final destination. */
 	memcpy(&_dock_specs[type], spec, sizeof(*spec));
 	DockClass::Assign(&_dock_specs[type]);
+
+	printf("Allocated %u\n", type);
 }
 
 template <typename Tspec, typename Tid, Tid Tmax>
@@ -143,8 +145,11 @@ template <typename Tspec, typename Tid, Tid Tmax>
 {
 	DockClassID cls = DockClass::Allocate('DOCK');
 	DockClass::Get(cls)->name = STR_DOCK_CLASS_DOCK;
-	_dock_specs[DOCK_ORIGINAL].cls_id = cls;
-	DockClass::Assign(&_dock_specs[DOCK_ORIGINAL]);
+
+	for (uint i = 0; i < lengthof(_original_docks); i++) {
+		_dock_specs[i].cls_id = cls;
+		DockClass::Assign(&_dock_specs[i]);
+	}
 }
 
 template <typename Tspec, typename Tid, Tid Tmax>

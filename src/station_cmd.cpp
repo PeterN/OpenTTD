@@ -2512,8 +2512,7 @@ static const byte _dock_h_chk[4] = { 1, 2, 1, 2 };
  * @param flags operation to perform
  * @param p1 (bit 0) - allow docks directly adjacent to other docks.
  * @param p2 various bitstuffed elements
- * - p2 = (bit  0- 7) - custom dock class
- * - p2 = (bit  8-15) - custom dock id
+ * - p2 = (bit  0-15) - custom docktype
  * - p2 = (bit 16-31) - station ID to join (NEW_STATION if build new one)
  * @param text unused
  * @return the cost of this operation or an error
@@ -2525,17 +2524,13 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	if (!reuse) station_to_join = INVALID_STATION;
 	bool distant_join = (station_to_join != INVALID_STATION);
 
-	DockClassID spec_class = (DockClassID)GB(p2, 0, 8);
-	byte spec_index        = GB(p2, 8, 8);
-
-	/* Check if the given dock class is valid */
-	if ((uint)spec_class >= DockClass::GetClassCount()) return CMD_ERROR;
-	if (spec_index >= DockClass::Get(spec_class)->GetSpecCount()) return CMD_ERROR;
+	DockType docktype = (DockType)GB(p2, 0, 16);
 
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
-	const DockSpec *dockspec = DockClass::Get(spec_class)->GetSpec(spec_index);
-	printf("%u -> %u -> %p\n", spec_class, spec_index, dockspec);
+	const DockSpec *dockspec = DockSpec::Get(docktype);
+	if (dockspec == NULL) return CMD_ERROR;
+	printf("%u -> %p\n", docktype, dockspec);
 
 	DiagDirection direction = GetInclinedSlopeDirection(GetTileSlope(tile));
 	if (direction == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
@@ -2602,6 +2597,7 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		Company::Get(st->owner)->infrastructure.station += 2;
 
 		MakeDock(tile, st->owner, st->index, direction, wc);
+		SetStationGfx(tile, docktype);
 		SetStationTileRandomBits(tile, GB(Random(), 0, 4));
 		SetStationTileRandomBits(tile + TileOffsByDiagDir(direction), GB(Random(), 0, 4));
 		UpdateStationDockingTiles(st);
@@ -2995,14 +2991,30 @@ draw_default_foundation:
 		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
 	} else if (IsDock(ti->tile)) {
 		const DockSpec *dockspec = DockSpec::Get((DockType)GetStationGfx(ti->tile));
-		DrawNewDockTile(ti, dockspec);
-		return;
+		if (dockspec->Index() >= lengthof(_original_docks)) {
+			DrawNewDockTile(ti, dockspec);
+			return;
+		}
+		if (ti->tileh == SLOPE_FLAT) {
+			DrawWaterClassGround(ti);
+		} else {
+			assert(IsDock(ti->tile));
+			//TileIndex water_tile = ti->tile + TileOffsByDiagDir(GetDockDirection(ti->tile));
+			TileIndex water_tile = ti->tile - TileOffsByDiagDir(GetInclinedSlopeDirection(ti->tileh));
+			WaterClass wc = HasTileWaterClass(water_tile) ? GetWaterClass(water_tile) : WATER_CLASS_INVALID;
+			if (wc == WATER_CLASS_SEA) {
+				DrawShoreTile(ti->tileh);
+			} else {
+				DrawClearLandTile(ti, 3);
+			}
+		}
 	} else if (IsDock(ti->tile) && IsOilRig(ti->tile) && IsTileOnWater(ti->tile)) {
 		if (ti->tileh == SLOPE_FLAT) {
 			DrawWaterClassGround(ti);
 		} else {
 			assert(IsDock(ti->tile));
-			TileIndex water_tile = ti->tile + TileOffsByDiagDir(GetDockDirection(ti->tile));
+			//TileIndex water_tile = ti->tile + TileOffsByDiagDir(GetDockDirection(ti->tile));
+			TileIndex water_tile = ti->tile - TileOffsByDiagDir(GetInclinedSlopeDirection(ti->tileh));
 			WaterClass wc = HasTileWaterClass(water_tile) ? GetWaterClass(water_tile) : WATER_CLASS_INVALID;
 			if (wc == WATER_CLASS_SEA) {
 				DrawShoreTile(ti->tileh);

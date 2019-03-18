@@ -19,7 +19,7 @@ static const DockType DOCK_ORIGINAL     =   0;    ///< The original dock
 
 static const DockType NUM_DOCKS_PER_GRF = 255;    ///< Number of supported docks per NewGRF; limited to 255 to allow extending Action3 with an extended byte later on.
 
-static const DockType NEW_DOCK_OFFSET   =   1;    ///< Offset for new docks
+static const DockType NEW_DOCK_OFFSET   =   6;    ///< Offset for new docks
 static const DockType NUM_DOCKS         = 64000;  ///< Number of supported docks overall
 static const DockType INVALID_DOCK_TYPE = 0xFFFF; ///< An invalid dock
 

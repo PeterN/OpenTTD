@@ -436,8 +436,7 @@ public:
 	void OnPlaceObject(Point pt, TileIndex tile) override
 	{
 		uint32 p2 = (uint32)INVALID_STATION << 16; // no station to join
-		p2 |= _selected_dock_class;
-		p2 |= _selected_dock_index << 8;
+		p2 |= DockClass::Get(_selected_dock_class)->GetSpec(_selected_dock_index)->Index();
 
 		/* tile is always the land tile, so need to evaluate _thd.pos */
 		CommandContainer cmdcont = { tile, _ctrl_pressed, p2, CMD_BUILD_DOCK | CMD_MSG(STR_ERROR_CAN_T_BUILD_DOCK_HERE), CcBuildDocks, "" };
