@@ -2587,9 +2587,6 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	ret = BuildStationPart(&st, flags, reuse, dock_area, STATIONNAMING_DOCK);
 	if (ret.Failed()) return ret;
 
-	int specindex = AllocateSpecToDock(dockspec, st, (flags & DC_EXEC) != 0);
-	if (specindex == -1) return_cmd_error(STR_ERROR_TOO_MANY_STATION_SPECS);
-
 	if (flags & DC_EXEC) {
 		st->ship_station.Add(tile);
 		st->ship_station.Add(tile + TileOffsByDiagDir(direction));
@@ -2605,9 +2602,7 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		Company::Get(st->owner)->infrastructure.station += 2;
 
 		MakeDock(tile, st->owner, st->index, direction, wc);
-		SetCustomDockSpecIndex(tile, specindex);
 		SetStationTileRandomBits(tile, GB(Random(), 0, 4));
-		SetCustomDockSpecIndex(tile + TileOffsByDiagDir(direction), specindex);
 		SetStationTileRandomBits(tile + TileOffsByDiagDir(direction), GB(Random(), 0, 4));
 		UpdateStationDockingTiles(st);
 
@@ -2721,9 +2716,6 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
-		byte specindex1 = GetCustomStationSpecIndex(tile1);
-		byte specindex2 = GetCustomStationSpecIndex(tile2);
-
 		DoClearSquare(tile1);
 		MarkTileDirtyByTile(tile1);
 		MakeWaterKeepingClass(tile2, st->owner);
@@ -2741,9 +2733,6 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		Company::Get(st->owner)->infrastructure.station -= 2;
 
 		st->AfterStationTileSetChange(false, STATION_DOCK);
-
-		DeallocateSpecFromDock(st, specindex1);
-		DeallocateSpecFromDock(st, specindex2);
 
 		ClearDockingTilesCheckingNeighbours(tile1);
 		ClearDockingTilesCheckingNeighbours(tile2);
@@ -3005,7 +2994,7 @@ draw_default_foundation:
 		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
 		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
 	} else if (IsDock(ti->tile)) {
-		const DockSpec *dockspec = Station::GetByTile(ti->tile)->dock_specs[GetCustomDockSpecIndex(ti->tile)].spec;
+		const DockSpec *dockspec = DockSpec::Get((DockType)GetStationGfx(ti->tile));
 		DrawNewDockTile(ti, dockspec);
 		return;
 	} else if (IsDock(ti->tile) && IsOilRig(ti->tile) && IsTileOnWater(ti->tile)) {

@@ -117,15 +117,6 @@ void AfterLoadStations()
 			Station *sta = Station::From(st);
 			for (const RoadStop *rs = sta->bus_stops; rs != nullptr; rs = rs->next) sta->bus_station.Add(rs->xy);
 			for (const RoadStop *rs = sta->truck_stops; rs != nullptr; rs = rs->next) sta->truck_station.Add(rs->xy);
-
-			for (uint i = 0; i < sta->num_dock_specs; i++) {
-				if (sta->dock_specs[i].grfid == 0) {
-					sta->dock_specs[i].spec = DockClass::Get(DOCK_CLASS_BEGIN)->GetSpec(0);
-					continue;
-				}
-
-				sta->dock_specs[i].spec = DockClass::GetByGrf(sta->dock_specs[i].grfid, sta->dock_specs[i].localidx, nullptr);
-			}
 		}
 
 		StationUpdateCachedTriggers(st);
@@ -237,13 +228,6 @@ static Money  _cargo_feeder_share;
 static const SaveLoad _station_speclist_desc[] = {
 	SLE_CONDVAR(StationSpecList, grfid,    SLE_UINT32, SLV_27, SL_MAX_VERSION),
 	SLE_CONDVAR(StationSpecList, localidx, SLE_UINT8,  SLV_27, SL_MAX_VERSION),
-
-	SLE_END()
-};
-
-static const SaveLoad _station_dockspec_desc[] = {
-	SLE_CONDVAR(DockSpecList, grfid,    SLE_UINT32, SLV_MULTITILE_DOCKS, SL_MAX_VERSION),
-	SLE_CONDVAR(DockSpecList, localidx, SLE_UINT8,  SLV_MULTITILE_DOCKS, SL_MAX_VERSION),
 
 	SLE_END()
 };
@@ -458,8 +442,6 @@ static const SaveLoad _station_desc[] = {
 	  SLE_CONDVAR(Station, always_accepted,            SLE_FILE_U32 | SLE_VAR_U64, SLV_127, SLV_EXTEND_CARGOTYPES),
 	  SLE_CONDVAR(Station, always_accepted,            SLE_UINT64,                 SLV_EXTEND_CARGOTYPES, SL_MAX_VERSION),
 
-	  SLE_CONDVAR(Station, num_dock_specs,             SLE_UINT8,                  SLV_MULTITILE_DOCKS, SL_MAX_VERSION),
-
 	      SLE_END()
 };
 
@@ -516,10 +498,6 @@ static void RealSave_STNN(BaseStation *bst)
 			for (StationCargoPacketMap::ConstMapIterator it(st->goods[i].cargo.Packets()->begin()); it != st->goods[i].cargo.Packets()->end(); ++it) {
 				SlObject(const_cast<StationCargoPacketMap::value_type *>(&(*it)), _cargo_list_desc);
 			}
-		}
-
-		for (uint i = 0; i < st->num_dock_specs; i++) {
-			SlObject(&st->dock_specs[i], _station_dockspec_desc);
 		}
 	}
 
@@ -583,13 +561,6 @@ static void Load_STNN()
 						const_cast<StationCargoPacketMap &>(*(st->goods[i].cargo.Packets()))[pair.first].swap(pair.second);
 						assert(pair.second.empty());
 					}
-				}
-			}
-
-			if (st->num_dock_specs != 0) {
-				st->dock_specs = CallocT<DockSpecList>(st->num_dock_specs);
-				for (uint i = 0; i < st->num_dock_specs; i++) {
-					SlObject(&st->dock_specs[i], _station_dockspec_desc);
 				}
 			}
 		}

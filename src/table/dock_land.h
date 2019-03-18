@@ -22,7 +22,12 @@
 #define Y 8
 /** Specification of the original object structures. */
 extern const DockSpec _original_docks[] = {
-	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_NONE),
+	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_SLOPE_NW),
+	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_SLOPE_NE),
+	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_SLOPE_SE),
+	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_SLOPE_SW),
+	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_DRAW_WATER | DOCK_FLAG_NOT_ON_LAND),
+	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_DRAW_WATER | DOCK_FLAG_NOT_ON_LAND),
 };
 
 #undef M

@@ -440,12 +440,6 @@ private:
 	}
 };
 
-struct DockSpecList {
-	const DockSpec *spec; ///< Dock spec
-	uint32 grfid;         ///< GRF ID of this custom dock
-	uint8  localidx;      ///< Dock ID within GRF of dock
-};
-
 struct IndustryCompare {
 	bool operator() (const Industry *lhs, const Industry *rhs) const;
 };
@@ -487,9 +481,6 @@ public:
 
 	IndustryList industries_near; ///< Cached list of industries near the station that can accept cargo, @see DeliverGoodsToIndustry()
 	Industry *industry;           ///< NOSAVE: Associated industry for neutral stations. (Rebuilt on load from Industry->st)
-
-	DockSpecList *dock_specs;
-	uint8 num_dock_specs;
 
 	Station(TileIndex tile = INVALID_TILE);
 	~Station();

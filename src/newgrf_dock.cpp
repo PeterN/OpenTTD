@@ -53,8 +53,7 @@ DockSpec _dock_specs[NUM_DOCKS];
  */
 /* static */ const DockSpec *DockSpec::GetByTile(TileIndex tile)
 {
-	const Station *st = Station::GetByTile(tile);
-	return st->dock_specs[GetCustomDockSpecIndex(tile)].spec;
+	return DockSpec::Get((DockType)GetStationGfx(tile));
 }
 
 /**
@@ -434,11 +433,14 @@ uint16 GetDockCallback(CallbackID callback, uint32 param1, uint32 param2, const 
  * @param group The group of sprites to draw.
  * @param spec  Dock spec to draw.
  */
-static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, const DockSpec *spec)
+static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, const Station *st, const DockSpec *spec)
 {
 	const DrawTileSprites *dts = group->ProcessRegisters(NULL);
-//	PaletteID palette = ((spec->flags & DOCK_FLAG_2CC_COLOUR) ? SPR_2CCMAP_BASE : PALETTE_RECOLOUR_START) + Dock::GetByTile(ti->tile)->colour;
-	PaletteID palette = PAL_NONE;
+	PaletteID palette = (spec->flags & DOCK_FLAG_2CC_COLOUR) ? SPR_2CCMAP_BASE : PALETTE_RECOLOUR_START;
+
+	const Livery *livery = &Company::Get(st->owner)->livery[LS_DEFAULT];
+	palette += livery->colour1;
+	if (spec->flags & DOCK_FLAG_2CC_COLOUR) palette += livery->colour2 * 16;
 
 	SpriteID image = dts->ground.sprite;
 	PaletteID pal  = dts->ground.pal;
@@ -469,7 +471,7 @@ void DrawNewDockTile(TileInfo *ti, const DockSpec *spec)
 	const SpriteGroup *group = dock.Resolve();
 	if (group == NULL || group->type != SGT_TILELAYOUT) return;
 
-	DrawTileLayout(ti, (const TileLayoutSpriteGroup *)group, spec);
+	DrawTileLayout(ti, (const TileLayoutSpriteGroup *)group, st, spec);
 }
 
 /**
@@ -574,68 +576,5 @@ void TriggerDockAnimation(Station *st, DockAnimationTrigger trigger, const DockS
 
 	TILE_AREA_LOOP(tile, st->ship_station) {
 		TriggerDockTileAnimation(st, tile, trigger, spec);
-	}
-}
-
-int AllocateSpecToDock(const DockSpec *dockspec, Station *st, bool exec)
-{
-	uint i;
-
-	if (dockspec == NULL || st == NULL) return 0;
-
-	/* Reuse slot if possible */
-	for (i = 0; i < st->num_dock_specs; i++) {
-		printf("Reuse %u\n", i);
-		if (st->dock_specs[i].spec == dockspec) return i;
-	}
-
-	for (i = 0; i < st->num_dock_specs; i++) {
-		printf("Alloc %u\n", i);
-		if (st->dock_specs[i].spec == NULL) break;
-	}
-
-	if (i == 256) return -1;
-
-	if (exec) {
-		printf("Hmm %u\n", i);
-		if (i >= st->num_dock_specs) {
-			st->num_dock_specs = i + 1;
-			st->dock_specs = ReallocT(st->dock_specs, st->num_dock_specs);
-		}
-
-		st->dock_specs[i].spec     = dockspec;
-		if (dockspec->grf_prop.grffile != NULL) {
-			st->dock_specs[i].grfid = dockspec->grf_prop.grffile->grfid;
-		} else {
-			st->dock_specs[i].grfid = 0;
-		}
-		st->dock_specs[i].localidx = dockspec->grf_prop.local_id;
-	}
-
-	return i;
-}
-
-void DeallocateSpecFromDock(Station *st, byte specindex)
-{
-	/* Test if specindex is still in use. */
-	TILE_AREA_LOOP(tile, st->ship_station) {
-		if (IsDockTile(tile) && GetStationIndex(tile) == st->index && GetCustomStationSpecIndex(tile) == specindex) return;
-	}
-
-	/* Spec is not in use, clear it */
-	st->dock_specs[specindex].spec     = NULL;
-	st->dock_specs[specindex].grfid    = 0;
-	st->dock_specs[specindex].localidx = 0;
-
-	if (specindex == st->num_dock_specs - 1) {
-		for (; st->dock_specs[st->num_dock_specs - 1].spec == NULL && st->num_dock_specs > 0; st->num_dock_specs--) {}
-
-		if (st->num_dock_specs > 0) {
-			st->dock_specs = ReallocT(st->dock_specs, st->num_dock_specs);
-		} else {
-			free(st->dock_specs);
-			st->num_dock_specs = 0;
-			st->dock_specs = NULL;
-		}
 	}
 }

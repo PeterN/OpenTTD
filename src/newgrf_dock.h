@@ -32,6 +32,10 @@ enum DockFlags {
 	DOCK_FLAG_NOT_ON_LAND        = 1 <<  9, ///< Dock can not be on land, implicitly sets #DOCK_FLAG_BUILT_ON_WATER.
 	DOCK_FLAG_DRAW_WATER         = 1 << 10, ///< Dock wants to be drawn on water.
 	DOCK_FLAG_ANIM_RANDOM_BITS   = 1 << 12, ///< Dock wants random bits in "next animation frame" callback.
+	DOCK_FLAG_SLOPE_NW           = 1 << 13,
+	DOCK_FLAG_SLOPE_NE           = 1 << 14,
+	DOCK_FLAG_SLOPE_SE           = 1 << 15,
+	DOCK_FLAG_SLOPE_SW           = 1 << 16,
 };
 DECLARE_ENUM_AS_BIT_SET(DockFlags)
 
@@ -152,8 +156,5 @@ void DrawNewDockTileInGUI(int x, int y, const DockSpec *spec, uint8 view);
 void AnimateNewDockTile(TileIndex tile);
 void TriggerDockTileAnimation(Station *st, TileIndex tile, DockAnimationTrigger trigger, const DockSpec *spec);
 void TriggerDockAnimation(Station *st, DockAnimationTrigger trigger, const DockSpec *spec);
-
-int AllocateSpecToDock(const DockSpec *dockspec, Station *st, bool exec);
-void DeallocateSpecFromDock(Station *st, byte specindex);
 
 #endif /* NEWGRF_DOCK_H */
