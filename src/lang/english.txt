@@ -2543,6 +2543,13 @@ STR_OBJECT_BUILD_SIZE                                           :{BLACK}Size: {G
 STR_OBJECT_CLASS_LTHS                                           :Lighthouses
 STR_OBJECT_CLASS_TRNS                                           :Transmitters
 
+# Dock construction window
+STR_DOCK_BUILD_CAPTION                                          :{WHITE}Dock Selection
+STR_DOCK_BUILD_TOOLTIP                                          :{BLACK}Select dock to build. Shift toggles building/showing cost estimate
+STR_DOCK_BUILD_CLASS_TOOLTIP                                    :{BLACK}Select class of dock to build
+STR_DOCK_BUILD_PREVIEW_TOOLTIP                                  :{BLACK}Preview of the dock
+STR_DOCK_BUILD_SIZE                                             :{BLACK}Size: {GOLD}{NUM} x {NUM} tiles
+
 STR_DOCK_CLASS_DOCK                                             :Docks
 
 # Tree planting window (last eight for SE only)

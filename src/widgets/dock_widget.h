@@ -31,4 +31,19 @@ enum DockToolbarWidgets {
 	WID_DT_INVALID,        ///< Used to initialize a variable.
 };
 
+/** Widgets of the #BuildDockWindow class. */
+enum BuildDockWidgets {
+	WID_BD_CLASS_LIST,     ///< The list with classes.
+	WID_BD_SCROLLBAR,      ///< The scrollbar associated with the list.
+	WID_BD_DOCK_MATRIX,    ///< The matrix with preview sprites.
+	WID_BD_DOCK_SPRITE,    ///< A preview sprite of the dock.
+	WID_BD_DOCK_NAME,      ///< The name of the selected dock.
+	WID_BD_DOCK_SIZE,      ///< The size of the selected dock.
+	WID_BD_INFO,           ///< Other information about the dock (from the NewGRF).
+
+	WID_BD_SELECT_MATRIX,  ///< Selection preview matrix of docks of a given class.
+	WID_BD_SELECT_IMAGE,   ///< Preview image in the #WID_BD_SELECT_MATRIX.
+	WID_BD_SELECT_SCROLL,  ///< Scrollbar next to the #WID_BD_SELECT_MATRIX.
+};
+
 #endif /* WIDGETS_DOCK_WIDGET_H */
