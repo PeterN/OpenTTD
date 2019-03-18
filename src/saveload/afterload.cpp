@@ -56,6 +56,7 @@
 #include "../disaster_vehicle.h"
 #include "../ship.h"
 #include "../water.h"
+#include "../newgrf_dock.h"
 
 
 #include "saveload_internal.h"
@@ -3090,6 +3091,8 @@ bool AfterLoadGame()
 
 	/* Update structures for multitile docks */
 	if (IsSavegameVersionBefore(SLV_MULTITILE_DOCKS)) {
+		const DockSpec *dockspec = DockClass::Get(DOCK_CLASS_BEGIN)->GetSpec(0);
+
 		for (TileIndex t = 0; t < map_size; t++) {
 			/* Clear docking tile flag from relevant tiles as it
 			 * was not previously cleared. */
@@ -3098,7 +3101,10 @@ bool AfterLoadGame()
 			}
 			/* Add docks and oilrigs to Station::ship_station. */
 			if (IsTileType(t, MP_STATION)) {
-				if (IsDock(t) || IsOilRig(t)) Station::GetByTile(t)->ship_station.Add(t);
+				if (IsDock(t) || IsOilRig(t)) {
+					Station::GetByTile(t)->ship_station.Add(t);
+					AllocateSpecToDock(dockspec, Station::GetByTile(t), true);
+				}
 			}
 		}
 	}

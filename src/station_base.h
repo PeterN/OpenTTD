@@ -440,12 +440,10 @@ private:
 	}
 };
 
-typedef uint16 DockType;
-
-struct DockSpecItem {
-	DockType docktype; ///< Global dock type
-	uint32 grfid;      ///< GRF ID of this custom dock
-	uint8  localidx;   ///< Dock ID within GRF of dock
+struct DockSpecList {
+	const DockSpec *spec; ///< Dock spec
+	uint32 grfid;         ///< GRF ID of this custom dock
+	uint8  localidx;      ///< Dock ID within GRF of dock
 };
 
 struct IndustryCompare {
@@ -490,7 +488,8 @@ public:
 	IndustryList industries_near; ///< Cached list of industries near the station that can accept cargo, @see DeliverGoodsToIndustry()
 	Industry *industry;           ///< NOSAVE: Associated industry for neutral stations. (Rebuilt on load from Industry->st)
 
-	std::vector<DockSpecItem> dock_specs;
+	DockSpecList *dock_specs;
+	uint8 num_dock_specs;
 
 	Station(TileIndex tile = INVALID_TILE);
 	~Station();

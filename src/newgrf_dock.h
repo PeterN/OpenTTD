@@ -153,4 +153,7 @@ void AnimateNewDockTile(TileIndex tile);
 void TriggerDockTileAnimation(Station *st, TileIndex tile, DockAnimationTrigger trigger, const DockSpec *spec);
 void TriggerDockAnimation(Station *st, DockAnimationTrigger trigger, const DockSpec *spec);
 
+int AllocateSpecToDock(const DockSpec *dockspec, Station *st, bool exec);
+void DeallocateSpecFromDock(Station *st, byte specindex);
+
 #endif /* NEWGRF_DOCK_H */

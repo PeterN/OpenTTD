@@ -576,3 +576,66 @@ void TriggerDockAnimation(Station *st, DockAnimationTrigger trigger, const DockS
 		TriggerDockTileAnimation(st, tile, trigger, spec);
 	}
 }
+
+int AllocateSpecToDock(const DockSpec *dockspec, Station *st, bool exec)
+{
+	uint i;
+
+	if (dockspec == NULL || st == NULL) return 0;
+
+	/* Reuse slot if possible */
+	for (i = 0; i < st->num_dock_specs; i++) {
+		printf("Reuse %u\n", i);
+		if (st->dock_specs[i].spec == dockspec) return i;
+	}
+
+	for (i = 0; i < st->num_dock_specs; i++) {
+		printf("Alloc %u\n", i);
+		if (st->dock_specs[i].spec == NULL) break;
+	}
+
+	if (i == 256) return -1;
+
+	if (exec) {
+		printf("Hmm %u\n", i);
+		if (i >= st->num_dock_specs) {
+			st->num_dock_specs = i + 1;
+			st->dock_specs = ReallocT(st->dock_specs, st->num_dock_specs);
+		}
+
+		st->dock_specs[i].spec     = dockspec;
+		if (dockspec->grf_prop.grffile != NULL) {
+			st->dock_specs[i].grfid = dockspec->grf_prop.grffile->grfid;
+		} else {
+			st->dock_specs[i].grfid = 0;
+		}
+		st->dock_specs[i].localidx = dockspec->grf_prop.local_id;
+	}
+
+	return i;
+}
+
+void DeallocateSpecFromDock(Station *st, byte specindex)
+{
+	/* Test if specindex is still in use. */
+	TILE_AREA_LOOP(tile, st->ship_station) {
+		if (IsDockTile(tile) && GetStationIndex(tile) == st->index && GetCustomStationSpecIndex(tile) == specindex) return;
+	}
+
+	/* Spec is not in use, clear it */
+	st->dock_specs[specindex].spec     = NULL;
+	st->dock_specs[specindex].grfid    = 0;
+	st->dock_specs[specindex].localidx = 0;
+
+	if (specindex == st->num_dock_specs - 1) {
+		for (; st->dock_specs[st->num_dock_specs - 1].spec == NULL && st->num_dock_specs > 0; st->num_dock_specs--) {}
+
+		if (st->num_dock_specs > 0) {
+			st->dock_specs = ReallocT(st->dock_specs, st->num_dock_specs);
+		} else {
+			free(st->dock_specs);
+			st->num_dock_specs = 0;
+			st->dock_specs = NULL;
+		}
+	}
+}

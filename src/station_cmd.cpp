@@ -2511,7 +2511,10 @@ static const byte _dock_h_chk[4] = { 1, 2, 1, 2 };
  * @param tile tile where dock will be built
  * @param flags operation to perform
  * @param p1 (bit 0) - allow docks directly adjacent to other docks.
- * @param p2 bit 16-31: station ID to join (NEW_STATION if build new one)
+ * @param p2 various bitstuffed elements
+ * - p2 = (bit  0- 7) - custom dock class
+ * - p2 = (bit  8-15) - custom dock id
+ * - p2 = (bit 16-31) - station ID to join (NEW_STATION if build new one)
  * @param text unused
  * @return the cost of this operation or an error
  */
@@ -2522,7 +2525,17 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	if (!reuse) station_to_join = INVALID_STATION;
 	bool distant_join = (station_to_join != INVALID_STATION);
 
+	DockClassID spec_class = (DockClassID)GB(p2, 0, 8);
+	byte spec_index        = GB(p2, 8, 8);
+
+	/* Check if the given dock class is valid */
+	if ((uint)spec_class >= DockClass::GetClassCount()) return CMD_ERROR;
+	if (spec_index >= DockClass::Get(spec_class)->GetSpecCount()) return CMD_ERROR;
+
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
+
+	const DockSpec *dockspec = DockClass::Get(spec_class)->GetSpec(spec_index);
+	printf("%u -> %u -> %p\n", spec_class, spec_index, dockspec);
 
 	DiagDirection direction = GetInclinedSlopeDirection(GetTileSlope(tile));
 	if (direction == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
@@ -2574,6 +2587,9 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	ret = BuildStationPart(&st, flags, reuse, dock_area, STATIONNAMING_DOCK);
 	if (ret.Failed()) return ret;
 
+	int specindex = AllocateSpecToDock(dockspec, st, (flags & DC_EXEC) != 0);
+	if (specindex == -1) return_cmd_error(STR_ERROR_TOO_MANY_STATION_SPECS);
+
 	if (flags & DC_EXEC) {
 		st->ship_station.Add(tile);
 		st->ship_station.Add(tile + TileOffsByDiagDir(direction));
@@ -2589,6 +2605,10 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 		Company::Get(st->owner)->infrastructure.station += 2;
 
 		MakeDock(tile, st->owner, st->index, direction, wc);
+		SetCustomDockSpecIndex(tile, specindex);
+		SetStationTileRandomBits(tile, GB(Random(), 0, 4));
+		SetCustomDockSpecIndex(tile + TileOffsByDiagDir(direction), specindex);
+		SetStationTileRandomBits(tile + TileOffsByDiagDir(direction), GB(Random(), 0, 4));
 		UpdateStationDockingTiles(st);
 
 		st->AfterStationTileSetChange(true, STATION_DOCK);
@@ -2701,6 +2721,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
+		byte specindex1 = GetCustomStationSpecIndex(tile1);
+		byte specindex2 = GetCustomStationSpecIndex(tile2);
+
 		DoClearSquare(tile1);
 		MarkTileDirtyByTile(tile1);
 		MakeWaterKeepingClass(tile2, st->owner);
@@ -2718,6 +2741,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		Company::Get(st->owner)->infrastructure.station -= 2;
 
 		st->AfterStationTileSetChange(false, STATION_DOCK);
+
+		DeallocateSpecFromDock(st, specindex1);
+		DeallocateSpecFromDock(st, specindex2);
 
 		ClearDockingTilesCheckingNeighbours(tile1);
 		ClearDockingTilesCheckingNeighbours(tile2);
@@ -2978,7 +3004,11 @@ draw_default_foundation:
 		DrawWaterClassGround(ti);
 		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
 		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
-	} else if (IsDock(ti->tile) || (IsOilRig(ti->tile) && IsTileOnWater(ti->tile))) {
+	} else if (IsDock(ti->tile)) {
+		const DockSpec *dockspec = Station::GetByTile(ti->tile)->dock_specs[GetCustomDockSpecIndex(ti->tile)].spec;
+		DrawNewDockTile(ti, dockspec);
+		return;
+	} else if (IsDock(ti->tile) && IsOilRig(ti->tile) && IsTileOnWater(ti->tile)) {
 		if (ti->tileh == SLOPE_FLAT) {
 			DrawWaterClassGround(ti);
 		} else {
