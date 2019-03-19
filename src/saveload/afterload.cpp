@@ -3096,9 +3096,22 @@ bool AfterLoadGame()
 			if (IsTileType(t, MP_WATER) || IsTileType(t, MP_RAILWAY) || IsTileType(t, MP_STATION) || IsTileType(t, MP_TUNNELBRIDGE)) {
 				SetDockingTile(t, false);
 			}
+
+			if (!IsTileType(t, MP_STATION)) continue;
+
 			/* Add docks and oilrigs to Station::ship_station. */
-			if (IsTileType(t, MP_STATION)) {
-				if (IsDock(t) || IsOilRig(t)) Station::GetByTile(t)->ship_station.Add(t);
+			if (IsDock(t)) {
+				Station::GetByTile(t)->ship_station.Add(t);
+				/* Set dock adjacency bits. */
+				StationGfx gfx = GetStationGfx(t);
+				if (gfx < GFX_DOCK_BASE_WATER_PART) {
+					DiagDirection d = (DiagDirection)gfx;
+					SetDockAdjacency(t, 1 << d);
+					/* Also set adjacency of water part */
+					SetDockAdjacency(t + TileOffsByDiagDir(d), 1 << ReverseDiagDir(d));
+				}
+			} else if (IsOilRig(t)) {
+				Station::GetByTile(t)->ship_station.Add(t);
 			}
 		}
 	}

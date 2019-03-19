@@ -331,9 +331,14 @@ TownScopeResolver *DockResolverObject::GetTown()
 	switch (variable) {
 		/* Relative position. */
 		case 0x40: {
-			uint offset = this->tile - this->st->ship_station.tile;
-			uint offset_x = TileX(offset);
-			uint offset_y = TileY(offset);
+			uint x = TileX(this->tile);
+			uint y = TileY(this->tile);
+			uint min_x = x;
+			uint min_y = y;
+			while (HasBit(GetDockAdjacency(TileXY(min_x, y)), 0)) { min_x--; }
+			while (HasBit(GetDockAdjacency(TileXY(x, min_y)), 1)) { min_y--; }
+			uint offset_x = x - min_x;
+			uint offset_y = y - min_y;
 			return offset_y << 20 | offset_x << 16 | offset_y << 8 | offset_x;
 		}
 

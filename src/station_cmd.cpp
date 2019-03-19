@@ -2510,7 +2510,9 @@ static const byte _dock_h_chk[4] = { 1, 2, 1, 2 };
  * Build a dock/haven.
  * @param tile tile where dock will be built
  * @param flags operation to perform
- * @param p1 (bit 0) - allow docks directly adjacent to other docks.
+ * @param p1 various bitstuffed elements
+ * - p1 = (bit     0) - allow docks directly adjacent to other docks.
+ * - p1 = (bit  1- 2) - dock orientation
  * @param p2 various bitstuffed elements
  * - p2 = (bit  0-15) - custom docktype
  * - p2 = (bit 16-31) - station ID to join (NEW_STATION if build new one)
@@ -2525,15 +2527,15 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	bool distant_join = (station_to_join != INVALID_STATION);
 
 	DockType docktype = (DockType)GB(p2, 0, 16);
+	DiagDirection direction = Extract<DiagDirection, 1, 2>(p1);
 
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
 	const DockSpec *dockspec = DockSpec::Get(docktype);
 	if (dockspec == NULL) return CMD_ERROR;
 
-	DiagDirection direction = GetInclinedSlopeDirection(GetTileSlope(tile));
-	if (direction == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	direction = ReverseDiagDir(direction);
+	int size_x = GB(dockspec->size, 0, 4);
+	int size_y = GB(dockspec->size, 4, 4);
 
 	/* Docks cannot be placed on rapids */
 	if (HasTileWaterGround(tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
@@ -2544,31 +2546,54 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	if (IsBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
 	CommandCost cost(EXPENSES_CONSTRUCTION, _price[PR_BUILD_STATION_DOCK]);
-	ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-	if (ret.Failed()) return ret;
-	cost.AddCost(ret);
+	TileArea dock_area;
+	WaterClass wc = WATER_CLASS_SEA;
 
-	TileIndex tile_cur = tile + TileOffsByDiagDir(direction);
+	if (docktype == DOCK_ORIGINAL) {
+		ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+		cost.AddCost(ret);
 
-	if (!IsTileType(tile_cur, MP_WATER) || !IsTileFlat(tile_cur)) {
-		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	}
+		direction = GetInclinedSlopeDirection(GetTileSlope(tile));
+		if (direction == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		direction = ReverseDiagDir(direction);
 
-	if (IsBridgeAbove(tile_cur)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		TileIndex tile_cur = tile + TileOffsByDiagDir(direction);
 
-	/* Get the water class of the water tile before it is cleared.*/
-	WaterClass wc = GetWaterClass(tile_cur);
+		if (!IsTileType(tile_cur, MP_WATER) || !IsTileFlat(tile_cur)) {
+			return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		}
 
-	ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-	if (ret.Failed()) return ret;
+		if (IsBridgeAbove(tile_cur)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
-	tile_cur += TileOffsByDiagDir(direction);
-	if (!IsTileType(tile_cur, MP_WATER) || !IsTileFlat(tile_cur)) {
-		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-	}
+		/* Get the water class of the water tile before it is cleared.*/
+		wc = GetWaterClass(tile_cur);
 
-	TileArea dock_area = TileArea(tile + ToTileIndexDiff(_dock_tileoffs_chkaround[direction]),
+		ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+		if (ret.Failed()) return ret;
+
+		tile_cur += TileOffsByDiagDir(direction);
+		if (!IsTileType(tile_cur, MP_WATER) || !IsTileFlat(tile_cur)) {
+			return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		}
+
+		dock_area = TileArea(tile + ToTileIndexDiff(_dock_tileoffs_chkaround[direction]),
 			_dock_w_chk[direction], _dock_h_chk[direction]);
+	} else {
+		/* Make size zero-based. */
+		size_x--;
+		size_y--;
+
+		/* Adjust layout depending on specified orientation */
+		if (direction == DIAGDIR_NW || direction == DIAGDIR_SE) Swap(size_x, size_y);
+		if (direction == DIAGDIR_NW || direction == DIAGDIR_NE) {
+			size_x = -size_x;
+			size_y = -size_y;
+		}
+
+		TileIndex endtile = TileAddWrap(tile, size_x, size_y);
+		dock_area = TileArea(tile, endtile);
+	}
 
 	/* middle */
 	Station *st = nullptr;
@@ -2581,24 +2606,77 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	ret = BuildStationPart(&st, flags, reuse, dock_area, STATIONNAMING_DOCK);
 	if (ret.Failed()) return ret;
 
+	if (docktype != DOCK_ORIGINAL) {
+		TILE_AREA_LOOP(t, dock_area) {
+			if (IsBridgeAbove(t)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+
+			ret = DoCommand(t, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+			if (ret.Failed()) return ret;
+		}
+
+		/* Test if dock_area is adjacent to a possible docking tile OR part of the same station. */
+		int x = TileX(dock_area.tile);
+		int y = TileY(dock_area.tile);
+
+		/* Expand the area by a tile on each side while
+		 * making sure that we remain inside the map. */
+		int x2 = std::min(x + dock_area.w + 1U, MapSizeX());
+		int x1 = std::max(x - 1, 0);
+
+		int y2 = std::min(y + dock_area.h + 1U, MapSizeY());
+		int y1 = std::max(y - 1, 0);
+
+		bool valid = false;
+		TileArea ta(TileXY(x1, y1), TileXY(x2 - 1, y2 - 1));
+		TILE_AREA_LOOP(tile, ta) {
+			if (!IsValidTile(tile)) continue;
+			if (dock_area.Contains(tile)) continue;
+			if (IsPossibleDockingTile(tile)) {
+				valid = true; break;
+			}
+			if (st != NULL && IsDockTile(tile) && GetStationIndex(tile) == st->index) {
+				valid = true; break;
+			}
+		}
+		if (!valid) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+	}
+
 	if (flags & DC_EXEC) {
-		st->ship_station.Add(tile);
-		st->ship_station.Add(tile + TileOffsByDiagDir(direction));
+		TILE_AREA_LOOP(t, dock_area) {
+			st->ship_station.Add(t);
+		}
+
 		st->AddFacility(FACIL_DOCK, tile);
 
 		st->rect.BeforeAddRect(dock_area.tile, dock_area.w, dock_area.h, StationRect::ADD_TRY);
 
-		/* If the water part of the dock is on a canal, update infrastructure counts.
-		 * This is needed as we've unconditionally cleared that tile before. */
-		if (wc == WATER_CLASS_CANAL) {
-			Company::Get(st->owner)->infrastructure.water++;
-		}
-		Company::Get(st->owner)->infrastructure.station += 2;
+		Company *c = Company::Get(st->owner);
 
-		MakeDock(tile, st->owner, st->index, direction, wc);
-		SetStationGfx(tile, docktype);
-		SetStationTileRandomBits(tile, GB(Random(), 0, 4));
-		SetStationTileRandomBits(tile + TileOffsByDiagDir(direction), GB(Random(), 0, 4));
+		TILE_AREA_LOOP(t, dock_area) {
+			/* Determine dock continuation bits. */
+			uint8 cont;
+			cont  = (TileX(t) == TileX(dock_area.tile)) ? 0 : 1 << DIAGDIR_NE;
+			cont |= (TileY(t) == TileY(dock_area.tile)) ? 0 : 1 << DIAGDIR_NW;
+			cont |= (TileX(t) == TileX(dock_area.tile) + dock_area.w - 1) ? 0 : 1 << DIAGDIR_SW;
+			cont |= (TileY(t) == TileY(dock_area.tile) + dock_area.h - 1) ? 0 : 1 << DIAGDIR_SE;
+
+			/* If the water part of the dock is on a canal, update infrastructure counts.
+			 * This is needed as we've unconditionally cleared that tile before. */
+			if (wc == WATER_CLASS_CANAL) {
+				c->infrastructure.water++;
+			}
+			c->infrastructure.station++;
+
+			if (docktype == DOCK_ORIGINAL) {
+				MakeDock(t, st->owner, st->index, direction, wc);
+				direction = (DiagDirection)((direction & 1) + 4);
+			} else {
+				MakeDock(t, st->owner, st->index, docktype, wc);
+			}
+			SetStationTileRandomBits(t, GB(Random(), 0, 4));
+			SetDockAdjacency(t, cont);
+			MarkTileDirtyByTile(t);
+		}
 		UpdateStationDockingTiles(st);
 
 		st->AfterStationTileSetChange(true, STATION_DOCK);
@@ -2667,28 +2745,6 @@ bool IsValidDockingDirectionForDock(TileIndex t, DiagDirection d)
 }
 
 /**
- * Find the part of a dock that is land-based
- * @param t Dock tile to find land part of
- * @return tile of land part of dock
- */
-static TileIndex FindDockLandPart(TileIndex t)
-{
-	assert(IsDockTile(t));
-
-	StationGfx gfx = GetStationGfx(t);
-	if (gfx < GFX_DOCK_BASE_WATER_PART) return t;
-
-	for (DiagDirection d = DIAGDIR_BEGIN; d != DIAGDIR_END; d++) {
-		TileIndex tile = t + TileOffsByDiagDir(d);
-		if (!IsValidTile(tile)) continue;
-		if (!IsDockTile(tile)) continue;
-		if (GetStationGfx(tile) < GFX_DOCK_BASE_WATER_PART && tile + TileOffsByDiagDir(GetDockDirection(tile)) == t) return tile;
-	}
-
-	return INVALID_TILE;
-}
-
-/**
  * Remove a dock
  * @param tile TileIndex been queried
  * @param flags operation to perform
@@ -2702,21 +2758,36 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 
 	if (!IsDockTile(tile)) return CMD_ERROR;
 
-	TileIndex tile1 = FindDockLandPart(tile);
-	if (tile1 == INVALID_TILE) return CMD_ERROR;
-	TileIndex tile2 = tile1 + TileOffsByDiagDir(GetDockDirection(tile1));
+	/* Determine tile area of dock part based on adjacency data. */
+	int x = TileX(tile);
+	int y = TileY(tile);
+	int min_x = x;
+	int min_y = y;
+	int max_x = x;
+	int max_y = y;
+	while (HasBit(GetDockAdjacency(TileXY(min_x, y)), DIAGDIR_NE)) { min_x--; }
+	while (HasBit(GetDockAdjacency(TileXY(x, min_y)), DIAGDIR_NW)) { min_y--; }
+	while (HasBit(GetDockAdjacency(TileXY(max_x, y)), DIAGDIR_SW)) { max_x++; }
+	while (HasBit(GetDockAdjacency(TileXY(x, max_y)), DIAGDIR_SE)) { max_y++; }
 
-	ret = EnsureNoVehicleOnGround(tile1);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile2);
-	if (ret.Failed()) return ret;
+	TileArea ta(TileXY(min_x, min_y), TileXY(max_x, max_y));
+
+	TILE_AREA_LOOP(t, ta) {
+		ret = EnsureNoVehicleOnGround(t);
+		if (ret.Failed()) return ret;
+	}
 
 	if (flags & DC_EXEC) {
-		DoClearSquare(tile1);
-		MarkTileDirtyByTile(tile1);
-		MakeWaterKeepingClass(tile2, st->owner);
+		TILE_AREA_LOOP(t, ta) {
+			if (GetWaterClass(t) == WATER_CLASS_INVALID) {
+				DoClearSquare(t);
+			} else {
+				MakeWaterKeepingClass(t, st->owner);
+			}
+			MarkTileDirtyByTile(t);
 
-		st->rect.AfterRemoveTile(st, tile1);
-		st->rect.AfterRemoveTile(st, tile2);
+			st->rect.AfterRemoveTile(st, t);
+		}
 
 		MakeShipStationAreaSmaller(st);
 		if (st->ship_station.tile == INVALID_TILE) {
@@ -2729,8 +2800,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 
 		st->AfterStationTileSetChange(false, STATION_DOCK);
 
-		ClearDockingTilesCheckingNeighbours(tile1);
-		ClearDockingTilesCheckingNeighbours(tile2);
+		TILE_AREA_LOOP(t, ta) {
+			ClearDockingTilesCheckingNeighbours(t);
+		}
 
 		/* All ships that were going to our station, can't go to it anymore.
 		 * Just clear the order, then automatically the next appropriate order

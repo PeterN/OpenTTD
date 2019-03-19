@@ -496,6 +496,25 @@ static inline uint GetCustomStationSpecIndex(TileIndex t)
 	return _m[t].m4;
 }
 
+/**
+ * Set adjacency bits for multi-tile dock parts.
+ * @param t Tile to set the adjacency bits of.
+ * @param b DiagDirection bits.
+ */
+static inline void SetDockAdjacency(TileIndex t, uint8 b)
+{
+	SB(_m[t].m3, 0, 4, b);
+}
+
+/**
+ * Get adjacency bits for multi-tile dock parts.
+ * @param t Tile to query
+ * @return DiagDirection bits of this thie.
+ */
+static inline uint8 GetDockAdjacency(TileIndex t)
+{
+	return GB(_m[t].m3, 0, 4);
+}
 
 /**
  * Set the random bits for a station tile.
@@ -648,13 +667,12 @@ static inline void MakeBuoy(TileIndex t, StationID sid, WaterClass wc)
  * @param t the tile to make a dock
  * @param o the owner of the dock
  * @param sid the station to which this tile belongs
- * @param d the direction of the dock
+ * @param section the StationGfx to be used for this tile
  * @param wc the type of water on this tile
  */
-static inline void MakeDock(TileIndex t, Owner o, StationID sid, DiagDirection d, WaterClass wc)
+static inline void MakeDock(TileIndex t, Owner o, StationID sid, uint8 section, WaterClass wc)
 {
-	MakeStation(t, o, sid, STATION_DOCK, d);
-	MakeStation(t + TileOffsByDiagDir(d), o, sid, STATION_DOCK, GFX_DOCK_BASE_WATER_PART + DiagDirToAxis(d), wc);
+	MakeStation(t, o, sid, STATION_DOCK, section, wc);
 }
 
 /**
