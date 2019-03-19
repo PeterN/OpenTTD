@@ -2531,6 +2531,8 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
+	if (docktype > 0 && docktype < 6) return CMD_ERROR;
+
 	const DockSpec *dockspec = DockSpec::Get(docktype);
 	if (dockspec == NULL) return CMD_ERROR;
 
@@ -3067,17 +3069,17 @@ draw_default_foundation:
 			return;
 		}
 		if (ti->tileh == SLOPE_FLAT) {
-			DrawWaterClassGround(ti);
+			//DrawWaterClassGround(ti);
 		} else {
 			assert(IsDock(ti->tile));
 			//TileIndex water_tile = ti->tile + TileOffsByDiagDir(GetDockDirection(ti->tile));
-			TileIndex water_tile = ti->tile - TileOffsByDiagDir(GetInclinedSlopeDirection(ti->tileh));
-			WaterClass wc = HasTileWaterClass(water_tile) ? GetWaterClass(water_tile) : WATER_CLASS_INVALID;
-			if (wc == WATER_CLASS_SEA) {
+			//TileIndex water_tile = ti->tile - TileOffsByDiagDir(GetInclinedSlopeDirection(ti->tileh));
+			//WaterClass wc = HasTileWaterClass(water_tile) ? GetWaterClass(water_tile) : WATER_CLASS_INVALID;
+			//if (wc == WATER_CLASS_SEA) {
 				DrawShoreTile(ti->tileh);
-			} else {
-				DrawClearLandTile(ti, 3);
-			}
+			//} else {
+			//	DrawClearLandTile(ti, 3);
+			//}
 		}
 	} else if (IsDock(ti->tile) && IsOilRig(ti->tile) && IsTileOnWater(ti->tile)) {
 		if (ti->tileh == SLOPE_FLAT) {
@@ -3085,13 +3087,13 @@ draw_default_foundation:
 		} else {
 			assert(IsDock(ti->tile));
 			//TileIndex water_tile = ti->tile + TileOffsByDiagDir(GetDockDirection(ti->tile));
-			TileIndex water_tile = ti->tile - TileOffsByDiagDir(GetInclinedSlopeDirection(ti->tileh));
-			WaterClass wc = HasTileWaterClass(water_tile) ? GetWaterClass(water_tile) : WATER_CLASS_INVALID;
-			if (wc == WATER_CLASS_SEA) {
+			//TileIndex water_tile = ti->tile - TileOffsByDiagDir(GetInclinedSlopeDirection(ti->tileh));
+			//WaterClass wc = HasTileWaterClass(water_tile) ? GetWaterClass(water_tile) : WATER_CLASS_INVALID;
+			//if (wc == WATER_CLASS_SEA) {
 				DrawShoreTile(ti->tileh);
-			} else {
-				DrawClearLandTile(ti, 3);
-			}
+			//} else {
+			//	DrawClearLandTile(ti, 3);
+			//}
 		}
 	} else {
 		if (layout != nullptr) {

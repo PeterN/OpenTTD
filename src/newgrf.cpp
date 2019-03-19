@@ -4717,7 +4717,7 @@ static ChangeInfoResult DockChangeInfo(uint id, int numinfo, int prop, ByteReade
 				/* Allocate space for this object. */
 				if (*dspec == NULL) {
 					*dspec = CallocT<DockSpec>(1);
-					(*dspec)->views = 1; // Default for NewGRFs that don't set it.
+					(*dspec)->views = 4; // Default for NewGRFs that don't set it.
 				}
 
 				/* Swap classid because we read it in BE. */
