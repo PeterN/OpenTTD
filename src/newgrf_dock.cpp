@@ -288,7 +288,7 @@ TownScopeResolver *DockResolverObject::GetTown()
 	if (this->st == NULL) {
 		switch (variable) {
 			/* Allow these when there's no dock. */
-			case 0x41: return SLOPE_NW;
+			case 0x41: return SLOPE_NW << 8;
 			case 0x60:
 			case 0x61:
 			case 0x62:
