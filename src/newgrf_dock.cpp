@@ -136,8 +136,6 @@ void DockOverrideManager::SetEntitySpec(DockSpec *spec)
 	/* Now that we know we can use the given id, copy the spec to its final destination. */
 	memcpy(&_dock_specs[type], spec, sizeof(*spec));
 	DockClass::Assign(&_dock_specs[type]);
-
-	printf("Allocated %u\n", type);
 }
 
 template <typename Tspec, typename Tid, Tid Tmax>

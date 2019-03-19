@@ -2530,7 +2530,6 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 	const DockSpec *dockspec = DockSpec::Get(docktype);
 	if (dockspec == NULL) return CMD_ERROR;
-	printf("%u -> %p\n", docktype, dockspec);
 
 	DiagDirection direction = GetInclinedSlopeDirection(GetTileSlope(tile));
 	if (direction == INVALID_DIAGDIR) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
