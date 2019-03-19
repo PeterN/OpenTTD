@@ -197,14 +197,14 @@ static uint32 GetDockIDAtOffset(TileIndex tile, uint32 cur_grfid)
  * @param grf_version8 True, if we are dealing with a new NewGRF which uses GRF version >= 8.
  * @return a construction of bits obeying the newgrf format
  */
-/*
-static uint32 GetNearbyDockTileInformation(byte parameter, TileIndex tile, DockID index, bool grf_version8)
+
+static uint32 GetNearbyDockTileInformation(byte parameter, TileIndex tile, StationID index, bool grf_version8)
 {
 	if (parameter != 0) tile = GetNearbyTile(parameter, tile); // only perform if it is required
-	bool is_same_dock = (IsTileType(tile, MP_DOCK) && GetDockIndex(tile) == index);
+	bool is_same_dock = (IsDockTile(tile) && GetStationIndex(tile) == index);
 
 	return GetNearbyTileInformation(tile, grf_version8) | (is_same_dock ? 1 : 0) << 8;
-}*/
+}
 
 /**
  * Get the closest dock of a given type.
@@ -371,7 +371,7 @@ TownScopeResolver *DockResolverObject::GetTown()
 		}
 
 		/* Land info of nearby tiles */
-//		case 0x62: return GetNearbyDockTileInformation(parameter, this->tile, this->st == NULL ? INVALID_STATION : this->st->index, this->ro.grffile->grf_version >= 8);
+		case 0x62: return GetNearbyDockTileInformation(parameter, this->tile, this->st == NULL ? INVALID_STATION : this->st->index, this->ro.grffile->grf_version >= 8);
 
 		/* Animation counter of nearby tile */
 		case 0x63: {
