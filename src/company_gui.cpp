@@ -620,6 +620,12 @@ public:
 	}
 };
 
+struct Hsv {
+	double h; ///< "Angle" in 0.0 ... 360.0
+	double s; ///< Saturation 0.0 ... 1.0
+	double v; ///< Value      0.0 ... 1.0
+};
+
 class SelectRGBWindow : public Window {
 	/* Preserved values from parent window when this window was opened. */
 	uint32 sel;
@@ -628,10 +634,83 @@ class SelectRGBWindow : public Window {
 	bool primary;
 	bool group;
 
-	Scrollbar *r, *g, *b, *c;
+	Scrollbar *hue, *sat, *val, *con;
 	uint32 temp, current;
 
+	Colour current_rgb;
+	Hsv current_hsv;
+
 	static const int BUTTON_SIZE = 10;
+
+	Hsv RgbToHsv(Colour rgb) const
+	{
+		Hsv hsv;
+		double r = rgb.r / 255.0;
+		double g = rgb.g / 255.0;
+		double b = rgb.b / 255.0;
+
+		double minrgb = std::min({r, g, b});
+		double maxrgb = std::max({r, g, b});
+
+		hsv.v = maxrgb;
+		double d = maxrgb - minrgb;
+
+		if (d > 0.0 && maxrgb > 0.0) {
+			hsv.s = (d / maxrgb);
+		} else {
+			hsv.s = 0.0;
+			hsv.h = 0.0;
+			return hsv;
+		}
+
+		/* Calculate hue */
+		if (r >= maxrgb) {
+			hsv.h = (g - b) / d;
+		} else if (g >= maxrgb) {
+			hsv.h = 2.0 + (b - r) / d;
+		} else {
+			hsv.h = 4.0 + (r - g) / d;
+		}
+
+		/* Convert hue to degrees */
+		hsv.h *= 60.0;
+		if (hsv.h < 0.0) hsv.h += 360.0;
+
+		return hsv;
+	}
+
+	Colour HsvToRgb(Hsv hsv) const
+	{
+		Colour c;
+		c.a = 255;
+
+		double hh = hsv.h / 60.0;
+		int i = (int)hh;
+		double ff = hh - i;
+
+		double p = hsv.v * (1.0 - hsv.s) * 255.0;
+		double q = hsv.v * (1.0 - (hsv.s * ff)) * 255.0;
+		double t = hsv.v * (1.0 - (hsv.s * (1.0 - ff))) * 255.0;
+		double v = hsv.v * 255.0;
+
+		switch (i) {
+			case 0: c.r = v; c.g = t; c.b = p; break;
+			case 1: c.r = q; c.g = v; c.b = p; break;
+			case 2: c.r = p; c.g = v; c.b = t; break;
+			case 3: c.r = p; c.g = q; c.b = v; break;
+			case 4: c.r = t; c.g = p; c.b = v; break;
+			default:
+			case 5: c.r = v; c.g = p; c.b = q; break;
+		}
+
+		/* Bottom 2 bits are not used due to packing into 6 * 4 = 24 bits. */
+		c.r &= 0xFC;
+		c.g &= 0xFC;
+		c.b &= 0xFC;
+		c.a &= 0xFC;
+
+		return c;
+	}
 
 public:
 	SelectRGBWindow(WindowDesc *desc, int window_number, CompanyID company, uint32 colour, uint32 sel, LiveryClass lc, bool ctrl, bool primary, bool group) :
@@ -647,22 +726,27 @@ public:
 			rgb = GetCompanyColourRGB(colour);
 		}
 
-		this->r = this->GetScrollbar(WID_RGB_SCROLLBAR_R);
-		this->r->SetCapacity(BUTTON_SIZE);
-		this->r->SetCount(63 + BUTTON_SIZE);
-		this->r->SetPosition(rgb.r >> 2);
-		this->g = this->GetScrollbar(WID_RGB_SCROLLBAR_G);
-		this->g->SetCapacity(BUTTON_SIZE);
-		this->g->SetCount(63 + BUTTON_SIZE);
-		this->g->SetPosition(rgb.g >> 2);
-		this->b = this->GetScrollbar(WID_RGB_SCROLLBAR_B);
-		this->b->SetCapacity(BUTTON_SIZE);
-		this->b->SetCount(63 + BUTTON_SIZE);
-		this->b->SetPosition(rgb.b >> 2);
-		this->c = this->GetScrollbar(WID_RGB_SCROLLBAR_C);
-		this->c->SetCapacity(BUTTON_SIZE);
-		this->c->SetCount(63 + BUTTON_SIZE);
-		this->c->SetPosition(rgb.a >> 2);
+		Hsv hsv = RgbToHsv(rgb);
+
+		this->current_rgb = rgb;
+		this->current_hsv = hsv;
+
+		this->hue = this->GetScrollbar(WID_RGB_SCROLLBAR_HUE);
+		this->hue->SetCapacity(BUTTON_SIZE);
+		this->hue->SetCount(360 + BUTTON_SIZE);
+		this->hue->SetPosition(hsv.h);
+		this->sat = this->GetScrollbar(WID_RGB_SCROLLBAR_SAT);
+		this->sat->SetCapacity(BUTTON_SIZE);
+		this->sat->SetCount(100 + BUTTON_SIZE);
+		this->sat->SetPosition(hsv.s * 100.0f);
+		this->val = this->GetScrollbar(WID_RGB_SCROLLBAR_VAL);
+		this->val->SetCapacity(BUTTON_SIZE);
+		this->val->SetCount(100 + BUTTON_SIZE);
+		this->val->SetPosition(hsv.v * 100.0f);
+		this->con = this->GetScrollbar(WID_RGB_SCROLLBAR_CON);
+		this->con->SetCapacity(BUTTON_SIZE);
+		this->con->SetCount(255 + BUTTON_SIZE);
+		this->con->SetPosition(rgb.a);
 	}
 
 	void SetStringParameters(int widget) const override
@@ -674,13 +758,81 @@ public:
 		}
 	}
 
-	void OnPaint() override
+	void DrawWidget(const Rect &r, int widget) const
 	{
-		uint32 colour = this->PackColour();
-		if (colour != this->temp) {
-			this->temp = colour;
-			this->SetTimeout();
+		Hsv hsv = this->current_hsv;
+		switch (widget) {
+			case WID_RGB_HUE: {
+				int width = r.Width();
+				for (int i = 0; i < width; i++) {
+					hsv.h = (i * 360.0) / width;
+					GfxFillRect(r.left + i, r.top, r.left + i, r.bottom, HsvToRgb(hsv).data << 8, FILLRECT_OPAQUE);
+				}
+				break;
+			}
+
+			case WID_RGB_SAT: {
+				int width = r.Width();
+				for (int i = 0; i < width; i++) {
+					hsv.s = (double)i / width;
+					GfxFillRect(r.left + i, r.top, r.left + i, r.bottom, HsvToRgb(hsv).data << 8, FILLRECT_OPAQUE);
+				}
+				break;
+			}
+
+			case WID_RGB_VAL: {
+				int width = r.Width();
+				for (int i = 0; i < width; i++) {
+					hsv.v = (double)i / width;
+					GfxFillRect(r.left + i, r.top, r.left + i, r.bottom, HsvToRgb(hsv).data << 8, FILLRECT_OPAQUE);
+				}
+				break;
+			}
+
+			case WID_RGB_CON: {
+				int width = r.Width();
+				for (int i = 0; i < width; i++) {
+					Colour c;
+					int j = (i * 8.0) / width;
+					int adj = ((j - 4) * this->current_rgb.a) / 4;
+					c.r = Clamp(this->current_rgb.r + adj, 0, 255) & 0xFC;
+					c.g = Clamp(this->current_rgb.g + adj, 0, 255) & 0xFC;
+					c.b = Clamp(this->current_rgb.b + adj, 0, 255) & 0xFC;
+					GfxFillRect(r.left + i, r.top, r.left + i, r.bottom, c.data << 8, FILLRECT_OPAQUE);
+				}
+				break;
+			}
+
+			case WID_RGB_OUTPUT: {
+				int height = r.bottom - r.top + 1;
+				for (int i = 0; i < height; i++) {
+					Colour c;
+					int j = i * 8 / height;
+					int adj = (j - 4) * this->current_rgb.a / 4;
+					c.r = Clamp(this->current_rgb.r + adj, 0, 255) & 0xFC;
+					c.g = Clamp(this->current_rgb.g + adj, 0, 255) & 0xFC;
+					c.b = Clamp(this->current_rgb.b + adj, 0, 255) & 0xFC;
+					GfxFillRect(r.left, r.bottom - i, r.right, r.bottom - i, c.data << 8, FILLRECT_OPAQUE);
+				}
+				break;
+			}
+
 		}
+	}
+
+	void OnPaint()
+	{
+		Colour cur = this->current_rgb;
+
+		/* Scrollbars cause a repaint */
+		this->current_hsv.h = this->hue->GetPosition() % 360;
+		this->current_hsv.s = this->sat->GetPosition() / 100.0f;
+		this->current_hsv.v = this->val->GetPosition() / 100.0f;
+		this->current_rgb = HsvToRgb(this->current_hsv);
+		this->current_rgb.a = this->con->GetPosition();
+
+		/* Selection has changed, so update in a moment. */
+		if (this->current_rgb.data != cur.data) this->SetTimeout();
 
 		this->DrawWidgets();
 	}
@@ -688,10 +840,10 @@ public:
 	uint32 PackColour()
 	{
 		uint32 colour = this->current & 0xFF;
-		colour |= this->r->GetPosition() << 8;
-		colour |= this->g->GetPosition() << 14;
-		colour |= this->b->GetPosition() << 20;
-		colour |= this->c->GetPosition() << 26;
+		colour |= (this->current_rgb.r >> 2) << 8;
+		colour |= (this->current_rgb.g >> 2) << 14;
+		colour |= (this->current_rgb.b >> 2) << 20;
+		colour |= (this->current_rgb.a >> 2) << 26;
 		return colour;
 	}
 
@@ -720,16 +872,41 @@ static const NWidgetPart _nested_select_rgb_widgets [] = {
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_RGB_CAPTION), SetDataTip(STR_LIVERY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 	EndContainer(),
-	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), SetPIP(10, 10, 10),
-		NWidget(NWID_HSCROLLBAR, COLOUR_RED,   WID_RGB_SCROLLBAR_R),
-		NWidget(NWID_HSCROLLBAR, COLOUR_GREEN, WID_RGB_SCROLLBAR_G),
-		NWidget(NWID_HSCROLLBAR, COLOUR_BLUE,  WID_RGB_SCROLLBAR_B),
-		NWidget(NWID_HSCROLLBAR, COLOUR_GREY,  WID_RGB_SCROLLBAR_C),
+	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
+		NWidget(NWID_HORIZONTAL), SetPIP(6, WidgetDimensions::unscaled.hsep_wide, 6),
+			NWidget(NWID_VERTICAL), SetPIP(6, WidgetDimensions::unscaled.vsep_normal, 6),
+				NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_HUE, STR_NULL),
+				NWidget(WWT_INSET, COLOUR_GREY),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_HUE), SetMinimalSize(240, 16),
+				EndContainer(),
+				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_HUE),
+				NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_SATURATION, STR_NULL),
+				NWidget(WWT_INSET, COLOUR_GREY),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_SAT), SetMinimalSize(240, 16),
+				EndContainer(),
+				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_SAT),
+				NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_BRIGHTNESS, STR_NULL),
+				NWidget(WWT_INSET, COLOUR_GREY),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_VAL), SetMinimalSize(240, 16),
+				EndContainer(),
+				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_VAL),
+				NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_CONTRAST, STR_NULL),
+				NWidget(WWT_INSET, COLOUR_GREY),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_CON), SetMinimalSize(240, 16),
+				EndContainer(),
+				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_CON),
+			EndContainer(),
+			NWidget(NWID_VERTICAL), SetPIP(6, WidgetDimensions::unscaled.vsep_normal, 6),
+				NWidget(WWT_INSET, COLOUR_GREY),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_OUTPUT), SetFill(1, 1), SetMinimalSize(24, 0),
+				EndContainer(),
+			EndContainer(),
+		EndContainer(),
 	EndContainer(),
 };
 
 static WindowDesc _select_rgb_desc(
-	WDP_AUTO, nullptr, 300, 100,
+	WDP_AUTO, nullptr, 0, 0,
 	WC_RGB_COLOUR, WC_NONE,
 	0,
 	_nested_select_rgb_widgets, lengthof(_nested_select_rgb_widgets)
