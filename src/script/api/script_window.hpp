@@ -1083,10 +1083,10 @@ public:
 	/** Widgets of the #SelectRGBWindow class. */
 	enum SelectRGBWidgets {
 		WID_RGB_CAPTION                              = ::WID_RGB_CAPTION,                              ///< Caption of window.
-		WID_RGB_SCROLLBAR_R                          = ::WID_RGB_SCROLLBAR_R,                          ///< Red scrollbar.
-		WID_RGB_SCROLLBAR_G                          = ::WID_RGB_SCROLLBAR_G,                          ///< Green scrollbar.
-		WID_RGB_SCROLLBAR_B                          = ::WID_RGB_SCROLLBAR_B,                          ///< Blue scrollbar.
-		WID_RGB_SCROLLBAR_C                          = ::WID_RGB_SCROLLBAR_C,                          ///< Contrast scrollbar.
+		WID_RGB_SCROLLBAR_HUE                        = ::WID_RGB_SCROLLBAR_HUE,                        ///< Hue scrollbar.
+		WID_RGB_SCROLLBAR_SAT                        = ::WID_RGB_SCROLLBAR_SAT,                        ///< Saturation scrollbar.
+		WID_RGB_SCROLLBAR_VAL                        = ::WID_RGB_SCROLLBAR_VAL,                        ///< Value scrollbar.
+		WID_RGB_SCROLLBAR_CON                        = ::WID_RGB_SCROLLBAR_CON,                        ///< Contrast scrollbar.
 	};
 
 	/** Widgets of the #SelectCompanyLiveryWindow class. */

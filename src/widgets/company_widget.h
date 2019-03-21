@@ -80,11 +80,16 @@ enum CompanyFinancesWidgets {
 
 /** Widgets of the #SelectRGBWindow class. */
 enum SelectRGBWidgets {
-	WID_RGB_CAPTION,     ///< Caption of window.
-	WID_RGB_SCROLLBAR_R, ///< Red scrollbar.
-	WID_RGB_SCROLLBAR_G, ///< Green scrollbar.
-	WID_RGB_SCROLLBAR_B, ///< Blue scrollbar.
-	WID_RGB_SCROLLBAR_C, ///< Contrast scrollbar.
+	WID_RGB_CAPTION,       ///< Caption of window.
+	WID_RGB_HUE,
+	WID_RGB_SCROLLBAR_HUE, ///< Hue scrollbar.
+	WID_RGB_SAT,
+	WID_RGB_SCROLLBAR_SAT, ///< Saturation scrollbar.
+	WID_RGB_VAL,
+	WID_RGB_SCROLLBAR_VAL, ///< Value scrollbar.
+	WID_RGB_CON,
+	WID_RGB_SCROLLBAR_CON, ///< Contrast scrollbar.
+	WID_RGB_OUTPUT,
 };
 
 
