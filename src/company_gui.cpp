@@ -39,6 +39,7 @@
 #include "zoom_func.h"
 #include "sortlist_type.h"
 #include "blitter/factory.hpp"
+#include "querystring_gui.h"
 
 #include "widgets/company_widget.h"
 
@@ -603,6 +604,7 @@ class SelectRGBWindow : public Window {
 	bool ctrl_pressed;
 	bool primary;
 	bool group;
+	QueryString rgb_editbox;
 
 	Scrollbar *hue, *sat, *val, *con;
 	Colour temp, current_rgb;
@@ -674,15 +676,8 @@ class SelectRGBWindow : public Window {
 		return c;
 	}
 
-public:
-	SelectRGBWindow(WindowDesc *desc, uint winnum, Colour colour, uint32 sel, LiveryClass lc, bool ctrl, bool primary, bool group) :
-		Window(desc), sel(sel), lc(lc), ctrl_pressed(ctrl), primary(primary), group(group)
+	void SetColour(Colour colour)
 	{
-		this->InitNested(winnum);
-		this->owner = _current_company;
-
-		this->temp = this->current_rgb = colour;
-
 		Hsv hsv = RgbToHsv(colour);
 
 		this->hue = this->GetScrollbar(WID_RGB_SCROLLBAR_HUE);
@@ -701,6 +696,22 @@ public:
 		this->con->SetCapacity(BUTTON_SIZE);
 		this->con->SetCount(255 + BUTTON_SIZE);
 		this->con->SetPosition(colour.a);
+
+	}
+
+
+public:
+	SelectRGBWindow(WindowDesc *desc, uint winnum, Colour colour, uint32 sel, LiveryClass lc, bool ctrl, bool primary, bool group) :
+		Window(desc), sel(sel), lc(lc), ctrl_pressed(ctrl), primary(primary), group(group), rgb_editbox(9)
+	{
+		this->InitNested(winnum);
+		this->owner = _current_company;
+
+		this->temp = this->current_rgb = colour;
+
+		this->SetColour(colour);
+
+		this->querystrings[WID_RGB_EDITBOX] = &this->rgb_editbox;
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -715,7 +726,21 @@ public:
 	void DrawWidget(const Rect &r, int widget) const
 	{
 		Hsv hsv = this->current_hsv;
-		switch (widget) {
+		switch (GB(widget, 0, 16)) {
+			case WID_RGB_PRESET_MATRIX: {
+				const NWidgetCore *wid = this->GetWidget<NWidgetCore>(WID_RGB_PRESET_MATRIX);
+				int num_columns = GB(wid->widget_data, MAT_COL_START, MAT_COL_BITS);
+				int num_rows = GB(wid->widget_data, MAT_ROW_START, MAT_ROW_BITS);
+				int sx = (r.right - r.left + 1) / num_columns;
+				int sy = (r.bottom - r.top + 1) / num_rows;
+				for (int y = 0; y < num_rows; y++) {
+					for (int x = 0; x < num_columns; x++) {
+						Colour c = _settings_client.gui.colour_presets[x + y * num_columns];
+						GfxFillRect(r.left + sx * x + 2, r.top + sy * y + 2, r.left + sx * x + sx - 2, r.top + sy * y + sy - 2, 0, FILLRECT_OPAQUE, c);
+					}
+				}
+				break;
+			}
 			case WID_RGB_HUE: {
 				int width = r.right - r.left + 1;
 				for (int i = 0; i < width; i++) {
@@ -793,6 +818,30 @@ public:
 		this->DrawWidgets();
 	}
 
+	void OnClick(Point pt, int widget, int click_count)
+	{
+		if (widget != WID_RGB_PRESET_MATRIX) return;
+
+		const NWidgetCore *wid = this->GetWidget<NWidgetCore>(WID_RGB_PRESET_MATRIX);
+		int num_columns = GB(wid->widget_data, MAT_COL_START, MAT_COL_BITS);
+		int num_rows = GB(wid->widget_data, MAT_ROW_START, MAT_ROW_BITS);
+		int sx = (wid->current_x) / num_columns;
+		int sy = (wid->current_y) / num_rows;
+
+		int x = pt.x - wid->pos_x;
+		int y = pt.y - wid->pos_y;
+		size_t p = x / sx + (y / sy) * num_columns;
+
+		assert(p < lengthof(_settings_client.gui.colour_presets));
+		if (_ctrl_pressed) {
+			_settings_client.gui.colour_presets[p] = this->current_rgb.data;
+			this->SetWidgetDirty(WID_RGB_PRESET_MATRIX);
+		} else {
+			this->SetColour(_settings_client.gui.colour_presets[p]);
+			this->SetDirty();
+		}
+	}
+
 	void OnTimeout()
 	{
 		if (this->temp.data != this->current_rgb.data) {
@@ -808,7 +857,16 @@ public:
 					}
 				}
 			}
+
+			char text[9];
+			seprintf(text, lastof(text), "%08X", this->temp.data);
+			this->rgb_editbox.text.Assign(text);
 		}
+	}
+
+	void OnEditboxChanged(int widget)
+	{
+		this->SetColour(strtol(this->rgb_editbox.text.buf, nullptr, 16));
 	}
 };
 
@@ -818,19 +876,23 @@ static const NWidgetPart _nested_select_rgb_widgets [] = {
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_RGB_CAPTION), SetDataTip(STR_LIVERY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 	EndContainer(),
 	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
-		NWidget(NWID_HORIZONTAL), SetPIP(6, 6, 6),
-			NWidget(NWID_VERTICAL), SetPIP(6, 6, 6),
-				NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_HUE), SetMinimalSize(360, 20),
-				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_HUE),
-				NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_SAT), SetMinimalSize(100, 20),
-				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_SAT),
-				NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_VAL), SetMinimalSize(100, 20),
-				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_VAL),
-				NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_CON), SetMinimalSize(100, 20),
-				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_CON),
-			EndContainer(),
-			NWidget(NWID_VERTICAL), SetPIP(6, 6, 6),
-				NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_OUTPUT), SetFill(1, 1), SetMinimalSize(40, 0),
+		NWidget(NWID_VERTICAL), SetPIP(0, 6, 0), SetPadding(6, 6, 6, 6),
+			NWidget(WWT_MATRIX, COLOUR_GREY, WID_RGB_PRESET_MATRIX), SetFill(1, 1), SetMatrixDataTip(8, 2, STR_EMPTY), SetMinimalSize(360, 80),
+			NWidget(WWT_EDITBOX, COLOUR_GREY, WID_RGB_EDITBOX), SetPadding(3, 2, 2, 2), SetFill(1, 0), SetResize(1, 0),
+			NWidget(NWID_HORIZONTAL), SetPIP(0, 6, 0),
+				NWidget(NWID_VERTICAL), SetPIP(0, 6, 0),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_HUE), SetMinimalSize(360, 20),
+					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_HUE),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_SAT), SetMinimalSize(100, 20),
+					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_SAT),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_VAL), SetMinimalSize(100, 20),
+					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_VAL),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_CON), SetMinimalSize(100, 20),
+					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_CON),
+				EndContainer(),
+				NWidget(NWID_VERTICAL),
+					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_OUTPUT), SetFill(1, 1), SetMinimalSize(40, 0),
+				EndContainer(),
 			EndContainer(),
 		EndContainer(),
 	EndContainer(),

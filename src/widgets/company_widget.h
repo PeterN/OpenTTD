@@ -81,6 +81,8 @@ enum CompanyFinancesWidgets {
 /** Widgets of the #SelectRGBWindow class. */
 enum SelectRGBWidgets {
 	WID_RGB_CAPTION,       ///< Caption of window.
+	WID_RGB_EDITBOX,
+	WID_RGB_PRESET_MATRIX,
 	WID_RGB_HUE,
 	WID_RGB_SCROLLBAR_HUE, ///< Hue scrollbar.
 	WID_RGB_SAT,
