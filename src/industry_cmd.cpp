@@ -1380,6 +1380,17 @@ bool IsSlopeRefused(Slope current, Slope refused)
 }
 
 /**
+ * Check if a tile is considered on water.
+ * For this test, trees on shore are considered as on water.
+ * @param t Tile to test
+ */
+static bool IndustryTileWaterCheck(TileIndex t)
+{
+	return (HasTileWaterClass(t) && IsTileOnWater(t)) ||
+		(IsTileType(t, MP_TREES) && GetTreeGround(t) == TREE_GROUND_SHORE);
+}
+
+/**
  * Are the tiles of the industry free?
  * @param tile                    Position to check.
  * @param it                      Industry tiles table.
@@ -1419,7 +1430,7 @@ static CommandCost CheckIfIndustryTilesAreFree(TileIndex tile, const IndustryTil
 			IndustryBehaviour ind_behav = GetIndustrySpec(type)->behaviour;
 
 			/* Perform land/water check if not disabled */
-			if (!HasBit(its->slopes_refused, 5) && ((HasTileWaterClass(cur_tile) && IsTileOnWater(cur_tile)) == !(ind_behav & INDUSTRYBEH_BUILT_ONWATER))) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+			if (!HasBit(its->slopes_refused, 5) && IndustryTileWaterCheck(cur_tile) == !(ind_behav & INDUSTRYBEH_BUILT_ONWATER)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 
 			if (HasBit(its->callback_mask, CBM_INDT_SHAPE_CHECK)) {
 				custom_shape = true;

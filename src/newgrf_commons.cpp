@@ -448,14 +448,20 @@ TileIndex GetNearbyTile(byte parameter, TileIndex tile, bool signed_offsets, Axi
 uint32 GetNearbyTileInformation(TileIndex tile, bool grf_version8)
 {
 	TileType tile_type = GetTileType(tile);
+	WaterClass wc;
 
 	/* Fake tile type for trees on shore */
-	if (IsTileType(tile, MP_TREES) && GetTreeGround(tile) == TREE_GROUND_SHORE) tile_type = MP_WATER;
+	if (tile_type == MP_TREES && GetTreeGround(tile) == TREE_GROUND_SHORE) {
+		tile_type = MP_WATER;
+		wc = WATER_CLASS_SEA;
+	} else {
+		wc = HasTileWaterClass(tile) ? GetWaterClass(tile) : WATER_CLASS_INVALID;
+	}
 
 	int z;
 	Slope tileh = GetTilePixelSlope(tile, &z);
-	/* Return 0 if the tile is a land tile */
-	byte terrain_type = (HasTileWaterClass(tile) ? (GetWaterClass(tile) + 1) & 3 : 0) << 5 | GetTerrainType(tile) << 2 | (tile_type == MP_WATER ? 1 : 0) << 1;
+	/* Water class is offset by 1 for NewGRF */
+	byte terrain_type = ((wc + 1) & 3) << 5 | GetTerrainType(tile) << 2 | (tile_type == MP_WATER ? 1 : 0) << 1;
 	if (grf_version8) z /= TILE_HEIGHT;
 	return tile_type << 24 | Clamp(z, 0, 0xFF) << 16 | terrain_type << 8 | tileh;
 }
