@@ -13,7 +13,6 @@
 #define TREE_MAP_H
 
 #include "tile_map.h"
-#include "water_map.h"
 
 /**
  * List of tree types along all landscape types.
@@ -134,7 +133,6 @@ static inline void SetTreeGroundDensity(TileIndex t, TreeGround g, uint d)
 	assert(IsTileType(t, MP_TREES)); // XXX incomplete
 	SB(_m[t].m2, 4, 2, d);
 	SB(_m[t].m2, 6, 3, g);
-	SetWaterClass(t, g == TREE_GROUND_SHORE ? WATER_CLASS_SEA : WATER_CLASS_INVALID);
 }
 
 /**
