@@ -65,6 +65,7 @@ struct GroupStatistics {
 
 enum GroupFlags : uint8 {
 	GF_REPLACE_PROTECTION, ///< If set to true, the global autoreplace has no effect on the group
+	GF_END,
 };
 
 /** Group data. */
