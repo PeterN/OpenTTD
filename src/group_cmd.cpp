@@ -331,7 +331,7 @@ CommandCost CmdCreateGroup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 	if (flags & DC_EXEC) {
 		Group *g = new Group(_current_company);
-		g->replace_protection = false;
+		ClrBit(g->flags, GroupFlags::GF_REPLACE_PROTECTION);
 		g->vehicle_type = vt;
 		g->parent = INVALID_GROUP;
 
@@ -684,13 +684,19 @@ CommandCost CmdSetGroupLivery(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
  * @param g initial group.
  * @param protect 1 to set or 0 to clear protection.
  */
-static void SetGroupReplaceProtection(Group *g, bool protect)
+static void SetGroupReplaceProtection(Group *g, bool protect, bool children)
 {
-	g->replace_protection = protect;
+	if (protect) {
+		SetBit(g->flags, GroupFlags::GF_REPLACE_PROTECTION);
+	} else {
+		ClrBit(g->flags, GroupFlags::GF_REPLACE_PROTECTION);
+	}
+
+	if (!children) return;
 
 	Group *pg;
 	FOR_ALL_GROUPS(pg) {
-		if (pg->parent == g->index) SetGroupReplaceProtection(pg, protect);
+		if (pg->parent == g->index) SetGroupReplaceProtection(pg, protect, true);
 	}
 }
 
@@ -712,11 +718,7 @@ CommandCost CmdSetGroupReplaceProtection(TileIndex tile, DoCommandFlag flags, ui
 	if (g == nullptr || g->owner != _current_company) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		if (HasBit(p2, 1)) {
-			SetGroupReplaceProtection(g, HasBit(p2, 0));
-		} else {
-			g->replace_protection = HasBit(p2, 0);
-		}
+		SetGroupReplaceProtection(g, HasBit(p2, 0), HasBit(p2, 1));
 
 		SetWindowDirty(GetWindowClassForVehicleType(g->vehicle_type), VehicleListIdentifier(VL_GROUP_LIST, g->vehicle_type, _current_company).Pack());
 		InvalidateWindowData(WC_REPLACE_VEHICLE, g->vehicle_type);
