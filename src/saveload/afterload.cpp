@@ -3177,6 +3177,25 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SLV_GROUP_REPLACE_WAGON_REMOVAL)) {
+		/* Propagate wagon removal flag for compatibility */
+		/* Temporary bitmask of company wagon removal setting */
+		uint16 wagon_removal;
+		const Company *c;
+		FOR_ALL_COMPANIES(c) {
+			if (c->settings.renew_keep_length) SetBit(wagon_removal, c->index);
+		}
+		Group *g;
+		FOR_ALL_GROUPS(g) {
+			if (g->flags != 0) {
+				/* Convert old replace_protection value to flag. */
+				g->flags = GroupFlags();
+				SetBit(g->flags, GroupFlags::GF_REPLACE_PROTECTION);
+			}
+			if (HasBit(wagon_removal, g->owner)) SetBit(g->flags, GroupFlags::GF_REPLACE_WAGON_REMOVAL);
+		}
+	}
+
 	/* Compute station catchment areas. This is needed here in case UpdateStationAcceptance is called below. */
 	Station::RecomputeCatchmentForAll();
 
