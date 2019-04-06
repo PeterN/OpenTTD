@@ -8725,9 +8725,8 @@ static void ResetCustomObjects()
 /** Reset and clear all NewObjects */
 static void ResetCustomDocks()
 {
-	const GRFFile * const *end = _grf_files.End();
-	for (GRFFile **file = _grf_files.Begin(); file != end; file++) {
-		DockSpec **&dockspec = (*file)->dockspec;
+	for (GRFFile * const file : _grf_files) {
+		DockSpec **&dockspec = file->dockspec;
 		if (dockspec == NULL) continue;
 		for (uint i = 0; i < NUM_DOCKS_PER_GRF; i++) {
 			free(dockspec[i]);
@@ -9448,9 +9447,8 @@ static void FinaliseAirportsArray()
  */
 static void FinaliseDocksArray()
 {
-	const GRFFile * const *end = _grf_files.End();
-	for (GRFFile **file = _grf_files.Begin(); file != end; file++) {
-		DockSpec **&dockspec = (*file)->dockspec;
+	for (GRFFile * const file : _grf_files) {
+		DockSpec **&dockspec = file->dockspec;
 		if (dockspec != NULL) {
 			for (int i = 0; i < NUM_DOCKS_PER_GRF; i++) {
 				if (dockspec[i] != NULL && dockspec[i]->grf_prop.grffile != NULL && dockspec[i]->enabled) {
