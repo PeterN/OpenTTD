@@ -9,7 +9,7 @@
 
 /** @file dock_land.h Sprites to use and how to display them for dock tiles. */
 
-#define M(name, size, build_cost_multiplier, clear_cost_multiplier, height, climate, flags) { GRFFilePropsBase<2>(), INVALID_DOCK_CLASS, name, climate, size, build_cost_multiplier, clear_cost_multiplier, 0, MAX_DAY + 1, flags, {0, 0, 0, 0}, 0, height, 1, true }
+#define M(name, size, build_cost_multiplier, clear_cost_multiplier, height, climate, valid_directions, flags) { GRFFilePropsBase<2>(), INVALID_DOCK_CLASS, name, climate, valid_directions, size, build_cost_multiplier, clear_cost_multiplier, 0, MAX_DAY + 1, flags, {0, 0, 0, 0}, 0, height, 1, true }
 
 /* Climates
  * T = Temperate
@@ -22,12 +22,12 @@
 #define Y 8
 /** Specification of the original object structures. */
 extern const DockSpec _original_docks[] = {
-	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_SLOPE_NW),
-	M(STR_DOCK_CLASS_DOCK, 0x21, 1, 1, 5, T|A|S|Y, DOCK_FLAG_SLOPE_NE),
-	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, DOCK_FLAG_SLOPE_SE),
-	M(STR_DOCK_CLASS_DOCK, 0x21, 1, 1, 5, T|A|S|Y, DOCK_FLAG_SLOPE_SW),
-	M(STR_DOCK_CLASS_DOCK, 0x11, 1, 1, 5, T|A|S|Y, DOCK_FLAG_DRAW_WATER | DOCK_FLAG_NOT_ON_LAND),
-	M(STR_DOCK_CLASS_DOCK, 0x11, 1, 1, 5, T|A|S|Y, DOCK_FLAG_DRAW_WATER | DOCK_FLAG_NOT_ON_LAND),
+	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, 0, DOCK_FLAG_SLOPE_NW),
+	M(STR_DOCK_CLASS_DOCK, 0x21, 1, 1, 5, T|A|S|Y, 0, DOCK_FLAG_SLOPE_NE),
+	M(STR_DOCK_CLASS_DOCK, 0x12, 1, 1, 5, T|A|S|Y, 0, DOCK_FLAG_SLOPE_SE),
+	M(STR_DOCK_CLASS_DOCK, 0x21, 1, 1, 5, T|A|S|Y, 0, DOCK_FLAG_SLOPE_SW),
+	M(STR_DOCK_CLASS_DOCK, 0x11, 1, 1, 5, T|A|S|Y, 1 << DIAGDIR_NE | 1 << DIAGDIR_SW, DOCK_FLAG_DRAW_WATER | DOCK_FLAG_NOT_ON_LAND),
+	M(STR_DOCK_CLASS_DOCK, 0x11, 1, 1, 5, T|A|S|Y, 1 << DIAGDIR_NW | 1 << DIAGDIR_SE, DOCK_FLAG_DRAW_WATER | DOCK_FLAG_NOT_ON_LAND),
 };
 
 #undef M

@@ -61,6 +61,7 @@ struct DockSpec {
 	StringID name;                ///< The name for this dock.
 
 	uint8 climate;                ///< In which climates is this dock available?
+	uint8 valid_directions;       ///< Valid directions this tile can be docked at.
 	uint8 size;                   ///< The size of this docks; low nibble for X, high nibble for Y.
 	uint8 build_cost_multiplier;  ///< Build cost multiplier per tile.
 	uint8 clear_cost_multiplier;  ///< Clear cost multiplier per tile.

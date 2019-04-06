@@ -2734,16 +2734,8 @@ bool IsValidDockingDirectionForDock(TileIndex t, DiagDirection d)
 {
 	assert(IsDockTile(t));
 
-	/** Bitmap of valid directions for each dock tile part. */
-	static const uint8 _valid_docking_tile[] = {
-		0, 0, 0, 0,                        // No docking against the slope part.
-		1 << DIAGDIR_NE | 1 << DIAGDIR_SW, // Docking permitted at the end
-		1 << DIAGDIR_NW | 1 << DIAGDIR_SE, // of the flat piers.
-	};
-
-	StationGfx gfx = GetStationGfx(t);
-	assert(gfx < lengthof(_valid_docking_tile));
-	return HasBit(_valid_docking_tile[gfx], d);
+	const DockSpec *dockspec = DockSpec::Get((DockType)GetStationGfx(t));
+	return HasBit(dockspec->valid_directions, d);
 }
 
 /**

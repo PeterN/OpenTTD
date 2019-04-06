@@ -4718,6 +4718,7 @@ static ChangeInfoResult DockChangeInfo(uint id, int numinfo, int prop, ByteReade
 				if (*dspec == NULL) {
 					*dspec = CallocT<DockSpec>(1);
 					(*dspec)->views = 4; // Default for NewGRFs that don't set it.
+					(*dspec)->valid_directions = 1 << DIAGDIR_NW | 1 << DIAGDIR_NE | 1 << DIAGDIR_SE | 1 << DIAGDIR_SW;
 				}
 
 				/* Swap classid because we read it in BE. */
