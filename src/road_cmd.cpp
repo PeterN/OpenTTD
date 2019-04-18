@@ -1243,11 +1243,8 @@ static void DrawRoadDetail(SpriteID img, const TileInfo *ti, int dx, int dy, int
  * Draw ground sprite and road pieces
  * @param ti TileInfo
  */
-static void DrawRoadBits(TileInfo *ti)
+void DrawRoadBits(TileInfo *ti, RoadBits road, RoadBits tram)
 {
-	RoadBits road = GetRoadBits(ti->tile, ROADTYPE_ROAD);
-	RoadBits tram = GetRoadBits(ti->tile, ROADTYPE_TRAM);
-
 	SpriteID image = 0;
 	PaletteID pal = PAL_NONE;
 
@@ -1331,7 +1328,7 @@ static void DrawTile_Road(TileInfo *ti)
 {
 	switch (GetRoadTileType(ti->tile)) {
 		case ROAD_TILE_NORMAL:
-			DrawRoadBits(ti);
+			DrawRoadBits(ti, GetRoadBits(ti->tile, ROADTYPE_ROAD), GetRoadBits(ti->tile, ROADTYPE_TRAM));
 			break;
 
 		case ROAD_TILE_CROSSING: {
@@ -1591,7 +1588,7 @@ static bool ClickTile_Road(TileIndex tile)
 }
 
 /* Converts RoadBits to TrackBits */
-static const TrackBits _road_trackbits[16] = {
+const TrackBits _road_trackbits[16] = {
 	TRACK_BIT_NONE,                                  // ROAD_NONE
 	TRACK_BIT_NONE,                                  // ROAD_NW
 	TRACK_BIT_NONE,                                  // ROAD_SW

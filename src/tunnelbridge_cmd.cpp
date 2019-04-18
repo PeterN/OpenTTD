@@ -1258,7 +1258,18 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 		/* as the lower 3 bits are used for other stuff, make sure they are clear */
 		assert( (base_offset & 0x07) == 0x00);
 
+		if (transport_type == TRANSPORT_ROAD) {
+			RoadBits road = GetTunnelBridgeRoadBits(ti->tile, ROADTYPE_ROAD);
+			RoadBits tram = GetTunnelBridgeRoadBits(ti->tile, ROADTYPE_TRAM);
+			if ((road | tram) != ROAD_NONE) {
+				extern void DrawRoadBits(TileInfo *ti, RoadBits road, RoadBits tram);
+				DrawRoadBits(ti, road, tram);
+				return;
+			}
+		}
+
 		DrawFoundation(ti, GetBridgeFoundation(ti->tileh, DiagDirToAxis(tunnelbridge_direction)));
+
 
 		/* HACK Wizardry to convert the bridge ramp direction into a sprite offset */
 		base_offset += (6 - tunnelbridge_direction) % 4;
@@ -1657,10 +1668,39 @@ static void TileLoop_TunnelBridge(TileIndex tile)
 	}
 }
 
+/* Converts RoadBits to TrackBits */
+const TrackBits _road_trackbits[16] = {
+	    TRACK_BIT_NONE,                                  // ROAD_NONE
+		    TRACK_BIT_NONE,                                  // ROAD_NW
+			    TRACK_BIT_NONE,                                  // ROAD_SW
+				    TRACK_BIT_LEFT,                                  // ROAD_W
+					    TRACK_BIT_NONE,                                  // ROAD_SE
+						    TRACK_BIT_Y,                                     // ROAD_Y
+							    TRACK_BIT_LOWER,                                 // ROAD_S
+								    TRACK_BIT_LEFT | TRACK_BIT_LOWER | TRACK_BIT_Y,  // ROAD_Y | ROAD_SW
+									    TRACK_BIT_NONE,                                  // ROAD_NE
+										    TRACK_BIT_UPPER,                                 // ROAD_N
+											    TRACK_BIT_X,                                     // ROAD_X
+												    TRACK_BIT_LEFT | TRACK_BIT_UPPER | TRACK_BIT_X,  // ROAD_X | ROAD_NW
+													    TRACK_BIT_RIGHT,                                 // ROAD_E
+														    TRACK_BIT_RIGHT | TRACK_BIT_UPPER | TRACK_BIT_Y, // ROAD_Y | ROAD_NE
+															    TRACK_BIT_RIGHT | TRACK_BIT_LOWER | TRACK_BIT_X, // ROAD_X | ROAD_SE
+																    TRACK_BIT_ALL,                                   // ROAD_ALL
+};
+
+
 static TrackStatus GetTileTrackStatus_TunnelBridge(TileIndex tile, TransportType mode, uint sub_mode, DiagDirection side)
 {
 	TransportType transport_type = GetTunnelBridgeTransportType(tile);
 	if (transport_type != mode || (transport_type == TRANSPORT_ROAD && (GetRoadTypes(tile) & sub_mode) == 0)) return 0;
+
+	if (transport_type == TRANSPORT_ROAD) {
+
+		extern const TrackBits _road_trackbits[16];
+		RoadType rt = (RoadType)FindFirstBit(sub_mode);
+		RoadBits r = GetTunnelBridgeRoadBits(tile, rt);
+		if (r != ROAD_NONE) return (TrackdirBits)(_road_trackbits[r] * 0x101);
+	}
 
 	DiagDirection dir = GetTunnelBridgeDirection(tile);
 	if (side != INVALID_DIAGDIR && side != ReverseDiagDir(dir)) return 0;

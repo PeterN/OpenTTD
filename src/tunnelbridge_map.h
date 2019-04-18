@@ -121,4 +121,22 @@ static inline TrackBits GetTunnelBridgeReservationTrackBits(TileIndex t)
 	return HasTunnelBridgeReservation(t) ? DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t)) : TRACK_BIT_NONE;
 }
 
+static inline RoadBits GetTunnelBridgeRoadBits(TileIndex t, RoadType rt)
+{
+	switch (rt) {
+		default: NOT_REACHED();
+		case ROADTYPE_ROAD: return (RoadBits)GB(_m[t].m4, 0, 4);
+		case ROADTYPE_TRAM: return (RoadBits)GB(_m[t].m4, 4, 4);
+	}
+}
+
+static inline void SetTunnelBridgeRoadBits(TileIndex t, RoadBits r, RoadType rt)
+{
+	switch (rt) {
+		default: NOT_REACHED();
+		case ROADTYPE_ROAD: SB(_m[t].m4, 0, 4, r); break;
+		case ROADTYPE_TRAM: SB(_m[t].m4, 4, 4, r); break;
+	}
+}
+
 #endif /* TUNNELBRIDGE_MAP_H */
