@@ -763,8 +763,13 @@ void StringReader::HandleString(char *str)
 			return;
 		}
 
+		if (this->data.next_string_id >= this->data.max_strings) {
+			strgen_error("String ID 0x%zX for '%s' out of range", this->data.next_string_id, str);
+			return;
+		}
+
 		if (this->data.strings[this->data.next_string_id] != nullptr) {
-			strgen_error("String ID 0x%X for '%s' already in use by '%s'", this->data.next_string_id, str, this->data.strings[this->data.next_string_id]->name);
+			strgen_error("String ID 0x%zX for '%s' already in use by '%s'", this->data.next_string_id, str, this->data.strings[this->data.next_string_id]->name);
 			return;
 		}
 

@@ -41,11 +41,11 @@ struct LangString {
 
 /** Information about the currently known strings. */
 struct StringData {
-	LangString **strings; ///< Array of all known strings.
-	uint16 *hash_heads;   ///< Hash table for the strings.
-	size_t tabs;          ///< The number of 'tabs' of strings.
-	size_t max_strings;   ///< The maximum number of strings.
-	int next_string_id;   ///< The next string ID to allocate.
+	LangString **strings;  ///< Array of all known strings.
+	uint16 *hash_heads;    ///< Hash table for the strings.
+	size_t tabs;           ///< The number of 'tabs' of strings.
+	size_t max_strings;    ///< The maximum number of strings.
+	size_t next_string_id; ///< The next string ID to allocate.
 
 	StringData(size_t tabs);
 	~StringData();
