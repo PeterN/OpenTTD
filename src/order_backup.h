@@ -17,6 +17,7 @@
 #include "tile_type.h"
 #include "vehicle_type.h"
 #include "base_consist.h"
+#include "network/network_type.h"
 
 /** Unique identifier for an order backup. */
 typedef uint8 OrderBackupID;
@@ -38,7 +39,7 @@ struct OrderBackup : OrderBackupPool::PoolItem<&_order_backup_pool>, BaseConsist
 private:
 	friend const struct SaveLoad *GetOrderBackupDescription(); ///< Saving and loading of order backups.
 	friend void Load_BKOR();   ///< Creating empty orders upon savegame loading.
-	uint32 user;               ///< The user that requested the backup.
+	ClientID client;           ///< The user that requested the backup.
 	TileIndex tile;            ///< Tile of the depot where the order was changed.
 	GroupID group;             ///< The group the vehicle was part of.
 
@@ -47,18 +48,18 @@ private:
 
 	/** Creation for savegame restoration. */
 	OrderBackup() {}
-	OrderBackup(const Vehicle *v, uint32 user);
+	OrderBackup(const Vehicle *v, ClientID client);
 
 	void DoRestore(Vehicle *v);
 
 public:
 	~OrderBackup();
 
-	static void Backup(const Vehicle *v, uint32 user);
-	static void Restore(Vehicle *v, uint32 user);
+	static void Backup(const Vehicle *v, ClientID client);
+	static void Restore(Vehicle *v, ClientID client);
 
-	static void ResetOfUser(TileIndex tile, uint32 user);
-	static void ResetUser(uint32 user);
+	static void ResetOfUser(TileIndex tile, ClientID client);
+	static void ResetUser(ClientID client);
 	static void Reset(TileIndex tile = INVALID_TILE, bool from_gui = true);
 
 	static void ClearGroup(GroupID group);

@@ -82,7 +82,7 @@ CommandCost CmdRefitVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
  *  bits  0-15: vehicle type being built.
  *  bits 16-23: vehicle type specific bits passed on to the vehicle build functions.
  *  bits 24-31: refit cargo type.
- * @param p2 User
+ * @param p2 Client
  * @param text unused
  * @return the cost of this operation or an error
  */
@@ -174,7 +174,7 @@ CommandCost CmdBuildVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 
 			if (v->IsPrimaryVehicle()) {
 				GroupStatistics::CountVehicle(v, 1);
-				OrderBackup::Restore(v, p2);
+				OrderBackup::Restore(v, (ClientID)p2);
 			}
 		}
 
@@ -200,7 +200,7 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *v, uint16 data, uint3
  *  bits  0-19: vehicle ID being sold.
  *  bits 20-30: vehicle type specific bits passed on to the vehicle build functions.
  *  bit     31: make a backup of the vehicle's order (if an engine).
- * @param p2 User.
+ * @param p2 Client.
  * @param text unused.
  * @return the cost of this operation or an error.
  */
@@ -234,7 +234,7 @@ CommandCost CmdSellVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 		ret = CommandCost(EXPENSES_NEW_VEHICLES, -front->value);
 
 		if (flags & DC_EXEC) {
-			if (front->IsPrimaryVehicle() && p1 & MAKE_ORDER_BACKUP_FLAG) OrderBackup::Backup(front, p2);
+			if (front->IsPrimaryVehicle() && p1 & MAKE_ORDER_BACKUP_FLAG) OrderBackup::Backup(front, (ClientID)p2);
 			delete front;
 		}
 	}

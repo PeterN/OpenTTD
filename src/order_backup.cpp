@@ -40,11 +40,11 @@ OrderBackup::~OrderBackup()
 /**
  * Create an order backup for the given vehicle.
  * @param v    The vehicle to make a backup of.
- * @param user The user that is requesting the backup.
+ * @param client The client that is requesting the backup.
  */
-OrderBackup::OrderBackup(const Vehicle *v, uint32 user)
+OrderBackup::OrderBackup(const Vehicle *v, ClientID client)
 {
-	this->user             = user;
+	this->client           = client;
 	this->tile             = v->tile;
 	this->group            = v->group_id;
 
@@ -97,33 +97,33 @@ void OrderBackup::DoRestore(Vehicle *v)
 /**
  * Create an order backup for the given vehicle.
  * @param v    The vehicle to make a backup of.
- * @param user The user that is requesting the backup.
- * @note Will automatically remove any previous backups of this user.
+ * @param client The client that is requesting the backup.
+ * @note Will automatically remove any previous backups of this client.
  */
-/* static */ void OrderBackup::Backup(const Vehicle *v, uint32 user)
+/* static */ void OrderBackup::Backup(const Vehicle *v, ClientID client)
 {
 	/* Don't use reset as that broadcasts over the network to reset the variable,
 	 * which is what we are doing at the moment. */
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
-		if (ob->user == user) delete ob;
+		if (ob->client == client) delete ob;
 	}
 	if (OrderBackup::CanAllocateItem()) {
-		new OrderBackup(v, user);
+		new OrderBackup(v, client);
 	}
 }
 
 /**
  * Restore the data of this order to the given vehicle.
  * @param v    The vehicle to restore to.
- * @param user The user that built the vehicle, thus wants to restore.
+ * @param client The client that built the vehicle, thus wants to restore.
  * @note After restoration the backup will automatically be removed.
  */
-/* static */ void OrderBackup::Restore(Vehicle *v, uint32 user)
+/* static */ void OrderBackup::Restore(Vehicle *v, ClientID client)
 {
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
-		if (v->tile != ob->tile || ob->user != user) continue;
+		if (v->tile != ob->tile || ob->client != client) continue;
 
 		ob->DoRestore(v);
 		delete ob;
@@ -131,16 +131,16 @@ void OrderBackup::DoRestore(Vehicle *v)
 }
 
 /**
- * Reset an OrderBackup given a tile and user.
+ * Reset an OrderBackup given a tile and client.
  * @param tile The tile associated with the OrderBackup.
- * @param user The user associated with the OrderBackup.
+ * @param client The client associated with the OrderBackup.
  * @note Must not be used from the GUI!
  */
-/* static */ void OrderBackup::ResetOfUser(TileIndex tile, uint32 user)
+/* static */ void OrderBackup::ResetOfUser(TileIndex tile, ClientID client)
 {
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
-		if (ob->user == user && (ob->tile == tile || tile == INVALID_TILE)) delete ob;
+		if (ob->client == client && (ob->tile == tile || tile == INVALID_TILE)) delete ob;
 	}
 }
 
@@ -155,28 +155,28 @@ void OrderBackup::DoRestore(Vehicle *v)
  */
 CommandCost CmdClearOrderBackup(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
-	/* No need to check anything. If the tile or user don't exist we just ignore it. */
-	if (flags & DC_EXEC) OrderBackup::ResetOfUser(tile == 0 ? INVALID_TILE : tile, p2);
+	/* No need to check anything. If the tile or client don't exist we just ignore it. */
+	if (flags & DC_EXEC) OrderBackup::ResetOfUser(tile == 0 ? INVALID_TILE : tile, (ClientID)p2);
 
 	return CommandCost();
 }
 
 /**
- * Reset an user's OrderBackup if needed.
- * @param user The user associated with the OrderBackup.
+ * Reset an client's OrderBackup if needed.
+ * @param client The client associated with the OrderBackup.
  * @pre _network_server.
  * @note Must not be used from a command.
  */
-/* static */ void OrderBackup::ResetUser(uint32 user)
+/* static */ void OrderBackup::ResetUser(ClientID client)
 {
 	assert(_network_server);
 
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
 		/* If it's not an backup of us, so ignore it. */
-		if (ob->user != user) continue;
+		if (ob->client != client) continue;
 
-		DoCommandP(0, 0, user, CMD_CLEAR_ORDER_BACKUP);
+		DoCommandP(0, 0, client, CMD_CLEAR_ORDER_BACKUP);
 		return;
 	}
 }
@@ -189,16 +189,16 @@ CommandCost CmdClearOrderBackup(TileIndex tile, DoCommandFlag flags, uint32 p1, 
  */
 /* static */ void OrderBackup::Reset(TileIndex t, bool from_gui)
 {
-	/* The user has CLIENT_ID_SERVER as default when network play is not active,
+	/* The client has CLIENT_ID_SERVER as default when network play is not active,
 	 * but compiled it. A network client has its own variable for the unique
-	 * client/user identifier. Finally if networking isn't compiled in the
+	 * client/client identifier. Finally if networking isn't compiled in the
 	 * default is just plain and simple: 0. */
-	uint32 user = _networking && !_network_server ? _network_own_client_id : CLIENT_ID_SERVER;
+	ClientID client = _networking && !_network_server ? _network_own_client_id : CLIENT_ID_SERVER;
 
 	OrderBackup *ob;
 	FOR_ALL_ORDER_BACKUPS(ob) {
 		/* If it's not an backup of us, so ignore it. */
-		if (ob->user != user) continue;
+		if (ob->client != client) continue;
 		/* If it's not for our chosen tile either, ignore it. */
 		if (t != INVALID_TILE && t != ob->tile) continue;
 
@@ -206,7 +206,7 @@ CommandCost CmdClearOrderBackup(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 			/* We need to circumvent the "prevention" from this command being executed
 			 * while the game is paused, so use the internal method. Nor do we want
 			 * this command to get its cost estimated when shift is pressed. */
-			DoCommandPInternal(ob->tile, 0, user, CMD_CLEAR_ORDER_BACKUP, nullptr, nullptr, true, false);
+			DoCommandPInternal(ob->tile, 0, client, CMD_CLEAR_ORDER_BACKUP, nullptr, nullptr, true, false);
 		} else {
 			/* The command came from the game logic, i.e. the clearing of a tile.
 			 * In that case we have no need to actually sync this, just do it. */

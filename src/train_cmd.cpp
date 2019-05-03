@@ -1343,10 +1343,10 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
  * - data = 0: only sell the single dragged wagon/engine (and any belonging rear-engines)
  * - data = 1: sell the vehicle and all vehicles following it in the chain
  *             if the wagon is dragged, don't delete the possibly belonging rear-engine to some front
- * @param user  the user for the order backup.
+ * @param client the client for the order backup.
  * @return the cost of this operation or an error
  */
-CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint32 user)
+CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint32 client)
 {
 	/* Sell a chain of vehicles or not? */
 	bool sell_chain = HasBit(data, 0);
@@ -1401,7 +1401,7 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint3
 			new_head->CopyVehicleConfigAndStatistics(first);
 			GroupStatistics::CountVehicle(new_head, 1); // after copying over the profit
 		} else if (v->IsPrimaryVehicle() && data & (MAKE_ORDER_BACKUP_FLAG >> 20)) {
-			OrderBackup::Backup(v, user);
+			OrderBackup::Backup(v, (ClientID)client);
 		}
 
 		/* We need to update the information about the train. */
