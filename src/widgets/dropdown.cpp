@@ -381,7 +381,7 @@ void ShowDropDownListAt(Window *w, DropDownList &&list, int selected, int button
 
 	for (const auto &item : list) {
 		height += item->Height(width);
-		if (auto_width) max_item_width = std::max(max_item_width, item->Width() + 5);
+		if (auto_width) max_item_width = std::max(max_item_width, item->Width() + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT);
 	}
 
 	/* Scrollbar needed? */
