@@ -362,10 +362,10 @@ TownScopeResolver *DockResolverObject::GetTown()
 		case 0x44: return GetTileOwner(this->tile);
 
 		/* Get town zone and Manhattan distance of closest town */
-		case 0x45: return GetTownRadiusGroup(t, this->tile) << 16 | min(DistanceManhattan(this->tile, t->xy), 0xFFFF);
+		case 0x45: return GetTownRadiusGroup(t, this->tile) << 16 | std::min(DistanceManhattan(this->tile, t->xy), 0xFFFFu);
 
 		/* Get square of Euclidian distance of closes town */
-		case 0x46: return GetTownRadiusGroup(t, this->tile) << 16 | min(DistanceSquare(this->tile, t->xy), 0xFFFF);
+		case 0x46: return GetTownRadiusGroup(t, this->tile) << 16 | std::min(DistanceSquare(this->tile, t->xy), 0xFFFFu);
 
 		/* Dock colour */
 //		case 0x47: return this->st->owner;
