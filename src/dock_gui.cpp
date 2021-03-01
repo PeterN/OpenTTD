@@ -145,7 +145,7 @@ public:
 				for (uint i = 0; i < DockClass::GetClassCount(); i++) {
 					DockClass *dockclass = DockClass::Get((DockClassID)i);
 					if (dockclass->GetUISpecCount() == 0) continue;
-					size->width = max(size->width, GetStringBoundingBox(dockclass->name).width);
+					size->width = std::max(size->width, GetStringBoundingBox(dockclass->name).width);
 				}
 				size->width += padding.width;
 				this->line_height = FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
@@ -181,7 +181,7 @@ public:
 					const DockSpec *spec = DockSpec::Get(i);
 					if (!spec->IsEverAvailable()) continue;
 					two_wide |= spec->views >= 2;
-					height[spec->views / 4] = max<int>(DockSpec::Get(i)->height, height[spec->views / 4]);
+					height[spec->views / 4] = std::max<int>(DockSpec::Get(i)->height, height[spec->views / 4]);
 				}
 
 				/* Determine the pixel heights. */
@@ -194,7 +194,7 @@ public:
 				 * we want these columns to be slightly less wide. When there are two rows, then
 				 * determine the size of the widgets based on the maximum size for a single row
 				 * of widgets, or just the twice the widget height of the two row ones. */
-				size->height = max(height[0], height[1] * 2 + 2);
+				size->height = std::max(height[0], height[1] * 2 + 2);
 				if (two_wide) {
 					size->width  = (3 * ScaleGUITrad(TILE_PIXELS) + 2 * DOCK_MARGIN) * 2 + 2;
 				} else {
@@ -292,7 +292,7 @@ public:
 						DrawOrigTileSeqInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - DOCK_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
 					} else {
 						DrawNewDockTileInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - DOCK_MARGIN - ScaleGUITrad(TILE_PIXELS), spec,
-								min(_selected_dock_view, spec->views - 1));
+								std::min((uint)_selected_dock_view, spec->views - 1U));
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -352,7 +352,7 @@ public:
 		_selected_dock_index = object_index;
 		if (_selected_dock_index != -1) {
 			const DockSpec *spec = DockClass::Get(_selected_dock_class)->GetSpec(_selected_dock_index);
-			_selected_dock_view = min(_selected_dock_view, spec->views - 1);
+			_selected_dock_view = std::min((uint)_selected_dock_view, spec->views - 1U);
 			this->ReInit();
 		} else {
 			_selected_dock_view = 0;
