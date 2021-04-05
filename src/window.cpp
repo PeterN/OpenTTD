@@ -3452,7 +3452,7 @@ void HideVitalWindows()
 }
 
 /** Re-initialize all windows. */
-void ReInitAllWindows()
+void ReInitAllWindows(bool zoom_changed)
 {
 	NWidgetLeaf::InvalidateDimensionCache(); // Reset cached sizes of several widgets.
 	NWidgetScrollbar::InvalidateDimensionCache();
@@ -3462,6 +3462,7 @@ void ReInitAllWindows()
 
 	Window *w;
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
+		if (zoom_changed) w->nested_root->AdjustPaddingForZoom();
 		w->ReInit();
 	}
 

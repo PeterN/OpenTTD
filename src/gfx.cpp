@@ -1283,7 +1283,7 @@ void LoadStringWidthTable(bool monospace)
 		}
 	}
 
-	ReInitAllWindows();
+	ReInitAllWindows(false);
 }
 
 /**

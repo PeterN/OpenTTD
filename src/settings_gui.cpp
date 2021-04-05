@@ -512,7 +512,7 @@ struct GameOptionsWindow : Window {
 			case WID_GO_CURRENCY_DROPDOWN: // Currency
 				if (index == CURRENCY_CUSTOM) ShowCustCurrency();
 				this->opt->locale.currency = index;
-				ReInitAllWindows();
+				ReInitAllWindows(false);
 				break;
 
 			case WID_GO_AUTOSAVE_DROPDOWN: // Autosave options
@@ -527,7 +527,7 @@ struct GameOptionsWindow : Window {
 				ClearAllCachedNames();
 				UpdateAllVirtCoords();
 				CheckBlitter();
-				ReInitAllWindows();
+				ReInitAllWindows(false);
 				break;
 
 			case WID_GO_RESOLUTION_DROPDOWN: // Change resolution
@@ -555,7 +555,7 @@ struct GameOptionsWindow : Window {
 					UpdateCursorSize();
 					UpdateAllVirtCoords();
 					FixTitleGameZoom();
-					ReInitAllWindows();
+					ReInitAllWindows(true);
 				}
 				break;
 			}
