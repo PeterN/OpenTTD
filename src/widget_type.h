@@ -266,6 +266,10 @@ public:
 	bool absolute;
 	uint uz_min_x; ///< Unscaled Minimal horizontal size of only this widget.
 	uint uz_min_y; ///< Unscaled Minimal vertical size of only this widget.
+
+	uint8 uz_text_lines;
+	uint8 uz_text_spacing;
+	FontSize uz_text_size;
 };
 
 /** Nested widget flags that affect display and interaction with 'real' widgets. */

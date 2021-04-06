@@ -569,6 +569,7 @@ struct GameOptionsWindow : Window {
 					ClearFontCache();
 					LoadStringWidthTable();
 					UpdateAllVirtCoords();
+					ReInitAllWindows(true);
 				}
 				break;
 			}

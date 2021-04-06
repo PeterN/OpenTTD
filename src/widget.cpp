@@ -819,7 +819,7 @@ void NWidgetResizeBase::AdjustPaddingForZoom()
 {
 	if (!this->absolute) {
 		this->min_x = ScaleGUITrad(this->uz_min_x);
-		this->min_y = ScaleGUITrad(this->uz_min_y);
+		this->min_y = std::max(ScaleGUITrad(this->uz_min_y), this->uz_text_lines * GetCharacterHeight(this->uz_text_size) + ScaleGUITrad(this->uz_text_spacing));
 	}
 	NWidgetBase::AdjustPaddingForZoom();
 }
@@ -833,10 +833,8 @@ void NWidgetResizeBase::SetMinimalSize(uint min_x, uint min_y)
 {
 	this->uz_min_x = std::max(this->uz_min_x, min_x);
 	this->uz_min_y = std::max(this->uz_min_y, min_y);
-	if (!this->absolute) {
-		this->min_x = ScaleGUITrad(this->uz_min_x);
-		this->min_y = ScaleGUITrad(this->uz_min_y);
-	}
+	this->min_x = ScaleGUITrad(this->uz_min_x);
+	this->min_y = std::max(ScaleGUITrad(this->uz_min_y), this->uz_text_lines * GetCharacterHeight(this->uz_text_size) + ScaleGUITrad(this->uz_text_spacing));
 }
 
 /**
@@ -859,7 +857,10 @@ void NWidgetResizeBase::SetMinimalSizeAbsolute(uint min_x, uint min_y)
  */
 void NWidgetResizeBase::SetMinimalTextLines(uint8 min_lines, uint8 spacing, FontSize size)
 {
-	this->min_y = min_lines * GetCharacterHeight(size) + spacing;
+	this->uz_text_lines = min_lines;
+	this->uz_text_spacing = spacing;
+	this->uz_text_size = size;
+	this->min_y = std::max(ScaleGUITrad(this->uz_min_y), this->uz_text_lines * GetCharacterHeight(this->uz_text_size) + ScaleGUITrad(this->uz_text_spacing));
 }
 
 /**
