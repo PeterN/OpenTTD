@@ -3462,7 +3462,12 @@ void ReInitAllWindows(bool zoom_changed)
 
 	Window *w;
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
-		if (zoom_changed) w->nested_root->AdjustPaddingForZoom();
+		if (zoom_changed) {
+			/* Reset window width & height */
+			w->width = 0;
+			w->height = 0;
+			w->nested_root->AdjustPaddingForZoom();
+		}
 		w->ReInit();
 	}
 
