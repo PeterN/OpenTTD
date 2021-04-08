@@ -2217,7 +2217,8 @@ NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, 
 		case WWT_CAPTION:
 			this->SetFill(1, 0);
 			this->SetResize(1, 0);
-			this->min_y = WD_CAPTION_HEIGHT;
+			this->SetMinimalSize(0, WD_CAPTION_HEIGHT);
+			this->SetMinimalTextLines(1, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM, FS_NORMAL);
 			this->SetDataTip(data, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS);
 			break;
 
@@ -2259,7 +2260,7 @@ NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, 
 
 		case WWT_DROPDOWN:
 			this->SetFill(0, 0);
-			this->min_y = WD_DROPDOWN_HEIGHT;
+			this->SetMinimalSize(0, WD_DROPDOWN_HEIGHT);
 			break;
 
 		default:
