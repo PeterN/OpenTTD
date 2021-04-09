@@ -480,6 +480,19 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 		return s;
 	}
 
+	if (id == SPR_IMG_BUY_LAND || id == SPR_IMG_BUOY || id == SPR_IMG_SKIP_TO_PREV || id == SPR_IMG_SKIP_TO_NEXT || id == SPR_IMG_STOP_MUSIC || id == SPR_IMG_PLAY_MUSIC || id == SPR_IMG_TRANSMITTER || id == SPR_IMG_QUERY ||
+	id == SPR_IMG_INDUSTRY || id == SPR_IMG_BUILDROAD || id == SPR_IMG_BUILDWATER || id == SPR_IMG_PLANTTREES ||
+	id == SPR_SELECT_TEMPERATE || id == SPR_SELECT_SUB_ARCTIC || id == SPR_SELECT_SUB_TROPICAL || id == SPR_SELECT_TOYLAND ||
+	id == SPR_SELECT_TEMPERATE_PUSHED || id == SPR_SELECT_SUB_ARCTIC_PUSHED || id == SPR_SELECT_SUB_TROPICAL_PUSHED || id == SPR_SELECT_TOYLAND_PUSHED)
+
+	{
+		SpriteLoader::Sprite *s = &sprite[ZOOM_LVL_OUT_4X];
+		PadSingleSprite(s, ZOOM_LVL_OUT_4X, 0, 0, 20 - s->width - s->x_offs, 20 - s->height - s->y_offs);
+	}
+	//  s->x_offs = 0; s->y_offs = 0; }
+
+	// PadSingleSprite(s, ZOOM_LVL_OUT_4X, 0, 0, 20 - s->width - s->x_offs, 20 - s->height - s->y_offs);
+
 	if (!ResizeSprites(sprite, sprite_avail, file_slot, sc->id, encoder)) {
 		if (id == SPR_IMG_QUERY) usererror("Okay... something went horribly wrong. I couldn't resize the fallback sprite. What should I do?");
 		return (void*)GetRawSprite(SPR_IMG_QUERY, ST_NORMAL, allocator, encoder);
