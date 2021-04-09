@@ -567,7 +567,7 @@ static inline void DrawButtonDropdown(const Rect &r, Colours colour, bool clicke
 {
 	int text_offset = std::max(0, ((int)(r.bottom - r.top + 1) - FONT_HEIGHT_NORMAL) / 2); // Offset for rendering the text vertically centered
 
-	int dd_width  = NWidgetLeaf::dropdown_dimension.width;
+	int dd_width  = std::max<int>(WD_DROPDOWN_HEIGHT, NWidgetLeaf::dropdown_dimension.width);
 	int dd_height = NWidgetLeaf::dropdown_dimension.height;
 	int image_offset = std::max(0, ((int)(r.bottom - r.top + 1) - dd_height) / 2);
 
@@ -2064,12 +2064,16 @@ NWidgetScrollbar::NWidgetScrollbar(WidgetType tp, Colours colour, int index) : N
 
 	switch (this->type) {
 		case NWID_HSCROLLBAR:
+			this->SetMinimalSize(WD_RESIZEBOX_WIDTH * 3, WD_RESIZEBOX_WIDTH);
+			// this->SetMinimalSizeAbsolute(NWidgetScrollbar::GetHorizontalDimension().width * 3, NWidgetScrollbar::GetHorizontalDimension().height);
 			this->SetResize(1, 0);
 			this->SetFill(1, 0);
 			this->SetDataTip(0x0, STR_TOOLTIP_HSCROLL_BAR_SCROLLS_LIST);
 			break;
 
 		case NWID_VSCROLLBAR:
+			this->SetMinimalSize(WD_RESIZEBOX_WIDTH, WD_RESIZEBOX_WIDTH * 3);
+			// this->SetMinimalSizeAbsolute(NWidgetScrollbar::GetVerticalDimension().width, NWidgetScrollbar::GetVerticalDimension().height * 3);
 			this->SetResize(0, 1);
 			this->SetFill(0, 1);
 			this->SetDataTip(0x0, STR_TOOLTIP_VSCROLL_BAR_SCROLLS_LIST);
@@ -2085,20 +2089,20 @@ void NWidgetScrollbar::SetupSmallestSize(Window *w, bool init_array)
 		assert(w->nested_array_size > (uint)this->index);
 		w->nested_array[this->index] = this;
 	}
-	this->min_x = 0;
-	this->min_y = 0;
+	// this->min_x = 0;
+	// this->min_y = 0;
 
-	switch (this->type) {
-		case NWID_HSCROLLBAR:
-			this->SetMinimalSizeAbsolute(NWidgetScrollbar::GetHorizontalDimension().width * 3, NWidgetScrollbar::GetHorizontalDimension().height);
-			break;
+	// switch (this->type) {
+	// 	case NWID_HSCROLLBAR:
+	// 		this->SetMinimalSizeAbsolute(NWidgetScrollbar::GetHorizontalDimension().width * 3, NWidgetScrollbar::GetHorizontalDimension().height);
+	// 		break;
 
-		case NWID_VSCROLLBAR:
-			this->SetMinimalSizeAbsolute(NWidgetScrollbar::GetVerticalDimension().width, NWidgetScrollbar::GetVerticalDimension().height * 3);
-			break;
+	// 	case NWID_VSCROLLBAR:
+	// 		this->SetMinimalSizeAbsolute(NWidgetScrollbar::GetVerticalDimension().width, NWidgetScrollbar::GetVerticalDimension().height * 3);
+	// 		break;
 
-		default: NOT_REACHED();
-	}
+	// 	default: NOT_REACHED();
+	// }
 
 	this->smallest_x = this->min_x;
 	this->smallest_y = this->min_y;
@@ -2270,7 +2274,7 @@ NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, 
 
 		case WWT_DROPDOWN:
 			this->SetFill(0, 0);
-			this->SetMinimalSize(0, WD_DROPDOWN_HEIGHT);
+			this->SetMinimalSize(WD_DROPDOWN_HEIGHT, WD_DROPDOWN_HEIGHT);
 			break;
 
 		default:
@@ -2449,7 +2453,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 				NWidgetLeaf::dropdown_dimension = GetSpriteSize(SPR_ARROW_DOWN);
 				NWidgetLeaf::dropdown_dimension.width += WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT;
 				NWidgetLeaf::dropdown_dimension.height += WD_DROPDOWNTEXT_TOP + WD_DROPDOWNTEXT_BOTTOM;
-				extra.width = WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT + NWidgetLeaf::dropdown_dimension.width;
+				extra.width = WD_DROPDOWNTEXT_LEFT + WD_DROPDOWNTEXT_RIGHT + std::max<uint>(WD_DROPDOWN_HEIGHT, NWidgetLeaf::dropdown_dimension.width);
 			}
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			Dimension d2 = GetStringBoundingBox(this->widget_data);
