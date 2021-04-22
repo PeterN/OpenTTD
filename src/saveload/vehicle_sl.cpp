@@ -387,7 +387,9 @@ void AfterLoadVehicles(bool part_of_load)
 				Train *t = Train::From(v);
 				if (t->IsFrontEngine() || t->IsFreeWagon()) {
 					t->gcache.last_speed = t->cur_speed; // update displayed train speed
-					t->ConsistChanged(CCF_SAVELOAD);
+					if (IsSavegameVersionBefore(SLV_CACHED)) {
+						t->ConsistChanged(CCF_SAVELOAD);
+					}
 				}
 				break;
 			}
@@ -404,7 +406,9 @@ void AfterLoadVehicles(bool part_of_load)
 						u->compatible_roadtypes = rv->compatible_roadtypes;
 					}
 
-					RoadVehUpdateCache(rv);
+					if (IsSavegameVersionBefore(SLV_CACHED)) {
+						RoadVehUpdateCache(rv);
+					}
 					if (_settings_game.vehicle.roadveh_acceleration_model != AM_ORIGINAL) {
 						rv->CargoChanged();
 					}
@@ -413,7 +417,9 @@ void AfterLoadVehicles(bool part_of_load)
 			}
 
 			case VEH_SHIP:
-				Ship::From(v)->UpdateCache();
+				if (IsSavegameVersionBefore(SLV_CACHED)) {
+					Ship::From(v)->UpdateCache();
+				}
 				break;
 
 			default: break;
@@ -462,7 +468,9 @@ void AfterLoadVehicles(bool part_of_load)
 						GetRotorImage(Aircraft::From(v), EIT_ON_MAP, &rotor->sprite_cache.sprite_seq);
 					}
 
-					UpdateAircraftCache(Aircraft::From(v), true);
+					if (IsSavegameVersionBefore(SLV_CACHED)) {
+						UpdateAircraftCache(Aircraft::From(v), true);
+					}
 				}
 				break;
 			default: break;
@@ -711,6 +719,10 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_CONDVAR(Vehicle, current_order_time,    SLE_UINT32,                  SLV_67, SL_MAX_VERSION),
 		 SLE_CONDVAR(Vehicle, lateness_counter,      SLE_INT32,                   SLV_67, SL_MAX_VERSION),
 
+		 SLE_CONDVAR(Vehicle, vcache.cached_max_speed,        SLE_UINT16,         SLV_CACHED, SL_MAX_VERSION),
+		 SLE_CONDVAR(Vehicle, vcache.cached_cargo_age_period, SLE_UINT16,         SLV_CACHED, SL_MAX_VERSION),
+		 SLE_CONDVAR(Vehicle, vcache.cached_vis_effect,       SLE_UINT8,          SLV_CACHED, SL_MAX_VERSION),
+
 		SLE_CONDNULL(10,                                                           SLV_2, SLV_144), // old reserved space
 
 		     SLE_END()
@@ -735,6 +747,25 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_CONDVAR(Train, gv_flags,            SLE_UINT16,                 SLV_139, SL_MAX_VERSION),
 		SLE_CONDNULL(11, SLV_2, SLV_144), // old reserved space
 
+		SLE_CONDVAR(Train, gcache.cached_weight,           SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, gcache.cached_slope_resistance, SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, gcache.cached_max_te,           SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, gcache.cached_axle_resistance,  SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+
+		SLE_CONDVAR(Train, gcache.cached_max_track_speed,  SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, gcache.cached_power,            SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, gcache.cached_air_drag,         SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+
+		SLE_CONDVAR(Train, gcache.cached_total_length,     SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, gcache.first_engine,            SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, gcache.cached_veh_length,       SLE_UINT8,        SLV_CACHED, SL_MAX_VERSION),
+
+		SLE_CONDVAR(Train, gcache.last_speed,              SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+
+		SLE_CONDVAR(Train, tcache.cached_tilt,             SLE_BOOL,         SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, tcache.user_def_data,           SLE_UINT8,        SLV_CACHED, SL_MAX_VERSION),
+		SLE_CONDVAR(Train, tcache.cached_max_curve_speed,  SLE_INT32,        SLV_CACHED, SL_MAX_VERSION),
+
 		     SLE_END()
 	};
 
@@ -756,6 +787,21 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_CONDNULL(4,                                                              SLV_69, SLV_131),
 		 SLE_CONDNULL(2,                                                               SLV_6, SLV_131),
 		 SLE_CONDNULL(16,                                                              SLV_2, SLV_144), // old reserved space
+
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_weight,           SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_slope_resistance, SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_max_te,           SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_axle_resistance,  SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_max_track_speed,  SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_power,            SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_air_drag,         SLE_UINT32,       SLV_CACHED, SL_MAX_VERSION),
+
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_total_length,     SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+		  SLE_CONDVAR(RoadVehicle, gcache.first_engine,            SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
+		  SLE_CONDVAR(RoadVehicle, gcache.cached_veh_length,       SLE_UINT8,        SLV_CACHED, SL_MAX_VERSION),
+
+		  SLE_CONDVAR(RoadVehicle, gcache.last_speed,              SLE_UINT16,       SLV_CACHED, SL_MAX_VERSION),
 
 		      SLE_END()
 	};
@@ -791,6 +837,9 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_CONDVAR(Aircraft, flags,                 SLE_UINT8,                  SLV_167, SL_MAX_VERSION),
 
 		SLE_CONDNULL(13,                                                           SLV_2, SLV_144), // old reserved space
+
+		 SLE_CONDVAR(Aircraft, acache.cached_max_range_sqr, SLE_UINT32,            SLV_CACHED, SL_MAX_VERSION),
+		 SLE_CONDVAR(Aircraft, acache.cached_max_range,     SLE_UINT16,            SLV_CACHED, SL_MAX_VERSION),
 
 		     SLE_END()
 	};
