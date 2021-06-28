@@ -20,8 +20,8 @@ extern StationPool _station_pool;
 
 struct StationSpecList {
 	const StationSpec *spec;
-	uint32 grfid;      ///< GRF ID of this custom station
-	uint8  localidx;   ///< Station ID within GRF of station
+	uint32_t grfid;      ///< GRF ID of this custom station
+	uint8_t  localidx;   ///< Station ID within GRF of station
 };
 
 
@@ -62,14 +62,14 @@ struct BaseStation : StationPool::PoolItem<&_station_pool> {
 	Owner owner;                    ///< The owner of this station
 	StationFacility facilities;     ///< The facilities that this station has
 
-	uint8 num_specs;                ///< Number of specs in the speclist
+	uint8_t num_specs;                ///< Number of specs in the speclist
 	StationSpecList *speclist;      ///< List of station specs of this station
 
 	Date build_date;                ///< Date of construction
 
-	uint16 random_bits;             ///< Random bits assigned to this station
+	uint16_t random_bits;             ///< Random bits assigned to this station
 	byte waiting_triggers;          ///< Waiting triggers (NewGRF) for this station
-	uint8 cached_anim_triggers;     ///< NOSAVE: Combined animation trigger bitmask, used to determine if trigger processing should happen.
+	uint8_t cached_anim_triggers;     ///< NOSAVE: Combined animation trigger bitmask, used to determine if trigger processing should happen.
 	CargoTypes cached_cargo_triggers; ///< NOSAVE: Combined cargo trigger bitmask
 
 	TileArea train_station;         ///< Tile area the train 'station' part covers
@@ -102,7 +102,7 @@ struct BaseStation : StationPool::PoolItem<&_station_pool> {
 	 * @param available will return false if ever the variable asked for does not exist
 	 * @return the value stored in the corresponding variable
 	 */
-	virtual uint32 GetNewGRFVariable(const struct ResolverObject &object, byte variable, byte parameter, bool *available) const = 0;
+	virtual uint32_t GetNewGRFVariable(const struct ResolverObject &object, byte variable, byte parameter, bool *available) const = 0;
 
 	/**
 	 * Update the coordinated of the sign (as shown in the viewport).

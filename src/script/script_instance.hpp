@@ -183,7 +183,7 @@ public:
 	 * @param cmd cmd as given to DoCommandPInternal.
 	 * @return true if we handled result.
 	 */
-	bool DoCommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd);
+	bool DoCommandCallback(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd);
 
 	/**
 	 * Insert an event for this script.

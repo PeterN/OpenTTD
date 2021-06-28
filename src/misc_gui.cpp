@@ -618,7 +618,7 @@ void ShowFeederIncomeAnimation(int x, int y, int z, Money transfer, Money income
  * @param string  String which is drawn on the map.
  * @return        TextEffectID to be used for future updates of the loading indicators.
  */
-TextEffectID ShowFillingPercent(int x, int y, int z, uint8 percent, StringID string)
+TextEffectID ShowFillingPercent(int x, int y, int z, uint8_t percent, StringID string)
 {
 	Point pt = RemapCoords(x, y, z);
 
@@ -633,7 +633,7 @@ TextEffectID ShowFillingPercent(int x, int y, int z, uint8 percent, StringID str
  * @param te_id   TextEffectID to be updated.
  * @param string  String which is printed.
  */
-void UpdateFillingPercent(TextEffectID te_id, uint8 percent, StringID string)
+void UpdateFillingPercent(TextEffectID te_id, uint8_t percent, StringID string)
 {
 	assert(string != STR_NULL);
 
@@ -669,10 +669,10 @@ struct TooltipsWindow : public Window
 {
 	StringID string_id;               ///< String to display as tooltip.
 	byte paramcount;                  ///< Number of string parameters in #string_id.
-	uint64 params[5];                 ///< The string parameters.
+	uint64_t params[5];                 ///< The string parameters.
 	TooltipCloseCondition close_cond; ///< Condition for closing the window.
 
-	TooltipsWindow(Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip) : Window(&_tool_tips_desc)
+	TooltipsWindow(Window *parent, StringID str, uint paramcount, const uint64_t params[], TooltipCloseCondition close_tooltip) : Window(&_tool_tips_desc)
 	{
 		this->parent = parent;
 		this->string_id = str;
@@ -687,7 +687,7 @@ struct TooltipsWindow : public Window
 		CLRBITS(this->flags, WF_WHITE_BORDER);
 	}
 
-	Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number) override
+	Point OnInitialPosition(int16_t sm_width, int16_t sm_height, int window_number) override
 	{
 		/* Find the free screen space between the main toolbar at the top, and the statusbar at the bottom.
 		 * Add a fixed distance 2 so the tooltip floats free from both bars.
@@ -764,7 +764,7 @@ struct TooltipsWindow : public Window
  * @param params (optional) up to 5 pieces of additional information that may be added to a tooltip
  * @param close_tooltip when the left (true) or right (false) mouse button is released
  */
-void GuiShowTooltips(Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip)
+void GuiShowTooltips(Window *parent, StringID str, uint paramcount, const uint64_t params[], TooltipCloseCondition close_tooltip)
 {
 	CloseWindowById(WC_TOOLTIPS, 0);
 
@@ -1128,7 +1128,7 @@ void ShowQueryString(StringID str, StringID caption, uint maxsize, Window *paren
  */
 struct QueryWindow : public Window {
 	QueryCallbackProc *proc; ///< callback function executed on closing of popup. Window* points to parent, bool is true if 'yes' clicked, false otherwise
-	uint64 params[10];       ///< local copy of #_global_string_params
+	uint64_t params[10];       ///< local copy of #_global_string_params
 	StringID message;        ///< message shown for query window
 	StringID caption;        ///< title of window
 
@@ -1214,7 +1214,7 @@ struct QueryWindow : public Window {
 		}
 	}
 
-	EventState OnKeyPress(WChar key, uint16 keycode) override
+	EventState OnKeyPress(WChar key, uint16_t keycode) override
 	{
 		/* ESC closes the window, Enter confirms the action */
 		switch (keycode) {

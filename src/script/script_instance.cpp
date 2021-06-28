@@ -314,7 +314,7 @@ void *ScriptInstance::GetLogPointer()
  * First 1 byte indicating if there is a data blob at all.
  * 1 byte indicating the type of data.
  * The data itself, this differs per type:
- *  - integer: a binary representation of the integer (int32).
+ *  - integer: a binary representation of the integer (int32_t).
  *  - string:  First one byte with the string length, then a 0-terminated char
  *             array. The string can't be longer than 255 bytes (including
  *             terminating '\0').
@@ -687,7 +687,7 @@ SQInteger ScriptInstance::GetOpsTillSuspend()
 	return this->engine->GetOpsTillSuspend();
 }
 
-bool ScriptInstance::DoCommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+bool ScriptInstance::DoCommandCallback(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	ScriptObject::ActiveInstance active(this);
 

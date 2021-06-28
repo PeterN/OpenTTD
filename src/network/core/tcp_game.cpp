@@ -62,7 +62,7 @@ NetworkRecvStatus NetworkGameSocketHandler::CloseConnection(bool error)
  */
 NetworkRecvStatus NetworkGameSocketHandler::HandlePacket(Packet *p)
 {
-	PacketGameType type = (PacketGameType)p->Recv_uint8();
+	PacketGameType type = (PacketGameType)p->Recv_uint8_t();
 
 	this->last_packet = std::chrono::steady_clock::now();
 

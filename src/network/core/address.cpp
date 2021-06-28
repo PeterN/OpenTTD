@@ -34,7 +34,7 @@ const std::string &NetworkAddress::GetHostname()
  * Get the port.
  * @return the port.
  */
-uint16 NetworkAddress::GetPort() const
+uint16_t NetworkAddress::GetPort() const
 {
 	switch (this->address.ss_family) {
 		case AF_UNSPEC:
@@ -53,7 +53,7 @@ uint16 NetworkAddress::GetPort() const
  * Set the port.
  * @param port set the port number.
  */
-void NetworkAddress::SetPort(uint16 port)
+void NetworkAddress::SetPort(uint16_t port)
 {
 	switch (this->address.ss_family) {
 		case AF_UNSPEC:
@@ -76,7 +76,7 @@ void NetworkAddress::SetPort(uint16 port)
  * @param with_family Whether to add the familty to the address (e.g. IPv4).
  * @return The format string for the address.
  */
-static const char *GetAddressFormatString(uint16 family, bool with_family)
+static const char *GetAddressFormatString(uint16_t family, bool with_family)
 {
 	switch (family) {
 		case AF_INET: return with_family ? "{}:{} (IPv4)" : "{}:{}";
@@ -168,17 +168,17 @@ bool NetworkAddress::IsInNetmask(const std::string &netmask)
 
 	if (mask_address.GetAddressLength() == 0) return false;
 
-	uint32 *ip;
-	uint32 *mask;
+	uint32_t *ip;
+	uint32_t *mask;
 	switch (this->address.ss_family) {
 		case AF_INET:
-			ip = (uint32*)&((struct sockaddr_in*)&this->address)->sin_addr.s_addr;
-			mask = (uint32*)&((struct sockaddr_in*)&mask_address.address)->sin_addr.s_addr;
+			ip = (uint32_t*)&((struct sockaddr_in*)&this->address)->sin_addr.s_addr;
+			mask = (uint32_t*)&((struct sockaddr_in*)&mask_address.address)->sin_addr.s_addr;
 			break;
 
 		case AF_INET6:
-			ip = (uint32*)&((struct sockaddr_in6*)&this->address)->sin6_addr;
-			mask = (uint32*)&((struct sockaddr_in6*)&mask_address.address)->sin6_addr;
+			ip = (uint32_t*)&((struct sockaddr_in6*)&this->address)->sin6_addr;
+			mask = (uint32_t*)&((struct sockaddr_in6*)&mask_address.address)->sin6_addr;
 			break;
 
 		default:
@@ -186,7 +186,7 @@ bool NetworkAddress::IsInNetmask(const std::string &netmask)
 	}
 
 	while (cidr > 0) {
-		uint32 msk = cidr >= 32 ? (uint32)-1 : htonl(-(1 << (32 - cidr)));
+		uint32_t msk = cidr >= 32 ? (uint32_t)-1 : htonl(-(1 << (32 - cidr)));
 		if ((*mask++ & msk) != (*ip++ & msk)) return false;
 
 		cidr -= 32;

@@ -106,7 +106,7 @@ private:
 	static void ResolveThunk(TCPConnecter *connecter);
 
 public:
-	TCPConnecter(const std::string &connection_string, uint16 default_port);
+	TCPConnecter(const std::string &connection_string, uint16_t default_port);
 	virtual ~TCPConnecter();
 
 	/**

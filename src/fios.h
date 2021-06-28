@@ -33,7 +33,7 @@ struct LoadCheckData {
 	StringID error;     ///< Error message from loading. INVALID_STRING_ID if no error.
 	char *error_data;   ///< Data to pass to SetDParamStr when displaying #error.
 
-	uint32 map_size_x, map_size_y;
+	uint32_t map_size_x, map_size_y;
 	Date current_date;
 
 	GameSettings settings;
@@ -86,7 +86,7 @@ extern LoadCheckData _load_check_data;
 /** Deals with finding savegames */
 struct FiosItem {
 	FiosType type;
-	uint64 mtime;
+	uint64_t mtime;
 	char title[64];
 	char name[MAX_PATH];
 	bool operator< (const FiosItem &other) const;
@@ -118,7 +118,7 @@ void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list);
 
 const char *FiosBrowseTo(const FiosItem *item);
 
-StringID FiosGetDescText(const char **path, uint64 *total_free);
+StringID FiosGetDescText(const char **path, uint64_t *total_free);
 bool FiosDelete(const char *name);
 std::string FiosMakeHeightmapName(const char *name);
 std::string FiosMakeSavegameName(const char *name);

@@ -75,20 +75,20 @@ void FiosGetDrives(FileList &file_list)
 	return;
 }
 
-bool FiosGetDiskFreeSpace(const char *path, uint64 *tot)
+bool FiosGetDiskFreeSpace(const char *path, uint64_t *tot)
 {
-	uint64 free = 0;
+	uint64_t free = 0;
 
 #ifdef __APPLE__
 	struct statfs s;
 
 	if (statfs(path, &s) != 0) return false;
-	free = (uint64)s.f_bsize * s.f_bavail;
+	free = (uint64_t)s.f_bsize * s.f_bavail;
 #elif defined(HAS_STATVFS)
 	struct statvfs s;
 
 	if (statvfs(path, &s) != 0) return false;
-	free = (uint64)s.f_frsize * s.f_bavail;
+	free = (uint64_t)s.f_frsize * s.f_bavail;
 #endif
 	if (tot != nullptr) *tot = free;
 	return true;

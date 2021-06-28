@@ -20,13 +20,13 @@ struct MixerChannel {
 	bool active;
 
 	/* pointer to allocated buffer memory */
-	int8 *memory;
+	int8_t *memory;
 
 	/* current position in memory */
-	uint32 pos;
-	uint32 frac_pos;
-	uint32 frac_speed;
-	uint32 samples_left;
+	uint32_t pos;
+	uint32_t frac_pos;
+	uint32_t frac_speed;
+	uint32_t samples_left;
 
 	/* Mixing volume */
 	int volume_left;
@@ -36,8 +36,8 @@ struct MixerChannel {
 };
 
 static MixerChannel _channels[8];
-static uint32 _play_rate = 11025;
-static uint32 _max_size = UINT_MAX;
+static uint32_t _play_rate = 11025;
+static uint32_t _max_size = UINT_MAX;
 static MxStreamCallback _music_stream = nullptr;
 
 /**
@@ -61,15 +61,15 @@ static int RateConversion(T *b, int frac_pos)
 	return ((b[0] * ((1 << 16) - frac_pos)) + (b[1] * frac_pos)) >> 16;
 }
 
-static void mix_int16(MixerChannel *sc, int16 *buffer, uint samples, uint8 effect_vol)
+static void mix_int16_t(MixerChannel *sc, int16_t *buffer, uint samples, uint8_t effect_vol)
 {
 	if (samples > sc->samples_left) samples = sc->samples_left;
 	sc->samples_left -= samples;
 	assert(samples > 0);
 
-	const int16 *b = (const int16 *)sc->memory + sc->pos;
-	uint32 frac_pos = sc->frac_pos;
-	uint32 frac_speed = sc->frac_speed;
+	const int16_t *b = (const int16_t *)sc->memory + sc->pos;
+	uint32_t frac_pos = sc->frac_pos;
+	uint32_t frac_speed = sc->frac_speed;
 	int volume_left = sc->volume_left * effect_vol / 255;
 	int volume_right = sc->volume_right * effect_vol / 255;
 
@@ -94,18 +94,18 @@ static void mix_int16(MixerChannel *sc, int16 *buffer, uint samples, uint8 effec
 	}
 
 	sc->frac_pos = frac_pos;
-	sc->pos = b - (const int16 *)sc->memory;
+	sc->pos = b - (const int16_t *)sc->memory;
 }
 
-static void mix_int8_to_int16(MixerChannel *sc, int16 *buffer, uint samples, uint8 effect_vol)
+static void mix_int8_to_int16_t(MixerChannel *sc, int16_t *buffer, uint samples, uint8_t effect_vol)
 {
 	if (samples > sc->samples_left) samples = sc->samples_left;
 	sc->samples_left -= samples;
 	assert(samples > 0);
 
-	const int8 *b = sc->memory + sc->pos;
-	uint32 frac_pos = sc->frac_pos;
-	uint32 frac_speed = sc->frac_speed;
+	const int8_t *b = sc->memory + sc->pos;
+	uint32_t frac_pos = sc->frac_pos;
+	uint32_t frac_speed = sc->frac_speed;
 	int volume_left = sc->volume_left * effect_vol / 255;
 	int volume_right = sc->volume_right * effect_vol / 255;
 
@@ -150,16 +150,16 @@ void MxMixSamples(void *buffer, uint samples)
 	MixerChannel *mc;
 
 	/* Clear the buffer */
-	memset(buffer, 0, sizeof(int16) * 2 * samples);
+	memset(buffer, 0, sizeof(int16_t) * 2 * samples);
 
 	/* Fetch music if a sampled stream is available */
-	if (_music_stream) _music_stream((int16*)buffer, samples);
+	if (_music_stream) _music_stream((int16_t*)buffer, samples);
 
 	/* Apply simple x^3 scaling to master effect volume. This increases the
 	 * perceived difference in loudness to better match expectations. effect_vol
 	 * is expected to be in the range 0-127 hence the division by 127 * 127 to
 	 * get back into range. */
-	uint8 effect_vol = (_settings_client.music.effect_vol *
+	uint8_t effect_vol = (_settings_client.music.effect_vol *
 	                    _settings_client.music.effect_vol *
 	                    _settings_client.music.effect_vol) / (127 * 127);
 
@@ -167,9 +167,9 @@ void MxMixSamples(void *buffer, uint samples)
 	for (mc = _channels; mc != endof(_channels); mc++) {
 		if (mc->active) {
 			if (mc->is16bit) {
-				mix_int16(mc, (int16*)buffer, samples, effect_vol);
+				mix_int16_t(mc, (int16_t*)buffer, samples, effect_vol);
 			} else {
-				mix_int8_to_int16(mc, (int16*)buffer, samples, effect_vol);
+				mix_int8_to_int16_t(mc, (int16_t*)buffer, samples, effect_vol);
 			}
 			if (mc->samples_left == 0) MxCloseChannel(mc);
 		}
@@ -189,7 +189,7 @@ MixerChannel *MxAllocateChannel()
 	return nullptr;
 }
 
-void MxSetChannelRawSrc(MixerChannel *mc, int8 *mem, size_t size, uint rate, bool is16bit)
+void MxSetChannelRawSrc(MixerChannel *mc, int8_t *mem, size_t size, uint rate, bool is16bit)
 {
 	mc->memory = mem;
 	mc->frac_pos = 0;
@@ -234,7 +234,7 @@ void MxActivateChannel(MixerChannel *mc)
  * @param music_callback Function that will be called to fill sample buffers with music data.
  * @return Sample rate of mixer, which the buffers supplied to the callback must be rendered at.
  */
-uint32 MxSetMusicSource(MxStreamCallback music_callback)
+uint32_t MxSetMusicSource(MxStreamCallback music_callback)
 {
 	_music_stream = music_callback;
 	return _play_rate;

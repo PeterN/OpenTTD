@@ -43,7 +43,7 @@ struct IConsoleLine {
 	IConsoleLine *previous; ///< The previous console message.
 	char *buffer;           ///< The data to store.
 	TextColour colour;      ///< The colour of the line.
-	uint16 time;            ///< The amount of time the line is in the backlog.
+	uint16_t time;            ///< The amount of time the line is in the backlog.
 
 	/**
 	 * Initialize the console line.
@@ -106,7 +106,7 @@ struct IConsoleLine {
 				return true;
 			}
 
-			if (item->time != MAX_UVALUE(uint16)) item->time++;
+			if (item->time != MAX_UVALUE(uint16_t)) item->time++;
 		}
 
 		return false;
@@ -247,7 +247,7 @@ struct IConsoleWindow : Window
 		if (_iconsole_cmdline.HandleCaret()) this->SetDirty();
 	}
 
-	EventState OnKeyPress(WChar key, uint16 keycode) override
+	EventState OnKeyPress(WChar key, uint16_t keycode) override
 	{
 		if (_focused_window != this) return ES_NOT_HANDLED;
 

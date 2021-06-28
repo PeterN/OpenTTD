@@ -55,13 +55,13 @@ public:
  */
 class DropDownListParamStringItem : public DropDownListStringItem {
 public:
-	uint64 decode_params[10]; ///< Parameters of the string
+	uint64_t decode_params[10]; ///< Parameters of the string
 
 	DropDownListParamStringItem(StringID string, int result, bool masked) : DropDownListStringItem(string, result, masked) {}
 
 	StringID String() const override;
-	void SetParam(uint index, uint64 value) { decode_params[index] = value; }
-	void SetParamStr(uint index, const char *str) { this->SetParam(index, (uint64)(size_t)str); }
+	void SetParam(uint index, uint64_t value) { decode_params[index] = value; }
+	void SetParamStr(uint index, const char *str) { this->SetParam(index, (uint64_t)(size_t)str); }
 };
 
 /**

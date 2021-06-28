@@ -420,7 +420,7 @@ public:
 			case WID_SL_BACKGROUND: {
 				static const char *path = nullptr;
 				static StringID str = STR_ERROR_UNABLE_TO_READ_DRIVE;
-				static uint64 tot = 0;
+				static uint64_t tot = 0;
 
 				if (_fios_path_changed) {
 					str = FiosGetDescText(&path, &tot);
@@ -747,7 +747,7 @@ public:
 		}
 	}
 
-	EventState OnKeyPress(WChar key, uint16 keycode) override
+	EventState OnKeyPress(WChar key, uint16_t keycode) override
 	{
 		if (keycode == WKC_ESC) {
 			this->Close();

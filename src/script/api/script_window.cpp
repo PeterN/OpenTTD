@@ -15,7 +15,7 @@
 
 #include "../../safeguards.h"
 
-/* static */ void ScriptWindow::Close(WindowClass window, uint32 number)
+/* static */ void ScriptWindow::Close(WindowClass window, uint32_t number)
 {
 	if (ScriptGame::IsMultiplayer()) return;
 
@@ -27,7 +27,7 @@
 	CloseWindowById((::WindowClass)window, number);
 }
 
-/* static */ bool ScriptWindow::IsOpen(WindowClass window, uint32 number)
+/* static */ bool ScriptWindow::IsOpen(WindowClass window, uint32_t number)
 {
 	if (ScriptGame::IsMultiplayer()) return false;
 
@@ -38,7 +38,7 @@
 	return FindWindowById((::WindowClass)window, number) != nullptr;
 }
 
-/* static */ void ScriptWindow::Highlight(WindowClass window, uint32 number, uint8 widget, TextColour colour)
+/* static */ void ScriptWindow::Highlight(WindowClass window, uint32_t number, uint8_t widget, TextColour colour)
 {
 	if (ScriptGame::IsMultiplayer()) return;
 	if (number == NUMBER_ALL) return;

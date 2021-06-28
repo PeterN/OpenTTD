@@ -19,7 +19,7 @@
 
 #include "../../safeguards.h"
 
-/* static */ bool ScriptNews::Create(NewsType type, Text *text, ScriptCompany::CompanyID company, NewsReferenceType ref_type, uint32 reference)
+/* static */ bool ScriptNews::Create(NewsType type, Text *text, ScriptCompany::CompanyID company, NewsReferenceType ref_type, uint32_t reference)
 {
 	CCountedPtr<Text> counter(text);
 
@@ -34,7 +34,7 @@
 	                           (ref_type == NR_INDUSTRY && ScriptIndustry::IsValidIndustry(reference)) ||
 	                           (ref_type == NR_TOWN     && ScriptTown::IsValidTown(reference)));
 
-	uint8 c = company;
+	uint8_t c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 
 	if (ref_type == NR_NONE) reference = 0;

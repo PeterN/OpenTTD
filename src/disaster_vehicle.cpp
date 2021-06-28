@@ -51,7 +51,7 @@
 #include "safeguards.h"
 
 /** Delay counter for considering the next disaster. */
-uint16 _disaster_delay;
+uint16_t _disaster_delay;
 
 static void DisasterClearSquare(TileIndex tile)
 {
@@ -284,7 +284,7 @@ static bool DisasterTick_Zeppeliner(DisasterVehicle *v)
 		v->image_override = SPR_BLIMP_CRASHED;
 	} else if (v->age <= 300) {
 		if (GB(v->tick_counter, 0, 3) == 0) {
-			uint32 r = Random();
+			uint32_t r = Random();
 
 			CreateEffectVehicleRel(v,
 				GB(r, 0, 4) - 7,
@@ -419,7 +419,7 @@ static void DestructIndustry(Industry *i)
  * @param news_message The string that's used as news message.
  * @param industry_flag Only attack industries that have this flag set.
  */
-static bool DisasterTick_Aircraft(DisasterVehicle *v, uint16 image_override, bool leave_at_top, StringID news_message, IndustryBehaviour industry_flag)
+static bool DisasterTick_Aircraft(DisasterVehicle *v, uint16_t image_override, bool leave_at_top, StringID news_message, IndustryBehaviour industry_flag)
 {
 	v->tick_counter++;
 	v->image_override = (v->current_order.GetDestination() == 1 && HasBit(v->tick_counter, 2)) ? image_override : 0;
@@ -437,7 +437,7 @@ static bool DisasterTick_Aircraft(DisasterVehicle *v, uint16 image_override, boo
 			Industry *i = Industry::Get(v->dest_tile); // Industry destructor calls ReleaseDisastersTargetingIndustry, so this is valid
 			int x = TileX(i->location.tile) * TILE_SIZE;
 			int y = TileY(i->location.tile) * TILE_SIZE;
-			uint32 r = Random();
+			uint32_t r = Random();
 
 			CreateEffectVehicleAbove(
 				GB(r,  0, 6) + x,
@@ -620,7 +620,7 @@ static bool DisasterTick_Big_Ufo_Destroyer(DisasterVehicle *v)
 		delete u;
 
 		for (int i = 0; i != 80; i++) {
-			uint32 r = Random();
+			uint32_t r = Random();
 			CreateEffectVehicleAbove(
 				GB(r, 0, 6) + v->x_pos - 32,
 				GB(r, 5, 6) + v->y_pos - 32,
@@ -818,7 +818,7 @@ static void Disaster_Submarine_Init(DisasterSubType subtype)
 
 	int y;
 	Direction dir;
-	uint32 r = Random();
+	uint32_t r = Random();
 	int x = TileX(r) * TILE_SIZE + TILE_SIZE / 2;
 
 	if (HasBit(r, 31)) {

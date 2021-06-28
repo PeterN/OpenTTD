@@ -52,9 +52,9 @@ enum ExtraTreePlacement {
 /** Determines when to consider building more trees. */
 byte _trees_tick_ctr;
 
-static const uint16 DEFAULT_TREE_STEPS = 1000;             ///< Default number of attempts for placing trees.
-static const uint16 DEFAULT_RAINFOREST_TREE_STEPS = 15000; ///< Default number of attempts for placing extra trees at rainforest in tropic.
-static const uint16 EDITOR_TREE_DIV = 5;                   ///< Game editor tree generation divisor factor.
+static const uint16_t DEFAULT_TREE_STEPS = 1000;             ///< Default number of attempts for placing trees.
+static const uint16_t DEFAULT_RAINFOREST_TREE_STEPS = 15000; ///< Default number of attempts for placing extra trees at rainforest in tropic.
+static const uint16_t EDITOR_TREE_DIV = 5;                   ///< Game editor tree generation divisor factor.
 
 /**
  * Tests if a tile can be converted to MP_TREES
@@ -159,7 +159,7 @@ static TreeType GetRandomTreeType(TileIndex tile, uint seed)
  * @param tile The tile to make a tree-tile from
  * @param r The randomness value from a Random() value
  */
-static void PlaceTree(TileIndex tile, uint32 r)
+static void PlaceTree(TileIndex tile, uint32_t r)
 {
 	TreeType tree = GetRandomTreeType(tile, GB(r, 24, 8));
 
@@ -190,7 +190,7 @@ static void PlaceTreeGroups(uint num_groups)
 		TileIndex center_tile = RandomTile();
 
 		for (uint i = 0; i < DEFAULT_TREE_STEPS; i++) {
-			uint32 r = Random();
+			uint32_t r = Random();
 			int x = GB(r, 0, 5) - 16;
 			int y = GB(r, 8, 5) - 16;
 			uint dist = abs(x) + abs(y);
@@ -218,7 +218,7 @@ static void PlaceTreeGroups(uint num_groups)
 static void PlaceTreeAtSameHeight(TileIndex tile, int height)
 {
 	for (uint i = 0; i < DEFAULT_TREE_STEPS; i++) {
-		uint32 r = Random();
+		uint32_t r = Random();
 		int x = GB(r, 0, 5) - 16;
 		int y = GB(r, 8, 5) - 16;
 		TileIndex cur_tile = TileAddWrap(tile, x, y);
@@ -251,7 +251,7 @@ void PlaceTreesRandomly()
 	i = ScaleByMapSize(DEFAULT_TREE_STEPS);
 	if (_game_mode == GM_EDITOR) i /= EDITOR_TREE_DIV;
 	do {
-		uint32 r = Random();
+		uint32_t r = Random();
 		TileIndex tile = RandomTileSeed(r);
 
 		IncreaseGeneratingWorldProgress(GWP_TREE);
@@ -280,7 +280,7 @@ void PlaceTreesRandomly()
 		if (_game_mode == GM_EDITOR) i /= EDITOR_TREE_DIV;
 
 		do {
-			uint32 r = Random();
+			uint32_t r = Random();
 			TileIndex tile = RandomTileSeed(r);
 
 			IncreaseGeneratingWorldProgress(GWP_TREE);
@@ -311,14 +311,14 @@ uint PlaceTreeGroupAroundTile(TileIndex tile, TreeType treetype, uint radius, ui
 
 	for (; count > 0; count--) {
 		/* Simple quasi-normal distribution with range [-radius; radius) */
-		auto mkcoord = [&]() -> int32 {
-			const uint32 rand = InteractiveRandom();
-			const int32 dist = GB<int32>(rand, 0, 8) + GB<int32>(rand, 8, 8) + GB<int32>(rand, 16, 8) + GB<int32>(rand, 24, 8);
-			const int32 scu = dist * radius / 512;
+		auto mkcoord = [&]() -> int32_t {
+			const uint32_t rand = InteractiveRandom();
+			const int32_t dist = GB<int32_t>(rand, 0, 8) + GB<int32_t>(rand, 8, 8) + GB<int32_t>(rand, 16, 8) + GB<int32_t>(rand, 24, 8);
+			const int32_t scu = dist * radius / 512;
 			return scu - radius;
 		};
-		const int32 xofs = mkcoord();
-		const int32 yofs = mkcoord();
+		const int32_t xofs = mkcoord();
+		const int32_t yofs = mkcoord();
 		const TileIndex tile_to_plant = TileAddWrap(tile, xofs, yofs);
 		if (tile_to_plant != INVALID_TILE) {
 			if (IsTileType(tile_to_plant, MP_TREES) && GetTreeCount(tile_to_plant) < 4) {
@@ -378,7 +378,7 @@ void GenerateTrees()
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdPlantTree(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	StringID msg = INVALID_STRING_ID;
 	CommandCost cost(EXPENSES_OTHER);
@@ -639,7 +639,7 @@ static void TileLoopTreesDesert(TileIndex tile)
 				SND_44_RAINFOREST_3,
 				SND_48_RAINFOREST_4
 			};
-			uint32 r = Random();
+			uint32_t r = Random();
 
 			if (Chance16I(1, 200, r) && _settings_client.sound.ambient) SndPlayTileFx(forest_sounds[GB(r, 16, 2)], tile);
 			break;
@@ -669,7 +669,7 @@ static void TileLoopTreesAlps(TileIndex tile)
 			SetTreeGroundDensity(tile, GetTreeGround(tile), density);
 		} else {
 			if (GetTreeDensity(tile) == 3) {
-				uint32 r = Random();
+				uint32_t r = Random();
 				if (Chance16I(1, 200, r) && _settings_client.sound.ambient) {
 					SndPlayTileFx((r & 0x80000000) ? SND_39_ARCTIC_SNOW_2 : SND_34_ARCTIC_SNOW_1, tile);
 				}
@@ -826,7 +826,7 @@ void OnTick_Trees()
 	/* Don't spread trees if that's not allowed */
 	if (_settings_game.construction.extra_tree_placement == ETP_NO_SPREAD || _settings_game.construction.extra_tree_placement == ETP_NO_GROWTH_NO_SPREAD) return;
 
-	uint32 r;
+	uint32_t r;
 	TileIndex tile;
 	TreeType tree;
 

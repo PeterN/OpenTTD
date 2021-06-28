@@ -171,8 +171,8 @@ struct DropdownWindow : Window {
 		}
 
 		/* Capacity is the average number of items visible */
-		this->vscroll->SetCapacity(size.height * (uint16)this->list.size() / list_height);
-		this->vscroll->SetCount((uint16)this->list.size());
+		this->vscroll->SetCapacity(size.height * (uint16_t)this->list.size() / list_height);
+		this->vscroll->SetCount((uint16_t)this->list.size());
 
 		this->parent_wnd_class = parent->window_class;
 		this->parent_wnd_num   = parent->window_number;
@@ -199,7 +199,7 @@ struct DropdownWindow : Window {
 		}
 	}
 
-	Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number) override
+	Point OnInitialPosition(int16_t sm_width, int16_t sm_height, int window_number) override
 	{
 		return this->position;
 	}
@@ -477,7 +477,7 @@ void ShowDropDownList(Window *w, DropDownList &&list, int selected, int button, 
  * @param hidden_mask   Bitmask for hidden items (items with their bit set are not copied to the dropdown list).
  * @param width         Width of the dropdown menu. If \c 0, use the width of parent widget \a button.
  */
-void ShowDropDownMenu(Window *w, const StringID *strings, int selected, int button, uint32 disabled_mask, uint32 hidden_mask, uint width)
+void ShowDropDownMenu(Window *w, const StringID *strings, int selected, int button, uint32_t disabled_mask, uint32_t hidden_mask, uint width)
 {
 	DropDownList list;
 

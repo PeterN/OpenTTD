@@ -226,7 +226,7 @@ static const int KEY_PADDING = 6;     // Vertical padding for remaining key rows
  * @param biggest_index Collected biggest widget index so far.
  * @note Key width is measured in 1/2 keys to allow for 1/2 key shifting between rows.
  */
-static void AddKey(NWidgetHorizontal *hor, int pad_y, int num_half, WidgetType widtype, int widnum, uint16 widdata, int *biggest_index)
+static void AddKey(NWidgetHorizontal *hor, int pad_y, int num_half, WidgetType widtype, int widnum, uint16_t widdata, int *biggest_index)
 {
 	int key_width = HALF_KEY_WIDTH + (INTER_KEY_SPACE + HALF_KEY_WIDTH) * (num_half - 1);
 

@@ -49,7 +49,7 @@ template<bool Tfrom, bool Tvia>
 }
 
 template<bool Tfrom, bool Tvia>
-/* static */ int32 ScriptStation::CountCargoWaiting(StationID station_id,
+/* static */ int32_t ScriptStation::CountCargoWaiting(StationID station_id,
 		StationID from_station_id, StationID via_station_id, CargoID cargo_id)
 {
 	if (!ScriptStation::IsCargoRequestValid<Tfrom, Tvia>(station_id, from_station_id,
@@ -60,7 +60,7 @@ template<bool Tfrom, bool Tvia>
 	const StationCargoList &cargo_list = ::Station::Get(station_id)->goods[cargo_id].cargo;
 	if (!Tfrom && !Tvia) return cargo_list.TotalCount();
 
-	uint16 cargo_count = 0;
+	uint16_t cargo_count = 0;
 	std::pair<StationCargoList::ConstIterator, StationCargoList::ConstIterator> range = Tvia ?
 				cargo_list.Packets()->equal_range(via_station_id) :
 				std::make_pair(StationCargoList::ConstIterator(cargo_list.Packets()->begin()),
@@ -73,31 +73,31 @@ template<bool Tfrom, bool Tvia>
 	return cargo_count;
 }
 
-/* static */ int32 ScriptStation::GetCargoWaiting(StationID station_id, CargoID cargo_id)
+/* static */ int32_t ScriptStation::GetCargoWaiting(StationID station_id, CargoID cargo_id)
 {
 	return CountCargoWaiting<false, false>(station_id, STATION_INVALID, STATION_INVALID, cargo_id);
 }
 
-/* static */ int32 ScriptStation::GetCargoWaitingFrom(StationID station_id,
+/* static */ int32_t ScriptStation::GetCargoWaitingFrom(StationID station_id,
 		StationID from_station_id, CargoID cargo_id)
 {
 	return CountCargoWaiting<true, false>(station_id, from_station_id, STATION_INVALID, cargo_id);
 }
 
-/* static */ int32 ScriptStation::GetCargoWaitingVia(StationID station_id,
+/* static */ int32_t ScriptStation::GetCargoWaitingVia(StationID station_id,
 		StationID via_station_id, CargoID cargo_id)
 {
 	return CountCargoWaiting<false, true>(station_id, STATION_INVALID, via_station_id, cargo_id);
 }
 
-/* static */ int32 ScriptStation::GetCargoWaitingFromVia(StationID station_id,
+/* static */ int32_t ScriptStation::GetCargoWaitingFromVia(StationID station_id,
 		StationID from_station_id, StationID via_station_id, CargoID cargo_id)
 {
 	return CountCargoWaiting<true, true>(station_id, from_station_id, via_station_id, cargo_id);
 }
 
 template<bool Tfrom, bool Tvia>
-/* static */ int32 ScriptStation::CountCargoPlanned(StationID station_id,
+/* static */ int32_t ScriptStation::CountCargoPlanned(StationID station_id,
 		StationID from_station_id, StationID via_station_id, CargoID cargo_id)
 {
 	if (!ScriptStation::IsCargoRequestValid<Tfrom, Tvia>(station_id, from_station_id,
@@ -114,24 +114,24 @@ template<bool Tfrom, bool Tvia>
 	}
 }
 
-/* static */ int32 ScriptStation::GetCargoPlanned(StationID station_id, CargoID cargo_id)
+/* static */ int32_t ScriptStation::GetCargoPlanned(StationID station_id, CargoID cargo_id)
 {
 	return CountCargoPlanned<false, false>(station_id, STATION_INVALID, STATION_INVALID, cargo_id);
 }
 
-/* static */ int32 ScriptStation::GetCargoPlannedFrom(StationID station_id,
+/* static */ int32_t ScriptStation::GetCargoPlannedFrom(StationID station_id,
 		StationID from_station_id, CargoID cargo_id)
 {
 	return CountCargoPlanned<true, false>(station_id, from_station_id, STATION_INVALID, cargo_id);
 }
 
-/* static */ int32 ScriptStation::GetCargoPlannedVia(StationID station_id,
+/* static */ int32_t ScriptStation::GetCargoPlannedVia(StationID station_id,
 		StationID via_station_id, CargoID cargo_id)
 {
 	return CountCargoPlanned<false, true>(station_id, STATION_INVALID, via_station_id, cargo_id);
 }
 
-/* static */ int32 ScriptStation::GetCargoPlannedFromVia(StationID station_id,
+/* static */ int32_t ScriptStation::GetCargoPlannedFromVia(StationID station_id,
 		StationID from_station_id, StationID via_station_id, CargoID cargo_id)
 {
 	return CountCargoPlanned<true, true>(station_id, from_station_id, via_station_id, cargo_id);
@@ -145,14 +145,14 @@ template<bool Tfrom, bool Tvia>
 	return ::Station::Get(station_id)->goods[cargo_id].HasRating();
 }
 
-/* static */ int32 ScriptStation::GetCargoRating(StationID station_id, CargoID cargo_id)
+/* static */ int32_t ScriptStation::GetCargoRating(StationID station_id, CargoID cargo_id)
 {
 	if (!ScriptStation::HasCargoRating(station_id, cargo_id)) return -1;
 
 	return ::ToPercent8(::Station::Get(station_id)->goods[cargo_id].rating);
 }
 
-/* static */ int32 ScriptStation::GetCoverageRadius(ScriptStation::StationType station_type)
+/* static */ int32_t ScriptStation::GetCoverageRadius(ScriptStation::StationType station_type)
 {
 	if (station_type == STATION_AIRPORT) return -1;
 	if (!HasExactlyOneBit(station_type)) return -1;
@@ -168,21 +168,21 @@ template<bool Tfrom, bool Tvia>
 	}
 }
 
-/* static */ int32 ScriptStation::GetStationCoverageRadius(StationID station_id)
+/* static */ int32_t ScriptStation::GetStationCoverageRadius(StationID station_id)
 {
 	if (!IsValidStation(station_id)) return -1;
 
 	return Station::Get(station_id)->GetCatchmentRadius();
 }
 
-/* static */ int32 ScriptStation::GetDistanceManhattanToTile(StationID station_id, TileIndex tile)
+/* static */ int32_t ScriptStation::GetDistanceManhattanToTile(StationID station_id, TileIndex tile)
 {
 	if (!IsValidStation(station_id)) return -1;
 
 	return ScriptMap::DistanceManhattan(tile, GetLocation(station_id));
 }
 
-/* static */ int32 ScriptStation::GetDistanceSquareToTile(StationID station_id, TileIndex tile)
+/* static */ int32_t ScriptStation::GetDistanceSquareToTile(StationID station_id, TileIndex tile)
 {
 	if (!IsValidStation(station_id)) return -1;
 

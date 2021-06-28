@@ -80,7 +80,7 @@ public:
 	 *       This is mph / 1.6, which is roughly km/h.
 	 *       To get km/h multiply this number by 1.00584.
 	 */
-	static int32 GetMaxSpeed(BridgeID bridge_id);
+	static int32_t GetMaxSpeed(BridgeID bridge_id);
 
 	/**
 	 * Get the new cost of a bridge, excluding the road and/or rail.
@@ -97,7 +97,7 @@ public:
 	 * @pre IsValidBridge(bridge_id).
 	 * @returns The maximum length the bridge has.
 	 */
-	static int32 GetMaxLength(BridgeID bridge_id);
+	static int32_t GetMaxLength(BridgeID bridge_id);
 
 	/**
 	 * Get the minimum length of a bridge.
@@ -105,7 +105,7 @@ public:
 	 * @pre IsValidBridge(bridge_id).
 	 * @returns The minimum length the bridge has.
 	 */
-	static int32 GetMinLength(BridgeID bridge_id);
+	static int32_t GetMinLength(BridgeID bridge_id);
 
 	/**
 	 * Internal function to help BuildBridge in case of road.

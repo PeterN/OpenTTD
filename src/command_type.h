@@ -26,9 +26,9 @@ class CommandCost {
 	StringID message; ///< Warning message for when success is unset
 	bool success;     ///< Whether the comment went fine up to this moment
 	const GRFFile *textref_stack_grffile; ///< NewGRF providing the #TextRefStack content.
-	uint textref_stack_size;   ///< Number of uint32 values to put on the #TextRefStack for the error message.
+	uint textref_stack_size;   ///< Number of uint32_t values to put on the #TextRefStack for the error message.
 
-	static uint32 textref_stack[16];
+	static uint32_t textref_stack[16];
 
 public:
 	/**
@@ -116,8 +116,8 @@ public:
 	}
 
 	/**
-	 * Returns the number of uint32 values for the #TextRefStack of the error message.
-	 * @return number of uint32 values.
+	 * Returns the number of uint32_t values for the #TextRefStack of the error message.
+	 * @return number of uint32_t values.
 	 */
 	uint GetTextRefStackSize() const
 	{
@@ -126,9 +126,9 @@ public:
 
 	/**
 	 * Returns a pointer to the values for the #TextRefStack of the error message.
-	 * @return uint32 values for the #TextRefStack
+	 * @return uint32_t values for the #TextRefStack
 	 */
-	const uint32 *GetTextRefStack() const
+	const uint32_t *GetTextRefStack() const
 	{
 		return textref_stack;
 	}
@@ -443,7 +443,7 @@ enum CommandPauseLevel {
  * @param text Additional text
  * @return The CommandCost of the command, which can be succeeded or failed.
  */
-typedef CommandCost CommandProc(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text);
+typedef CommandCost CommandProc(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text);
 
 /**
  * Define a command with the flags which belongs to it.
@@ -471,16 +471,16 @@ struct Command {
  * @param p1 Additional data of the command
  * @see CommandProc
  */
-typedef void CommandCallback(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd);
+typedef void CommandCallback(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd);
 
 /**
  * Structure for buffering the build command when selecting a station to join.
  */
 struct CommandContainer {
 	TileIndex tile;                  ///< tile command being executed on.
-	uint32 p1;                       ///< parameter p1.
-	uint32 p2;                       ///< parameter p2.
-	uint32 cmd;                      ///< command being executed.
+	uint32_t p1;                       ///< parameter p1.
+	uint32_t p2;                       ///< parameter p2.
+	uint32_t cmd;                      ///< command being executed.
 	CommandCallback *callback;       ///< any callback function executed upon successful completion of the command.
 	std::string text;                ///< possible text sent for name changes etc.
 };

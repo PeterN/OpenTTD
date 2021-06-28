@@ -68,7 +68,7 @@ static const NewsItem *_current_news = nullptr;
  * @param ref     The reference.
  * @return A tile for the referenced object, or INVALID_TILE if none.
  */
-static TileIndex GetReferenceTile(NewsReferenceType reftype, uint32 ref)
+static TileIndex GetReferenceTile(NewsReferenceType reftype, uint32_t ref)
 {
 	switch (reftype) {
 		case NR_TILE:     return (TileIndex)ref;
@@ -260,8 +260,8 @@ NewsDisplay NewsTypeData::GetDisplay() const
 
 /** Window class displaying a news item. */
 struct NewsWindow : Window {
-	uint16 chat_height;   ///< Height of the chat window.
-	uint16 status_height; ///< Height of the status bar window
+	uint16_t chat_height;   ///< Height of the chat window.
+	uint16_t status_height; ///< Height of the status bar window
 	const NewsItem *ni;   ///< News item to display.
 	static int duration;  ///< Remaining time for showing the current news message (may only be access while a news item is displayed).
 
@@ -331,7 +331,7 @@ struct NewsWindow : Window {
 		GfxFillRect(r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
 	}
 
-	Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number) override
+	Point OnInitialPosition(int16_t sm_width, int16_t sm_height, int window_number) override
 	{
 		Point pt = { 0, _screen.height };
 		return pt;
@@ -783,7 +783,7 @@ static void DeleteNewsItem(NewsItem *ni)
  *
  * @see NewsSubtype
  */
-void AddNewsItem(StringID string, NewsType type, NewsFlag flags, NewsReferenceType reftype1, uint32 ref1, NewsReferenceType reftype2, uint32 ref2, void *free_data)
+void AddNewsItem(StringID string, NewsType type, NewsFlag flags, NewsReferenceType reftype1, uint32_t ref1, NewsReferenceType reftype2, uint32_t ref2, void *free_data)
 {
 	if (_game_mode == GM_MENU) return;
 
@@ -838,7 +838,7 @@ void AddNewsItem(StringID string, NewsType type, NewsFlag flags, NewsReferenceTy
  * @param text The text of the news message.
  * @return the cost of this operation or an error
  */
-CommandCost CmdCustomNewsItem(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdCustomNewsItem(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	if (_current_company != OWNER_DEITY) return CMD_ERROR;
 

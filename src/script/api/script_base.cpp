@@ -15,7 +15,7 @@
 
 #include "../../safeguards.h"
 
-/* static */ uint32 ScriptBase::Rand()
+/* static */ uint32_t ScriptBase::Rand()
 {
 	/* We pick RandomRange if we are in SP (so when saved, we do the same over and over)
 	 *   but we pick InteractiveRandomRange if we are a network_server or network-client. */
@@ -23,7 +23,7 @@
 	return ::Random();
 }
 
-/* static */ uint32 ScriptBase::RandItem(int unused_param)
+/* static */ uint32_t ScriptBase::RandItem(int unused_param)
 {
 	return ScriptBase::Rand();
 }
@@ -36,7 +36,7 @@
 	return ::RandomRange(max);
 }
 
-/* static */ uint32 ScriptBase::RandRangeItem(int unused_param, uint max)
+/* static */ uint32_t ScriptBase::RandRangeItem(int unused_param, uint max)
 {
 	return ScriptBase::RandRange(max);
 }

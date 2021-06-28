@@ -290,7 +290,7 @@ public:
 	 * @pre ScriptMap::IsValidTile(tile).
 	 * @return The height of the lowest corner of the tile, ranging from 0 to 15.
 	 */
-	static int32 GetMinHeight(TileIndex tile);
+	static int32_t GetMinHeight(TileIndex tile);
 
 	/**
 	 * Get the maximal height on a tile.
@@ -299,7 +299,7 @@ public:
 	 * @pre ScriptMap::IsValidTile(tile).
 	 * @return The height of the highest corner of the tile, ranging from 0 to 15.
 	 */
-	static int32 GetMaxHeight(TileIndex tile);
+	static int32_t GetMaxHeight(TileIndex tile);
 
 	/**
 	 * Get the height of a certain corner of a tile.
@@ -309,7 +309,7 @@ public:
 	 * @pre ScriptMap::IsValidTile(tile).
 	 * @return The height of the lowest corner of the tile, ranging from 0 to 15.
 	 */
-	static int32 GetCornerHeight(TileIndex tile, Corner corner);
+	static int32_t GetCornerHeight(TileIndex tile, Corner corner);
 
 	/**
 	 * Get the owner of the tile.
@@ -354,7 +354,7 @@ public:
 	 * @pre radius >= 0.
 	 * @return Values below 8 mean no acceptance; the more the better.
 	 */
-	static int32 GetCargoAcceptance(TileIndex tile, CargoID cargo_type, int width, int height, int radius);
+	static int32_t GetCargoAcceptance(TileIndex tile, CargoID cargo_type, int width, int height, int radius);
 
 	/**
 	 * Checks how many producers in the radius produces this cargo.
@@ -371,7 +371,7 @@ public:
 	 * @pre radius >= 0.
 	 * @return The number of producers that produce this cargo within radius of the tile.
 	 */
-	static int32 GetCargoProduction(TileIndex tile, CargoID cargo_type, int width, int height, int radius);
+	static int32_t GetCargoProduction(TileIndex tile, CargoID cargo_type, int width, int height, int radius);
 
 	/**
 	 * Get the manhattan distance from the tile to the tile.
@@ -379,7 +379,7 @@ public:
 	 * @param tile_to The tile to get the distance to.
 	 * @return The distance between the two tiles.
 	 */
-	static int32 GetDistanceManhattanToTile(TileIndex tile_from, TileIndex tile_to);
+	static int32_t GetDistanceManhattanToTile(TileIndex tile_from, TileIndex tile_to);
 
 	/**
 	 * Get the square distance from the tile to the tile.
@@ -387,7 +387,7 @@ public:
 	 * @param tile_to The tile to get the distance to.
 	 * @return The distance between the two tiles.
 	 */
-	static int32 GetDistanceSquareToTile(TileIndex tile_from, TileIndex tile_to);
+	static int32_t GetDistanceSquareToTile(TileIndex tile_from, TileIndex tile_to);
 
 	/**
 	 * Raise the given corners of the tile. The corners can be combined,
@@ -404,7 +404,7 @@ public:
 	 * @exception ScriptTile::ERR_TILE_TOO_HIGH
 	 * @return 0 means failed, 1 means success.
 	 */
-	static bool RaiseTile(TileIndex tile, int32 slope);
+	static bool RaiseTile(TileIndex tile, int32_t slope);
 
 	/**
 	 * Lower the given corners of the tile. The corners can be combined,
@@ -421,7 +421,7 @@ public:
 	 * @exception ScriptTile::ERR_TILE_TOO_LOW
 	 * @return 0 means failed, 1 means success.
 	 */
-	static bool LowerTile(TileIndex tile, int32 slope);
+	static bool LowerTile(TileIndex tile, int32_t slope);
 
 	/**
 	 * Level all tiles in the rectangle between start_tile and end_tile so they

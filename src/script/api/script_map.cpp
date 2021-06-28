@@ -23,52 +23,52 @@
 	return ::MapSize();
 }
 
-/* static */ uint32 ScriptMap::GetMapSizeX()
+/* static */ uint32_t ScriptMap::GetMapSizeX()
 {
 	return ::MapSizeX();
 }
 
-/* static */ uint32 ScriptMap::GetMapSizeY()
+/* static */ uint32_t ScriptMap::GetMapSizeY()
 {
 	return ::MapSizeY();
 }
 
-/* static */ int32 ScriptMap::GetTileX(TileIndex t)
+/* static */ int32_t ScriptMap::GetTileX(TileIndex t)
 {
 	if (!::IsValidTile(t)) return -1;
 	return ::TileX(t);
 }
 
-/* static */ int32 ScriptMap::GetTileY(TileIndex t)
+/* static */ int32_t ScriptMap::GetTileY(TileIndex t)
 {
 	if (!::IsValidTile(t)) return -1;
 	return ::TileY(t);
 }
 
-/* static */ TileIndex ScriptMap::GetTileIndex(uint32 x, uint32 y)
+/* static */ TileIndex ScriptMap::GetTileIndex(uint32_t x, uint32_t y)
 {
 	return ::TileXY(x, y);
 }
 
-/* static */ int32 ScriptMap::DistanceManhattan(TileIndex t1, TileIndex t2)
+/* static */ int32_t ScriptMap::DistanceManhattan(TileIndex t1, TileIndex t2)
 {
 	if (!::IsValidTile(t1) || !::IsValidTile(t2)) return -1;
 	return ::DistanceManhattan(t1, t2);
 }
 
-/* static */ int32 ScriptMap::DistanceMax(TileIndex t1, TileIndex t2)
+/* static */ int32_t ScriptMap::DistanceMax(TileIndex t1, TileIndex t2)
 {
 	if (!::IsValidTile(t1) || !::IsValidTile(t2)) return -1;
 	return ::DistanceMax(t1, t2);
 }
 
-/* static */ int32 ScriptMap::DistanceSquare(TileIndex t1, TileIndex t2)
+/* static */ int32_t ScriptMap::DistanceSquare(TileIndex t1, TileIndex t2)
 {
 	if (!::IsValidTile(t1) || !::IsValidTile(t2)) return -1;
 	return ::DistanceSquare(t1, t2);
 }
 
-/* static */ int32 ScriptMap::DistanceFromEdge(TileIndex t)
+/* static */ int32_t ScriptMap::DistanceFromEdge(TileIndex t)
 {
 	if (!::IsValidTile(t)) return -1;
 	return ::DistanceFromEdge(t);

@@ -27,7 +27,7 @@
 	return ::Goal::IsValidID(goal_id);
 }
 
-/* static */ ScriptGoal::GoalID ScriptGoal::New(ScriptCompany::CompanyID company, Text *goal, GoalType type, uint32 destination)
+/* static */ ScriptGoal::GoalID ScriptGoal::New(ScriptCompany::CompanyID company, Text *goal, GoalType type, uint32_t destination)
 {
 	CCountedPtr<Text> counter(goal);
 
@@ -37,7 +37,7 @@
 	EnforcePreconditionEncodedText(GOAL_INVALID, text);
 	EnforcePrecondition(GOAL_INVALID, company == ScriptCompany::COMPANY_INVALID || ScriptCompany::ResolveCompanyID(company) != ScriptCompany::COMPANY_INVALID);
 
-	uint8 c = company;
+	uint8_t c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 	StoryPage *story_page = nullptr;
 	if (type == GT_STORY_PAGE && ScriptStoryPage::IsValidStoryPage((ScriptStoryPage::StoryPageID)destination)) story_page = ::StoryPage::Get((ScriptStoryPage::StoryPageID)destination);
@@ -107,7 +107,7 @@
 	return g != nullptr && g->completed;
 }
 
-/* static */ bool ScriptGoal::DoQuestion(uint16 uniqueid, uint32 target, bool is_client, Text *question, QuestionType type, uint32 buttons)
+/* static */ bool ScriptGoal::DoQuestion(uint16_t uniqueid, uint32_t target, bool is_client, Text *question, QuestionType type, uint32_t buttons)
 {
 	CCountedPtr<Text> counter(question);
 
@@ -123,16 +123,16 @@
 	return ScriptObject::DoCommand(0, uniqueid | (target << 16), buttons | (type << 29) | (is_client ? (1 << 31) : 0), CMD_GOAL_QUESTION, text);
 }
 
-/* static */ bool ScriptGoal::Question(uint16 uniqueid, ScriptCompany::CompanyID company, Text *question, QuestionType type, int buttons)
+/* static */ bool ScriptGoal::Question(uint16_t uniqueid, ScriptCompany::CompanyID company, Text *question, QuestionType type, int buttons)
 {
 	EnforcePrecondition(false, company == ScriptCompany::COMPANY_INVALID || ScriptCompany::ResolveCompanyID(company) != ScriptCompany::COMPANY_INVALID);
-	uint8 c = company;
+	uint8_t c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 
 	return DoQuestion(uniqueid, c, false, question, type, buttons);
 }
 
-/* static */ bool ScriptGoal::QuestionClient(uint16 uniqueid, ScriptClient::ClientID client, Text *question, QuestionType type, int buttons)
+/* static */ bool ScriptGoal::QuestionClient(uint16_t uniqueid, ScriptClient::ClientID client, Text *question, QuestionType type, int buttons)
 {
 	EnforcePrecondition(false, ScriptGame::IsMultiplayer());
 	EnforcePrecondition(false, ScriptClient::ResolveClientID(client) != ScriptClient::CLIENT_INVALID);
@@ -141,7 +141,7 @@
 	return DoQuestion(uniqueid, client, true, question, type, buttons);
 }
 
-/* static */ bool ScriptGoal::CloseQuestion(uint16 uniqueid)
+/* static */ bool ScriptGoal::CloseQuestion(uint16_t uniqueid)
 {
 	EnforcePrecondition(false, ScriptObject::GetCompany() == OWNER_DEITY);
 

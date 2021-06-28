@@ -151,7 +151,7 @@ static inline uint ScaleByMapSize1D(uint n)
  *
  * @see TileDiffXY(int, int)
  */
-typedef int32 TileIndexDiff;
+typedef int32_t TileIndexDiff;
 
 /**
  * Returns the TileIndex of a coordinate.
@@ -421,7 +421,7 @@ bool CircularTileSearch(TileIndex *tile, uint radius, uint w, uint h, TestTileOn
  * @param r the random 'seed'
  * @return a valid tile
  */
-static inline TileIndex RandomTileSeed(uint32 r)
+static inline TileIndex RandomTileSeed(uint32_t r)
 {
 	return TILE_MASK(r);
 }

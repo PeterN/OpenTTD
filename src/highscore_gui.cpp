@@ -27,8 +27,8 @@
 #include "safeguards.h"
 
 struct EndGameHighScoreBaseWindow : Window {
-	uint32 background_img;
-	int8 rank;
+	uint32_t background_img;
+	int8_t rank;
 
 	EndGameHighScoreBaseWindow(WindowDesc *desc) : Window(desc)
 	{
@@ -67,7 +67,7 @@ struct EndGameHighScoreBaseWindow : Window {
 		this->Close();
 	}
 
-	EventState OnKeyPress(WChar key, uint16 keycode) override
+	EventState OnKeyPress(WChar key, uint16_t keycode) override
 	{
 		/* All keys are 'handled' by this window but we want to make
 		 * sure that 'quit' still works correctly. Not handling the
@@ -155,7 +155,7 @@ struct EndGameWindow : EndGameHighScoreBaseWindow {
 struct HighScoreWindow : EndGameHighScoreBaseWindow {
 	bool game_paused_by_player; ///< True if the game was paused by the player when the highscore window was opened.
 
-	HighScoreWindow(WindowDesc *desc, int difficulty, int8 ranking) : EndGameHighScoreBaseWindow(desc)
+	HighScoreWindow(WindowDesc *desc, int difficulty, int8_t ranking) : EndGameHighScoreBaseWindow(desc)
 	{
 		/* pause game to show the chart */
 		this->game_paused_by_player = _pause_mode == PM_PAUSED_NORMAL;
@@ -190,7 +190,7 @@ struct HighScoreWindow : EndGameHighScoreBaseWindow {
 		DrawStringMultiLine(pt.x + ScaleGUITrad(70), pt.x + ScaleGUITrad(570), pt.y, pt.y + ScaleGUITrad(140), !_networking ? STR_HIGHSCORE_TOP_COMPANIES_WHO_REACHED : STR_HIGHSCORE_TOP_COMPANIES_NETWORK_GAME, TC_FROMSTRING, SA_CENTER);
 
 		/* Draw Highscore peepz */
-		for (uint8 i = 0; i < lengthof(_highscore_table[0]); i++) {
+		for (uint8_t i = 0; i < lengthof(_highscore_table[0]); i++) {
 			SetDParam(0, i + 1);
 			DrawString(pt.x + ScaleGUITrad(40), pt.x + ScaleGUITrad(600), pt.y + ScaleGUITrad(140 + i * 55), STR_HIGHSCORE_POSITION);
 
@@ -230,7 +230,7 @@ static WindowDesc _endgame_desc(
  * endgame ranking is set to the top5 element that was newly added
  * and is thus highlighted
  */
-void ShowHighscoreTable(int difficulty, int8 ranking)
+void ShowHighscoreTable(int difficulty, int8_t ranking)
 {
 	CloseWindowByClass(WC_HIGHSCORE);
 	new HighScoreWindow(&_highscore_desc, difficulty, ranking);

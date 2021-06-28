@@ -49,11 +49,11 @@ StringID EndGameGetPerformanceTitleFromValue(uint value)
 }
 
 /** Save the highscore for the company */
-int8 SaveHighScoreValue(const Company *c)
+int8_t SaveHighScoreValue(const Company *c)
 {
 	HighScore *hs = _highscore_table[SP_CUSTOM];
 	uint i;
-	uint16 score = c->old_economy[0].performance_history;
+	uint16_t score = c->old_economy[0].performance_history;
 
 	/* Exclude cheaters from the honour of being in the highscore table */
 	if (CheatHasBeenUsed()) return -1;
@@ -85,11 +85,11 @@ static bool HighScoreSorter(const Company * const &a, const Company * const &b)
  * Save the highscores in a network game when it has ended
  * @return Position of the local company in the highscore list.
  */
-int8 SaveHighScoreValueNetwork()
+int8_t SaveHighScoreValueNetwork()
 {
 	const Company *cl[MAX_COMPANIES];
 	uint count = 0;
-	int8 company = -1;
+	int8_t company = -1;
 
 	/* Sort all active companies with the highest score first */
 	for (const Company *c : Company::Iterate()) cl[count++] = c;

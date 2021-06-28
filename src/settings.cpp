@@ -160,7 +160,7 @@ static size_t LookupManyOfMany(const std::vector<std::string> &many, const char 
 		r = OneOfManySettingDesc::ParseSingleValue(str, s - str, many);
 		if (r == (size_t)-1) return r;
 
-		SetBit(res, (uint8)r); // value found, set it
+		SetBit(res, (uint8_t)r); // value found, set it
 		if (*s == 0) break;
 		str = s + 1;
 	}
@@ -219,7 +219,7 @@ static int ParseIntList(const char *p, T *items, int maxitems)
  * @param str the string that contains the values (and will be parsed)
  * @param array pointer to the integer-arrays that will be filled
  * @param nelems the number of elements the array holds. Maximum is 64 elements
- * @param type the type of elements the array holds (eg INT8, UINT16, etc.)
+ * @param type the type of elements the array holds (eg int8_t, Uint16_t, etc.)
  * @return return true on success and false on error
  */
 static bool LoadIntList(const char *str, void *array, int nelems, VarType type)
@@ -244,12 +244,12 @@ static bool LoadIntList(const char *str, void *array, int nelems, VarType type)
 
 		case SLE_VAR_I16:
 		case SLE_VAR_U16:
-			for (i = 0; i != nitems; i++) ((uint16*)array)[i] = items[i];
+			for (i = 0; i != nitems; i++) ((uint16_t*)array)[i] = items[i];
 			break;
 
 		case SLE_VAR_I32:
 		case SLE_VAR_U32:
-			for (i = 0; i != nitems; i++) ((uint32*)array)[i] = items[i];
+			for (i = 0; i != nitems; i++) ((uint32_t*)array)[i] = items[i];
 			break;
 
 		default: NOT_REACHED();
@@ -265,7 +265,7 @@ static bool LoadIntList(const char *str, void *array, int nelems, VarType type)
  * @param last last item to write to in the output buffer
  * @param array pointer to the integer-arrays that is read from
  * @param nelems the number of elements the array holds.
- * @param type the type of elements the array holds (eg INT8, UINT16, etc.)
+ * @param type the type of elements the array holds (eg int8_t, Uint16_t, etc.)
  */
 void ListSettingDesc::FormatValue(char *buf, const char *last, const void *object) const
 {
@@ -275,12 +275,12 @@ void ListSettingDesc::FormatValue(char *buf, const char *last, const void *objec
 	for (i = 0; i != this->save.length; i++) {
 		switch (GetVarMemType(this->save.conv)) {
 			case SLE_VAR_BL:
-			case SLE_VAR_I8:  v = *(const   int8 *)p; p += 1; break;
-			case SLE_VAR_U8:  v = *(const  uint8 *)p; p += 1; break;
-			case SLE_VAR_I16: v = *(const  int16 *)p; p += 2; break;
-			case SLE_VAR_U16: v = *(const uint16 *)p; p += 2; break;
-			case SLE_VAR_I32: v = *(const  int32 *)p; p += 4; break;
-			case SLE_VAR_U32: v = *(const uint32 *)p; p += 4; break;
+			case SLE_VAR_I8:  v = *(const   int8_t *)p; p += 1; break;
+			case SLE_VAR_U8:  v = *(const  uint8_t *)p; p += 1; break;
+			case SLE_VAR_I16: v = *(const  int16_t *)p; p += 2; break;
+			case SLE_VAR_U16: v = *(const uint16_t *)p; p += 2; break;
+			case SLE_VAR_I32: v = *(const  int32_t *)p; p += 4; break;
+			case SLE_VAR_U32: v = *(const uint32_t *)p; p += 4; break;
 			default: NOT_REACHED();
 		}
 		if (IsSignedVarMemType(this->save.conv)) {
@@ -385,7 +385,7 @@ size_t BoolSettingDesc::ParseValue(const char *str) const
  * @param object The object the setting is to be saved in.
  * @param val Signed version of the new value.
  */
-void IntSettingDesc::MakeValueValidAndWrite(const void *object, int32 val) const
+void IntSettingDesc::MakeValueValidAndWrite(const void *object, int32_t val) const
 {
 	this->MakeValueValid(val);
 	this->Write(object, val);
@@ -400,9 +400,9 @@ void IntSettingDesc::MakeValueValidAndWrite(const void *object, int32 val) const
  * However, for SF_GUI_DROPDOWN the default is used when the value is not valid.
  * @param val The value to make valid.
  */
-void IntSettingDesc::MakeValueValid(int32 &val) const
+void IntSettingDesc::MakeValueValid(int32_t &val) const
 {
-	/* We need to take special care of the uint32 type as we receive from the function
+	/* We need to take special care of the uint32_t type as we receive from the function
 	 * a signed integer. While here also bail out on 64-bit settings as those are not
 	 * supported. Unsigned 8 and 16-bit variables are safe since they fit into a signed
 	 * 32-bit variable
@@ -420,7 +420,7 @@ void IntSettingDesc::MakeValueValid(int32 &val) const
 				if (!(this->flags & SF_GUI_DROPDOWN)) {
 					/* Clamp value-type setting to its valid range */
 					val = Clamp(val, this->min, this->max);
-				} else if (val < this->min || val > (int32)this->max) {
+				} else if (val < this->min || val > (int32_t)this->max) {
 					/* Reset invalid discrete setting (where different values change gameplay) to its default value */
 					val = this->def;
 				}
@@ -429,17 +429,17 @@ void IntSettingDesc::MakeValueValid(int32 &val) const
 		}
 		case SLE_VAR_U32: {
 			/* Override the minimum value. No value below this->min, except special value 0 */
-			uint32 uval = (uint32)val;
+			uint32_t uval = (uint32_t)val;
 			if (!(this->flags & SF_GUI_0_IS_SPECIAL) || uval != 0) {
 				if (!(this->flags & SF_GUI_DROPDOWN)) {
 					/* Clamp value-type setting to its valid range */
 					uval = ClampU(uval, this->min, this->max);
 				} else if (uval < (uint)this->min || uval > this->max) {
 					/* Reset invalid discrete setting to its default value */
-					uval = (uint32)this->def;
+					uval = (uint32_t)this->def;
 				}
 			}
-			val = (int32)uval;
+			val = (int32_t)uval;
 			return;
 		}
 		case SLE_VAR_I64:
@@ -453,10 +453,10 @@ void IntSettingDesc::MakeValueValid(int32 &val) const
  * @param object The object the setting is to be saved in.
  * @param val Signed version of the new value.
  */
-void IntSettingDesc::Write(const void *object, int32 val) const
+void IntSettingDesc::Write(const void *object, int32_t val) const
 {
 	void *ptr = GetVariableAddress(object, this->save);
-	WriteValue(ptr, this->save.conv, (int64)val);
+	WriteValue(ptr, this->save.conv, (int64_t)val);
 }
 
 /**
@@ -464,10 +464,10 @@ void IntSettingDesc::Write(const void *object, int32 val) const
  * @param object The object the setting is to be saved in.
  * @return The value of the saved integer.
  */
-int32 IntSettingDesc::Read(const void *object) const
+int32_t IntSettingDesc::Read(const void *object) const
 {
 	void *ptr = GetVariableAddress(object, this->save);
-	return (int32)ReadValue(ptr, this->save.conv);
+	return (int32_t)ReadValue(ptr, this->save.conv);
 }
 
 /**
@@ -557,7 +557,7 @@ static void IniLoadSettings(IniFile *ini, const SettingTable &settings_table, co
 void IntSettingDesc::ParseValue(const IniItem *item, void *object) const
 {
 	size_t val = (item == nullptr) ? this->def : this->ParseValue(item->value.has_value() ? item->value->c_str() : "");
-	this->MakeValueValidAndWrite(object, (int32)val);
+	this->MakeValueValidAndWrite(object, (int32_t)val);
 }
 
 void StringSettingDesc::ParseValue(const IniItem *item, void *object) const
@@ -631,7 +631,7 @@ static void IniSaveSettings(IniFile *ini, const SettingTable &settings_table, co
 
 void IntSettingDesc::FormatValue(char *buf, const char *last, const void *object) const
 {
-	uint32 i = (uint32)this->Read(object);
+	uint32_t i = (uint32_t)this->Read(object);
 	seprintf(buf, last, IsSignedVarMemType(this->save.conv) ? "%d" : "%u", i);
 }
 
@@ -643,8 +643,8 @@ void BoolSettingDesc::FormatValue(char *buf, const char *last, const void *objec
 
 bool IntSettingDesc::IsSameValue(const IniItem *item, void *object) const
 {
-	int32 item_value = (int32)this->ParseValue(item->value->c_str());
-	int32 object_value = this->Read(object);
+	int32_t item_value = (int32_t)this->ParseValue(item->value->c_str());
+	int32_t object_value = this->Read(object);
 	return item_value == object_value;
 }
 
@@ -797,13 +797,13 @@ const StringSettingDesc *SettingDesc::AsStringSetting() const
 /* Begin - Callback Functions for the various settings. */
 
 /** Reposition the main toolbar as the setting changed. */
-static void v_PositionMainToolbar(int32 new_value)
+static void v_PositionMainToolbar(int32_t new_value)
 {
 	if (_game_mode != GM_MENU) PositionMainToolbar(nullptr);
 }
 
 /** Reposition the statusbar as the setting changed. */
-static void v_PositionStatusbar(int32 new_value)
+static void v_PositionStatusbar(int32_t new_value)
 {
 	if (_game_mode != GM_MENU) {
 		PositionStatusbar(nullptr);
@@ -816,27 +816,27 @@ static void v_PositionStatusbar(int32 new_value)
  * Redraw the smallmap after a colour scheme change.
  * @param p1 Callback parameter.
  */
-static void RedrawSmallmap(int32 new_value)
+static void RedrawSmallmap(int32_t new_value)
 {
 	BuildLandLegend();
 	BuildOwnerLegend();
 	SetWindowClassesDirty(WC_SMALLMAP);
 }
 
-static void StationSpreadChanged(int32 p1)
+static void StationSpreadChanged(int32_t p1)
 {
 	InvalidateWindowData(WC_SELECT_STATION, 0);
 	InvalidateWindowData(WC_BUILD_STATION, 0);
 }
 
-static void CloseSignalGUI(int32 new_value)
+static void CloseSignalGUI(int32_t new_value)
 {
 	if (new_value == 0) {
 		CloseWindowByClass(WC_BUILD_SIGNAL);
 	}
 }
 
-static void UpdateConsists(int32 new_value)
+static void UpdateConsists(int32_t new_value)
 {
 	for (Train *t : Train::Iterate()) {
 		/* Update the consist of all trains so the maximum speed is set correctly. */
@@ -846,7 +846,7 @@ static void UpdateConsists(int32 new_value)
 }
 
 /* Check service intervals of vehicles, newvalue is value of % or day based servicing */
-static void UpdateAllServiceInterval(int32 new_value)
+static void UpdateAllServiceInterval(int32_t new_value)
 {
 	bool update_vehicles;
 	VehicleDefaultSettings *vds;
@@ -883,7 +883,7 @@ static void UpdateAllServiceInterval(int32 new_value)
 	SetWindowClassesDirty(WC_VEHICLE_DETAILS);
 }
 
-static bool CanUpdateServiceInterval(VehicleType type, int32 &new_value)
+static bool CanUpdateServiceInterval(VehicleType type, int32_t &new_value)
 {
 	VehicleDefaultSettings *vds;
 	if (_game_mode == GM_MENU || !Company::IsValidID(_current_company)) {
@@ -893,11 +893,11 @@ static bool CanUpdateServiceInterval(VehicleType type, int32 &new_value)
 	}
 
 	/* Test if the interval is valid */
-	int32 interval = GetServiceIntervalClamped(new_value, vds->servint_ispercent);
+	int32_t interval = GetServiceIntervalClamped(new_value, vds->servint_ispercent);
 	return interval == new_value;
 }
 
-static void UpdateServiceInterval(VehicleType type, int32 new_value)
+static void UpdateServiceInterval(VehicleType type, int32_t new_value)
 {
 	if (_game_mode != GM_MENU && Company::IsValidID(_current_company)) {
 		for (Vehicle *v : Vehicle::Iterate()) {
@@ -910,7 +910,7 @@ static void UpdateServiceInterval(VehicleType type, int32 new_value)
 	SetWindowClassesDirty(WC_VEHICLE_DETAILS);
 }
 
-static void TrainAccelerationModelChanged(int32 new_value)
+static void TrainAccelerationModelChanged(int32_t new_value)
 {
 	for (Train *t : Train::Iterate()) {
 		if (t->IsFrontEngine()) {
@@ -929,7 +929,7 @@ static void TrainAccelerationModelChanged(int32 new_value)
  * This function updates the train acceleration cache after a steepness change.
  * @param new_value Unused new value of setting.
  */
-static void TrainSlopeSteepnessChanged(int32 new_value)
+static void TrainSlopeSteepnessChanged(int32_t new_value)
 {
 	for (Train *t : Train::Iterate()) {
 		if (t->IsFrontEngine()) t->CargoChanged();
@@ -940,7 +940,7 @@ static void TrainSlopeSteepnessChanged(int32 new_value)
  * This function updates realistic acceleration caches when the setting "Road vehicle acceleration model" is set.
  * @param new_value Unused new value of setting.
  */
-static void RoadVehAccelerationModelChanged(int32 new_value)
+static void RoadVehAccelerationModelChanged(int32_t new_value)
 {
 	if (_settings_game.vehicle.roadveh_acceleration_model != AM_ORIGINAL) {
 		for (RoadVehicle *rv : RoadVehicle::Iterate()) {
@@ -960,14 +960,14 @@ static void RoadVehAccelerationModelChanged(int32 new_value)
  * This function updates the road vehicle acceleration cache after a steepness change.
  * @param new_value Unused new value of setting.
  */
-static void RoadVehSlopeSteepnessChanged(int32 new_value)
+static void RoadVehSlopeSteepnessChanged(int32_t new_value)
 {
 	for (RoadVehicle *rv : RoadVehicle::Iterate()) {
 		if (rv->IsFrontEngine()) rv->CargoChanged();
 	}
 }
 
-static void TownFoundingChanged(int32 new_value)
+static void TownFoundingChanged(int32_t new_value)
 {
 	if (_game_mode != GM_EDITOR && _settings_game.economy.found_town == TF_FORBIDDEN) {
 		CloseWindowById(WC_FOUND_TOWN, 0);
@@ -976,7 +976,7 @@ static void TownFoundingChanged(int32 new_value)
 	}
 }
 
-static void ZoomMinMaxChanged(int32 new_value)
+static void ZoomMinMaxChanged(int32_t new_value)
 {
 	extern void ConstrainAllViewportsZoom();
 	ConstrainAllViewportsZoom();
@@ -989,7 +989,7 @@ static void ZoomMinMaxChanged(int32 new_value)
 	}
 }
 
-static void SpriteZoomMinChanged(int32 new_value)
+static void SpriteZoomMinChanged(int32_t new_value)
 {
 	GfxClearSpriteCache();
 	/* Force all sprites to redraw at the new chosen zoom level */
@@ -1002,14 +1002,14 @@ static void SpriteZoomMinChanged(int32 new_value)
  * newgrf debug button.
  * @param new_value unused.
  */
-static void InvalidateNewGRFChangeWindows(int32 new_value)
+static void InvalidateNewGRFChangeWindows(int32_t new_value)
 {
 	InvalidateWindowClassesData(WC_SAVELOAD);
 	CloseWindowByClass(WC_GAME_OPTIONS);
 	ReInitAllWindows(_gui_zoom_cfg);
 }
 
-static void InvalidateCompanyLiveryWindow(int32 new_value)
+static void InvalidateCompanyLiveryWindow(int32_t new_value)
 {
 	InvalidateWindowClassesData(WC_COMPANY_COLOUR, -1);
 	ResetVehicleColourMap();
@@ -1025,7 +1025,7 @@ static void ValidateSettings()
 	}
 }
 
-static void DifficultyNoiseChange(int32 new_value)
+static void DifficultyNoiseChange(int32_t new_value)
 {
 	if (_game_mode == GM_NORMAL) {
 		UpdateAirportsNoise();
@@ -1035,7 +1035,7 @@ static void DifficultyNoiseChange(int32 new_value)
 	}
 }
 
-static void MaxNoAIsChange(int32 new_value)
+static void MaxNoAIsChange(int32_t new_value)
 {
 	if (GetGameSettings().difficulty.max_no_competitors != 0 &&
 			AI::GetInfoList()->size() == 0 &&
@@ -1051,7 +1051,7 @@ static void MaxNoAIsChange(int32 new_value)
  * @param new_value unused
  * @return true if the road side may be changed.
  */
-static bool CheckRoadSide(int32 &new_value)
+static bool CheckRoadSide(int32_t &new_value)
 {
 	extern bool RoadVehiclesAreBuilt();
 	return _game_mode == GM_MENU || !RoadVehiclesAreBuilt();
@@ -1071,7 +1071,7 @@ static size_t ConvertLandscape(const char *value)
 	return OneOfManySettingDesc::ParseSingleValue(value, strlen(value), _old_landscape_values);
 }
 
-static bool CheckFreeformEdges(int32 &new_value)
+static bool CheckFreeformEdges(int32_t &new_value)
 {
 	if (_game_mode == GM_MENU) return true;
 	if (new_value != 0) {
@@ -1118,7 +1118,7 @@ static bool CheckFreeformEdges(int32 &new_value)
 	return true;
 }
 
-static void UpdateFreeformEdges(int32 new_value)
+static void UpdateFreeformEdges(int32_t new_value)
 {
 	if (_game_mode == GM_MENU) return;
 
@@ -1143,7 +1143,7 @@ static void UpdateFreeformEdges(int32 new_value)
  * Changing the setting "allow multiple NewGRF sets" is not allowed
  * if there are vehicles.
  */
-static bool CheckDynamicEngines(int32 &new_value)
+static bool CheckDynamicEngines(int32_t &new_value)
 {
 	if (_game_mode == GM_MENU) return true;
 
@@ -1155,7 +1155,7 @@ static bool CheckDynamicEngines(int32 &new_value)
 	return true;
 }
 
-static bool CheckMaxHeightLevel(int32 &new_value)
+static bool CheckMaxHeightLevel(int32_t &new_value)
 {
 	if (_game_mode == GM_NORMAL) return false;
 	if (_game_mode != GM_EDITOR) return true;
@@ -1163,7 +1163,7 @@ static bool CheckMaxHeightLevel(int32 &new_value)
 	/* Check if at least one mountain on the map is higher than the new value.
 	 * If yes, disallow the change. */
 	for (TileIndex t = 0; t < MapSize(); t++) {
-		if ((int32)TileHeight(t) > new_value) {
+		if ((int32_t)TileHeight(t) > new_value) {
 			ShowErrorMessage(STR_CONFIG_SETTING_TOO_HIGH_MOUNTAIN, INVALID_STRING_ID, WL_ERROR);
 			/* Return old, unchanged value */
 			return false;
@@ -1173,19 +1173,19 @@ static bool CheckMaxHeightLevel(int32 &new_value)
 	return true;
 }
 
-static void StationCatchmentChanged(int32 new_value)
+static void StationCatchmentChanged(int32_t new_value)
 {
 	Station::RecomputeCatchmentForAll();
 	MarkWholeScreenDirty();
 }
 
-static void MaxVehiclesChanged(int32 new_value)
+static void MaxVehiclesChanged(int32_t new_value)
 {
 	InvalidateWindowClassesData(WC_BUILD_TOOLBAR);
 	MarkWholeScreenDirty();
 }
 
-static void InvalidateShipPathCache(int32 new_value)
+static void InvalidateShipPathCache(int32_t new_value)
 {
 	for (Ship *s : Ship::Iterate()) {
 		s->path.clear();
@@ -1256,7 +1256,7 @@ static void HandleOldDiffCustom(bool savegame)
 			continue;
 		}
 
-		int32 value = (int32)((name == "max_loan" ? 1000 : 1) * _old_diff_custom[i++]);
+		int32_t value = (int32_t)((name == "max_loan" ? 1000 : 1) * _old_diff_custom[i++]);
 		sd->AsIntSetting()->MakeValueValidAndWrite(savegame ? &_settings_game : &_settings_newgame, value);
 	}
 }
@@ -1336,7 +1336,7 @@ static int DecodeHexNibble(char c)
  * @param dest_size Number of bytes in \a dest.
  * @return Whether reading was successful.
  */
-static bool DecodeHexText(const char *pos, uint8 *dest, size_t dest_size)
+static bool DecodeHexText(const char *pos, uint8_t *dest, size_t dest_size)
 {
 	while (dest_size > 0) {
 		int hi = DecodeHexNibble(pos[0]);
@@ -1367,7 +1367,7 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 	for (item = group->item; item != nullptr; item = item->next) {
 		GRFConfig *c = nullptr;
 
-		uint8 grfid_buf[4], md5sum[16];
+		uint8_t grfid_buf[4], md5sum[16];
 		const char *filename = item->name.c_str();
 		bool has_grfid = false;
 		bool has_md5sum = false;
@@ -1379,7 +1379,7 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 			has_md5sum = DecodeHexText(filename, md5sum, lengthof(md5sum));
 			if (has_md5sum) filename += 1 + 2 * lengthof(md5sum);
 
-			uint32 grfid = grfid_buf[0] | (grfid_buf[1] << 8) | (grfid_buf[2] << 16) | (grfid_buf[3] << 24);
+			uint32_t grfid = grfid_buf[0] | (grfid_buf[1] << 8) | (grfid_buf[2] << 16) | (grfid_buf[3] << 24);
 			if (has_md5sum) {
 				const GRFConfig *s = FindGRFConfig(grfid, FGCM_EXACT, md5sum);
 				if (s != nullptr) c = new GRFConfig(*s);
@@ -1690,9 +1690,9 @@ void DeleteGRFPresetFromConfig(const char *config_name)
  * @param object The object the setting is in.
  * @param newval The new value for the setting.
  */
-void IntSettingDesc::ChangeValue(const void *object, int32 newval) const
+void IntSettingDesc::ChangeValue(const void *object, int32_t newval) const
 {
-	int32 oldval = this->Read(object);
+	int32_t oldval = this->Read(object);
 	this->MakeValueValid(newval);
 	if (this->pre_check != nullptr && !this->pre_check(newval)) return;
 	if (oldval == newval) return;
@@ -1790,7 +1790,7 @@ const SettingDesc *GetSettingFromName(const std::string_view name)
  * @return the cost of this operation or an error
  * @see _settings
  */
-CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	if (text.empty()) return CMD_ERROR;
 	const SettingDesc *sd = GetSettingFromName(text);
@@ -1818,7 +1818,7 @@ CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
  * @param text the name of the company setting to change
  * @return the cost of this operation or an error
  */
-CommandCost CmdChangeCompanySetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdChangeCompanySetting(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	if (text.empty()) return CMD_ERROR;
 	const SettingDesc *sd = GetCompanySettingFromName(text.c_str());
@@ -1840,7 +1840,7 @@ CommandCost CmdChangeCompanySetting(TileIndex tile, DoCommandFlag flags, uint32 
  * @param value new value of the setting
  * @param force_newgame force the newgame settings
  */
-bool SetSettingValue(const IntSettingDesc *sd, int32 value, bool force_newgame)
+bool SetSettingValue(const IntSettingDesc *sd, int32_t value, bool force_newgame)
 {
 	const IntSettingDesc *setting = sd->AsIntSetting();
 	if ((setting->flags & SF_PER_COMPANY) != 0) {
@@ -1897,8 +1897,8 @@ void SyncCompanySettings()
 	const void *new_object = &_settings_client.company;
 	for (auto &desc : _company_settings) {
 		const SettingDesc *sd = GetSettingDesc(desc);
-		uint32 old_value = (uint32)sd->AsIntSetting()->Read(new_object);
-		uint32 new_value = (uint32)sd->AsIntSetting()->Read(old_object);
+		uint32_t old_value = (uint32_t)sd->AsIntSetting()->Read(new_object);
+		uint32_t new_value = (uint32_t)sd->AsIntSetting()->Read(old_object);
 		if (old_value != new_value) NetworkSendCommand(0, 0, new_value, CMD_CHANGE_COMPANY_SETTING, nullptr, sd->name, _local_company);
 	}
 }
@@ -1954,8 +1954,8 @@ void IConsoleSetSetting(const char *name, const char *value, bool force_newgame)
 	if (sd->IsStringSetting()) {
 		success = SetSettingValue(sd->AsStringSetting(), value, force_newgame);
 	} else if (sd->IsIntSetting()) {
-		uint32 val;
-		extern bool GetArgumentInteger(uint32 *value, const char *arg);
+		uint32_t val;
+		extern bool GetArgumentInteger(uint32_t *value, const char *arg);
 		success = GetArgumentInteger(&val, value);
 		if (!success) {
 			IConsolePrint(CC_ERROR, "'{}' is not an integer.", value);

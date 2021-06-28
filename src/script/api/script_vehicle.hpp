@@ -106,7 +106,7 @@ public:
 	 * @pre IsValidVehicle(vehicle_id).
 	 * @return The number of wagons the vehicle has.
 	 */
-	static int32 GetNumWagons(VehicleID vehicle_id);
+	static int32_t GetNumWagons(VehicleID vehicle_id);
 
 	/**
 	 * Set the name of a vehicle.
@@ -169,7 +169,7 @@ public:
 	 * @pre IsValidVehicle(vehicle_id).
 	 * @return The unitnumber the vehicle has.
 	 */
-	static int32 GetUnitNumber(VehicleID vehicle_id);
+	static int32_t GetUnitNumber(VehicleID vehicle_id);
 
 	/**
 	 * Get the current age of a vehicle.
@@ -178,7 +178,7 @@ public:
 	 * @return The current age the vehicle has.
 	 * @note The age is in days.
 	 */
-	static int32 GetAge(VehicleID vehicle_id);
+	static int32_t GetAge(VehicleID vehicle_id);
 
 	/**
 	 * Get the current age of a second (or third, etc.) engine in a train vehicle.
@@ -189,7 +189,7 @@ public:
 	 * @return The current age the vehicle has.
 	 * @note The age is in days.
 	 */
-	static int32 GetWagonAge(VehicleID vehicle_id, int wagon);
+	static int32_t GetWagonAge(VehicleID vehicle_id, int wagon);
 
 	/**
 	 * Get the maximum age of a vehicle.
@@ -198,7 +198,7 @@ public:
 	 * @return The maximum age the vehicle has.
 	 * @note The age is in days.
 	 */
-	static int32 GetMaxAge(VehicleID vehicle_id);
+	static int32_t GetMaxAge(VehicleID vehicle_id);
 
 	/**
 	 * Get the age a vehicle has left (maximum - current).
@@ -207,7 +207,7 @@ public:
 	 * @return The age the vehicle has left.
 	 * @note The age is in days.
 	 */
-	static int32 GetAgeLeft(VehicleID vehicle_id);
+	static int32_t GetAgeLeft(VehicleID vehicle_id);
 
 	/**
 	 * Get the current speed of a vehicle.
@@ -218,7 +218,7 @@ public:
 	 *       This is mph / 1.6, which is roughly km/h.
 	 *       To get km/h multiply this number by 1.00584.
 	 */
-	static int32 GetCurrentSpeed(VehicleID vehicle_id);
+	static int32_t GetCurrentSpeed(VehicleID vehicle_id);
 
 	/**
 	 * Get the current state of a vehicle.
@@ -531,7 +531,7 @@ public:
 	 * @pre ScriptCargo::IsValidCargo(cargo).
 	 * @return The maximum amount of the given cargo the vehicle can transport.
 	 */
-	static int32 GetCapacity(VehicleID vehicle_id, CargoID cargo);
+	static int32_t GetCapacity(VehicleID vehicle_id, CargoID cargo);
 
 	/**
 	 * Get the length of a the total vehicle in 1/16's of a tile.
@@ -550,7 +550,7 @@ public:
 	 * @pre ScriptCargo::IsValidCargo(cargo).
 	 * @return The amount of the given cargo the vehicle is currently transporting.
 	 */
-	static int32 GetCargoLoad(VehicleID vehicle_id, CargoID cargo);
+	static int32_t GetCargoLoad(VehicleID vehicle_id, CargoID cargo);
 
 	/**
 	 * Get the group of a given vehicle.

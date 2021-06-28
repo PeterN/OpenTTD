@@ -57,7 +57,7 @@ public:
 	 * @note Results achieved in the past offer no guarantee for the future.
 	 * @return The value for the setting.
 	 */
-	static int32 GetValue(const char *setting);
+	static int32_t GetValue(const char *setting);
 
 	/**
 	 * Sets the value of the game setting.

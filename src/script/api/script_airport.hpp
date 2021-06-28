@@ -96,7 +96,7 @@ public:
 	 * @pre IsAirportInformationAvailable(type).
 	 * @return The width in tiles.
 	 */
-	static int32 GetAirportWidth(AirportType type);
+	static int32_t GetAirportWidth(AirportType type);
 
 	/**
 	 * Get the height of this type of airport.
@@ -104,7 +104,7 @@ public:
 	 * @pre IsAirportInformationAvailable(type).
 	 * @return The height in tiles.
 	 */
-	static int32 GetAirportHeight(AirportType type);
+	static int32_t GetAirportHeight(AirportType type);
 
 	/**
 	 * Get the coverage radius of this type of airport.
@@ -112,7 +112,7 @@ public:
 	 * @pre IsAirportInformationAvailable(type).
 	 * @return The radius in tiles.
 	 */
-	static int32 GetAirportCoverageRadius(AirportType type);
+	static int32_t GetAirportCoverageRadius(AirportType type);
 
 	/**
 	 * Get the number of hangars of the airport.
@@ -120,7 +120,7 @@ public:
 	 * @pre ScriptMap::IsValidTile(tile).
 	 * @return The number of hangars of the airport.
 	 */
-	static int32 GetNumHangars(TileIndex tile);
+	static int32_t GetNumHangars(TileIndex tile);
 
 	/**
 	 * Get the first hangar tile of the airport.
@@ -198,7 +198,7 @@ public:
 	 * @pre IsAirportInformationAvailable(type)
 	 * @return Maintenance cost factor of the airport type.
 	 */
-	static uint16 GetMaintenanceCostFactor(AirportType type);
+	static uint16_t GetMaintenanceCostFactor(AirportType type);
 
 	/**
 	 * Get the monthly maintenance cost of an airport type.

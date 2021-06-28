@@ -42,7 +42,7 @@ static_assert((LOAN_INTERVAL & 3) == 0);
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdIncreaseLoan(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdIncreaseLoan(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	Company *c = Company::Get(_current_company);
 
@@ -61,7 +61,7 @@ CommandCost CmdIncreaseLoan(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 			loan = _economy.max_loan - c->current_loan;
 			break;
 		case 2: // Take the given amount of loan
-			loan = ((uint64)p1 << 32) | (p2 & 0xFFFFFFFC);
+			loan = ((uint64_t)p1 << 32) | (p2 & 0xFFFFFFFC);
 			if (loan < LOAN_INTERVAL || c->current_loan + loan > _economy.max_loan || loan % LOAN_INTERVAL != 0) return CMD_ERROR;
 			break;
 	}
@@ -90,7 +90,7 @@ CommandCost CmdIncreaseLoan(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdDecreaseLoan(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdDecreaseLoan(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	Company *c = Company::Get(_current_company);
 
@@ -107,7 +107,7 @@ CommandCost CmdDecreaseLoan(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 			loan -= loan % LOAN_INTERVAL;
 			break;
 		case 2: // Repay the given amount of loan
-			loan = ((uint64)p1 << 32) | (p2 & 0xFFFFFFFC);
+			loan = ((uint64_t)p1 << 32) | (p2 & 0xFFFFFFFC);
 			if (loan % LOAN_INTERVAL != 0 || loan < LOAN_INTERVAL || loan > c->current_loan) return CMD_ERROR; // Invalid amount to loan
 			break;
 	}
@@ -150,7 +150,7 @@ static void AskUnsafeUnpauseCallback(Window *w, bool confirmed)
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdPause(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdPause(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	switch (p1) {
 		case PM_PAUSED_SAVELOAD:
@@ -202,9 +202,9 @@ CommandCost CmdPause(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, 
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdMoneyCheat(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdMoneyCheat(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
-	return CommandCost(EXPENSES_OTHER, -(int32)p1);
+	return CommandCost(EXPENSES_OTHER, -(int32_t)p1);
 }
 
 /**
@@ -217,9 +217,9 @@ CommandCost CmdMoneyCheat(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
  * @param text unused
  * @return zero cost or an error
  */
-CommandCost CmdChangeBankBalance(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdChangeBankBalance(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
-	int32 delta = (int32)p1;
+	int32_t delta = (int32_t)p1;
 	CompanyID company = (CompanyID) GB(p2, 0, 8);
 	ExpensesType expenses_type = Extract<ExpensesType, 8, 8>(p2);
 

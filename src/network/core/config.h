@@ -23,30 +23,30 @@ static const char * const NETWORK_CONTENT_MIRROR_URL            = "/bananas";
 /** Message sent to the masterserver to 'identify' this client as OpenTTD */
 static const char * const NETWORK_MASTER_SERVER_WELCOME_MESSAGE = "OpenTTDRegister";
 
-static const uint16 NETWORK_MASTER_SERVER_PORT    = 3978;         ///< The default port of the master server (UDP)
-static const uint16 NETWORK_CONTENT_SERVER_PORT   = 3978;         ///< The default port of the content server (TCP)
-static const uint16 NETWORK_CONTENT_MIRROR_PORT   =   80;         ///< The default port of the content mirror (TCP)
-static const uint16 NETWORK_DEFAULT_PORT          = 3979;         ///< The default port of the game server (TCP & UDP)
-static const uint16 NETWORK_ADMIN_PORT            = 3977;         ///< The default port for admin network
-static const uint16 NETWORK_DEFAULT_DEBUGLOG_PORT = 3982;         ///< The default port debug-log is sent to (TCP)
+static const uint16_t NETWORK_MASTER_SERVER_PORT    = 3978;         ///< The default port of the master server (UDP)
+static const uint16_t NETWORK_CONTENT_SERVER_PORT   = 3978;         ///< The default port of the content server (TCP)
+static const uint16_t NETWORK_CONTENT_MIRROR_PORT   =   80;         ///< The default port of the content mirror (TCP)
+static const uint16_t NETWORK_DEFAULT_PORT          = 3979;         ///< The default port of the game server (TCP & UDP)
+static const uint16_t NETWORK_ADMIN_PORT            = 3977;         ///< The default port for admin network
+static const uint16_t NETWORK_DEFAULT_DEBUGLOG_PORT = 3982;         ///< The default port debug-log is sent to (TCP)
 
-static const uint16 UDP_MTU                       = 1460;         ///< Number of bytes we can pack in a single UDP packet
+static const uint16_t UDP_MTU                       = 1460;         ///< Number of bytes we can pack in a single UDP packet
 /*
  * Technically a TCP packet could become 64kiB, however the high bit is kept so it becomes possible in the future
  * to go to (significantly) larger packets if needed. This would entail a strategy such as employed for UTF-8.
  *
  * Packets up to 32 KiB have the high bit not set:
  * 00000000 00000000 0bbbbbbb aaaaaaaa -> aaaaaaaa 0bbbbbbb
- * Send_uint16(GB(size, 0, 15)
+ * Send_uint16_t(GB(size, 0, 15)
  *
- * Packets up to 1 GiB, first uint16 has high bit set so it knows to read a
- * next uint16 for the remaining bits of the size.
+ * Packets up to 1 GiB, first uint16_t has high bit set so it knows to read a
+ * next uint16_t for the remaining bits of the size.
  * 00dddddd cccccccc bbbbbbbb aaaaaaaa -> cccccccc 10dddddd aaaaaaaa bbbbbbbb
- * Send_uint16(GB(size, 16, 14) | 0b10 << 14)
- * Send_uint16(GB(size,  0, 16))
+ * Send_uint16_t(GB(size, 16, 14) | 0b10 << 14)
+ * Send_uint16_t(GB(size,  0, 16))
  */
-static const uint16 TCP_MTU                       = 32767;        ///< Number of bytes we can pack in a single TCP packet
-static const uint16 COMPAT_MTU                    = 1460;         ///< Number of bytes we can pack in a single packet for backward compatibility
+static const uint16_t TCP_MTU                       = 32767;        ///< Number of bytes we can pack in a single TCP packet
+static const uint16_t COMPAT_MTU                    = 1460;         ///< Number of bytes we can pack in a single packet for backward compatibility
 
 static const byte NETWORK_GAME_ADMIN_VERSION      =    1;         ///< What version of the admin network do we use?
 static const byte NETWORK_GAME_INFO_VERSION       =    4;         ///< What version of game-info do we use?

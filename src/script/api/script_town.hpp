@@ -126,7 +126,7 @@ public:
 	 * Gets the number of towns.
 	 * @return The number of towns.
 	 */
-	static int32 GetTownCount();
+	static int32_t GetTownCount();
 
 	/**
 	 * Checks whether the given town index is valid.
@@ -169,7 +169,7 @@ public:
 	 * @pre IsValidTown(town_id).
 	 * @return The number of inhabitants.
 	 */
-	static int32 GetPopulation(TownID town_id);
+	static int32_t GetPopulation(TownID town_id);
 
 	/**
 	 * Gets the number of houses in the town.
@@ -177,7 +177,7 @@ public:
 	 * @pre IsValidTown(town_id).
 	 * @return The number of houses.
 	 */
-	static int32 GetHouseCount(TownID town_id);
+	static int32_t GetHouseCount(TownID town_id);
 
 	/**
 	 * Gets the location of the town.
@@ -195,7 +195,7 @@ public:
 	 * @pre ScriptCargo::IsValidCargo(cargo_id).
 	 * @return The last month's production of the given cargo for this town.
 	 */
-	static int32 GetLastMonthProduction(TownID town_id, CargoID cargo_id);
+	static int32_t GetLastMonthProduction(TownID town_id, CargoID cargo_id);
 
 	/**
 	 * Get the total amount of cargo supplied from a town last month.
@@ -205,7 +205,7 @@ public:
 	 * @pre ScriptCargo::IsValidCargo(cargo_id).
 	 * @return The amount of cargo supplied for transport from this town last month.
 	 */
-	static int32 GetLastMonthSupplied(TownID town_id, CargoID cargo_id);
+	static int32_t GetLastMonthSupplied(TownID town_id, CargoID cargo_id);
 
 	/**
 	 * Get the percentage of transported production of the given cargo at a town.
@@ -215,7 +215,7 @@ public:
 	 * @pre ScriptCargo::IsValidCargo(cargo_id).
 	 * @return The percentage of given cargo transported from this town last month.
 	 */
-	static int32 GetLastMonthTransportedPercentage(TownID town_id, CargoID cargo_id);
+	static int32_t GetLastMonthTransportedPercentage(TownID town_id, CargoID cargo_id);
 
 	/**
 	 * Get the total amount of cargo effects received by a town last month.
@@ -225,7 +225,7 @@ public:
 	 * @pre ScriptCargo::IsValidTownEffect(cargo_id).
 	 * @return The amount of cargo received by this town last month for this cargo effect.
 	 */
-	static int32 GetLastMonthReceived(TownID town_id, ScriptCargo::TownEffect towneffect_id);
+	static int32_t GetLastMonthReceived(TownID town_id, ScriptCargo::TownEffect towneffect_id);
 
 	/**
 	 * Set the goal of a cargo for this town.
@@ -237,7 +237,7 @@ public:
 	 * @return True if the action succeeded.
 	 * @api -ai
 	 */
-	static bool SetCargoGoal(TownID town_id, ScriptCargo::TownEffect towneffect_id, uint32 goal);
+	static bool SetCargoGoal(TownID town_id, ScriptCargo::TownEffect towneffect_id, uint32_t goal);
 
 	/**
 	 * Get the amount of cargo that needs to be delivered (per TownEffect) for a
@@ -250,7 +250,7 @@ public:
 	 * @note Goals can change over time. For example with a changing snowline, or
 	 *  with a growing town.
 	 */
-	static uint32 GetCargoGoal(TownID town_id, ScriptCargo::TownEffect towneffect_id);
+	static uint32_t GetCargoGoal(TownID town_id, ScriptCargo::TownEffect towneffect_id);
 
 	/**
 	 * Set the amount of days between town growth.
@@ -264,7 +264,7 @@ public:
 	 * @note When changing the growth rate, the relative progress is preserved and scaled to the new rate.
 	 * @api -ai
 	 */
-	static bool SetGrowthRate(TownID town_id, uint32 days_between_town_growth);
+	static bool SetGrowthRate(TownID town_id, uint32_t days_between_town_growth);
 
 	/**
 	 * Get the amount of days between town growth.
@@ -273,7 +273,7 @@ public:
 	 * @return Amount of days between town growth, or TOWN_GROWTH_NONE.
 	 * @note This function does not indicate when it will grow next. It only tells you the time between growths.
 	 */
-	static int32 GetGrowthRate(TownID town_id);
+	static int32_t GetGrowthRate(TownID town_id);
 
 	/**
 	 * Get the manhattan distance from the tile to the ScriptTown::GetLocation()
@@ -283,7 +283,7 @@ public:
 	 * @pre IsValidTown(town_id).
 	 * @return The distance between town and tile.
 	 */
-	static int32 GetDistanceManhattanToTile(TownID town_id, TileIndex tile);
+	static int32_t GetDistanceManhattanToTile(TownID town_id, TileIndex tile);
 
 	/**
 	 * Get the square distance from the tile to the ScriptTown::GetLocation()
@@ -293,7 +293,7 @@ public:
 	 * @pre IsValidTown(town_id).
 	 * @return The distance between town and tile.
 	 */
-	static int32 GetDistanceSquareToTile(TownID town_id, TileIndex tile);
+	static int32_t GetDistanceSquareToTile(TownID town_id, TileIndex tile);
 
 	/**
 	 * Find out if this tile is within the rating influence of a town.
@@ -360,7 +360,7 @@ public:
 	 *         The value 0 means that there are currently no exclusive rights
 	 *         given out to anyone.
 	 */
-	static int32 GetExclusiveRightsDuration(TownID town_id);
+	static int32_t GetExclusiveRightsDuration(TownID town_id);
 
 	/**
 	 * Find out if an action can currently be performed on the town.

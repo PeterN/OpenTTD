@@ -167,7 +167,7 @@ bool SQGenerator::Resume(SQVM *v,SQInteger target)
 	PUSH_CALLINFO(v,_ci);
 	SQInteger oldstackbase=v->_stackbase;
 	v->_stackbase = v->_top;
-	v->ci->_target = (SQInt32)target;
+	v->ci->_target = (SQint32_t)target;
 	v->ci->_generator = this;
 	v->ci->_vargs.size = (unsigned short)_vargsstack.size();
 
@@ -185,8 +185,8 @@ bool SQGenerator::Resume(SQVM *v,SQInteger target)
 	}
 	v->ci->_vargs.base = (unsigned short)(v->_vargsstack.size() - v->ci->_vargs.size);
 	v->_top=v->_stackbase+size;
-	v->ci->_prevtop = (SQInt32)prevtop;
-	v->ci->_prevstkbase = (SQInt32)(v->_stackbase - oldstackbase);
+	v->ci->_prevtop = (SQint32_t)prevtop;
+	v->ci->_prevstkbase = (SQint32_t)(v->_stackbase - oldstackbase);
 	_state=eRunning;
 	if (type(v->_debughook) != OT_NULL && _rawval(v->_debughook) != _rawval(v->ci->_closure))
 		v->CallDebugHook('c');

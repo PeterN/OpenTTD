@@ -35,67 +35,14 @@
 #	include <unistd.h>
 #	define _DEFAULT_SOURCE
 #	define _GNU_SOURCE
-#	define TROUBLED_INTS
 #endif
 
 #if defined(__HAIKU__) || defined(__CYGWIN__)
 #	include <strings.h> /* strncasecmp */
 #endif
 
-/* It seems that we need to include stdint.h before anything else
- * We need INT64_MAX, which for most systems comes from stdint.h. However, MSVC
- * does not have stdint.h.
- * For OSX the inclusion is already done in osx_stdafx.h. */
-#if !defined(__APPLE__) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
-#	if defined(SUNOS)
-		/* SunOS/Solaris does not have stdint.h, but inttypes.h defines everything
-		 * stdint.h defines and we need. */
-#		include <inttypes.h>
-#	else
-#		define __STDC_LIMIT_MACROS
-#		include <stdint.h>
-#	endif
-#endif
-
-/* The conditions for these constants to be available are way too messy; so check them one by one */
-#if !defined(UINT64_MAX)
-#	define UINT64_MAX (18446744073709551615ULL)
-#endif
-#if !defined(INT64_MAX)
-#	define INT64_MAX  (9223372036854775807LL)
-#endif
-#if !defined(INT64_MIN)
-#	define INT64_MIN  (-INT64_MAX - 1)
-#endif
-#if !defined(UINT32_MAX)
-#	define UINT32_MAX (4294967295U)
-#endif
-#if !defined(INT32_MAX)
-#	define INT32_MAX  (2147483647)
-#endif
-#if !defined(INT32_MIN)
-#	define INT32_MIN  (-INT32_MAX - 1)
-#endif
-#if !defined(UINT16_MAX)
-#	define UINT16_MAX (65535U)
-#endif
-#if !defined(INT16_MAX)
-#	define INT16_MAX  (32767)
-#endif
-#if !defined(INT16_MIN)
-#	define INT16_MIN  (-INT16_MAX - 1)
-#endif
-#if !defined(UINT8_MAX)
-#	define UINT8_MAX  (255)
-#endif
-#if !defined(INT8_MAX)
-#	define INT8_MAX   (127)
-#endif
-#if !defined(INT8_MIN)
-#	define INT8_MIN   (-INT8_MAX - 1)
-#endif
-
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
 #include <cstddef>
 #include <cstring>
@@ -104,10 +51,6 @@
 #include <cassert>
 #include <memory>
 #include <string>
-
-#ifndef SIZE_MAX
-#	define SIZE_MAX ((size_t)-1)
-#endif
 
 #if defined(UNIX) || defined(__MINGW32__)
 #	include <sys/types.h>
@@ -126,7 +69,7 @@
 #if defined(__GNUC__) || (defined(__clang__) && !defined(_MSC_VER))
 #	define NORETURN __attribute__ ((noreturn))
 #	define CDECL
-#	define __int64 long long
+#	define __int64_t long long
 	/* Warn about functions using 'printf' format syntax. First argument determines which parameter
 	 * is the format string, second argument is start of values passed to printf. */
 #	define WARN_FORMAT(string, args) __attribute__ ((format (printf, string, args)))
@@ -322,30 +265,6 @@ typedef unsigned char byte;
 	typedef unsigned int uint;
 #endif
 
-#if defined(TROUBLED_INTS)
-	/* Haiku's types for uint32/int32/uint64/int64 are different than what
-	 * they are on other platforms; not in length, but how to print them.
-	 * So make them more like the other platforms, to make printf() etc a
-	 * little bit easier. */
-#	define uint32 uint32_ugly_hack
-#	define int32 int32_ugly_hack
-#	define uint64 uint64_ugly_hack
-#	define int64 int64_ugly_hack
-	typedef unsigned int uint32_ugly_hack;
-	typedef signed int int32_ugly_hack;
-	typedef unsigned __int64 uint64_ugly_hack;
-	typedef signed __int64 int64_ugly_hack;
-#else
-	typedef unsigned char    uint8;
-	typedef   signed char     int8;
-	typedef unsigned short   uint16;
-	typedef   signed short    int16;
-	typedef unsigned int     uint32;
-	typedef   signed int      int32;
-	typedef unsigned __int64 uint64;
-	typedef   signed __int64  int64;
-#endif /* !TROUBLED_INTS */
-
 #if !defined(WITH_PERSONAL_DIR)
 #	define PERSONAL_DIR ""
 #endif
@@ -356,10 +275,10 @@ typedef unsigned char byte;
 #endif
 
 /* Check if the types have the bitsizes like we are using them */
-static_assert(sizeof(uint64) == 8);
-static_assert(sizeof(uint32) == 4);
-static_assert(sizeof(uint16) == 2);
-static_assert(sizeof(uint8)  == 1);
+static_assert(sizeof(uint64_t) == 8);
+static_assert(sizeof(uint32_t) == 4);
+static_assert(sizeof(uint16_t) == 2);
+static_assert(sizeof(uint8_t)  == 1);
 static_assert(SIZE_MAX >= UINT32_MAX);
 
 #ifndef M_PI_2

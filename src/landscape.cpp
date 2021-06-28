@@ -690,7 +690,7 @@ void ClearSnowLine()
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	bool do_clear = false;
@@ -740,7 +740,7 @@ CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdClearArea(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdClearArea(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	if (p1 >= MapSize()) return CMD_ERROR;
 
@@ -809,11 +809,11 @@ void RunTileLoop()
 
 	/* Maximal length LFSR feedback terms, from 12-bit (for 64x64 maps) to 24-bit (for 4096x4096 maps).
 	 * Extracted from http://www.ece.cmu.edu/~koopman/lfsr/ */
-	static const uint32 feedbacks[] = {
+	static const uint32_t feedbacks[] = {
 		0xD8F, 0x1296, 0x2496, 0x4357, 0x8679, 0x1030E, 0x206CD, 0x403FE, 0x807B8, 0x1004B2, 0x2006A8, 0x4004B2, 0x800B87
 	};
 	static_assert(lengthof(feedbacks) == 2 * MAX_MAP_SIZE_BITS - 2 * MIN_MAP_SIZE_BITS + 1);
-	const uint32 feedback = feedbacks[MapLogX() + MapLogY() - 2 * MIN_MAP_SIZE_BITS];
+	const uint32_t feedback = feedbacks[MapLogX() + MapLogY() - 2 * MIN_MAP_SIZE_BITS];
 
 	/* We update every tile every 256 ticks, so divide the map size by 2^8 = 256 */
 	uint count = 1 << (MapLogX() + MapLogY() - 8);
@@ -832,7 +832,7 @@ void RunTileLoop()
 		_tile_type_procs[GetTileType(tile)]->tile_loop_proc(tile);
 
 		/* Get the next tile in sequence using a Galois LFSR. */
-		tile = (tile >> 1) ^ (-(int32)(tile & 1) & feedback);
+		tile = (tile >> 1) ^ (-(int32_t)(tile & 1) & feedback);
 	}
 
 	_cur_tileloop_tile = tile;
@@ -858,7 +858,7 @@ static const byte _genterrain_tbl_2[5] = {  0,  0,  0,  0, 33 };
 
 static void GenerateTerrain(int type, uint flag)
 {
-	uint32 r = Random();
+	uint32_t r = Random();
 
 	const Sprite *templ = GetSprite((((r >> 24) * _genterrain_tbl_1[type]) >> 8) + _genterrain_tbl_2[type] + 4845, ST_MAPGEN);
 	if (templ == nullptr) usererror("Map generator sprites could not be loaded");
@@ -1096,19 +1096,19 @@ static bool FlowsDown(TileIndex begin, TileIndex end)
 }
 
 /* AyStar callback for checking whether we reached our destination. */
-static int32 River_EndNodeCheck(const AyStar *aystar, const OpenListNode *current)
+static int32_t River_EndNodeCheck(const AyStar *aystar, const OpenListNode *current)
 {
 	return current->path.node.tile == *(TileIndex*)aystar->user_target ? AYSTAR_FOUND_END_NODE : AYSTAR_DONE;
 }
 
 /* AyStar callback for getting the cost of the current node. */
-static int32 River_CalculateG(AyStar *aystar, AyStarNode *current, OpenListNode *parent)
+static int32_t River_CalculateG(AyStar *aystar, AyStarNode *current, OpenListNode *parent)
 {
 	return 1 + RandomRange(_settings_game.game_creation.river_route_random);
 }
 
 /* AyStar callback for getting the estimated cost to the destination. */
-static int32 River_CalculateH(AyStar *aystar, AyStarNode *current, OpenListNode *parent)
+static int32_t River_CalculateH(AyStar *aystar, AyStarNode *current, OpenListNode *parent)
 {
 	return DistanceManhattan(*(TileIndex*)aystar->user_target, current->tile);
 }
@@ -1397,7 +1397,7 @@ static void CalculateSnowLine()
  * Calculate the line (in height) between desert and tropic.
  * @return The height of the line between desert and tropic.
  */
-static uint8 CalculateDesertLine()
+static uint8_t CalculateDesertLine()
 {
 	/* CalculateCoverageLine() runs from top to bottom, so we need to invert the coverage. */
 	return CalculateCoverageLine(100 - _settings_game.game_creation.desert_coverage, 4);
@@ -1430,7 +1430,7 @@ void GenerateLandscape(byte mode)
 		}
 		switch (_settings_game.game_creation.landscape) {
 			case LT_ARCTIC: {
-				uint32 r = Random();
+				uint32_t r = Random();
 
 				for (uint i = ScaleByMapSize(GB(r, 0, 7) + 950); i != 0; --i) {
 					GenerateTerrain(2, 0);
@@ -1444,7 +1444,7 @@ void GenerateLandscape(byte mode)
 			}
 
 			case LT_TROPIC: {
-				uint32 r = Random();
+				uint32_t r = Random();
 
 				for (uint i = ScaleByMapSize(GB(r, 0, 7) + 170); i != 0; --i) {
 					GenerateTerrain(0, 0);
@@ -1464,7 +1464,7 @@ void GenerateLandscape(byte mode)
 			}
 
 			default: {
-				uint32 r = Random();
+				uint32_t r = Random();
 
 				assert(_settings_game.difficulty.quantity_sea_lakes != CUSTOM_SEA_LEVEL_NUMBER_DIFFICULTY);
 				uint i = ScaleByMapSize(GB(r, 0, 7) + (3 - _settings_game.difficulty.quantity_sea_lakes) * 256 + 100);

@@ -207,7 +207,7 @@ enum StationNaming {
 
 /** Information to handle station action 0 property 24 correctly */
 struct StationNameInformation {
-	uint32 free_names; ///< Current bitset of free names (we can remove names).
+	uint32_t free_names; ///< Current bitset of free names (we can remove names).
 	bool *indtypes;    ///< Array of bools telling whether an industry type has been found.
 };
 
@@ -237,7 +237,7 @@ static bool FindNearIndustryName(TileIndex tile, void *user_data)
 
 static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class)
 {
-	static const uint32 _gen_station_name_bits[] = {
+	static const uint32_t _gen_station_name_bits[] = {
 		0,                                       // STATIONNAMING_RAIL
 		0,                                       // STATIONNAMING_ROAD
 		1U << M(STR_SV_STNAME_AIRPORT),          // STATIONNAMING_AIRPORT
@@ -247,7 +247,7 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 	};
 
 	const Town *t = st->town;
-	uint32 free_names = UINT32_MAX;
+	uint32_t free_names = UINT32_MAX;
 
 	bool indtypes[NUM_INDUSTRYTYPES];
 	memset(indtypes, 0, sizeof(indtypes));
@@ -293,7 +293,7 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 	free_names = sni.free_names;
 
 	/* check default names */
-	uint32 tmp = free_names & _gen_station_name_bits[name_class];
+	uint32_t tmp = free_names & _gen_station_name_bits[name_class];
 	if (tmp != 0) return STR_SV_STNAME + FindFirstBit(tmp);
 
 	/* check mine? */
@@ -335,7 +335,7 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 	}
 
 	/* check direction compared to town */
-	static const int8 _direction_and_table[] = {
+	static const int8_t _direction_and_table[] = {
 		~( (1 << M(STR_SV_STNAME_WEST))  | (1 << M(STR_SV_STNAME_EAST)) | (1 << M(STR_SV_STNAME_NORTH)) ),
 		~( (1 << M(STR_SV_STNAME_SOUTH)) | (1 << M(STR_SV_STNAME_WEST)) | (1 << M(STR_SV_STNAME_NORTH)) ),
 		~( (1 << M(STR_SV_STNAME_SOUTH)) | (1 << M(STR_SV_STNAME_EAST)) | (1 << M(STR_SV_STNAME_NORTH)) ),
@@ -454,7 +454,7 @@ void UpdateAllStationVirtCoords()
 void BaseStation::FillCachedName() const
 {
 	char buf[MAX_LENGTH_STATION_NAME_CHARS * MAX_CHAR_LENGTH];
-	int64 args_array[] = { this->index };
+	int64_t args_array[] = { this->index };
 	StringParameters tmp_params(args_array);
 	char *end = GetStringWithArgs(buf, Waypoint::IsExpected(this) ? STR_WAYPOINT_NAME : STR_STATION_NAME, &tmp_params, lastof(buf));
 	this->cached_name.assign(buf, end);
@@ -1250,7 +1250,7 @@ static void RestoreTrainReservation(Train *v)
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	/* Unpack parameters */
 	RailType rt    = Extract<RailType, 0, 6>(p1);
@@ -1331,7 +1331,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 		/* Check if the station is buildable */
 		if (HasBit(statspec->callback_mask, CBM_STATION_AVAIL)) {
-			uint16 cb_res = GetStationCallback(CBID_STATION_AVAILABILITY, 0, 0, statspec, nullptr, INVALID_TILE);
+			uint16_t cb_res = GetStationCallback(CBID_STATION_AVAILABILITY, 0, 0, statspec, nullptr, INVALID_TILE);
 			if (cb_res != CALLBACK_FAILED && !Convert8bitBooleanCallback(statspec->grf_prop.grffile, CBID_STATION_AVAILABILITY, cb_res)) return CMD_ERROR;
 		}
 	}
@@ -1399,10 +1399,10 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 				if (statspec != nullptr) {
 					/* Use a fixed axis for GetPlatformInfo as our platforms / numtracks are always the right way around */
-					uint32 platinfo = GetPlatformInfo(AXIS_X, GetStationGfx(tile), plat_len, numtracks_orig, plat_len - w, numtracks_orig - numtracks, false);
+					uint32_t platinfo = GetPlatformInfo(AXIS_X, GetStationGfx(tile), plat_len, numtracks_orig, plat_len - w, numtracks_orig - numtracks, false);
 
 					/* As the station is not yet completely finished, the station does not yet exist. */
-					uint16 callback = GetStationCallback(CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, nullptr, tile);
+					uint16_t callback = GetStationCallback(CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, nullptr, tile);
 					if (callback != CALLBACK_FAILED) {
 						if (callback < 8) {
 							SetStationGfx(tile, (callback & ~1) + axis);
@@ -1659,7 +1659,7 @@ CommandCost RemoveFromRailBaseStation(TileArea ta, std::vector<T *> &affected_st
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	TileIndex end = p1 == 0 ? start : p1;
 	if (start >= MapSize() || end >= MapSize()) return CMD_ERROR;
@@ -1693,7 +1693,7 @@ CommandCost CmdRemoveFromRailStation(TileIndex start, DoCommandFlag flags, uint3
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdRemoveFromRailWaypoint(TileIndex start, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdRemoveFromRailWaypoint(TileIndex start, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	TileIndex end = p1 == 0 ? start : p1;
 	if (start >= MapSize() || end >= MapSize()) return CMD_ERROR;
@@ -1832,7 +1832,7 @@ static CommandCost FindJoiningRoadStop(StationID existing_stop, StationID statio
  * @param text Unused.
  * @return The cost of this operation or an error.
  */
-CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	bool type = HasBit(p2, 0);
 	bool is_drive_through = HasBit(p2, 1);
@@ -1843,8 +1843,8 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	if (!reuse) station_to_join = INVALID_STATION;
 	bool distant_join = (station_to_join != INVALID_STATION);
 
-	uint8 width = (uint8)GB(p1, 0, 8);
-	uint8 length = (uint8)GB(p1, 8, 8);
+	uint8_t width = (uint8_t)GB(p1, 0, 8);
+	uint8_t length = (uint8_t)GB(p1, 8, 8);
 
 	/* Check if the requested road stop is too big */
 	if (width > _settings_game.station.station_spread || length > _settings_game.station.station_spread) return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
@@ -2082,10 +2082,10 @@ static CommandCost RemoveRoadStop(TileIndex tile, DoCommandFlag flags)
  * @param text Unused.
  * @return The cost of this operation or an error.
  */
-CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
-	uint8 width = (uint8)GB(p1, 0, 8);
-	uint8 height = (uint8)GB(p1, 8, 8);
+	uint8_t width = (uint8_t)GB(p1, 0, 8);
+	uint8_t height = (uint8_t)GB(p1, 8, 8);
 	bool keep_drive_through_roads = !HasBit(p2, 1);
 
 	/* Check for incorrect width / height. */
@@ -2103,7 +2103,7 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 	for (TileIndex cur_tile : roadstop_area) {
 		/* Make sure the specified tile is a road stop of the correct type */
-		if (!IsTileType(cur_tile, MP_STATION) || !IsRoadStop(cur_tile) || (uint32)GetRoadStopType(cur_tile) != GB(p2, 0, 1)) continue;
+		if (!IsTileType(cur_tile, MP_STATION) || !IsRoadStop(cur_tile) || (uint32_t)GetRoadStopType(cur_tile) != GB(p2, 0, 1)) continue;
 
 		/* Save information on to-be-restored roads before the stop is removed. */
 		RoadBits road_bits = ROAD_NONE;
@@ -2151,7 +2151,7 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
  * @param distance minimum distance between town and airport
  * @return the noise that will be generated, according to distance
  */
-uint8 GetAirportNoiseLevelForDistance(const AirportSpec *as, uint distance)
+uint8_t GetAirportNoiseLevelForDistance(const AirportSpec *as, uint distance)
 {
 	/* 0 cannot be accounted, and 1 is the lowest that can be reduced from town.
 	 * So no need to go any further*/
@@ -2161,7 +2161,7 @@ uint8 GetAirportNoiseLevelForDistance(const AirportSpec *as, uint distance)
 	 * adding the town_council_tolerance 4 times, as a way to graduate, depending of the tolerance.
 	 * Basically, it says that the less tolerant a town is, the bigger the distance before
 	 * an actual decrease can be granted */
-	uint8 town_tolerance_distance = 8 + (_settings_game.difficulty.town_council_tolerance * 4);
+	uint8_t town_tolerance_distance = 8 + (_settings_game.difficulty.town_council_tolerance * 4);
 
 	/* now, we want to have the distance segmented using the distance judged bareable by town
 	 * This will give us the coefficient of reduction the distance provides. */
@@ -2241,7 +2241,7 @@ void UpdateAirportsNoise()
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	StationID station_to_join = GB(p2, 16, 16);
 	bool reuse = (station_to_join != NEW_STATION);
@@ -2458,7 +2458,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdOpenCloseAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdOpenCloseAirport(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	if (!Station::IsValidID(p1)) return CMD_ERROR;
 	Station *st = Station::Get(p1);
@@ -2513,7 +2513,7 @@ static const byte _dock_h_chk[4] = { 1, 2, 1, 2 };
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	StationID station_to_join = GB(p2, 16, 16);
 	bool reuse = (station_to_join != NEW_STATION);
@@ -2643,7 +2643,7 @@ bool IsValidDockingDirectionForDock(TileIndex t, DiagDirection d)
 	assert(IsDockTile(t));
 
 	/** Bitmap of valid directions for each dock tile part. */
-	static const uint8 _valid_docking_tile[] = {
+	static const uint8_t _valid_docking_tile[] = {
 		0, 0, 0, 0,                        // No docking against the slope part.
 		1 << DIAGDIR_NE | 1 << DIAGDIR_SW, // Docking permitted at the end
 		1 << DIAGDIR_NW | 1 << DIAGDIR_SE, // of the flat piers.
@@ -2817,10 +2817,10 @@ static void DrawTile_Station(TileInfo *ti)
 	const NewGRFSpriteLayout *layout = nullptr;
 	DrawTileSprites tmp_rail_layout;
 	const DrawTileSprites *t = nullptr;
-	int32 total_offset;
+	int32_t total_offset;
 	const RailtypeInfo *rti = nullptr;
-	uint32 relocation = 0;
-	uint32 ground_relocation = 0;
+	uint32_t relocation = 0;
+	uint32_t ground_relocation = 0;
 	BaseStation *st = nullptr;
 	const StationSpec *statspec = nullptr;
 	uint tile_layout = 0;
@@ -2838,7 +2838,7 @@ static void DrawTile_Station(TileInfo *ti)
 				tile_layout = GetStationGfx(ti->tile);
 
 				if (HasBit(statspec->callback_mask, CBM_STATION_SPRITE_LAYOUT)) {
-					uint16 callback = GetStationCallback(CBID_STATION_SPRITE_LAYOUT, 0, 0, statspec, st, ti->tile);
+					uint16_t callback = GetStationCallback(CBID_STATION_SPRITE_LAYOUT, 0, 0, statspec, st, ti->tile);
 					if (callback != CALLBACK_FAILED) tile_layout = (callback & ~1) + GetRailStationAxis(ti->tile);
 				}
 
@@ -2916,7 +2916,7 @@ static void DrawTile_Station(TileInfo *ti)
 			if (HasBit(statspec->flags, SSF_EXTENDED_FOUNDATIONS)) {
 				/* Station provides extended foundations. */
 
-				static const uint8 foundation_parts[] = {
+				static const uint8_t foundation_parts[] = {
 					0, 0, 0, 0, // Invalid,  Invalid,   Invalid,   SLOPE_SW
 					0, 1, 2, 3, // Invalid,  SLOPE_EW,  SLOPE_SE,  SLOPE_WSE
 					0, 4, 5, 6, // Invalid,  SLOPE_NW,  SLOPE_NS,  SLOPE_NWS
@@ -2929,7 +2929,7 @@ static void DrawTile_Station(TileInfo *ti)
 
 				/* Each set bit represents one of the eight composite sprites to be drawn.
 				 * 'Invalid' entries will not drawn but are included for completeness. */
-				static const uint8 composite_foundation_parts[] = {
+				static const uint8_t composite_foundation_parts[] = {
 					/* Invalid  (00000000), Invalid   (11010001), Invalid   (11100100), SLOPE_SW  (11100000) */
 					   0x00,                0xD1,                 0xE4,                 0xE0,
 					/* Invalid  (11001010), SLOPE_EW  (11001001), SLOPE_SE  (11000100), SLOPE_WSE (11000000) */
@@ -2940,7 +2940,7 @@ static void DrawTile_Station(TileInfo *ti)
 					   0x4A,                0x09,                 0x44
 				};
 
-				uint8 parts = composite_foundation_parts[ti->tileh];
+				uint8_t parts = composite_foundation_parts[ti->tileh];
 
 				/* If foundations continue beyond the tile's upper sides then
 				 * mask out the last two pieces. */
@@ -2992,10 +2992,10 @@ draw_default_foundation:
 		if (layout != nullptr) {
 			/* Sprite layout which needs preprocessing */
 			bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
-			uint32 var10_values = layout->PrepareLayout(total_offset, rti->fallback_railtype, 0, 0, separate_ground);
-			uint8 var10;
+			uint32_t var10_values = layout->PrepareLayout(total_offset, rti->fallback_railtype, 0, 0, separate_ground);
+			uint8_t var10;
 			FOR_EACH_SET_BIT(var10, var10_values) {
-				uint32 var10_relocation = GetCustomStationRelocation(statspec, st, ti->tile, var10);
+				uint32_t var10_relocation = GetCustomStationRelocation(statspec, st, ti->tile, var10);
 				layout->ProcessRegisters(var10, var10_relocation, separate_ground);
 			}
 			tmp_rail_layout.seq = layout->GetLayout(&tmp_rail_layout.ground);
@@ -3073,7 +3073,7 @@ draw_default_foundation:
 
 void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, RoadType roadtype, int image)
 {
-	int32 total_offset = 0;
+	int32_t total_offset = 0;
 	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
 	const DrawTileSprites *t = GetStationTileLayout(st, image);
 	const RailtypeInfo *rti = nullptr;
@@ -3363,7 +3363,7 @@ static VehicleEnterTileStatus VehicleEnter_Station(Vehicle *v, TileIndex tile, i
 				return VETSB_ENTERED_STATION | (VehicleEnterTileStatus)(station_id << VETS_STATION_ID_OFFSET); // enter station
 			} else if (x < stop) {
 				v->vehstatus |= VS_TRAIN_SLOWING;
-				uint16 spd = std::max(0, (stop - x) * 20 - 15);
+				uint16_t spd = std::max(0, (stop - x) * 20 - 15);
 				if (spd < v->cur_speed) v->cur_speed = spd;
 			}
 		}
@@ -3510,12 +3510,12 @@ static void UpdateStationRating(Station *st)
 				/* NewGRFs expect last speed to be 0xFF when no vehicle has arrived yet. */
 				uint last_speed = ge->HasVehicleEverTriedLoading() ? ge->last_speed : 0xFF;
 
-				uint32 var18 = std::min<uint>(ge->time_since_pickup, 0xFFu)
+				uint32_t var18 = std::min<uint>(ge->time_since_pickup, 0xFFu)
 					| (std::min<uint>(ge->max_waiting_cargo, 0xFFFFu) << 8)
 					| (std::min<uint>(last_speed, 0xFFu) << 24);
 				/* Convert to the 'old' vehicle types */
-				uint32 var10 = (st->last_vehicle_type == VEH_INVALID) ? 0x0 : (st->last_vehicle_type + 0x10);
-				uint16 callback = GetCargoCallback(CBID_CARGO_STATION_RATING_CALC, var10, var18, cs);
+				uint32_t var10 = (st->last_vehicle_type == VEH_INVALID) ? 0x0 : (st->last_vehicle_type + 0x10);
+				uint16_t callback = GetCargoCallback(CBID_CARGO_STATION_RATING_CALC, var10, var18, cs);
 				if (callback != CALLBACK_FAILED) {
 					skip = true;
 					rating = GB(callback, 0, 14);
@@ -3568,7 +3568,7 @@ static void UpdateStationRating(Station *st)
 
 				/* if rating is <= 127 and there are any items waiting, maybe remove some goods. */
 				if (rating <= 127 && waiting != 0) {
-					uint32 r = Random();
+					uint32_t r = Random();
 					if (rating <= (int)GB(r, 0, 7)) {
 						/* Need to have int, otherwise it will just overflow etc. */
 						waiting = std::max((int)waiting - (int)((GB(r, 8, 2) - 1) * num_dests), 0);
@@ -3933,7 +3933,7 @@ static bool IsUniqueStationName(const std::string &name)
  * @param text the new name or an empty string when resetting to the default
  * @return the cost of this operation or an error
  */
-CommandCost CmdRenameStation(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdRenameStation(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	Station *st = Station::GetIfValid(p1);
 	if (st == nullptr) return CMD_ERROR;
@@ -4373,7 +4373,7 @@ static CommandCost TerraformTile_Station(TileIndex tile, DoCommandFlag flags, in
  */
 uint FlowStat::GetShare(StationID st) const
 {
-	uint32 prev = 0;
+	uint32_t prev = 0;
 	for (SharesMap::const_iterator it = this->shares.begin(); it != this->shares.end(); ++it) {
 		if (it->second == st) {
 			return it->first - prev;

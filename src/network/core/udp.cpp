@@ -157,7 +157,7 @@ void NetworkUDPSocketHandler::HandleUDPPacket(Packet *p, NetworkAddress *client_
 	/* New packet == new client, which has not quit yet */
 	this->Reopen();
 
-	type = (PacketUDPType)p->Recv_uint8();
+	type = (PacketUDPType)p->Recv_uint8_t();
 
 	switch (this->HasClientQuit() ? PACKET_UDP_END : type) {
 		case PACKET_UDP_CLIENT_FIND_SERVER:   this->Receive_CLIENT_FIND_SERVER(p, client_addr);   break;

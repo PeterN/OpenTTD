@@ -77,13 +77,13 @@ namespace SQConvert {
 	 */
 	template <typename T> static int Return(HSQUIRRELVM vm, T t);
 
-	template <> inline int Return<uint8>       (HSQUIRRELVM vm, uint8 res)       { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline int Return<uint16>      (HSQUIRRELVM vm, uint16 res)      { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline int Return<uint32>      (HSQUIRRELVM vm, uint32 res)      { sq_pushinteger(vm, (int32)res); return 1; }
-	template <> inline int Return<int8>        (HSQUIRRELVM vm, int8 res)        { sq_pushinteger(vm, res); return 1; }
-	template <> inline int Return<int16>       (HSQUIRRELVM vm, int16 res)       { sq_pushinteger(vm, res); return 1; }
-	template <> inline int Return<int32>       (HSQUIRRELVM vm, int32 res)       { sq_pushinteger(vm, res); return 1; }
-	template <> inline int Return<int64>       (HSQUIRRELVM vm, int64 res)       { sq_pushinteger(vm, res); return 1; }
+	template <> inline int Return<uint8_t>       (HSQUIRRELVM vm, uint8_t res)       { sq_pushinteger(vm, (int32_t)res); return 1; }
+	template <> inline int Return<uint16_t>      (HSQUIRRELVM vm, uint16_t res)      { sq_pushinteger(vm, (int32_t)res); return 1; }
+	template <> inline int Return<uint32_t>      (HSQUIRRELVM vm, uint32_t res)      { sq_pushinteger(vm, (int32_t)res); return 1; }
+	template <> inline int Return<int8_t>        (HSQUIRRELVM vm, int8_t res)        { sq_pushinteger(vm, res); return 1; }
+	template <> inline int Return<int16_t>       (HSQUIRRELVM vm, int16_t res)       { sq_pushinteger(vm, res); return 1; }
+	template <> inline int Return<int32_t>       (HSQUIRRELVM vm, int32_t res)       { sq_pushinteger(vm, res); return 1; }
+	template <> inline int Return<int64_t>       (HSQUIRRELVM vm, int64_t res)       { sq_pushinteger(vm, res); return 1; }
 	template <> inline int Return<Money>       (HSQUIRRELVM vm, Money res)       { sq_pushinteger(vm, res); return 1; }
 	template <> inline int Return<bool>        (HSQUIRRELVM vm, bool res)        { sq_pushbool   (vm, res); return 1; }
 	template <> inline int Return<char *>      (HSQUIRRELVM vm, char *res)       { if (res == nullptr) sq_pushnull(vm); else { sq_pushstring(vm, res, -1); free(res); } return 1; }
@@ -96,13 +96,13 @@ namespace SQConvert {
 	 */
 	template <typename T> static T GetParam(ForceType<T>, HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr);
 
-	template <> inline uint8       GetParam(ForceType<uint8>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline uint16      GetParam(ForceType<uint16>      , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline uint32      GetParam(ForceType<uint32>      , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline int8        GetParam(ForceType<int8>        , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline int16       GetParam(ForceType<int16>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline int32       GetParam(ForceType<int32>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
-	template <> inline int64       GetParam(ForceType<int64>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
+	template <> inline uint8_t       GetParam(ForceType<uint8_t>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
+	template <> inline uint16_t      GetParam(ForceType<uint16_t>      , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
+	template <> inline uint32_t      GetParam(ForceType<uint32_t>      , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
+	template <> inline int8_t        GetParam(ForceType<int8_t>        , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
+	template <> inline int16_t       GetParam(ForceType<int16_t>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
+	template <> inline int32_t       GetParam(ForceType<int32_t>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
+	template <> inline int64_t       GetParam(ForceType<int64_t>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
 	template <> inline Money       GetParam(ForceType<Money>       , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQInteger     tmp; sq_getinteger    (vm, index, &tmp); return tmp; }
 	template <> inline bool        GetParam(ForceType<bool>        , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQBool        tmp; sq_getbool       (vm, index, &tmp); return tmp != 0; }
 	template <> inline void       *GetParam(ForceType<void *>      , HSQUIRRELVM vm, int index, SQAutoFreePointers *ptr) { SQUserPointer tmp; sq_getuserpointer(vm, index, &tmp); return tmp; }
@@ -130,12 +130,12 @@ namespace SQConvert {
 		sq_pushobject(vm, obj);
 		sq_pushnull(vm);
 
-		std::vector<int32> data;
+		std::vector<int32_t> data;
 
 		while (SQ_SUCCEEDED(sq_next(vm, -2))) {
 			SQInteger tmp;
 			if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &tmp))) {
-				data.push_back((int32)tmp);
+				data.push_back((int32_t)tmp);
 			} else {
 				sq_pop(vm, 4);
 				throw sq_throwerror(vm, "a member of an array used as parameter to a function is not numeric");
@@ -145,9 +145,9 @@ namespace SQConvert {
 		}
 		sq_pop(vm, 2);
 
-		Array *arr = (Array*)MallocT<byte>(sizeof(Array) + sizeof(int32) * data.size());
+		Array *arr = (Array*)MallocT<byte>(sizeof(Array) + sizeof(int32_t) * data.size());
 		arr->size = data.size();
-		memcpy(arr->array, data.data(), sizeof(int32) * data.size());
+		memcpy(arr->array, data.data(), sizeof(int32_t) * data.size());
 
 		ptr->push_back(arr);
 		return arr;

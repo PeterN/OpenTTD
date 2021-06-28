@@ -170,7 +170,7 @@ static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
 	HGDIOBJ oldfont;
 	byte *buf;
 	DWORD dw;
-	uint16 format, count, stringOffset, platformId, encodingId, languageId, nameId, length, offset;
+	uint16_t format, count, stringOffset, platformId, encodingId, languageId, nameId, length, offset;
 
 	HFONT font = CreateFontIndirect(&logfont->elfLogFont);
 	if (font == nullptr) goto err1;
@@ -210,7 +210,7 @@ static const char *GetEnglishFontName(const ENUMLOGFONTEX *logfont)
 		offset += buf[pos++];
 
 		/* Don't buffer overflow */
-		length = std::min<uint16>(length, MAX_PATH - 1);
+		length = std::min<uint16_t>(length, MAX_PATH - 1);
 		for (uint j = 0; j < length; j++) font_name[j] = buf[stringOffset + offset + j];
 		font_name[length] = '\0';
 
@@ -554,7 +554,7 @@ void Win32FontCache::ClearFontCache()
 	return glyphs[0] != 0xFFFF ? glyphs[0] : 0;
 }
 
-/* virtual */ const void *Win32FontCache::InternalGetFontTable(uint32 tag, size_t &length)
+/* virtual */ const void *Win32FontCache::InternalGetFontTable(uint32_t tag, size_t &length)
 {
 	DWORD len = GetFontData(this->dc, tag, 0, nullptr, 0);
 

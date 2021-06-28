@@ -376,7 +376,7 @@ static const Command _command_proc_table[] = {
  * @param cmd The integer value of a command
  * @return true if the command is valid (and got a CommandProc function)
  */
-bool IsValidCommand(uint32 cmd)
+bool IsValidCommand(uint32_t cmd)
 {
 	cmd &= CMD_ID_MASK;
 
@@ -390,7 +390,7 @@ bool IsValidCommand(uint32 cmd)
  * @param cmd The integer value of the command
  * @return The flags for this command
  */
-CommandFlags GetCommandFlags(uint32 cmd)
+CommandFlags GetCommandFlags(uint32_t cmd)
 {
 	assert(IsValidCommand(cmd));
 
@@ -404,7 +404,7 @@ CommandFlags GetCommandFlags(uint32 cmd)
  * @param cmd The integer value of the command
  * @return The name for this command
  */
-const char *GetCommandName(uint32 cmd)
+const char *GetCommandName(uint32_t cmd)
 {
 	assert(IsValidCommand(cmd));
 
@@ -416,7 +416,7 @@ const char *GetCommandName(uint32 cmd)
  * @param cmd The command to check.
  * @return True if the command is allowed while paused, false otherwise.
  */
-bool IsCommandAllowedWhilePaused(uint32 cmd)
+bool IsCommandAllowedWhilePaused(uint32_t cmd)
 {
 	/* Lookup table for the command types that are allowed for a given pause level setting. */
 	static const int command_type_lookup[] = {
@@ -465,7 +465,7 @@ CommandCost DoCommand(const CommandContainer *container, DoCommandFlag flags)
  * @see CommandProc
  * @return the cost
  */
-CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags, uint32 cmd, const std::string &text)
+CommandCost DoCommand(TileIndex tile, uint32_t p1, uint32_t p2, DoCommandFlag flags, uint32_t cmd, const std::string &text)
 {
 	CommandCost res;
 
@@ -558,7 +558,7 @@ bool DoCommandP(const CommandContainer *container, bool my_cmd)
  * @param my_cmd indicator if the command is from a company or server (to display error messages for a user)
  * @return \c true if the command succeeded, else \c false.
  */
-bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const std::string &text, bool my_cmd)
+bool DoCommandP(TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd, CommandCallback *callback, const std::string &text, bool my_cmd)
 {
 	/* Cost estimation is generally only done when the
 	 * local user presses shift while doing something.
@@ -631,7 +631,7 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallbac
  * @param estimate_only whether to give only the estimate or also execute the command
  * @return the command cost of this function.
  */
-CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const std::string &text, bool my_cmd, bool estimate_only)
+CommandCost DoCommandPInternal(TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd, CommandCallback *callback, const std::string &text, bool my_cmd, bool estimate_only)
 {
 	/* Prevent recursion; it gives a mess over the network */
 	assert(_docommand_recursive == 0);
@@ -792,7 +792,7 @@ void CommandCost::AddCost(const CommandCost &ret)
  * There is only one static instance of the array, just like there is only one
  * instance of normal DParams.
  */
-uint32 CommandCost::textref_stack[16];
+uint32_t CommandCost::textref_stack[16];
 
 /**
  * Activate usage of the NewGRF #TextRefStack for the error message.
@@ -801,7 +801,7 @@ uint32 CommandCost::textref_stack[16];
  */
 void CommandCost::UseTextRefStack(const GRFFile *grffile, uint num_registers)
 {
-	extern TemporaryStorageArray<int32, 0x110> _temp_store;
+	extern TemporaryStorageArray<int32_t, 0x110> _temp_store;
 
 	assert(num_registers < lengthof(textref_stack));
 	this->textref_stack_grffile = grffile;

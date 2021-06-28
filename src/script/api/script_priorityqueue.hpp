@@ -21,7 +21,7 @@
  */
 class ScriptPriorityQueue : public ScriptObject {
 public:
-	typedef std::pair<int64, HSQOBJECT> PriorityItem;
+	typedef std::pair<int64_t, HSQOBJECT> PriorityItem;
 private:
 	struct PriorityComparator {
 		bool operator()(const PriorityItem &lhs, const PriorityItem &rhs) const noexcept
@@ -43,7 +43,7 @@ public:
 	 * @param priority The priority to assign the item.
 	 * @return True if the item was inserted, false if it was already in the queue.
 	 */
-	bool Insert(void *item, int64 priority);
+	bool Insert(void *item, int64_t priority);
 
 	/**
 	 * Remove and return the item with the lowest priority.

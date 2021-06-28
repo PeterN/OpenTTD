@@ -35,15 +35,15 @@
 #include "../safeguards.h"
 
 /** Session key to register ourselves to the master server */
-static uint64 _session_key = 0;
+static uint64_t _session_key = 0;
 
 static const std::chrono::minutes ADVERTISE_NORMAL_INTERVAL(15); ///< interval between advertising.
 static const std::chrono::seconds ADVERTISE_RETRY_INTERVAL(10); ///< re-advertise when no response after this amount of time.
-static const uint32 ADVERTISE_RETRY_TIMES     =              3; ///< give up re-advertising after this much failed retries
+static const uint32_t ADVERTISE_RETRY_TIMES     =              3; ///< give up re-advertising after this much failed retries
 
 static bool _network_udp_server;         ///< Is the UDP server started?
-static uint16 _network_udp_broadcast;    ///< Timeout for the UDP broadcasts.
-static uint8 _network_advertise_retries; ///< The number of advertisement retries we did.
+static uint16_t _network_udp_broadcast;    ///< Timeout for the UDP broadcasts.
+static uint8_t _network_advertise_retries; ///< The number of advertisement retries we did.
 
 /** Some information about a socket, which exists before the actual socket has been created to provide locking and the likes. */
 struct UDPSocket {
@@ -141,7 +141,7 @@ void MasterNetworkUDPSocketHandler::Receive_MASTER_ACK_REGISTER(Packet *p, Netwo
 
 void MasterNetworkUDPSocketHandler::Receive_MASTER_SESSION_KEY(Packet *p, NetworkAddress *client_addr)
 {
-	_session_key = p->Recv_uint64();
+	_session_key = p->Recv_uint64_t();
 	Debug(net, 6, "Received new session key from master server ({})", NetworkAddress::AddressFamilyAsString(client_addr->GetAddress()->ss_family));
 }
 
@@ -186,8 +186,8 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO(Packet *p, Networ
 	Packet packet(PACKET_UDP_SERVER_DETAIL_INFO);
 
 	/* Send the amount of active companies */
-	packet.Send_uint8 (NETWORK_COMPANY_INFO_VERSION);
-	packet.Send_uint8 ((uint8)Company::GetNumItems());
+	packet.Send_uint8_t (NETWORK_COMPANY_INFO_VERSION);
+	packet.Send_uint8_t ((uint8_t)Company::GetNumItems());
 
 	/* Fetch the latest version of the stats */
 	NetworkCompanyStats company_stats[MAX_COMPANIES];
@@ -245,16 +245,16 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO(Packet *p, Networ
  */
 void ServerNetworkUDPSocketHandler::Receive_CLIENT_GET_NEWGRFS(Packet *p, NetworkAddress *client_addr)
 {
-	uint8 num_grfs;
+	uint8_t num_grfs;
 	uint i;
 
 	const GRFConfig *in_reply[NETWORK_MAX_GRF_COUNT];
-	uint8 in_reply_count = 0;
+	uint8_t in_reply_count = 0;
 	size_t packet_len = 0;
 
 	Debug(net, 7, "NewGRF data request from {}", client_addr->GetAddressAsString());
 
-	num_grfs = p->Recv_uint8 ();
+	num_grfs = p->Recv_uint8_t ();
 	if (num_grfs > NETWORK_MAX_GRF_COUNT) return;
 
 	for (i = 0; i < num_grfs; i++) {
@@ -282,7 +282,7 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_GET_NEWGRFS(Packet *p, Networ
 	if (in_reply_count == 0) return;
 
 	Packet packet(PACKET_UDP_SERVER_NEWGRFS);
-	packet.Send_uint8(in_reply_count);
+	packet.Send_uint8_t(in_reply_count);
 	for (i = 0; i < in_reply_count; i++) {
 		char name[NETWORK_GRF_NAME_LENGTH];
 
@@ -351,7 +351,7 @@ void ClientNetworkUDPSocketHandler::Receive_SERVER_RESPONSE(Packet *p, NetworkAd
 			uint i;
 			Packet packet(PACKET_UDP_CLIENT_GET_NEWGRFS);
 
-			packet.Send_uint8(in_request_count);
+			packet.Send_uint8_t(in_request_count);
 			for (i = 0; i < in_request_count; i++) {
 				SerializeGRFIdentifier(&packet, &in_request[i]->ident);
 			}
@@ -370,30 +370,30 @@ void ClientNetworkUDPSocketHandler::Receive_SERVER_RESPONSE(Packet *p, NetworkAd
 
 void ClientNetworkUDPSocketHandler::Receive_MASTER_RESPONSE_LIST(Packet *p, NetworkAddress *client_addr)
 {
-	/* packet begins with the protocol version (uint8)
-	 * then an uint16 which indicates how many
+	/* packet begins with the protocol version (uint8_t)
+	 * then an uint16_t which indicates how many
 	 * ip:port pairs are in this packet, after that
-	 * an uint32 (ip) and an uint16 (port) for each pair.
+	 * an uint32_t (ip) and an uint16_t (port) for each pair.
 	 */
 
-	ServerListType type = (ServerListType)(p->Recv_uint8() - 1);
+	ServerListType type = (ServerListType)(p->Recv_uint8_t() - 1);
 
 	if (type < SLT_END) {
-		for (int i = p->Recv_uint16(); i != 0 ; i--) {
+		for (int i = p->Recv_uint16_t(); i != 0 ; i--) {
 			sockaddr_storage addr_storage;
 			memset(&addr_storage, 0, sizeof(addr_storage));
 
 			if (type == SLT_IPv4) {
 				addr_storage.ss_family = AF_INET;
-				((sockaddr_in*)&addr_storage)->sin_addr.s_addr = TO_LE32(p->Recv_uint32());
+				((sockaddr_in*)&addr_storage)->sin_addr.s_addr = TO_LE32(p->Recv_uint32_t());
 			} else {
 				assert(type == SLT_IPv6);
 				addr_storage.ss_family = AF_INET6;
 				byte *addr = (byte*)&((sockaddr_in6*)&addr_storage)->sin6_addr;
-				for (uint i = 0; i < sizeof(in6_addr); i++) *addr++ = p->Recv_uint8();
+				for (uint i = 0; i < sizeof(in6_addr); i++) *addr++ = p->Recv_uint8_t();
 			}
 			NetworkAddress addr(addr_storage, type == SLT_IPv4 ? sizeof(sockaddr_in) : sizeof(sockaddr_in6));
-			addr.SetPort(p->Recv_uint16());
+			addr.SetPort(p->Recv_uint16_t());
 
 			/* Somehow we reached the end of the packet */
 			if (this->HasClientQuit()) return;
@@ -406,12 +406,12 @@ void ClientNetworkUDPSocketHandler::Receive_MASTER_RESPONSE_LIST(Packet *p, Netw
 /** The return of the client's request of the names of some NewGRFs */
 void ClientNetworkUDPSocketHandler::Receive_SERVER_NEWGRFS(Packet *p, NetworkAddress *client_addr)
 {
-	uint8 num_grfs;
+	uint8_t num_grfs;
 	uint i;
 
 	Debug(net, 7, "NewGRF data reply from {}", client_addr->GetAddressAsString());
 
-	num_grfs = p->Recv_uint8 ();
+	num_grfs = p->Recv_uint8_t ();
 	if (num_grfs > NETWORK_MAX_GRF_COUNT) return;
 
 	for (i = 0; i < num_grfs; i++) {
@@ -454,8 +454,8 @@ void NetworkUDPQueryMasterServer()
 	NetworkAddress out_addr(NETWORK_MASTER_SERVER_HOST, NETWORK_MASTER_SERVER_PORT);
 
 	/* packet only contains protocol version */
-	p.Send_uint8(NETWORK_MASTER_SERVER_VERSION);
-	p.Send_uint8(SLT_AUTODETECT);
+	p.Send_uint8_t(NETWORK_MASTER_SERVER_VERSION);
+	p.Send_uint8_t(SLT_AUTODETECT);
 
 	std::lock_guard<std::mutex> lock(_udp_client.mutex);
 	_udp_client.socket->SendPacket(&p, &out_addr, true);
@@ -488,8 +488,8 @@ static void NetworkUDPRemoveAdvertiseThread()
 	/* Send the packet */
 	Packet p(PACKET_UDP_SERVER_UNREGISTER);
 	/* Packet is: Version, server_port */
-	p.Send_uint8 (NETWORK_MASTER_SERVER_VERSION);
-	p.Send_uint16(_settings_client.network.server_port);
+	p.Send_uint8_t (NETWORK_MASTER_SERVER_VERSION);
+	p.Send_uint16_t(_settings_client.network.server_port);
 
 	std::lock_guard<std::mutex> lock(_udp_master.mutex);
 	if (_udp_master.socket != nullptr) _udp_master.socket->SendPacket(&p, &out_addr, true);
@@ -539,9 +539,9 @@ static void NetworkUDPAdvertiseThread()
 	Packet p(PACKET_UDP_SERVER_REGISTER);
 	/* Packet is: WELCOME_MESSAGE, Version, server_port */
 	p.Send_string(NETWORK_MASTER_SERVER_WELCOME_MESSAGE);
-	p.Send_uint8 (NETWORK_MASTER_SERVER_VERSION);
-	p.Send_uint16(_settings_client.network.server_port);
-	p.Send_uint64(_session_key);
+	p.Send_uint8_t (NETWORK_MASTER_SERVER_VERSION);
+	p.Send_uint16_t(_settings_client.network.server_port);
+	p.Send_uint64_t(_session_key);
 
 	std::lock_guard<std::mutex> lock(_udp_master.mutex);
 	if (_udp_master.socket != nullptr) _udp_master.socket->SendPacket(&p, &out_addr, true);

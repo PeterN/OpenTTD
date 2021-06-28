@@ -25,7 +25,7 @@
  * @tparam Textra      Custom extra callback data.
  * @tparam GetCallback The callback function pointer.
  */
-template <typename Tbase, typename Tspec, typename Tobj, typename Textra, uint16 (*GetCallback)(CallbackID callback, uint32 param1, uint32 param2, const Tspec *statspec, Tobj *st, TileIndex tile, Textra extra_data)>
+template <typename Tbase, typename Tspec, typename Tobj, typename Textra, uint16_t (*GetCallback)(CallbackID callback, uint32_t param1, uint32_t param2, const Tspec *statspec, Tobj *st, TileIndex tile, Textra extra_data)>
 struct AnimationBase {
 	/**
 	 * Animate a single tile.
@@ -40,9 +40,9 @@ struct AnimationBase {
 		assert(spec != nullptr);
 
 		/* Acquire the animation speed from the NewGRF. */
-		uint8 animation_speed = spec->animation.speed;
+		uint8_t animation_speed = spec->animation.speed;
 		if (HasBit(spec->callback_mask, Tbase::cbm_animation_speed)) {
-			uint16 callback = GetCallback(Tbase::cb_animation_speed, 0, 0, spec, obj, tile, extra_data);
+			uint16_t callback = GetCallback(Tbase::cb_animation_speed, 0, 0, spec, obj, tile, extra_data);
 			if (callback != CALLBACK_FAILED) {
 				if (callback >= 0x100 && spec->grf_prop.grffile->grf_version >= 8) ErrorUnknownCallbackResult(spec->grf_prop.grffile->grfid, Tbase::cb_animation_speed, callback);
 				animation_speed = Clamp(callback & 0xFF, 0, 16);
@@ -55,13 +55,13 @@ struct AnimationBase {
 		 * maximum, corresponding to around 33 minutes. */
 		if (_tick_counter % (1 << animation_speed) != 0) return;
 
-		uint8 frame      = GetAnimationFrame(tile);
-		uint8 num_frames = spec->animation.frames;
+		uint8_t frame      = GetAnimationFrame(tile);
+		uint8_t num_frames = spec->animation.frames;
 
 		bool frame_set_by_callback = false;
 
 		if (HasBit(spec->callback_mask, Tbase::cbm_animation_next_frame)) {
-			uint16 callback = GetCallback(Tbase::cb_animation_next_frame, random_animation ? Random() : 0, 0, spec, obj, tile, extra_data);
+			uint16_t callback = GetCallback(Tbase::cb_animation_next_frame, random_animation ? Random() : 0, 0, spec, obj, tile, extra_data);
 
 			if (callback != CALLBACK_FAILED) {
 				frame_set_by_callback = true;
@@ -114,9 +114,9 @@ struct AnimationBase {
 	 * @param trigger     What triggered this update? To be passed as parameter to the NewGRF.
 	 * @param extra_data  Custom extra data for callback processing.
 	 */
-	static void ChangeAnimationFrame(CallbackID cb, const Tspec *spec, Tobj *obj, TileIndex tile, uint32 random_bits, uint32 trigger, Textra extra_data = 0)
+	static void ChangeAnimationFrame(CallbackID cb, const Tspec *spec, Tobj *obj, TileIndex tile, uint32_t random_bits, uint32_t trigger, Textra extra_data = 0)
 	{
-		uint16 callback = GetCallback(cb, random_bits, trigger, spec, obj, tile, extra_data);
+		uint16_t callback = GetCallback(cb, random_bits, trigger, spec, obj, tile, extra_data);
 		if (callback == CALLBACK_FAILED) return;
 
 		switch (callback & 0xFF) {

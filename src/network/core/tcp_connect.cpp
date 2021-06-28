@@ -26,7 +26,7 @@ static std::vector<TCPConnecter *> _tcp_connecters;
  * Create a new connecter for the given address
  * @param connection_string the address to connect to
  */
-TCPConnecter::TCPConnecter(const std::string &connection_string, uint16 default_port)
+TCPConnecter::TCPConnecter(const std::string &connection_string, uint16_t default_port)
 {
 	this->connection_string = NormalizeConnectionString(connection_string, default_port);
 

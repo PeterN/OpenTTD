@@ -16,13 +16,13 @@
 
 #include "safeguards.h"
 
-/* virtual */ uint32 RoadTypeScopeResolver::GetRandomBits() const
+/* virtual */ uint32_t RoadTypeScopeResolver::GetRandomBits() const
 {
 	uint tmp = CountBits(this->tile + (TileX(this->tile) + TileY(this->tile)) * TILE_SIZE);
 	return GB(tmp, 0, 2);
 }
 
-/* virtual */ uint32 RoadTypeScopeResolver::GetVariable(byte variable, uint32 parameter, bool *available) const
+/* virtual */ uint32_t RoadTypeScopeResolver::GetVariable(byte variable, uint32_t parameter, bool *available) const
 {
 	if (this->tile == INVALID_TILE) {
 		switch (variable) {
@@ -68,7 +68,7 @@ GrfSpecFeature RoadTypeResolverObject::GetFeature() const
 	}
 }
 
-uint32 RoadTypeResolverObject::GetDebugID() const
+uint32_t RoadTypeResolverObject::GetDebugID() const
 {
 	return this->roadtype_scope.rti->label;
 }
@@ -95,7 +95,7 @@ RoadTypeScopeResolver::RoadTypeScopeResolver(ResolverObject &ro, const RoadTypeI
  * @param param1 Extra parameter (first parameter of the callback, except roadtypes do not have callbacks).
  * @param param2 Extra parameter (second parameter of the callback, except roadtypes do not have callbacks).
  */
-RoadTypeResolverObject::RoadTypeResolverObject(const RoadTypeInfo *rti, TileIndex tile, TileContext context, RoadTypeSpriteGroup rtsg, uint32 param1, uint32 param2)
+RoadTypeResolverObject::RoadTypeResolverObject(const RoadTypeInfo *rti, TileIndex tile, TileContext context, RoadTypeSpriteGroup rtsg, uint32_t param1, uint32_t param2)
 	: ResolverObject(rti != nullptr ? rti->grffile[rtsg] : nullptr, CBID_NO_CALLBACK, param1, param2), roadtype_scope(*this, rti, tile, context)
 {
 	this->root_spritegroup = rti != nullptr ? rti->group[rtsg] : nullptr;
@@ -132,7 +132,7 @@ SpriteID GetCustomRoadSprite(const RoadTypeInfo *rti, TileIndex tile, RoadTypeSp
  * @param grffile   Originating GRF file.
  * @return RoadType or INVALID_ROADTYPE if the roadtype is unknown.
  */
-RoadType GetRoadTypeTranslation(RoadTramType rtt, uint8 tracktype, const GRFFile *grffile)
+RoadType GetRoadTypeTranslation(RoadTramType rtt, uint8_t tracktype, const GRFFile *grffile)
 {
 	/* Because OpenTTD mixes RoadTypes and TramTypes into the same type,
 	 * the mapping of the original road- and tramtypes does not match the default GRF-local mapping.
@@ -162,7 +162,7 @@ RoadType GetRoadTypeTranslation(RoadTramType rtt, uint8 tracktype, const GRFFile
  * @param grffile The GRF to do the lookup for.
  * @return the GRF internal ID.
  */
-uint8 GetReverseRoadTypeTranslation(RoadType roadtype, const GRFFile *grffile)
+uint8_t GetReverseRoadTypeTranslation(RoadType roadtype, const GRFFile *grffile)
 {
 	/* No road type table present, return road type as-is */
 	if (grffile == nullptr) return roadtype;

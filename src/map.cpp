@@ -357,8 +357,8 @@ uint GetClosestWaterDistance(TileIndex tile, bool water)
 
 		/* going counter-clockwise around this square */
 		for (DiagDirection dir = DIAGDIR_BEGIN; dir < DIAGDIR_END; dir++) {
-			static const int8 ddx[DIAGDIR_END] = { -1,  1,  1, -1};
-			static const int8 ddy[DIAGDIR_END] = {  1,  1, -1, -1};
+			static const int8_t ddx[DIAGDIR_END] = { -1,  1,  1, -1};
+			static const int8_t ddy[DIAGDIR_END] = {  1,  1, -1, -1};
 
 			int dx = ddx[dir];
 			int dy = ddy[dir];

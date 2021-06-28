@@ -314,7 +314,7 @@ static inline void DrawInset(const Rect &r, Colours colour, TextColour text_colo
  * @param resize_x Matrix resize unit size.
  * @param resize_y Matrix resize unit size.
  */
-static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint16 data, uint resize_x, uint resize_y)
+static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint16_t data, uint resize_x, uint resize_y)
 {
 	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
 
@@ -889,7 +889,7 @@ void NWidgetResizeBase::SetMinimalSizeAbsolute(uint min_x, uint min_y)
  * @param spacing   Extra spacing (eg WD_FRAMERECT_TOP + _BOTTOM) of the widget.
  * @param size      Font size of text.
  */
-void NWidgetResizeBase::SetMinimalTextLines(uint8 min_lines, uint8 spacing, FontSize size)
+void NWidgetResizeBase::SetMinimalTextLines(uint8_t min_lines, uint8_t spacing, FontSize size)
 {
 	this->uz_text_lines = min_lines;
 	this->uz_text_spacing = spacing;
@@ -933,7 +933,7 @@ void NWidgetResizeBase::AssignSizePosition(SizingType sizing, uint x, uint y, ui
  * @param widget_data Data component of the widget. @see Widget::data
  * @param tool_tip    Tool tip of the widget. @see Widget::tooltips
  */
-NWidgetCore::NWidgetCore(WidgetType tp, Colours colour, uint fill_x, uint fill_y, uint32 widget_data, StringID tool_tip) : NWidgetResizeBase(tp, fill_x, fill_y)
+NWidgetCore::NWidgetCore(WidgetType tp, Colours colour, uint fill_x, uint fill_y, uint32_t widget_data, StringID tool_tip) : NWidgetResizeBase(tp, fill_x, fill_y)
 {
 	this->colour = colour;
 	this->index = -1;
@@ -959,7 +959,7 @@ void NWidgetCore::SetIndex(int index)
  * @param widget_data Data to use.
  * @param tool_tip    Tool tip string to use.
  */
-void NWidgetCore::SetDataTip(uint32 widget_data, StringID tool_tip)
+void NWidgetCore::SetDataTip(uint32_t widget_data, StringID tool_tip)
 {
 	this->widget_data = widget_data;
 	this->tool_tip = tool_tip;
@@ -1219,7 +1219,7 @@ void NWidgetPIPContainer::AdjustPaddingForZoom()
  * @param pip_post  Additional space after the last child widget (below for the
  *                  vertical container, at the right for the horizontal container).
  */
-void NWidgetPIPContainer::SetPIP(uint8 pip_pre, uint8 pip_inter, uint8 pip_post)
+void NWidgetPIPContainer::SetPIP(uint8_t pip_pre, uint8_t pip_inter, uint8_t pip_post)
 {
 	this->uz_pip_pre = pip_pre;
 	this->uz_pip_inter = pip_inter;
@@ -1870,7 +1870,7 @@ void NWidgetBackground::Add(NWidgetBase *nwid)
  *                  vertical container, at the right for the horizontal container).
  * @note Using this function implies that the widget has (or will have) child widgets.
  */
-void NWidgetBackground::SetPIP(uint8 pip_pre, uint8 pip_inter, uint8 pip_post)
+void NWidgetBackground::SetPIP(uint8_t pip_pre, uint8_t pip_inter, uint8_t pip_post)
 {
 	if (this->child == nullptr) {
 		this->child = new NWidgetVertical();
@@ -2064,7 +2064,7 @@ void NWidgetViewport::Draw(const Window *w)
  * @param follow_flags Type of viewport, see #InitializeWindowViewport().
  * @param zoom         Zoom level.
  */
-void NWidgetViewport::InitializeViewport(Window *w, uint32 follow_flags, ZoomLevel zoom)
+void NWidgetViewport::InitializeViewport(Window *w, uint32_t follow_flags, ZoomLevel zoom)
 {
 	InitializeWindowViewport(w, this->pos_x, this->pos_y, this->current_x, this->current_y, follow_flags, zoom);
 }
@@ -2116,7 +2116,7 @@ int Scrollbar::GetScrolledRowFromWidget(int clickpos, const Window * const w, in
  * @param key_code      The pressed key code.
  * @return ES_NOT_HANDLED when another key than the 6 specific keys was pressed, otherwise ES_HANDLED.
  */
-EventState Scrollbar::UpdateListPositionOnKeyPress(int &list_position, uint16 keycode) const
+EventState Scrollbar::UpdateListPositionOnKeyPress(int &list_position, uint16_t keycode) const
 {
 	int new_pos = list_position;
 	switch (keycode) {
@@ -2315,7 +2315,7 @@ Dimension NWidgetLeaf::dropdown_dimension   = {0, 0};
  * @param data   Data of the widget.
  * @param tip    Tooltip of the widget.
  */
-NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, StringID tip) : NWidgetCore(tp, colour, 1, 1, data, tip)
+NWidgetLeaf::NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32_t data, StringID tip) : NWidgetCore(tp, colour, 1, 1, data, tip)
 {
 	assert(index >= 0 || tp == WWT_LABEL || tp == WWT_TEXT || tp == WWT_CAPTION || tp == WWT_RESIZEBOX || tp == WWT_SHADEBOX || tp == WWT_DEFSIZEBOX || tp == WWT_DEBUGBOX || tp == WWT_STICKYBOX || tp == WWT_CLOSEBOX);
 	if (index >= 0) this->SetIndex(index);

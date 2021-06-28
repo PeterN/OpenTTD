@@ -156,21 +156,21 @@ static const SaveLoad _roadstop_desc[] = {
 	SLE_CONDNULL(1, SLV_25, SLV_26),
 };
 
-static uint16 _waiting_acceptance;
-static uint32 _old_num_flows;
-static uint16 _cargo_source;
-static uint32 _cargo_source_xy;
-static uint8  _cargo_days;
+static uint16_t _waiting_acceptance;
+static uint32_t _old_num_flows;
+static uint16_t _cargo_source;
+static uint32_t _cargo_source_xy;
+static uint8_t  _cargo_days;
 static Money  _cargo_feeder_share;
 
 std::list<CargoPacket *> _packets;
-uint32 _old_num_dests;
+uint32_t _old_num_dests;
 
 struct FlowSaveLoad {
 	FlowSaveLoad() : source(0), via(0), share(0), restricted(false) {}
 	StationID source;
 	StationID via;
-	uint32 share;
+	uint32_t share;
 	bool restricted;
 };
 
@@ -218,7 +218,7 @@ public:
 	void Load(BaseStation *bst) const override
 	{
 		if (!IsSavegameVersionBefore(SLV_SAVELOAD_LIST_LENGTH)) {
-			bst->num_specs = (uint8)SlGetStructListLength(UINT8_MAX);
+			bst->num_specs = (uint8_t)SlGetStructListLength(UINT8_MAX);
 		}
 
 		if (bst->num_specs != 0) {
@@ -277,15 +277,15 @@ public:
 
 	void Save(GoodsEntry *ge) const override
 	{
-		uint32 num_flows = 0;
+		uint32_t num_flows = 0;
 		for (FlowStatMap::const_iterator it(ge->flows.begin()); it != ge->flows.end(); ++it) {
-			num_flows += (uint32)it->second.GetShares()->size();
+			num_flows += (uint32_t)it->second.GetShares()->size();
 		}
 		SlSetStructListLength(num_flows);
 
 		for (FlowStatMap::const_iterator outer_it(ge->flows.begin()); outer_it != ge->flows.end(); ++outer_it) {
 			const FlowStat::SharesMap *shares = outer_it->second.GetShares();
-			uint32 sum_shares = 0;
+			uint32_t sum_shares = 0;
 			FlowSaveLoad flow;
 			flow.source = outer_it->first;
 			for (FlowStat::SharesMap::const_iterator inner_it(shares->begin()); inner_it != shares->end(); ++inner_it) {
@@ -306,7 +306,7 @@ public:
 		FlowSaveLoad flow;
 		FlowStat *fs = nullptr;
 		StationID prev_source = INVALID_STATION;
-		for (uint32 j = 0; j < num_flows; ++j) {
+		for (uint32_t j = 0; j < num_flows; ++j) {
 			SlObject(&flow, this->GetDescription());
 			if (fs == nullptr || prev_source != flow.source) {
 				fs = &(ge->flows.insert(std::make_pair(flow.source, FlowStat(flow.via, flow.share, flow.restricted))).first->second);

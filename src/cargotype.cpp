@@ -120,7 +120,7 @@ CargoID GetCargoIDByLabel(CargoLabel cl)
  * @param bitnum 'bitnum' to find.
  * @return First CargoID with the given bitnum, or #CT_INVALID if not found or if the provided \a bitnum is invalid.
  */
-CargoID GetCargoIDByBitnum(uint8 bitnum)
+CargoID GetCargoIDByBitnum(uint8_t bitnum)
 {
 	if (bitnum == INVALID_CARGO) return CT_INVALID;
 
@@ -150,7 +150,7 @@ SpriteID CargoSpec::GetCargoIcon() const
 }
 
 std::vector<const CargoSpec *> _sorted_cargo_specs; ///< Cargo specifications sorted alphabetically by name.
-uint8 _sorted_standard_cargo_specs_size;            ///< Number of standard cargo specifications stored in the _sorted_cargo_specs array.
+uint8_t _sorted_standard_cargo_specs_size;            ///< Number of standard cargo specifications stored in the _sorted_cargo_specs array.
 
 /** Sort cargo specifications by their name. */
 static bool CargoSpecNameSorter(const CargoSpec * const &a, const CargoSpec * const &b)

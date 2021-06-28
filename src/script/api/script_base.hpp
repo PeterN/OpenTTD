@@ -26,16 +26,16 @@ class ScriptBase : public ScriptObject {
 public:
 	/**
 	 * Get a random value.
-	 * @return A random value between 0 and MAX(uint32).
+	 * @return A random value between 0 and MAX(uint32_t).
 	 */
-	static uint32 Rand();
+	static uint32_t Rand();
 
 	/**
 	 * Get a random value.
 	 * @param unused_param This parameter is not used, but is needed to work with lists.
-	 * @return A random value between 0 and MAX(uint32).
+	 * @return A random value between 0 and MAX(uint32_t).
 	 */
-	static uint32 RandItem(int unused_param);
+	static uint32_t RandItem(int unused_param);
 
 	/**
 	 * Get a random value in a range.

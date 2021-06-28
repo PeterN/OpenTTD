@@ -34,7 +34,7 @@ static const Money VEHICLE_PROFIT_THRESHOLD = 10000;        ///< Threshold for a
  * @return True iff the image index is valid.
  */
 template <VehicleType T>
-bool IsValidImageIndex(uint8 image_index);
+bool IsValidImageIndex(uint8_t image_index);
 
 typedef Vehicle *VehicleFromPosProc(Vehicle *v, void *data);
 
@@ -45,7 +45,7 @@ void FindVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc);
 bool HasVehicleOnPos(TileIndex tile, void *data, VehicleFromPosProc *proc);
 bool HasVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc);
 void CallVehicleTicks();
-uint8 CalcPercentVehicleFilled(const Vehicle *v, StringID *colour);
+uint8_t CalcPercentVehicleFilled(const Vehicle *v, StringID *colour);
 
 void VehicleLengthChanged(const Vehicle *u);
 
@@ -115,48 +115,48 @@ const struct Livery *GetEngineLivery(EngineID engine_type, CompanyID company, En
 SpriteID GetEnginePalette(EngineID engine_type, CompanyID company);
 SpriteID GetVehiclePalette(const Vehicle *v);
 
-extern const uint32 _veh_build_proc_table[];
-extern const uint32 _veh_sell_proc_table[];
-extern const uint32 _veh_refit_proc_table[];
-extern const uint32 _send_to_depot_proc_table[];
+extern const uint32_t _veh_build_proc_table[];
+extern const uint32_t _veh_sell_proc_table[];
+extern const uint32_t _veh_refit_proc_table[];
+extern const uint32_t _send_to_depot_proc_table[];
 
 /* Functions to find the right command for certain vehicle type */
-static inline uint32 GetCmdBuildVeh(VehicleType type)
+static inline uint32_t GetCmdBuildVeh(VehicleType type)
 {
 	return _veh_build_proc_table[type];
 }
 
-static inline uint32 GetCmdBuildVeh(const BaseVehicle *v)
+static inline uint32_t GetCmdBuildVeh(const BaseVehicle *v)
 {
 	return GetCmdBuildVeh(v->type);
 }
 
-static inline uint32 GetCmdSellVeh(VehicleType type)
+static inline uint32_t GetCmdSellVeh(VehicleType type)
 {
 	return _veh_sell_proc_table[type];
 }
 
-static inline uint32 GetCmdSellVeh(const BaseVehicle *v)
+static inline uint32_t GetCmdSellVeh(const BaseVehicle *v)
 {
 	return GetCmdSellVeh(v->type);
 }
 
-static inline uint32 GetCmdRefitVeh(VehicleType type)
+static inline uint32_t GetCmdRefitVeh(VehicleType type)
 {
 	return _veh_refit_proc_table[type];
 }
 
-static inline uint32 GetCmdRefitVeh(const BaseVehicle *v)
+static inline uint32_t GetCmdRefitVeh(const BaseVehicle *v)
 {
 	return GetCmdRefitVeh(v->type);
 }
 
-static inline uint32 GetCmdSendToDepot(VehicleType type)
+static inline uint32_t GetCmdSendToDepot(VehicleType type)
 {
 	return _send_to_depot_proc_table[type];
 }
 
-static inline uint32 GetCmdSendToDepot(const BaseVehicle *v)
+static inline uint32_t GetCmdSendToDepot(const BaseVehicle *v)
 {
 	return GetCmdSendToDepot(v->type);
 }
@@ -166,7 +166,7 @@ CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits);
 
 extern VehicleID _new_vehicle_id;
 extern uint _returned_refit_capacity;
-extern uint16 _returned_mail_refit_capacity;
+extern uint16_t _returned_mail_refit_capacity;
 
 bool CanVehicleUseStation(EngineID engine_type, const struct Station *st);
 bool CanVehicleUseStation(const Vehicle *v, const struct Station *st);
@@ -174,7 +174,7 @@ bool CanVehicleUseStation(const Vehicle *v, const struct Station *st);
 void ReleaseDisastersTargetingVehicle(VehicleID vehicle);
 
 typedef std::vector<VehicleID> VehicleSet;
-void GetVehicleSet(VehicleSet &set, Vehicle *v, uint8 num_vehicles);
+void GetVehicleSet(VehicleSet &set, Vehicle *v, uint8_t num_vehicles);
 
 void CheckCargoCapacity(Vehicle *v);
 

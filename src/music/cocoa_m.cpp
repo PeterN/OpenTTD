@@ -51,9 +51,9 @@ static void DoSetVolume()
 	AudioUnit output_unit = nullptr;
 
 	/* Get output audio unit */
-	UInt32 node_count = 0;
+	Uint32_t node_count = 0;
 	AUGraphGetNodeCount(graph, &node_count);
-	for (UInt32 i = 0; i < node_count; i++) {
+	for (Uint32_t i = 0; i < node_count; i++) {
 		AUNode node;
 		AUGraphGetIndNode(graph, i, &node);
 
@@ -135,7 +135,7 @@ void MusicDriver_Cocoa::PlaySong(const MusicSongInfo &song)
 	}
 
 	std::string os_file = OTTD2FS(filename);
-	CFAutoRelease<CFURLRef> url(CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, (const UInt8*)os_file.c_str(), os_file.length(), false));
+	CFAutoRelease<CFURLRef> url(CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, (const Uint8_t*)os_file.c_str(), os_file.length(), false));
 
 	if (MusicSequenceFileLoad(_sequence, url.get(), kMusicSequenceFile_AnyType, 0) != noErr) {
 		Debug(driver, 0, "cocoa_m: Failed to load MIDI file");
@@ -153,13 +153,13 @@ void MusicDriver_Cocoa::PlaySong(const MusicSongInfo &song)
 	}
 
 	/* Figure out sequence length */
-	UInt32 num_tracks;
+	Uint32_t num_tracks;
 	MusicSequenceGetTrackCount(_sequence, &num_tracks);
 	_seq_length = 0;
-	for (UInt32 i = 0; i < num_tracks; i++) {
+	for (Uint32_t i = 0; i < num_tracks; i++) {
 		MusicTrack     track = nullptr;
 		MusicTimeStamp track_length = 0;
-		UInt32         prop_size = sizeof(MusicTimeStamp);
+		Uint32_t         prop_size = sizeof(MusicTimeStamp);
 		MusicSequenceGetIndTrack(_sequence, i, &track);
 		MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength, &track_length, &prop_size);
 		if (track_length > _seq_length) _seq_length = track_length;

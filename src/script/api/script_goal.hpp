@@ -103,7 +103,7 @@ public:
 	 *       \li Global goals can only reference global story pages.
 	 *       \li Company specific goals can reference global story pages and story pages of the same company.
 	 */
-	static GoalID New(ScriptCompany::CompanyID company, Text *goal, GoalType type, uint32 destination);
+	static GoalID New(ScriptCompany::CompanyID company, Text *goal, GoalType type, uint32_t destination);
 
 	/**
 	 * Remove a goal from the list.
@@ -173,7 +173,7 @@ public:
 	 * @note Replies to the question are given by you via the event ScriptEvent_GoalQuestionAnswer.
 	 * @note There is no guarantee you ever get a reply on your question.
 	 */
-	static bool Question(uint16 uniqueid, ScriptCompany::CompanyID company, Text *question, QuestionType type, int buttons);
+	static bool Question(uint16_t uniqueid, ScriptCompany::CompanyID company, Text *question, QuestionType type, int buttons);
 
 	/**
 	 * Ask client a question.
@@ -191,7 +191,7 @@ public:
 	 * @note Replies to the question are given by you via the event ScriptEvent_GoalQuestionAnswer.
 	 * @note There is no guarantee you ever get a reply on your question.
 	 */
-	static bool QuestionClient(uint16 uniqueid, ScriptClient::ClientID client, Text *question, QuestionType type, int buttons);
+	static bool QuestionClient(uint16_t uniqueid, ScriptClient::ClientID client, Text *question, QuestionType type, int buttons);
 
 	/**
 	 * Close the question on all clients.
@@ -203,13 +203,13 @@ public:
 	 *   you want to timeout a question, or if you send the question to all
 	 *   companies, but you are only interested in the reply of the first.
 	 */
-	static bool CloseQuestion(uint16 uniqueid);
+	static bool CloseQuestion(uint16_t uniqueid);
 
 protected:
 	/**
 	 * Does common checks and asks the question.
 	 */
-	static bool DoQuestion(uint16 uniqueid, uint32 target, bool is_client, Text *question, QuestionType type, uint32 buttons);
+	static bool DoQuestion(uint16_t uniqueid, uint32_t target, bool is_client, Text *question, QuestionType type, uint32_t buttons);
 };
 
 #endif /* SCRIPT_GOAL_HPP */

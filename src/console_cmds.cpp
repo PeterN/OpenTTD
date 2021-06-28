@@ -240,7 +240,7 @@ DEF_CONSOLE_CMD(ConResetTile)
 	}
 
 	if (argc == 2) {
-		uint32 result;
+		uint32_t result;
 		if (GetArgumentInteger(&result, argv[1])) {
 			DoClearSquare((TileIndex)result);
 			return true;
@@ -270,7 +270,7 @@ DEF_CONSOLE_CMD(ConScrollToTile)
 			return true;
 
 		case 2: {
-			uint32 result;
+			uint32_t result;
 			if (GetArgumentInteger(&result, argv[1])) {
 				if (result >= MapSize()) {
 					IConsolePrint(CC_ERROR, "Tile does not exist.");
@@ -283,7 +283,7 @@ DEF_CONSOLE_CMD(ConScrollToTile)
 		}
 
 		case 3: {
-			uint32 x, y;
+			uint32_t x, y;
 			if (GetArgumentInteger(&x, argv[1]) && GetArgumentInteger(&y, argv[2])) {
 				if (x >= MapSizeX() || y >= MapSizeY()) {
 					IConsolePrint(CC_ERROR, "Tile does not exist.");
@@ -1429,10 +1429,10 @@ DEF_CONSOLE_CMD(ConScreenShot)
 	if (argc > 7) return false;
 
 	ScreenshotType type = SC_VIEWPORT;
-	uint32 width = 0;
-	uint32 height = 0;
+	uint32_t width = 0;
+	uint32_t height = 0;
 	std::string name{};
-	uint32 arg_index = 1;
+	uint32_t arg_index = 1;
 
 	if (argc > arg_index) {
 		if (strcmp(argv[arg_index], "viewport") == 0) {
@@ -1655,7 +1655,7 @@ DEF_CONSOLE_CMD(ConCompanies)
 		GetString(colour, STR_COLOUR_DARK_BLUE + _company_colours[c->index], lastof(colour));
 		IConsolePrint(CC_INFO, "#:{}({}) Company Name: '{}'  Year Founded: {}  Money: {}  Loan: {}  Value: {}  (T:{}, R:{}, P:{}, S:{}) {}",
 			c->index + 1, colour, company_name,
-			c->inaugurated_year, (int64)c->money, (int64)c->current_loan, (int64)CalculateCompanyValue(c),
+			c->inaugurated_year, (int64_t)c->money, (int64_t)c->current_loan, (int64_t)CalculateCompanyValue(c),
 			c->group_all[VEH_TRAIN].num_vehicle,
 			c->group_all[VEH_ROAD].num_vehicle,
 			c->group_all[VEH_AIRCRAFT].num_vehicle,
@@ -2161,11 +2161,11 @@ static void ConDumpRoadTypes()
 	IConsolePrint(CC_DEFAULT, "    h = hidden");
 	IConsolePrint(CC_DEFAULT, "    T = buildable by towns");
 
-	std::map<uint32, const GRFFile *> grfs;
+	std::map<uint32_t, const GRFFile *> grfs;
 	for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
 		const RoadTypeInfo *rti = GetRoadTypeInfo(rt);
 		if (rti->label == 0) continue;
-		uint32 grfid = 0;
+		uint32_t grfid = 0;
 		const GRFFile *grf = rti->grffile[ROTSG_GROUND];
 		if (grf != nullptr) {
 			grfid = grf->grfid;
@@ -2199,11 +2199,11 @@ static void ConDumpRailTypes()
 	IConsolePrint(CC_DEFAULT, "    a = always allow 90 degree turns");
 	IConsolePrint(CC_DEFAULT, "    d = always disallow 90 degree turns");
 
-	std::map<uint32, const GRFFile *> grfs;
+	std::map<uint32_t, const GRFFile *> grfs;
 	for (RailType rt = RAILTYPE_BEGIN; rt < RAILTYPE_END; rt++) {
 		const RailtypeInfo *rti = GetRailTypeInfo(rt);
 		if (rti->label == 0) continue;
-		uint32 grfid = 0;
+		uint32_t grfid = 0;
 		const GRFFile *grf = rti->grffile[RTSG_GROUND];
 		if (grf != nullptr) {
 			grfid = grf->grfid;
@@ -2242,11 +2242,11 @@ static void ConDumpCargoTypes()
 	IConsolePrint(CC_DEFAULT, "    c = covered/sheltered");
 	IConsolePrint(CC_DEFAULT, "    S = special");
 
-	std::map<uint32, const GRFFile *> grfs;
+	std::map<uint32_t, const GRFFile *> grfs;
 	for (CargoID i = 0; i < NUM_CARGO; i++) {
 		const CargoSpec *spec = CargoSpec::Get(i);
 		if (!spec->IsValid()) continue;
-		uint32 grfid = 0;
+		uint32_t grfid = 0;
 		const GRFFile *grf = spec->grffile;
 		if (grf != nullptr) {
 			grfid = grf->grfid;

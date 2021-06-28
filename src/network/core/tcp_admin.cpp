@@ -45,7 +45,7 @@ NetworkRecvStatus NetworkAdminSocketHandler::CloseConnection(bool error)
  */
 NetworkRecvStatus NetworkAdminSocketHandler::HandlePacket(Packet *p)
 {
-	PacketAdminType type = (PacketAdminType)p->Recv_uint8();
+	PacketAdminType type = (PacketAdminType)p->Recv_uint8_t();
 
 	switch (this->HasClientQuit() ? INVALID_ADMIN_PACKET : type) {
 		case ADMIN_PACKET_ADMIN_JOIN:             return this->Receive_ADMIN_JOIN(p);

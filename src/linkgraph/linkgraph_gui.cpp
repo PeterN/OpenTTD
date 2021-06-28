@@ -26,7 +26,7 @@
  * Colours for the various "load" states of links. Ordered from "unused" to
  * "overloaded".
  */
-const uint8 LinkGraphOverlay::LINK_COLOURS[] = {
+const uint8_t LinkGraphOverlay::LINK_COLOURS[] = {
 	0x0f, 0xd1, 0xd0, 0x57,
 	0x55, 0x53, 0xbf, 0xbd,
 	0xba, 0xb9, 0xb7, 0xb5
@@ -132,19 +132,19 @@ inline bool LinkGraphOverlay::IsLinkVisible(Point pta, Point ptb, const DrawPixe
 	 * See: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
 	 */
 
-	const uint8 INSIDE = 0; // 0000
-	const uint8 LEFT   = 1; // 0001
-	const uint8 RIGHT  = 2; // 0010
-	const uint8 BOTTOM = 4; // 0100
-	const uint8 TOP    = 8; // 1000
+	const uint8_t INSIDE = 0; // 0000
+	const uint8_t LEFT   = 1; // 0001
+	const uint8_t RIGHT  = 2; // 0010
+	const uint8_t BOTTOM = 4; // 0100
+	const uint8_t TOP    = 8; // 1000
 
 	int x0 = pta.x;
 	int y0 = pta.y;
 	int x1 = ptb.x;
 	int y1 = ptb.y;
 
-	auto out_code = [&](int x, int y) -> uint8 {
-		uint8 out = INSIDE;
+	auto out_code = [&](int x, int y) -> uint8_t {
+		uint8_t out = INSIDE;
 		if (x < left) {
 			out |= LEFT;
 		} else if (x > right) {
@@ -158,24 +158,24 @@ inline bool LinkGraphOverlay::IsLinkVisible(Point pta, Point ptb, const DrawPixe
 		return out;
 	};
 
-	uint8 c0 = out_code(x0, y0);
-	uint8 c1 = out_code(x1, y1);
+	uint8_t c0 = out_code(x0, y0);
+	uint8_t c1 = out_code(x1, y1);
 
 	while (true) {
 		if (c0 == 0 || c1 == 0) return true;
 		if ((c0 & c1) != 0) return false;
 
 		if (c0 & TOP) {           // point 0 is above the clip window
-			x0 = x0 + (int)(((int64) (x1 - x0)) * ((int64) (top - y0)) / ((int64) (y1 - y0)));
+			x0 = x0 + (int)(((int64_t) (x1 - x0)) * ((int64_t) (top - y0)) / ((int64_t) (y1 - y0)));
 			y0 = top;
 		} else if (c0 & BOTTOM) { // point 0 is below the clip window
-			x0 = x0 + (int)(((int64) (x1 - x0)) * ((int64) (bottom - y0)) / ((int64) (y1 - y0)));
+			x0 = x0 + (int)(((int64_t) (x1 - x0)) * ((int64_t) (bottom - y0)) / ((int64_t) (y1 - y0)));
 			y0 = bottom;
 		} else if (c0 & RIGHT) {  // point 0 is to the right of clip window
-			y0 = y0 + (int)(((int64) (y1 - y0)) * ((int64) (right - x0)) / ((int64) (x1 - x0)));
+			y0 = y0 + (int)(((int64_t) (y1 - y0)) * ((int64_t) (right - x0)) / ((int64_t) (x1 - x0)));
 			x0 = right;
 		} else if (c0 & LEFT) {   // point 0 is to the left of clip window
-			y0 = y0 + (int)(((int64) (y1 - y0)) * ((int64) (left - x0)) / ((int64) (x1 - x0)));
+			y0 = y0 + (int)(((int64_t) (y1 - y0)) * ((int64_t) (left - x0)) / ((int64_t) (x1 - x0)));
 			x0 = left;
 		}
 
@@ -365,7 +365,7 @@ void LinkGraphOverlay::SetCargoMask(CargoTypes cargo_mask)
  * Set a new company mask and rebuild the cache.
  * @param company_mask New company mask.
  */
-void LinkGraphOverlay::SetCompanyMask(uint32 company_mask)
+void LinkGraphOverlay::SetCompanyMask(uint32_t company_mask)
 {
 	this->company_mask = company_mask;
 	this->RebuildCache();
@@ -488,7 +488,7 @@ LinkGraphLegendWindow::LinkGraphLegendWindow(WindowDesc *desc, int window_number
  */
 void LinkGraphLegendWindow::SetOverlay(LinkGraphOverlay *overlay) {
 	this->overlay = overlay;
-	uint32 companies = this->overlay->GetCompanyMask();
+	uint32_t companies = this->overlay->GetCompanyMask();
 	for (uint c = 0; c < MAX_COMPANIES; c++) {
 		if (!this->IsWidgetDisabled(WID_LGL_COMPANY_FIRST + c)) {
 			this->SetWidgetLoweredState(WID_LGL_COMPANY_FIRST + c, HasBit(companies, c));
@@ -565,7 +565,7 @@ bool LinkGraphLegendWindow::OnTooltip(Point pt, int widget, TooltipCloseConditio
 		if (this->IsWidgetDisabled(widget)) {
 			GuiShowTooltips(this, STR_LINKGRAPH_LEGEND_SELECT_COMPANIES, 0, nullptr, close_cond);
 		} else {
-			uint64 params[2];
+			uint64_t params[2];
 			CompanyID cid = (CompanyID)(widget - WID_LGL_COMPANY_FIRST);
 			params[0] = STR_LINKGRAPH_LEGEND_SELECT_COMPANIES;
 			params[1] = cid;
@@ -576,7 +576,7 @@ bool LinkGraphLegendWindow::OnTooltip(Point pt, int widget, TooltipCloseConditio
 	if (IsInsideMM(widget, WID_LGL_CARGO_FIRST, WID_LGL_CARGO_LAST + 1)) {
 		if (this->IsWidgetDisabled(widget)) return false;
 		CargoSpec *cargo = CargoSpec::Get(widget - WID_LGL_CARGO_FIRST);
-		uint64 params[1];
+		uint64_t params[1];
 		params[0] = cargo->name;
 		GuiShowTooltips(this, STR_BLACK_STRING, 1, params, close_cond);
 		return true;
@@ -589,7 +589,7 @@ bool LinkGraphLegendWindow::OnTooltip(Point pt, int widget, TooltipCloseConditio
  */
 void LinkGraphLegendWindow::UpdateOverlayCompanies()
 {
-	uint32 mask = 0;
+	uint32_t mask = 0;
 	for (uint c = 0; c < MAX_COMPANIES; c++) {
 		if (this->IsWidgetDisabled(c + WID_LGL_COMPANY_FIRST)) continue;
 		if (!this->IsWidgetLowered(c + WID_LGL_COMPANY_FIRST)) continue;

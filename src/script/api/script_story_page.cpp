@@ -44,7 +44,7 @@ static inline bool StoryPageElementTypeRequiresText(StoryPageElementType type)
 	EnforcePrecondition(STORY_PAGE_INVALID, ScriptObject::GetCompany() == OWNER_DEITY);
 	EnforcePrecondition(STORY_PAGE_INVALID, company == ScriptCompany::COMPANY_INVALID || ScriptCompany::ResolveCompanyID(company) != ScriptCompany::COMPANY_INVALID);
 
-	uint8 c = company;
+	uint8_t c = company;
 	if (company == ScriptCompany::COMPANY_INVALID) c = INVALID_COMPANY;
 
 	if (!ScriptObject::DoCommand(0,
@@ -58,7 +58,7 @@ static inline bool StoryPageElementTypeRequiresText(StoryPageElementType type)
 	return (ScriptStoryPage::StoryPageID)0;
 }
 
-/* static */ ScriptStoryPage::StoryPageElementID ScriptStoryPage::NewElement(StoryPageID story_page_id, StoryPageElementType type, uint32 reference, Text *text)
+/* static */ ScriptStoryPage::StoryPageElementID ScriptStoryPage::NewElement(StoryPageID story_page_id, StoryPageElementType type, uint32_t reference, Text *text)
 {
 	CCountedPtr<Text> counter(text);
 
@@ -71,7 +71,7 @@ static inline bool StoryPageElementTypeRequiresText(StoryPageElementType type)
 	EnforcePrecondition(STORY_PAGE_ELEMENT_INVALID, type != SPET_GOAL || ScriptGoal::IsValidGoal((ScriptGoal::GoalID)reference));
 	EnforcePrecondition(STORY_PAGE_ELEMENT_INVALID, type != SPET_GOAL || !(StoryPage::Get(story_page_id)->company == INVALID_COMPANY && Goal::Get(reference)->company != INVALID_COMPANY));
 
-	uint32 refid = 0;
+	uint32_t refid = 0;
 	TileIndex reftile = 0;
 	switch (type) {
 		case SPET_LOCATION:
@@ -100,7 +100,7 @@ static inline bool StoryPageElementTypeRequiresText(StoryPageElementType type)
 	return (ScriptStoryPage::StoryPageElementID)0;
 }
 
-/* static */ bool ScriptStoryPage::UpdateElement(StoryPageElementID story_page_element_id, uint32 reference, Text *text)
+/* static */ bool ScriptStoryPage::UpdateElement(StoryPageElementID story_page_element_id, uint32_t reference, Text *text)
 {
 	CCountedPtr<Text> counter(text);
 
@@ -116,7 +116,7 @@ static inline bool StoryPageElementTypeRequiresText(StoryPageElementType type)
 	EnforcePrecondition(false, type != ::SPET_GOAL || ScriptGoal::IsValidGoal((ScriptGoal::GoalID)reference));
 	EnforcePrecondition(false, type != ::SPET_GOAL || !(p->company == INVALID_COMPANY && Goal::Get(reference)->company != INVALID_COMPANY));
 
-	uint32 refid = 0;
+	uint32_t refid = 0;
 	TileIndex reftile = 0;
 	switch (type) {
 		case ::SPET_LOCATION:
@@ -141,14 +141,14 @@ static inline bool StoryPageElementTypeRequiresText(StoryPageElementType type)
 			StoryPageElementTypeRequiresText(type) ? text->GetEncodedText() : nullptr);
 }
 
-/* static */ uint32 ScriptStoryPage::GetPageSortValue(StoryPageID story_page_id)
+/* static */ uint32_t ScriptStoryPage::GetPageSortValue(StoryPageID story_page_id)
 {
 	EnforcePrecondition(false, IsValidStoryPage(story_page_id));
 
 	return StoryPage::Get(story_page_id)->sort_value;
 }
 
-/* static */ uint32 ScriptStoryPage::GetPageElementSortValue(StoryPageElementID story_page_element_id)
+/* static */ uint32_t ScriptStoryPage::GetPageElementSortValue(StoryPageElementID story_page_element_id)
 {
 	EnforcePrecondition(false, IsValidStoryPageElement(story_page_element_id));
 

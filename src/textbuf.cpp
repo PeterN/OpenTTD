@@ -50,7 +50,7 @@ bool Textbuf::CanDelChar(bool backspace)
  * @param keycode Type of deletion, either WKC_BACKSPACE or WKC_DELETE
  * @return Return true on successful change of Textbuf, or false otherwise
  */
-bool Textbuf::DeleteChar(uint16 keycode)
+bool Textbuf::DeleteChar(uint16_t keycode)
 {
 	bool word = (keycode & WKC_CTRL) != 0;
 
@@ -62,17 +62,17 @@ bool Textbuf::DeleteChar(uint16 keycode)
 	if (!CanDelChar(backspace)) return false;
 
 	char *s = this->buf + this->caretpos;
-	uint16 len = 0;
+	uint16_t len = 0;
 
 	if (word) {
 		/* Delete a complete word. */
 		if (backspace) {
 			/* Delete whitespace and word in front of the caret. */
-			len = this->caretpos - (uint16)this->char_iter->Prev(StringIterator::ITER_WORD);
+			len = this->caretpos - (uint16_t)this->char_iter->Prev(StringIterator::ITER_WORD);
 			s -= len;
 		} else {
 			/* Delete word and following whitespace following the caret. */
-			len = (uint16)this->char_iter->Next(StringIterator::ITER_WORD) - this->caretpos;
+			len = (uint16_t)this->char_iter->Next(StringIterator::ITER_WORD) - this->caretpos;
 		}
 		/* Update character count. */
 		for (const char *ss = s; ss < s + len; Utf8Consume(&ss)) {
@@ -84,11 +84,11 @@ bool Textbuf::DeleteChar(uint16 keycode)
 			/* Delete the last code point in front of the caret. */
 			s = Utf8PrevChar(s);
 			WChar c;
-			len = (uint16)Utf8Decode(&c, s);
+			len = (uint16_t)Utf8Decode(&c, s);
 			this->chars--;
 		} else {
 			/* Delete the complete character following the caret. */
-			len = (uint16)this->char_iter->Next(StringIterator::ITER_CHARACTER) - this->caretpos;
+			len = (uint16_t)this->char_iter->Next(StringIterator::ITER_CHARACTER) - this->caretpos;
 			/* Update character count. */
 			for (const char *ss = s; ss < s + len; Utf8Consume(&ss)) {
 				this->chars--;
@@ -131,7 +131,7 @@ void Textbuf::DeleteAll()
  */
 bool Textbuf::InsertChar(WChar key)
 {
-	uint16 len = (uint16)Utf8CharLen(key);
+	uint16_t len = (uint16_t)Utf8CharLen(key);
 	if (this->bytes + len <= this->max_bytes && this->chars + 1 <= this->max_chars) {
 		memmove(this->buf + this->caretpos + len, this->buf + this->caretpos, this->bytes - this->caretpos);
 		Utf8Encode(this->buf + this->caretpos, key);
@@ -161,7 +161,7 @@ bool Textbuf::InsertChar(WChar key)
  */
 bool Textbuf::InsertString(const char *str, bool marked, const char *caret, const char *insert_location, const char *replacement_end)
 {
-	uint16 insertpos = (marked && this->marklength != 0) ? this->markpos : this->caretpos;
+	uint16_t insertpos = (marked && this->marklength != 0) ? this->markpos : this->caretpos;
 	if (insert_location != nullptr) {
 		insertpos = insert_location - this->buf;
 		if (insertpos > this->bytes) return false;
@@ -175,7 +175,7 @@ bool Textbuf::InsertString(const char *str, bool marked, const char *caret, cons
 
 	if (str == nullptr) return false;
 
-	uint16 bytes = 0, chars = 0;
+	uint16_t bytes = 0, chars = 0;
 	WChar c;
 	for (const char *ptr = str; (c = Utf8Consume(&ptr)) != '\0';) {
 		if (!IsValidChar(c, this->afilter)) break;
@@ -237,7 +237,7 @@ bool Textbuf::InsertClipboard()
  * @param to End of the text to delete.
  * @param update Set to true if the internal state should be updated.
  */
-void Textbuf::DeleteText(uint16 from, uint16 to, bool update)
+void Textbuf::DeleteText(uint16_t from, uint16_t to, bool update)
 {
 	uint c = 0;
 	const char *s = this->buf + from;
@@ -284,7 +284,7 @@ void Textbuf::UpdateStringIter()
 {
 	this->char_iter->SetString(this->buf);
 	size_t pos = this->char_iter->SetCurPosition(this->caretpos);
-	this->caretpos = pos == StringIterator::END ? 0 : (uint16)pos;
+	this->caretpos = pos == StringIterator::END ? 0 : (uint16_t)pos;
 }
 
 /** Update pixel width of the text. */
@@ -316,7 +316,7 @@ void Textbuf::UpdateMarkedText()
  * @param keycode Direction in which navigation occurs (WKC_CTRL |) WKC_LEFT, (WKC_CTRL |) WKC_RIGHT, WKC_END, WKC_HOME
  * @return Return true on successful change of Textbuf, or false otherwise
  */
-bool Textbuf::MovePos(uint16 keycode)
+bool Textbuf::MovePos(uint16_t keycode)
 {
 	switch (keycode) {
 		case WKC_LEFT:
@@ -326,7 +326,7 @@ bool Textbuf::MovePos(uint16 keycode)
 			size_t pos = this->char_iter->Prev(keycode & WKC_CTRL ? StringIterator::ITER_WORD : StringIterator::ITER_CHARACTER);
 			if (pos == StringIterator::END) return true;
 
-			this->caretpos = (uint16)pos;
+			this->caretpos = (uint16_t)pos;
 			this->UpdateCaretPosition();
 			return true;
 		}
@@ -338,7 +338,7 @@ bool Textbuf::MovePos(uint16 keycode)
 			size_t pos = this->char_iter->Next(keycode & WKC_CTRL ? StringIterator::ITER_WORD : StringIterator::ITER_CHARACTER);
 			if (pos == StringIterator::END) return true;
 
-			this->caretpos = (uint16)pos;
+			this->caretpos = (uint16_t)pos;
 			this->UpdateCaretPosition();
 			return true;
 		}
@@ -368,7 +368,7 @@ bool Textbuf::MovePos(uint16 keycode)
  * @param max_bytes maximum size in bytes, including terminating '\0'
  * @param max_chars maximum size in chars, including terminating '\0'
  */
-Textbuf::Textbuf(uint16 max_bytes, uint16 max_chars)
+Textbuf::Textbuf(uint16_t max_bytes, uint16_t max_chars)
 	: buf(MallocT<char>(max_bytes))
 {
 	assert(max_bytes != 0);
@@ -465,7 +465,7 @@ bool Textbuf::HandleCaret()
 	return false;
 }
 
-HandleKeyPressResult Textbuf::HandleKeyPress(WChar key, uint16 keycode)
+HandleKeyPressResult Textbuf::HandleKeyPress(WChar key, uint16_t keycode)
 {
 	bool edited = false;
 

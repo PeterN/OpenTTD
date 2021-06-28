@@ -51,22 +51,22 @@ Font::Font(FontSize size, TextColour colour) :
 #ifdef WITH_ICU_LX
 /* Implementation details of LEFontInstance */
 
-le_int32 Font::getUnitsPerEM() const
+le_int32_t Font::getUnitsPerEM() const
 {
 	return this->fc->GetUnitsPerEM();
 }
 
-le_int32 Font::getAscent() const
+le_int32_t Font::getAscent() const
 {
 	return this->fc->GetAscender();
 }
 
-le_int32 Font::getDescent() const
+le_int32_t Font::getDescent() const
 {
 	return -this->fc->GetDescender();
 }
 
-le_int32 Font::getLeading() const
+le_int32_t Font::getLeading() const
 {
 	return this->fc->GetHeight();
 }
@@ -114,7 +114,7 @@ void Font::getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const
 	advance.fY = 0;
 }
 
-le_bool Font::getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const
+le_bool Font::getGlyphPoint(LEGlyphID glyph, le_int32_t pointNumber, LEPoint &point) const
 {
 	return false;
 }
@@ -188,7 +188,7 @@ public:
 
 	static ParagraphLayouter *GetParagraphLayout(UChar *buff, UChar *buff_end, FontMap &fontMapping)
 	{
-		int32 length = buff_end - buff;
+		int32_t length = buff_end - buff;
 
 		if (length == 0) {
 			/* ICU's ParagraphLayout cannot handle empty strings, so fake one. */
@@ -218,7 +218,7 @@ public:
 	static size_t AppendToBuffer(UChar *buff, const UChar *buffer_last, WChar c)
 	{
 		/* Transform from UTF-32 to internal ICU format of UTF-16. */
-		int32 length = 0;
+		int32_t length = 0;
 		UErrorCode err = U_ZERO_ERROR;
 		u_strFromUTF32(buff, buffer_last - buff, &length, (UChar32*)&c, 1, &err);
 		return length;

@@ -61,12 +61,12 @@ enum OldChunkType {
 	OC_FILE_U32  = 6 << 16,
 	/* 8 bits allocated (256 max) */
 
-	OC_INT8      = OC_VAR_I8   | OC_FILE_I8,
-	OC_UINT8     = OC_VAR_U8   | OC_FILE_U8,
-	OC_INT16     = OC_VAR_I16  | OC_FILE_I16,
-	OC_UINT16    = OC_VAR_U16  | OC_FILE_U16,
-	OC_INT32     = OC_VAR_I32  | OC_FILE_I32,
-	OC_UINT32    = OC_VAR_U32  | OC_FILE_U32,
+	OC_int8_t      = OC_VAR_I8   | OC_FILE_I8,
+	OC_Uint8_t     = OC_VAR_U8   | OC_FILE_U8,
+	OC_int16_t     = OC_VAR_I16  | OC_FILE_I16,
+	OC_Uint16_t    = OC_VAR_U16  | OC_FILE_U16,
+	OC_int32_t     = OC_VAR_I32  | OC_FILE_I32,
+	OC_Uint32_t    = OC_VAR_U32  | OC_FILE_U32,
 
 	OC_TILE      = OC_VAR_U32  | OC_FILE_U16,
 
@@ -86,7 +86,7 @@ typedef void *OffsetProc(void *base);
 
 struct OldChunks {
 	OldChunkType type;   ///< Type of field
-	uint32 amount;       ///< Amount of fields
+	uint32_t amount;       ///< Amount of fields
 
 	void *ptr;           ///< Pointer where to save the data (takes precedence over #offset)
 	OffsetProc *offset;  ///< Pointer to function that returns the actual memory address of a member (ignored if #ptr is not nullptr)
@@ -103,16 +103,16 @@ bool LoadChunk(LoadgameState *ls, void *base, const OldChunks *chunks);
 bool LoadTTDMain(LoadgameState *ls);
 bool LoadTTOMain(LoadgameState *ls);
 
-static inline uint16 ReadUint16(LoadgameState *ls)
+static inline uint16_t ReadUint16_t(LoadgameState *ls)
 {
 	byte x = ReadByte(ls);
 	return x | ReadByte(ls) << 8;
 }
 
-static inline uint32 ReadUint32(LoadgameState *ls)
+static inline uint32_t ReadUint32_t(LoadgameState *ls)
 {
-	uint16 x = ReadUint16(ls);
-	return x | ReadUint16(ls) << 16;
+	uint16_t x = ReadUint16_t(ls);
+	return x | ReadUint16_t(ls) << 16;
 }
 
 /* Help:

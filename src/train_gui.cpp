@@ -27,7 +27,7 @@
  * @param p2 Additional data for the command (for the #CommandProc)
  * @param cmd Unused.
  */
-void CcBuildWagon(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+void CcBuildWagon(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	if (result.Failed()) return;
 
@@ -358,7 +358,7 @@ int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab)
  * @param vscroll_cap Number of lines currently displayed
  * @param det_tab Selected details tab
  */
-void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab)
+void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_pos, uint16_t vscroll_cap, TrainDetailsWindowTabs det_tab)
 {
 	/* get rid of awkward offset */
 	y -= WD_MATRIX_TOP;

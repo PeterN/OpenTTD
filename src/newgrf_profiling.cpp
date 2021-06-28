@@ -47,7 +47,7 @@ void NewGRFProfiler::BeginResolve(const ResolverObject &resolver)
 	using namespace std::chrono;
 	this->cur_call.root_sprite = resolver.root_spritegroup->nfo_line;
 	this->cur_call.subs = 0;
-	this->cur_call.time = (uint32)time_point_cast<microseconds>(high_resolution_clock::now()).time_since_epoch().count();
+	this->cur_call.time = (uint32_t)time_point_cast<microseconds>(high_resolution_clock::now()).time_since_epoch().count();
 	this->cur_call.tick = _tick_counter;
 	this->cur_call.cb = resolver.callback;
 	this->cur_call.feat = resolver.GetFeature();
@@ -60,7 +60,7 @@ void NewGRFProfiler::BeginResolve(const ResolverObject &resolver)
 void NewGRFProfiler::EndResolve(const SpriteGroup *result)
 {
 	using namespace std::chrono;
-	this->cur_call.time = (uint32)time_point_cast<microseconds>(high_resolution_clock::now()).time_since_epoch().count() - this->cur_call.time;
+	this->cur_call.time = (uint32_t)time_point_cast<microseconds>(high_resolution_clock::now()).time_since_epoch().count() - this->cur_call.time;
 
 	if (result == nullptr) {
 		this->cur_call.result = 0;
@@ -90,7 +90,7 @@ void NewGRFProfiler::Start()
 	this->start_tick = _tick_counter;
 }
 
-uint32 NewGRFProfiler::Finish()
+uint32_t NewGRFProfiler::Finish()
 {
 	if (!this->active) return 0;
 
@@ -105,7 +105,7 @@ uint32 NewGRFProfiler::Finish()
 	FILE *f = FioFOpenFile(filename, "wt", Subdirectory::NO_DIRECTORY);
 	FileCloser fcloser(f);
 
-	uint32 total_microseconds = 0;
+	uint32_t total_microseconds = 0;
 
 	fputs("Tick,Sprite,Feature,Item,CallbackID,Microseconds,Depth,Result\n", f);
 	for (const Call &c : this->calls) {
@@ -139,10 +139,10 @@ std::string NewGRFProfiler::GetOutputFilename() const
 	return std::string(filepath);
 }
 
-uint32 NewGRFProfiler::FinishAll()
+uint32_t NewGRFProfiler::FinishAll()
 {
 	int max_ticks = 0;
-	uint32 total_microseconds = 0;
+	uint32_t total_microseconds = 0;
 	for (NewGRFProfiler &pr : _newgrf_profilers) {
 		if (pr.active) {
 			total_microseconds += pr.Finish();

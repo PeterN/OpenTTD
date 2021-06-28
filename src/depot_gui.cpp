@@ -117,7 +117,7 @@ extern void DepotSortList(VehicleList *list);
  * @param p2 unused
  * @param cmd unused
  */
-void CcCloneVehicle(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+void CcCloneVehicle(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	if (result.Failed()) return;
 
@@ -359,7 +359,7 @@ struct DepotWindow : Window {
 			DrawSprite((v->vehstatus & VS_STOPPED) ? SPR_FLAG_VEH_STOPPED : SPR_FLAG_VEH_RUNNING, PAL_NONE, rtl ? right - this->flag_width : left + WD_FRAMERECT_LEFT, y + diff_y);
 
 			SetDParam(0, v->unitnumber);
-			DrawString(text_left, text_right, y + 2, (uint16)(v->max_age - DAYS_IN_LEAP_YEAR) >= v->age ? STR_BLACK_COMMA : STR_RED_COMMA);
+			DrawString(text_left, text_right, y + 2, (uint16_t)(v->max_age - DAYS_IN_LEAP_YEAR) >= v->age ? STR_BLACK_COMMA : STR_RED_COMMA);
 		}
 	}
 
@@ -394,7 +394,7 @@ struct DepotWindow : Window {
 			}
 		}
 
-		uint16 rows_in_display = wid->current_y / wid->resize_y;
+		uint16_t rows_in_display = wid->current_y / wid->resize_y;
 
 		uint num = this->vscroll->GetPosition() * this->num_columns;
 		uint maxval = static_cast<uint>(std::min<size_t>(this->vehicle_list.size(), num + (rows_in_display * this->num_columns)));
@@ -887,9 +887,9 @@ struct DepotWindow : Window {
 		}
 
 		/* Show tooltip window */
-		uint64 args[2];
+		uint64_t args[2];
 		args[0] = (whole_chain ? num : v->engine_type);
-		args[1] = (uint64)(size_t)details;
+		args[1] = (uint64_t)(size_t)details;
 		GuiShowTooltips(this, whole_chain ? STR_DEPOT_VEHICLE_TOOLTIP_CHAIN : STR_DEPOT_VEHICLE_TOOLTIP, 2, args, TCC_RIGHT_CLICK);
 
 		return true;
@@ -1079,7 +1079,7 @@ struct DepotWindow : Window {
 	 * In the case of airports, this is the station ID.
 	 * @return Depot or station ID of this window.
 	 */
-	inline uint16 GetDepotIndex() const
+	inline uint16_t GetDepotIndex() const
 	{
 		return (this->type == VEH_AIRCRAFT) ? ::GetStationIndex(this->window_number) : ::GetDepotIndex(this->window_number);
 	}

@@ -61,8 +61,8 @@ GRFConfig::GRFConfig(const GRFConfig &config) :
 	palette(config.palette),
 	has_param_defaults(config.has_param_defaults)
 {
-	MemCpyT<uint8>(this->original_md5sum, config.original_md5sum, lengthof(this->original_md5sum));
-	MemCpyT<uint32>(this->param, config.param, lengthof(this->param));
+	MemCpyT<uint8_t>(this->original_md5sum, config.original_md5sum, lengthof(this->original_md5sum));
+	MemCpyT<uint32_t>(this->param, config.param, lengthof(this->param));
 	if (config.filename != nullptr) this->filename = stredup(config.filename);
 	if (config.error != nullptr) this->error = new GRFError(*config.error);
 	for (uint i = 0; i < config.param_info.size(); i++) {
@@ -94,7 +94,7 @@ void GRFConfig::CopyParams(const GRFConfig &src)
 {
 	this->num_params = src.num_params;
 	this->num_valid_params = src.num_valid_params;
-	MemCpyT<uint32>(this->param, src.param, lengthof(this->param));
+	MemCpyT<uint32_t>(this->param, src.param, lengthof(this->param));
 }
 
 /**
@@ -130,7 +130,7 @@ const char *GRFConfig::GetURL() const
 void GRFConfig::SetParameterDefaults()
 {
 	this->num_params = 0;
-	MemSetT<uint32>(this->param, 0, lengthof(this->param));
+	MemSetT<uint32_t>(this->param, 0, lengthof(this->param));
 
 	if (!this->has_param_defaults) return;
 
@@ -241,7 +241,7 @@ GRFParameterInfo::GRFParameterInfo(GRFParameterInfo &info) :
  * @param config The GRFConfig to get the value from.
  * @return The value of this parameter.
  */
-uint32 GRFParameterInfo::GetValue(struct GRFConfig *config) const
+uint32_t GRFParameterInfo::GetValue(struct GRFConfig *config) const
 {
 	/* GB doesn't work correctly with nbits == 32, so handle that case here. */
 	if (this->num_bit == 32) return config->param[this->param_nr];
@@ -253,7 +253,7 @@ uint32 GRFParameterInfo::GetValue(struct GRFConfig *config) const
  * @param config The GRFConfig to set the value in.
  * @param value The new value.
  */
-void GRFParameterInfo::SetValue(struct GRFConfig *config, uint32 value)
+void GRFParameterInfo::SetValue(struct GRFConfig *config, uint32_t value)
 {
 	/* SB doesn't work correctly with nbits == 32, so handle that case here. */
 	if (this->num_bit == 32) {
@@ -271,7 +271,7 @@ void GRFParameterInfo::SetValue(struct GRFConfig *config, uint32 value)
 void GRFParameterInfo::Finalize()
 {
 	this->complete_labels = true;
-	for (uint32 value = this->min_value; value <= this->max_value; value++) {
+	for (uint32_t value = this->min_value; value <= this->max_value; value++) {
 		if (!this->value_names.Contains(value)) {
 			this->complete_labels = false;
 			break;
@@ -284,7 +284,7 @@ void GRFParameterInfo::Finalize()
  * Called when changing the default palette in advanced settings.
  * @param new_value Unused.
  */
-void UpdateNewGRFConfigPalette(int32 new_value)
+void UpdateNewGRFConfigPalette(int32_t new_value)
 {
 	for (GRFConfig *c = _grfconfig_newgame; c != nullptr; c = c->next) c->SetSuitablePalette();
 	for (GRFConfig *c = _grfconfig_static;  c != nullptr; c = c->next) c->SetSuitablePalette();
@@ -330,7 +330,7 @@ static bool CalcGRFMD5Sum(GRFConfig *config, Subdirectory subdir)
 {
 	FILE *f;
 	Md5 checksum;
-	uint8 buffer[1024];
+	uint8_t buffer[1024];
 	size_t len, size;
 
 	/* open the file */
@@ -733,7 +733,7 @@ void ScanNewGRFFiles(NewGRFScanCallback *callback)
  * @param desired_version Requested version
  * @return The matching grf, if it exists in #_all_grfs, else \c nullptr.
  */
-const GRFConfig *FindGRFConfig(uint32 grfid, FindGRFConfigMode mode, const uint8 *md5sum, uint32 desired_version)
+const GRFConfig *FindGRFConfig(uint32_t grfid, FindGRFConfigMode mode, const uint8_t *md5sum, uint32_t desired_version)
 {
 	assert((mode == FGCM_EXACT) != (md5sum == nullptr));
 	const GRFConfig *best = nullptr;
@@ -760,7 +760,7 @@ struct UnknownGRF : public GRFIdentifier {
 	UnknownGRF() = default;
 	UnknownGRF(const UnknownGRF &other) = default;
 	UnknownGRF(UnknownGRF &&other) = default;
-	UnknownGRF(uint32 grfid, const uint8 *_md5sum) : GRFIdentifier(grfid, _md5sum), name(new GRFTextList) {}
+	UnknownGRF(uint32_t grfid, const uint8_t *_md5sum) : GRFIdentifier(grfid, _md5sum), name(new GRFTextList) {}
 };
 
 /**
@@ -780,7 +780,7 @@ struct UnknownGRF : public GRFIdentifier {
  *         and MD5 checksum or nullptr when it does not exist and create is false.
  *         This value must NEVER be freed by the caller.
  */
-GRFTextWrapper FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create)
+GRFTextWrapper FindUnknownGRFName(uint32_t grfid, uint8_t *md5sum, bool create)
 {
 	static std::vector<UnknownGRF> unknown_grfs;
 
@@ -806,7 +806,7 @@ GRFTextWrapper FindUnknownGRFName(uint32 grfid, uint8 *md5sum, bool create)
  * @param mask  GRFID mask to allow for partial matching.
  * @return The grf config, if it exists, else \c nullptr.
  */
-GRFConfig *GetGRFConfig(uint32 grfid, uint32 mask)
+GRFConfig *GetGRFConfig(uint32_t grfid, uint32_t mask)
 {
 	GRFConfig *c;
 

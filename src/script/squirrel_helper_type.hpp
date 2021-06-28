@@ -13,7 +13,7 @@
 /** Definition of a simple array. */
 struct Array {
 	size_t size;   ///< The size of the array.
-	int32 array[]; ///< The data of the array.
+	int32_t array[]; ///< The data of the array.
 };
 
 #endif /* SQUIRREL_HELPER_TYPE_HPP */

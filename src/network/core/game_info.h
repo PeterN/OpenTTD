@@ -63,8 +63,8 @@ struct NetworkServerGameInfo {
 	GRFConfig *grfconfig;        ///< List of NewGRF files used
 	Date start_date;             ///< When the game started
 	Date game_date;              ///< Current date
-	uint16 map_width;            ///< Map width
-	uint16 map_height;           ///< Map height
+	uint16_t map_width;            ///< Map width
+	uint16_t map_height;           ///< Map height
 	std::string server_name;     ///< Server name
 	std::string server_revision; ///< The version number the server is using (e.g.: 'r304' or 0.5.0)
 	bool dedicated;              ///< Is this a dedicated server?

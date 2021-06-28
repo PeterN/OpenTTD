@@ -501,7 +501,7 @@ struct TimetableWindow : Window {
 		}
 	}
 
-	static inline uint32 PackTimetableArgs(const Vehicle *v, uint selected, bool speed)
+	static inline uint32_t PackTimetableArgs(const Vehicle *v, uint selected, bool speed)
 	{
 		uint order_number = (selected + 1) / 2;
 		ModifyTimetableFlags mtf = (selected % 2 == 1) ? (speed ? MTF_TRAVEL_SPEED : MTF_TRAVEL_TIME) : MTF_WAIT_TIME;
@@ -577,13 +577,13 @@ struct TimetableWindow : Window {
 			}
 
 			case WID_VT_CLEAR_TIME: { // Clear waiting time.
-				uint32 p1 = PackTimetableArgs(v, this->sel_index, false);
+				uint32_t p1 = PackTimetableArgs(v, this->sel_index, false);
 				DoCommandP(0, p1, 0, CMD_CHANGE_TIMETABLE | CMD_MSG(STR_ERROR_CAN_T_TIMETABLE_VEHICLE));
 				break;
 			}
 
 			case WID_VT_CLEAR_SPEED: { // Clear max speed button.
-				uint32 p1 = PackTimetableArgs(v, this->sel_index, true);
+				uint32_t p1 = PackTimetableArgs(v, this->sel_index, true);
 				DoCommandP(0, p1, UINT16_MAX, CMD_CHANGE_TIMETABLE | CMD_MSG(STR_ERROR_CAN_T_TIMETABLE_VEHICLE));
 				break;
 			}
@@ -593,7 +593,7 @@ struct TimetableWindow : Window {
 				break;
 
 			case WID_VT_AUTOFILL: { // Autofill the timetable.
-				uint32 p2 = 0;
+				uint32_t p2 = 0;
 				if (!HasBit(v->vehicle_flags, VF_AUTOFILL_TIMETABLE)) SetBit(p2, 0);
 				if (_ctrl_pressed) SetBit(p2, 1);
 				DoCommandP(0, v->index, p2, CMD_AUTOFILL_TIMETABLE | CMD_MSG(STR_ERROR_CAN_T_TIMETABLE_VEHICLE));
@@ -618,16 +618,16 @@ struct TimetableWindow : Window {
 
 		const Vehicle *v = this->vehicle;
 
-		uint32 p1 = PackTimetableArgs(v, this->sel_index, this->query_is_speed_query);
+		uint32_t p1 = PackTimetableArgs(v, this->sel_index, this->query_is_speed_query);
 
-		uint64 val = StrEmpty(str) ? 0 : strtoul(str, nullptr, 10);
+		uint64_t val = StrEmpty(str) ? 0 : strtoul(str, nullptr, 10);
 		if (this->query_is_speed_query) {
 			val = ConvertDisplaySpeedToKmhishSpeed(val);
 		} else {
 			if (!_settings_client.gui.timetable_in_ticks) val *= DAY_TICKS;
 		}
 
-		uint32 p2 = std::min<uint32>(val, UINT16_MAX);
+		uint32_t p2 = std::min<uint32_t>(val, UINT16_MAX);
 
 		DoCommandP(0, p1, p2, CMD_CHANGE_TIMETABLE | CMD_MSG(STR_ERROR_CAN_T_TIMETABLE_VEHICLE));
 	}

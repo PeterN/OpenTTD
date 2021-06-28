@@ -82,7 +82,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetStorage()->mode_instance;
 }
 
-/* static */ void ScriptObject::SetLastCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+/* static */ void ScriptObject::SetLastCommand(TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	ScriptStorage *s = GetStorage();
 	Debug(script, 6, "SetLastCommand company={:02d} tile={:06x} p1={:08x} p2={:08x} cmd={}", s->root_company, tile, p1, p2, cmd);
@@ -92,7 +92,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	s->last_cmd = cmd & CMD_ID_MASK;
 }
 
-/* static */ bool ScriptObject::CheckLastCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+/* static */ bool ScriptObject::CheckLastCommand(TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	ScriptStorage *s = GetStorage();
 	Debug(script, 6, "CheckLastCommand company={:02d} tile={:06x} p1={:08x} p2={:08x} cmd={}", s->root_company, tile, p1, p2, cmd);
@@ -298,7 +298,7 @@ ScriptObject::ActiveInstance::~ActiveInstance()
 	return GetStorage()->callback_value[index];
 }
 
-/* static */ bool ScriptObject::DoCommand(TileIndex tile, uint32 p1, uint32 p2, uint cmd, const char *text, Script_SuspendCallbackProc *callback)
+/* static */ bool ScriptObject::DoCommand(TileIndex tile, uint32_t p1, uint32_t p2, uint cmd, const char *text, Script_SuspendCallbackProc *callback)
 {
 	if (!ScriptObject::CanSuspend()) {
 		throw Script_FatalError("You are not allowed to execute any DoCommand (even indirect) in your constructor, Save(), Load(), and any valuator.");

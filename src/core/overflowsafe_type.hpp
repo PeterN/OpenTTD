@@ -30,7 +30,7 @@ public:
 	OverflowSafeInt() : m_value(0) { }
 
 	OverflowSafeInt(const OverflowSafeInt& other) { this->m_value = other.m_value; }
-	OverflowSafeInt(const int64 int_)             { this->m_value = int_; }
+	OverflowSafeInt(const int64_t int_)             { this->m_value = int_; }
 
 	inline OverflowSafeInt& operator = (const OverflowSafeInt& other) { this->m_value = other.m_value; return *this; }
 
@@ -55,12 +55,12 @@ public:
 
 	/* Operators for addition and subtraction */
 	inline OverflowSafeInt  operator +  (const OverflowSafeInt& other) const { OverflowSafeInt result = *this; result += other; return result; }
-	inline OverflowSafeInt  operator +  (const int              other) const { OverflowSafeInt result = *this; result += (int64)other; return result; }
-	inline OverflowSafeInt  operator +  (const uint             other) const { OverflowSafeInt result = *this; result += (int64)other; return result; }
+	inline OverflowSafeInt  operator +  (const int              other) const { OverflowSafeInt result = *this; result += (int64_t)other; return result; }
+	inline OverflowSafeInt  operator +  (const uint             other) const { OverflowSafeInt result = *this; result += (int64_t)other; return result; }
 	inline OverflowSafeInt& operator -= (const OverflowSafeInt& other)       { return *this += (-other); }
 	inline OverflowSafeInt  operator -  (const OverflowSafeInt& other) const { OverflowSafeInt result = *this; result -= other; return result; }
-	inline OverflowSafeInt  operator -  (const int              other) const { OverflowSafeInt result = *this; result -= (int64)other; return result; }
-	inline OverflowSafeInt  operator -  (const uint             other) const { OverflowSafeInt result = *this; result -= (int64)other; return result; }
+	inline OverflowSafeInt  operator -  (const int              other) const { OverflowSafeInt result = *this; result -= (int64_t)other; return result; }
+	inline OverflowSafeInt  operator -  (const uint             other) const { OverflowSafeInt result = *this; result -= (int64_t)other; return result; }
 
 	inline OverflowSafeInt& operator ++ () { return *this += 1; }
 	inline OverflowSafeInt& operator -- () { return *this += -1; }
@@ -84,14 +84,14 @@ public:
 	}
 
 	/* Operators for multiplication */
-	inline OverflowSafeInt operator * (const int64  factor) const { OverflowSafeInt result = *this; result *= factor; return result; }
-	inline OverflowSafeInt operator * (const int    factor) const { OverflowSafeInt result = *this; result *= (int64)factor; return result; }
-	inline OverflowSafeInt operator * (const uint   factor) const { OverflowSafeInt result = *this; result *= (int64)factor; return result; }
-	inline OverflowSafeInt operator * (const uint16 factor) const { OverflowSafeInt result = *this; result *= (int64)factor; return result; }
-	inline OverflowSafeInt operator * (const byte   factor) const { OverflowSafeInt result = *this; result *= (int64)factor; return result; }
+	inline OverflowSafeInt operator * (const int64_t  factor) const { OverflowSafeInt result = *this; result *= factor; return result; }
+	inline OverflowSafeInt operator * (const int    factor) const { OverflowSafeInt result = *this; result *= (int64_t)factor; return result; }
+	inline OverflowSafeInt operator * (const uint   factor) const { OverflowSafeInt result = *this; result *= (int64_t)factor; return result; }
+	inline OverflowSafeInt operator * (const uint16_t factor) const { OverflowSafeInt result = *this; result *= (int64_t)factor; return result; }
+	inline OverflowSafeInt operator * (const byte   factor) const { OverflowSafeInt result = *this; result *= (int64_t)factor; return result; }
 
 	/* Operators for division */
-	inline OverflowSafeInt& operator /= (const int64            divisor)       { this->m_value /= divisor; return *this; }
+	inline OverflowSafeInt& operator /= (const int64_t            divisor)       { this->m_value /= divisor; return *this; }
 	inline OverflowSafeInt  operator /  (const OverflowSafeInt& divisor) const { OverflowSafeInt result = *this; result /= divisor.m_value; return result; }
 	inline OverflowSafeInt  operator /  (const int              divisor) const { OverflowSafeInt result = *this; result /= divisor; return result; }
 	inline OverflowSafeInt  operator /  (const uint             divisor) const { OverflowSafeInt result = *this; result /= (int)divisor; return result; }
@@ -122,34 +122,34 @@ public:
 	inline bool operator <  (const int other) const { return !(*this >= other); }
 	inline bool operator <= (const int other) const { return !(*this > other); }
 
-	inline operator int64 () const { return this->m_value; }
+	inline operator int64_t () const { return this->m_value; }
 };
 
-/* Sometimes we got int64 operator OverflowSafeInt instead of vice versa. Handle that properly */
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator + (int64 a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b + a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator - (int64 a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return -b + a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator * (int64 a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b * a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator / (int64 a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return (OverflowSafeInt<T, T_MAX, T_MIN>)a / (int)b; }
+/* Sometimes we got int64_t operator OverflowSafeInt instead of vice versa. Handle that properly */
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator + (int64_t a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b + a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator - (int64_t a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return -b + a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator * (int64_t a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b * a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator / (int64_t a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return (OverflowSafeInt<T, T_MAX, T_MIN>)a / (int)b; }
 
 /* Sometimes we got int operator OverflowSafeInt instead of vice versa. Handle that properly */
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator + (int   a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b + a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator - (int   a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return -b + a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator * (int   a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b * a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator / (int   a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return (OverflowSafeInt<T, T_MAX, T_MIN>)a / (int)b; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator + (int   a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b + a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator - (int   a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return -b + a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator * (int   a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b * a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator / (int   a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return (OverflowSafeInt<T, T_MAX, T_MIN>)a / (int)b; }
 
 /* Sometimes we got uint operator OverflowSafeInt instead of vice versa. Handle that properly */
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator + (uint  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b + a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator - (uint  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return -b + a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator * (uint  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b * a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator / (uint  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return (OverflowSafeInt<T, T_MAX, T_MIN>)a / (int)b; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator + (uint  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b + a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator - (uint  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return -b + a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator * (uint  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b * a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator / (uint  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return (OverflowSafeInt<T, T_MAX, T_MIN>)a / (int)b; }
 
 /* Sometimes we got byte operator OverflowSafeInt instead of vice versa. Handle that properly */
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator + (byte  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b + (uint)a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator - (byte  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return -b + (uint)a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator * (byte  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b * (uint)a; }
-template <class T, int64 T_MAX, int64 T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator / (byte  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return (OverflowSafeInt<T, T_MAX, T_MIN>)a / (int)b; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator + (byte  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b + (uint)a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator - (byte  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return -b + (uint)a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator * (byte  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return b * (uint)a; }
+template <class T, int64_t T_MAX, int64_t T_MIN> inline OverflowSafeInt<T, T_MAX, T_MIN> operator / (byte  a, OverflowSafeInt<T, T_MAX, T_MIN> b) { return (OverflowSafeInt<T, T_MAX, T_MIN>)a / (int)b; }
 
-typedef OverflowSafeInt<int64, INT64_MAX, INT64_MIN> OverflowSafeInt64;
-typedef OverflowSafeInt<int32, INT32_MAX, INT32_MIN> OverflowSafeInt32;
+typedef OverflowSafeInt<int64_t, INT64_MAX, INT64_MIN> OverflowSafeint64_t;
+typedef OverflowSafeInt<int32_t, INT32_MAX, INT32_MIN> OverflowSafeint32_t;
 
 #endif /* OVERFLOWSAFE_TYPE_HPP */

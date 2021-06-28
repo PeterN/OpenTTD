@@ -69,7 +69,7 @@ public:
 	/**
 	 * Formatting data for button page elements.
 	 */
-	typedef uint32 StoryPageButtonFormatting;
+	typedef uint32_t StoryPageButtonFormatting;
 
 	/**
 	 * Formatting and layout flags for story page buttons.
@@ -207,7 +207,7 @@ public:
 	 * @pre type != SPET_GOAL || ScriptGoal::IsValidGoal(reference).
 	 * @pre if type is SPET_GOAL and story_page is a global page, then referenced goal must be global.
 	 */
-	static StoryPageElementID NewElement(StoryPageID story_page_id, StoryPageElementType type, uint32 reference, Text *text);
+	static StoryPageElementID NewElement(StoryPageID story_page_id, StoryPageElementType type, uint32_t reference, Text *text);
 
 	/**
 	 * Update the content of a page element
@@ -222,7 +222,7 @@ public:
 	 * @pre type != SPET_GOAL || ScriptGoal::IsValidGoal(reference).
 	 * @pre if type is SPET_GOAL and story_page is a global page, then referenced goal must be global.
 	 */
-	static bool UpdateElement(StoryPageElementID story_page_element_id, uint32 reference, Text *text);
+	static bool UpdateElement(StoryPageElementID story_page_element_id, uint32_t reference, Text *text);
 
 	/**
 	 * Get story page sort value. Each page has a sort value that is internally assigned and used
@@ -232,7 +232,7 @@ public:
 	 * @param story_page_id The story page to get the sort value of.
 	 * @return Page sort value.
 	 */
-	static uint32 GetPageSortValue(StoryPageID story_page_id);
+	static uint32_t GetPageSortValue(StoryPageID story_page_id);
 
 	/**
 	 * Get story page element sort value. Each page element has a sort value that is internally
@@ -243,7 +243,7 @@ public:
 	 * @param story_page_element_id The story page element to get the sort value of.
 	 * @return Page element sort value.
 	 */
-	static uint32 GetPageElementSortValue(StoryPageElementID story_page_element_id);
+	static uint32_t GetPageElementSortValue(StoryPageElementID story_page_element_id);
 
 	/**
 	 * Get the company which the page belongs to. If the page is global,

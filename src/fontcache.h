@@ -14,7 +14,7 @@
 #include "spritecache.h"
 
 /** Glyphs are characters from a font. */
-typedef uint32 GlyphID;
+typedef uint32_t GlyphID;
 static const GlyphID SPRITE_GLYPH = 1U << 30;
 
 /** Font cache for basic fonts. */
@@ -124,7 +124,7 @@ public:
 	 * @param length The length of the read data.
 	 * @return The loaded table data.
 	 */
-	virtual const void *GetFontTable(uint32 tag, size_t &length) = 0;
+	virtual const void *GetFontTable(uint32_t tag, size_t &length) = 0;
 
 	/**
 	 * Get the native OS font handle, if there is one.

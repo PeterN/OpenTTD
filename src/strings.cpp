@@ -51,7 +51,7 @@ TextDirection _current_text_dir; ///< Text direction of the currently selected l
 std::unique_ptr<icu::Collator> _current_collator;    ///< Collator for the language currently in use.
 #endif /* WITH_ICU_I18N */
 
-static uint64 _global_string_params_data[20];     ///< Global array of string parameters. To access, use #SetDParam.
+static uint64_t _global_string_params_data[20];     ///< Global array of string parameters. To access, use #SetDParam.
 static WChar _global_string_params_type[20];      ///< Type of parameters stored in #_global_string_params
 StringParameters _global_string_params(_global_string_params_data, 20, _global_string_params_type);
 
@@ -64,10 +64,10 @@ void StringParameters::ClearTypeInformation()
 
 
 /**
- * Read an int64 from the argument array. The offset is increased
- * so the next time GetInt64 is called the next value is read.
+ * Read an int64_t from the argument array. The offset is increased
+ * so the next time Getint64_t is called the next value is read.
  */
-int64 StringParameters::GetInt64(WChar type)
+int64_t StringParameters::Getint64_t(WChar type)
 {
 	if (this->offset >= this->num_param) {
 		Debug(misc, 0, "Trying to read invalid string parameter");
@@ -101,7 +101,7 @@ void StringParameters::ShiftParameters(uint amount)
  * @param min_count Minimum number of digits independent of \a max.
  * @param size  Font of the number
  */
-void SetDParamMaxValue(uint n, uint64 max_value, uint min_count, FontSize size)
+void SetDParamMaxValue(uint n, uint64_t max_value, uint min_count, FontSize size)
 {
 	uint num_digits = 1;
 	while (max_value >= 10) {
@@ -122,7 +122,7 @@ void SetDParamMaxDigits(uint n, uint count, FontSize size)
 	uint front = 0;
 	uint next = 0;
 	GetBroadestDigit(&front, &next, size);
-	uint64 val = count > 1 ? front : next;
+	uint64_t val = count > 1 ? front : next;
 	for (; count > 1; count--) {
 		val = 10 * val + next;
 	}
@@ -135,7 +135,7 @@ void SetDParamMaxDigits(uint n, uint count, FontSize size)
  * @param src  Source array of string parameters.
  * @param num  Number of string parameters to copy.
  */
-void CopyInDParam(int offs, const uint64 *src, int num)
+void CopyInDParam(int offs, const uint64_t *src, int num)
 {
 	MemCpyT(_global_string_params.GetPointerToOffset(offs), src, num);
 }
@@ -146,7 +146,7 @@ void CopyInDParam(int offs, const uint64 *src, int num)
  * @param offs Index in the global array to copy the first string parameter from.
  * @param num  Number of string parameters to copy.
  */
-void CopyOutDParam(uint64 *dst, int offs, int num)
+void CopyOutDParam(uint64_t *dst, int offs, int num)
 {
 	MemCpyT(dst, _global_string_params.GetPointerToOffset(offs), num);
 }
@@ -159,7 +159,7 @@ void CopyOutDParam(uint64 *dst, int offs, int num)
  * @param string  The string used to determine where raw strings are and where there are no raw strings.
  * @param num     Number of string parameters to copy.
  */
-void CopyOutDParam(uint64 *dst, const char **strings, StringID string, int num)
+void CopyOutDParam(uint64_t *dst, const char **strings, StringID string, int num)
 {
 	char buf[DRAW_STRING_BUFFER];
 	GetString(buf, string, lastof(buf));
@@ -176,7 +176,7 @@ void CopyOutDParam(uint64 *dst, const char **strings, StringID string, int num)
 }
 
 static char *StationGetSpecialString(char *buff, int x, const char *last);
-static char *GetSpecialTownNameString(char *buff, int ind, uint32 seed, const char *last);
+static char *GetSpecialTownNameString(char *buff, int ind, uint32_t seed, const char *last);
 static char *GetSpecialNameString(char *buff, int ind, StringParameters *args, const char *last);
 
 static char *FormatString(char *buff, const char *str, StringParameters *args, const char *last, uint case_index = 0, bool game_script = false, bool dry_run = false);
@@ -238,7 +238,7 @@ char *GetStringWithArgs(char *buffr, StringID string, StringParameters *args, co
 	switch (tab) {
 		case TEXT_TAB_TOWN:
 			if (index >= 0xC0 && !game_script) {
-				return GetSpecialTownNameString(buffr, index - 0xC0, args->GetInt32(), last);
+				return GetSpecialTownNameString(buffr, index - 0xC0, args->Getint32_t(), last);
 			}
 			break;
 
@@ -305,7 +305,7 @@ std::string GetString(StringID string)
  */
 void SetDParamStr(uint n, const char *str)
 {
-	SetDParam(n, (uint64)(size_t)str);
+	SetDParam(n, (uint64_t)(size_t)str);
 }
 
 /**
@@ -339,10 +339,10 @@ void InjectDParam(uint amount)
  *                          in front of the \a fractional_digits last digit of \a number.
  * @return till where we wrote
  */
-static char *FormatNumber(char *buff, int64 number, const char *last, const char *separator, int zerofill = 1, int fractional_digits = 0)
+static char *FormatNumber(char *buff, int64_t number, const char *last, const char *separator, int zerofill = 1, int fractional_digits = 0)
 {
 	static const int max_digits = 20;
-	uint64 divisor = 10000000000000000000ULL;
+	uint64_t divisor = 10000000000000000000ULL;
 	zerofill += fractional_digits;
 	int thousands_offset = (max_digits - fractional_digits - 1) % 3;
 
@@ -351,8 +351,8 @@ static char *FormatNumber(char *buff, int64 number, const char *last, const char
 		number = -number;
 	}
 
-	uint64 num = number;
-	uint64 tot = 0;
+	uint64_t num = number;
+	uint64_t tot = 0;
 	for (int i = 0; i < max_digits; i++) {
 		if (i == max_digits - fractional_digits) {
 			const char *decimal_separator = _settings_game.locale.digit_decimal_separator.c_str();
@@ -360,7 +360,7 @@ static char *FormatNumber(char *buff, int64 number, const char *last, const char
 			buff += seprintf(buff, last, "%s", decimal_separator);
 		}
 
-		uint64 quot = 0;
+		uint64_t quot = 0;
 		if (num >= divisor) {
 			quot = num / divisor;
 			num = num % divisor;
@@ -378,24 +378,24 @@ static char *FormatNumber(char *buff, int64 number, const char *last, const char
 	return buff;
 }
 
-static char *FormatCommaNumber(char *buff, int64 number, const char *last, int fractional_digits = 0)
+static char *FormatCommaNumber(char *buff, int64_t number, const char *last, int fractional_digits = 0)
 {
 	const char *separator = _settings_game.locale.digit_group_separator.c_str();
 	if (StrEmpty(separator)) separator = _langpack.langpack->digit_group_separator;
 	return FormatNumber(buff, number, last, separator, 1, fractional_digits);
 }
 
-static char *FormatNoCommaNumber(char *buff, int64 number, const char *last)
+static char *FormatNoCommaNumber(char *buff, int64_t number, const char *last)
 {
 	return FormatNumber(buff, number, last, "");
 }
 
-static char *FormatZerofillNumber(char *buff, int64 number, int64 count, const char *last)
+static char *FormatZerofillNumber(char *buff, int64_t number, int64_t count, const char *last)
 {
 	return FormatNumber(buff, number, last, "", count);
 }
 
-static char *FormatHexNumber(char *buff, uint64 number, const char *last)
+static char *FormatHexNumber(char *buff, uint64_t number, const char *last)
 {
 	return buff + seprintf(buff, last, "0x" OTTD_PRINTFHEX64, number);
 }
@@ -407,7 +407,7 @@ static char *FormatHexNumber(char *buff, uint64 number, const char *last)
  * @param last   the last element in the buffer
  * @return till where we wrote
  */
-static char *FormatBytes(char *buff, int64 number, const char *last)
+static char *FormatBytes(char *buff, int64_t number, const char *last)
 {
 	assert(number >= 0);
 
@@ -445,7 +445,7 @@ static char *FormatYmdString(char *buff, Date date, const char *last, uint case_
 	YearMonthDay ymd;
 	ConvertDateToYMD(date, &ymd);
 
-	int64 args[] = {ymd.day + STR_DAY_NUMBER_1ST - 1, STR_MONTH_ABBREV_JAN + ymd.month, ymd.year};
+	int64_t args[] = {ymd.day + STR_DAY_NUMBER_1ST - 1, STR_MONTH_ABBREV_JAN + ymd.month, ymd.year};
 	StringParameters tmp_params(args);
 	return FormatString(buff, GetStringPtr(STR_FORMAT_DATE_LONG), &tmp_params, last, case_index);
 }
@@ -455,7 +455,7 @@ static char *FormatMonthAndYear(char *buff, Date date, const char *last, uint ca
 	YearMonthDay ymd;
 	ConvertDateToYMD(date, &ymd);
 
-	int64 args[] = {STR_MONTH_JAN + ymd.month, ymd.year};
+	int64_t args[] = {STR_MONTH_JAN + ymd.month, ymd.year};
 	StringParameters tmp_params(args);
 	return FormatString(buff, GetStringPtr(STR_FORMAT_DATE_SHORT), &tmp_params, last, case_index);
 }
@@ -471,7 +471,7 @@ static char *FormatTinyOrISODate(char *buff, Date date, StringID str, const char
 	seprintf(day,   lastof(day),   "%02i", ymd.day);
 	seprintf(month, lastof(month), "%02i", ymd.month + 1);
 
-	int64 args[] = {(int64)(size_t)day, (int64)(size_t)month, ymd.year};
+	int64_t args[] = {(int64_t)(size_t)day, (int64_t)(size_t)month, ymd.year};
 	StringParameters tmp_params(args);
 	return FormatString(buff, GetStringPtr(str), &tmp_params, last);
 }
@@ -539,10 +539,10 @@ static char *FormatGenericCurrency(char *buff, const CurrencySpec *spec, Money n
  * @param plural_form The plural form we want an index for.
  * @return The plural index for the given form.
  */
-static int DeterminePluralForm(int64 count, int plural_form)
+static int DeterminePluralForm(int64_t count, int plural_form)
 {
 	/* The absolute value determines plurality */
-	uint64 n = abs(count);
+	uint64_t n = abs(count);
 
 	switch (plural_form) {
 		default:
@@ -687,7 +687,7 @@ struct UnitConversion {
 	 * @param round Whether to round the value or not.
 	 * @return The converted value.
 	 */
-	int64 ToDisplay(int64 input, bool round = true) const
+	int64_t ToDisplay(int64_t input, bool round = true) const
 	{
 		return ((input * this->multiplier) + (round && this->shift != 0 ? 1 << (this->shift - 1) : 0)) >> this->shift;
 	}
@@ -699,7 +699,7 @@ struct UnitConversion {
 	 * @param divider Divide the return value by this.
 	 * @return The converted value.
 	 */
-	int64 FromDisplay(int64 input, bool round = true, int64 divider = 1) const
+	int64_t FromDisplay(int64_t input, bool round = true, int64_t divider = 1) const
 	{
 		return ((input << this->shift) + (round ? (this->multiplier * divider) - 1 : 0)) / (this->multiplier * divider);
 	}
@@ -850,13 +850,13 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 		if (SCC_NEWGRF_FIRST <= b && b <= SCC_NEWGRF_LAST) {
 			/* We need to pass some stuff as it might be modified. */
 			//todo: should argve be passed here too?
-			b = RemapNewGRFStringControlCode(b, buf_start, &buff, &str, (int64 *)args->GetDataPointer(), args->GetDataLeft(), dry_run);
+			b = RemapNewGRFStringControlCode(b, buf_start, &buff, &str, (int64_t *)args->GetDataPointer(), args->GetDataLeft(), dry_run);
 			if (b == 0) continue;
 		}
 
 		switch (b) {
 			case SCC_ENCODED: {
-				uint64 sub_args_data[20];
+				uint64_t sub_args_data[20];
 				WChar sub_args_type[20];
 				bool sub_args_need_free[20];
 				StringParameters sub_args(sub_args_data, 20, sub_args_type);
@@ -865,7 +865,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 				memset(sub_args_need_free, 0, sizeof(sub_args_need_free));
 
 				char *p;
-				uint32 stringid = strtoul(str, &p, 16);
+				uint32_t stringid = strtoul(str, &p, 16);
 				if (*p != ':' && *p != '\0') {
 					while (*p != '\0') p++;
 					str = p;
@@ -881,7 +881,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 				int i = 0;
 				while (*p != '\0' && i < 20) {
-					uint64 param;
+					uint64_t param;
 					const char *s = ++p;
 
 					/* Find the next value */
@@ -935,7 +935,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 						g[p - s] = '\0';
 
 						sub_args_need_free[i] = true;
-						sub_args.SetParam(i++, (uint64)(size_t)g);
+						sub_args.SetParam(i++, (uint64_t)(size_t)g);
 					}
 				}
 				/* If we didn't error out, we can actually print the string. */
@@ -957,7 +957,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_NEWGRF_PRINT_WORD_STRING_ID: {
-				StringID substr = args->GetInt32(SCC_NEWGRF_PRINT_WORD_STRING_ID);
+				StringID substr = args->Getint32_t(SCC_NEWGRF_PRINT_WORD_STRING_ID);
 				str_stack.push(GetStringPtr(substr));
 				case_index = next_substr_case_index;
 				next_substr_case_index = 0;
@@ -1010,7 +1010,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			case SCC_PLURAL_LIST: { // {P}
 				int plural_form = *str++;          // contains the plural form for this string
 				uint offset = orig_offset + (byte)*str++;
-				int64 v = *args->GetPointerToOffset(offset); // contains the number that determines plural
+				int64_t v = *args->GetPointerToOffset(offset); // contains the number that determines plural
 				str = ParseStringChoice(str, DeterminePluralForm(v, plural_form), &buff, last);
 				break;
 			}
@@ -1050,13 +1050,13 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 			case SCC_RAW_STRING_POINTER: { // {RAW_STRING}
 				if (game_script) break;
-				const char *str = (const char *)(size_t)args->GetInt64(SCC_RAW_STRING_POINTER);
+				const char *str = (const char *)(size_t)args->Getint64_t(SCC_RAW_STRING_POINTER);
 				buff = FormatString(buff, str, args, last);
 				break;
 			}
 
 			case SCC_STRING: {// {STRING}
-				StringID str = args->GetInt32(SCC_STRING);
+				StringID str = args->Getint32_t(SCC_STRING);
 				if (game_script && GetStringTab(str) != TEXT_TAB_GAMESCRIPT_START) break;
 				/* WARNING. It's prohibited for the included string to consume any arguments.
 				 * For included strings that consume argument, you should use STRING1, STRING2 etc.
@@ -1075,7 +1075,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			case SCC_STRING6:
 			case SCC_STRING7: { // {STRING1..7}
 				/* Strings that consume arguments */
-				StringID str = args->GetInt32(b);
+				StringID str = args->Getint32_t(b);
 				if (game_script && GetStringTab(str) != TEXT_TAB_GAMESCRIPT_START) break;
 				uint size = b - SCC_STRING1 + 1;
 				if (game_script && size > args->GetDataLeft()) {
@@ -1089,54 +1089,54 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_COMMA: // {COMMA}
-				buff = FormatCommaNumber(buff, args->GetInt64(SCC_COMMA), last);
+				buff = FormatCommaNumber(buff, args->Getint64_t(SCC_COMMA), last);
 				break;
 
 			case SCC_DECIMAL: {// {DECIMAL}
-				int64 number = args->GetInt64(SCC_DECIMAL);
-				int digits = args->GetInt32(SCC_DECIMAL);
+				int64_t number = args->Getint64_t(SCC_DECIMAL);
+				int digits = args->Getint32_t(SCC_DECIMAL);
 				buff = FormatCommaNumber(buff, number, last, digits);
 				break;
 			}
 
 			case SCC_NUM: // {NUM}
-				buff = FormatNoCommaNumber(buff, args->GetInt64(SCC_NUM), last);
+				buff = FormatNoCommaNumber(buff, args->Getint64_t(SCC_NUM), last);
 				break;
 
 			case SCC_ZEROFILL_NUM: { // {ZEROFILL_NUM}
-				int64 num = args->GetInt64();
-				buff = FormatZerofillNumber(buff, num, args->GetInt64(), last);
+				int64_t num = args->Getint64_t();
+				buff = FormatZerofillNumber(buff, num, args->Getint64_t(), last);
 				break;
 			}
 
 			case SCC_HEX: // {HEX}
-				buff = FormatHexNumber(buff, (uint64)args->GetInt64(SCC_HEX), last);
+				buff = FormatHexNumber(buff, (uint64_t)args->Getint64_t(SCC_HEX), last);
 				break;
 
 			case SCC_BYTES: // {BYTES}
-				buff = FormatBytes(buff, args->GetInt64(), last);
+				buff = FormatBytes(buff, args->Getint64_t(), last);
 				break;
 
 			case SCC_CARGO_TINY: { // {CARGO_TINY}
 				/* Tiny description of cargotypes. Layout:
 				 * param 1: cargo type
 				 * param 2: cargo count */
-				CargoID cargo = args->GetInt32(SCC_CARGO_TINY);
+				CargoID cargo = args->Getint32_t(SCC_CARGO_TINY);
 				if (cargo >= CargoSpec::GetArraySize()) break;
 
 				StringID cargo_str = CargoSpec::Get(cargo)->units_volume;
-				int64 amount = 0;
+				int64_t amount = 0;
 				switch (cargo_str) {
 					case STR_TONS:
-						amount = _units_weight[_settings_game.locale.units_weight].c.ToDisplay(args->GetInt64());
+						amount = _units_weight[_settings_game.locale.units_weight].c.ToDisplay(args->Getint64_t());
 						break;
 
 					case STR_LITERS:
-						amount = _units_volume[_settings_game.locale.units_volume].c.ToDisplay(args->GetInt64());
+						amount = _units_volume[_settings_game.locale.units_volume].c.ToDisplay(args->Getint64_t());
 						break;
 
 					default: {
-						amount = args->GetInt64();
+						amount = args->Getint64_t();
 						break;
 					}
 				}
@@ -1149,14 +1149,14 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 				/* Short description of cargotypes. Layout:
 				 * param 1: cargo type
 				 * param 2: cargo count */
-				CargoID cargo = args->GetInt32(SCC_CARGO_SHORT);
+				CargoID cargo = args->Getint32_t(SCC_CARGO_SHORT);
 				if (cargo >= CargoSpec::GetArraySize()) break;
 
 				StringID cargo_str = CargoSpec::Get(cargo)->units_volume;
 				switch (cargo_str) {
 					case STR_TONS: {
 						assert(_settings_game.locale.units_weight < lengthof(_units_weight));
-						int64 args_array[] = {_units_weight[_settings_game.locale.units_weight].c.ToDisplay(args->GetInt64())};
+						int64_t args_array[] = {_units_weight[_settings_game.locale.units_weight].c.ToDisplay(args->Getint64_t())};
 						StringParameters tmp_params(args_array);
 						buff = FormatString(buff, GetStringPtr(_units_weight[_settings_game.locale.units_weight].l), &tmp_params, last);
 						break;
@@ -1164,7 +1164,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 					case STR_LITERS: {
 						assert(_settings_game.locale.units_volume < lengthof(_units_volume));
-						int64 args_array[] = {_units_volume[_settings_game.locale.units_volume].c.ToDisplay(args->GetInt64())};
+						int64_t args_array[] = {_units_volume[_settings_game.locale.units_volume].c.ToDisplay(args->Getint64_t())};
 						StringParameters tmp_params(args_array);
 						buff = FormatString(buff, GetStringPtr(_units_volume[_settings_game.locale.units_volume].l), &tmp_params, last);
 						break;
@@ -1181,7 +1181,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 			case SCC_CARGO_LONG: { // {CARGO_LONG}
 				/* First parameter is cargo type, second parameter is cargo count */
-				CargoID cargo = args->GetInt32(SCC_CARGO_LONG);
+				CargoID cargo = args->Getint32_t(SCC_CARGO_LONG);
 				if (cargo != CT_INVALID && cargo >= CargoSpec::GetArraySize()) break;
 
 				StringID cargo_str = (cargo == CT_INVALID) ? STR_QUANTITY_N_A : CargoSpec::Get(cargo)->quantifier;
@@ -1191,7 +1191,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_CARGO_LIST: { // {CARGO_LIST}
-				CargoTypes cmask = args->GetInt64(SCC_CARGO_LIST);
+				CargoTypes cmask = args->Getint64_t(SCC_CARGO_LIST);
 				bool first = true;
 
 				for (const auto &cs : _sorted_cargo_specs) {
@@ -1222,34 +1222,34 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_CURRENCY_SHORT: // {CURRENCY_SHORT}
-				buff = FormatGenericCurrency(buff, _currency, args->GetInt64(), true, last);
+				buff = FormatGenericCurrency(buff, _currency, args->Getint64_t(), true, last);
 				break;
 
 			case SCC_CURRENCY_LONG: // {CURRENCY_LONG}
-				buff = FormatGenericCurrency(buff, _currency, args->GetInt64(SCC_CURRENCY_LONG), false, last);
+				buff = FormatGenericCurrency(buff, _currency, args->Getint64_t(SCC_CURRENCY_LONG), false, last);
 				break;
 
 			case SCC_DATE_TINY: // {DATE_TINY}
-				buff = FormatTinyOrISODate(buff, args->GetInt32(SCC_DATE_TINY), STR_FORMAT_DATE_TINY, last);
+				buff = FormatTinyOrISODate(buff, args->Getint32_t(SCC_DATE_TINY), STR_FORMAT_DATE_TINY, last);
 				break;
 
 			case SCC_DATE_SHORT: // {DATE_SHORT}
-				buff = FormatMonthAndYear(buff, args->GetInt32(SCC_DATE_SHORT), last, next_substr_case_index);
+				buff = FormatMonthAndYear(buff, args->Getint32_t(SCC_DATE_SHORT), last, next_substr_case_index);
 				next_substr_case_index = 0;
 				break;
 
 			case SCC_DATE_LONG: // {DATE_LONG}
-				buff = FormatYmdString(buff, args->GetInt32(SCC_DATE_LONG), last, next_substr_case_index);
+				buff = FormatYmdString(buff, args->Getint32_t(SCC_DATE_LONG), last, next_substr_case_index);
 				next_substr_case_index = 0;
 				break;
 
 			case SCC_DATE_ISO: // {DATE_ISO}
-				buff = FormatTinyOrISODate(buff, args->GetInt32(), STR_FORMAT_DATE_ISO, last);
+				buff = FormatTinyOrISODate(buff, args->Getint32_t(), STR_FORMAT_DATE_ISO, last);
 				break;
 
 			case SCC_FORCE: { // {FORCE}
 				assert(_settings_game.locale.units_force < lengthof(_units_force));
-				int64 args_array[1] = {_units_force[_settings_game.locale.units_force].c.ToDisplay(args->GetInt64())};
+				int64_t args_array[1] = {_units_force[_settings_game.locale.units_force].c.ToDisplay(args->Getint64_t())};
 				StringParameters tmp_params(args_array);
 				buff = FormatString(buff, GetStringPtr(_units_force[_settings_game.locale.units_force].s), &tmp_params, last);
 				break;
@@ -1257,7 +1257,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 			case SCC_HEIGHT: { // {HEIGHT}
 				assert(_settings_game.locale.units_height < lengthof(_units_height));
-				int64 args_array[] = {_units_height[_settings_game.locale.units_height].c.ToDisplay(args->GetInt64())};
+				int64_t args_array[] = {_units_height[_settings_game.locale.units_height].c.ToDisplay(args->Getint64_t())};
 				StringParameters tmp_params(args_array);
 				buff = FormatString(buff, GetStringPtr(_units_height[_settings_game.locale.units_height].s), &tmp_params, last);
 				break;
@@ -1265,7 +1265,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 			case SCC_POWER: { // {POWER}
 				assert(_settings_game.locale.units_power < lengthof(_units_power));
-				int64 args_array[1] = {_units_power[_settings_game.locale.units_power].c.ToDisplay(args->GetInt64())};
+				int64_t args_array[1] = {_units_power[_settings_game.locale.units_power].c.ToDisplay(args->Getint64_t())};
 				StringParameters tmp_params(args_array);
 				buff = FormatString(buff, GetStringPtr(_units_power[_settings_game.locale.units_power].s), &tmp_params, last);
 				break;
@@ -1274,7 +1274,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			case SCC_VELOCITY: { // {VELOCITY}
 				assert(_settings_game.locale.units_velocity < lengthof(_units_velocity));
 				unsigned int decimal_places = _units_velocity[_settings_game.locale.units_velocity].decimal_places;
-				uint64 args_array[] = {ConvertKmhishSpeedToDisplaySpeed(args->GetInt64(SCC_VELOCITY)), decimal_places};
+				uint64_t args_array[] = {ConvertKmhishSpeedToDisplaySpeed(args->Getint64_t(SCC_VELOCITY)), decimal_places};
 				StringParameters tmp_params(args_array, decimal_places ? 2 : 1, nullptr);
 				buff = FormatString(buff, GetStringPtr(_units_velocity[_settings_game.locale.units_velocity].s), &tmp_params, last);
 				break;
@@ -1282,7 +1282,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 			case SCC_VOLUME_SHORT: { // {VOLUME_SHORT}
 				assert(_settings_game.locale.units_volume < lengthof(_units_volume));
-				int64 args_array[1] = {_units_volume[_settings_game.locale.units_volume].c.ToDisplay(args->GetInt64())};
+				int64_t args_array[1] = {_units_volume[_settings_game.locale.units_volume].c.ToDisplay(args->Getint64_t())};
 				StringParameters tmp_params(args_array);
 				buff = FormatString(buff, GetStringPtr(_units_volume[_settings_game.locale.units_volume].s), &tmp_params, last);
 				break;
@@ -1290,7 +1290,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 			case SCC_VOLUME_LONG: { // {VOLUME_LONG}
 				assert(_settings_game.locale.units_volume < lengthof(_units_volume));
-				int64 args_array[1] = {_units_volume[_settings_game.locale.units_volume].c.ToDisplay(args->GetInt64(SCC_VOLUME_LONG))};
+				int64_t args_array[1] = {_units_volume[_settings_game.locale.units_volume].c.ToDisplay(args->Getint64_t(SCC_VOLUME_LONG))};
 				StringParameters tmp_params(args_array);
 				buff = FormatString(buff, GetStringPtr(_units_volume[_settings_game.locale.units_volume].l), &tmp_params, last);
 				break;
@@ -1298,7 +1298,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 			case SCC_WEIGHT_SHORT: { // {WEIGHT_SHORT}
 				assert(_settings_game.locale.units_weight < lengthof(_units_weight));
-				int64 args_array[1] = {_units_weight[_settings_game.locale.units_weight].c.ToDisplay(args->GetInt64())};
+				int64_t args_array[1] = {_units_weight[_settings_game.locale.units_weight].c.ToDisplay(args->Getint64_t())};
 				StringParameters tmp_params(args_array);
 				buff = FormatString(buff, GetStringPtr(_units_weight[_settings_game.locale.units_weight].s), &tmp_params, last);
 				break;
@@ -1306,22 +1306,22 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 
 			case SCC_WEIGHT_LONG: { // {WEIGHT_LONG}
 				assert(_settings_game.locale.units_weight < lengthof(_units_weight));
-				int64 args_array[1] = {_units_weight[_settings_game.locale.units_weight].c.ToDisplay(args->GetInt64(SCC_WEIGHT_LONG))};
+				int64_t args_array[1] = {_units_weight[_settings_game.locale.units_weight].c.ToDisplay(args->Getint64_t(SCC_WEIGHT_LONG))};
 				StringParameters tmp_params(args_array);
 				buff = FormatString(buff, GetStringPtr(_units_weight[_settings_game.locale.units_weight].l), &tmp_params, last);
 				break;
 			}
 
 			case SCC_COMPANY_NAME: { // {COMPANY}
-				const Company *c = Company::GetIfValid(args->GetInt32());
+				const Company *c = Company::GetIfValid(args->Getint32_t());
 				if (c == nullptr) break;
 
 				if (!c->name.empty()) {
-					int64 args_array[] = {(int64)(size_t)c->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)c->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
-					int64 args_array[] = {c->name_2};
+					int64_t args_array[] = {c->name_2};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, c->name_1, &tmp_params, last);
 				}
@@ -1329,11 +1329,11 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_COMPANY_NUM: { // {COMPANY_NUM}
-				CompanyID company = (CompanyID)args->GetInt32();
+				CompanyID company = (CompanyID)args->Getint32_t();
 
 				/* Nothing is added for AI or inactive companies */
 				if (Company::IsValidHumanID(company)) {
-					int64 args_array[] = {company + 1};
+					int64_t args_array[] = {company + 1};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_FORMAT_COMPANY_NUM, &tmp_params, last);
 				}
@@ -1341,22 +1341,22 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_DEPOT_NAME: { // {DEPOT}
-				VehicleType vt = (VehicleType)args->GetInt32(SCC_DEPOT_NAME);
+				VehicleType vt = (VehicleType)args->Getint32_t(SCC_DEPOT_NAME);
 				if (vt == VEH_AIRCRAFT) {
-					uint64 args_array[] = {(uint64)args->GetInt32()};
+					uint64_t args_array[] = {(uint64_t)args->Getint32_t()};
 					WChar types_array[] = {SCC_STATION_NAME};
 					StringParameters tmp_params(args_array, 1, types_array);
 					buff = GetStringWithArgs(buff, STR_FORMAT_DEPOT_NAME_AIRCRAFT, &tmp_params, last);
 					break;
 				}
 
-				const Depot *d = Depot::Get(args->GetInt32());
+				const Depot *d = Depot::Get(args->Getint32_t());
 				if (!d->name.empty()) {
-					int64 args_array[] = {(int64)(size_t)d->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)d->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
-					int64 args_array[] = {d->town->index, d->town_cn + 1};
+					int64_t args_array[] = {d->town->index, d->town_cn + 1};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_FORMAT_DEPOT_NAME_TRAIN + 2 * vt + (d->town_cn == 0 ? 0 : 1), &tmp_params, last);
 				}
@@ -1364,11 +1364,11 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_ENGINE_NAME: { // {ENGINE}
-				const Engine *e = Engine::GetIfValid(args->GetInt32(SCC_ENGINE_NAME));
+				const Engine *e = Engine::GetIfValid(args->Getint32_t(SCC_ENGINE_NAME));
 				if (e == nullptr) break;
 
 				if (!e->name.empty() && e->IsEnabled()) {
-					int64 args_array[] = {(int64)(size_t)e->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)e->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
@@ -1379,15 +1379,15 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_GROUP_NAME: { // {GROUP}
-				const Group *g = Group::GetIfValid(args->GetInt32());
+				const Group *g = Group::GetIfValid(args->Getint32_t());
 				if (g == nullptr) break;
 
 				if (!g->name.empty()) {
-					int64 args_array[] = {(int64)(size_t)g->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)g->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
-					int64 args_array[] = {g->index};
+					int64_t args_array[] = {g->index};
 					StringParameters tmp_params(args_array);
 
 					buff = GetStringWithArgs(buff, STR_FORMAT_GROUP_NAME, &tmp_params, last);
@@ -1396,7 +1396,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_INDUSTRY_NAME: { // {INDUSTRY}
-				const Industry *i = Industry::GetIfValid(args->GetInt32(SCC_INDUSTRY_NAME));
+				const Industry *i = Industry::GetIfValid(args->Getint32_t(SCC_INDUSTRY_NAME));
 				if (i == nullptr) break;
 
 				if (_scan_for_gender_data) {
@@ -1406,7 +1406,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 					buff = FormatString(buff, GetStringPtr(GetIndustrySpec(i->type)->name), &tmp_params, last, next_substr_case_index);
 				} else {
 					/* First print the town name and the industry type name. */
-					int64 args_array[2] = {i->town->index, GetIndustrySpec(i->type)->name};
+					int64_t args_array[2] = {i->town->index, GetIndustrySpec(i->type)->name};
 					StringParameters tmp_params(args_array);
 
 					buff = FormatString(buff, GetStringPtr(STR_FORMAT_INDUSTRY_NAME), &tmp_params, last, next_substr_case_index);
@@ -1416,15 +1416,15 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_PRESIDENT_NAME: { // {PRESIDENT_NAME}
-				const Company *c = Company::GetIfValid(args->GetInt32(SCC_PRESIDENT_NAME));
+				const Company *c = Company::GetIfValid(args->Getint32_t(SCC_PRESIDENT_NAME));
 				if (c == nullptr) break;
 
 				if (!c->president_name.empty()) {
-					int64 args_array[] = {(int64)(size_t)c->president_name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)c->president_name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
-					int64 args_array[] = {c->president_name_2};
+					int64_t args_array[] = {c->president_name_2};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, c->president_name_1, &tmp_params, last);
 				}
@@ -1432,7 +1432,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_STATION_NAME: { // {STATION}
-				StationID sid = args->GetInt32(SCC_STATION_NAME);
+				StationID sid = args->Getint32_t(SCC_STATION_NAME);
 				const Station *st = Station::GetIfValid(sid);
 
 				if (st == nullptr) {
@@ -1445,7 +1445,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 				}
 
 				if (!st->name.empty()) {
-					int64 args_array[] = {(int64)(size_t)st->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)st->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
@@ -1462,7 +1462,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 						}
 					}
 
-					uint64 args_array[] = {STR_TOWN_NAME, st->town->index, st->index};
+					uint64_t args_array[] = {STR_TOWN_NAME, st->town->index, st->index};
 					WChar types_array[] = {0, SCC_TOWN_NAME, SCC_NUM};
 					StringParameters tmp_params(args_array, 3, types_array);
 					buff = GetStringWithArgs(buff, str, &tmp_params, last);
@@ -1471,11 +1471,11 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_TOWN_NAME: { // {TOWN}
-				const Town *t = Town::GetIfValid(args->GetInt32(SCC_TOWN_NAME));
+				const Town *t = Town::GetIfValid(args->Getint32_t(SCC_TOWN_NAME));
 				if (t == nullptr) break;
 
 				if (!t->name.empty()) {
-					int64 args_array[] = {(int64)(size_t)t->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)t->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
@@ -1485,15 +1485,15 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_WAYPOINT_NAME: { // {WAYPOINT}
-				Waypoint *wp = Waypoint::GetIfValid(args->GetInt32(SCC_WAYPOINT_NAME));
+				Waypoint *wp = Waypoint::GetIfValid(args->Getint32_t(SCC_WAYPOINT_NAME));
 				if (wp == nullptr) break;
 
 				if (!wp->name.empty()) {
-					int64 args_array[] = {(int64)(size_t)wp->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)wp->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
-					int64 args_array[] = {wp->town->index, wp->town_cn + 1};
+					int64_t args_array[] = {wp->town->index, wp->town_cn + 1};
 					StringParameters tmp_params(args_array);
 					StringID str = ((wp->string_id == STR_SV_STNAME_BUOY) ? STR_FORMAT_BUOY_NAME : STR_FORMAT_WAYPOINT_NAME);
 					if (wp->town_cn != 0) str++;
@@ -1503,20 +1503,20 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_VEHICLE_NAME: { // {VEHICLE}
-				const Vehicle *v = Vehicle::GetIfValid(args->GetInt32(SCC_VEHICLE_NAME));
+				const Vehicle *v = Vehicle::GetIfValid(args->Getint32_t(SCC_VEHICLE_NAME));
 				if (v == nullptr) break;
 
 				if (!v->name.empty()) {
-					int64 args_array[] = {(int64)(size_t)v->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)v->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else if (v->group_id != DEFAULT_GROUP) {
 					/* The vehicle has no name, but is member of a group, so print group name */
-					int64 args_array[] = {v->group_id, v->unitnumber};
+					int64_t args_array[] = {v->group_id, v->unitnumber};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_FORMAT_GROUP_VEHICLE_NAME, &tmp_params, last);
 				} else {
-					int64 args_array[] = {v->unitnumber};
+					int64_t args_array[] = {v->unitnumber};
 					StringParameters tmp_params(args_array);
 
 					StringID str;
@@ -1534,11 +1534,11 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_SIGN_NAME: { // {SIGN}
-				const Sign *si = Sign::GetIfValid(args->GetInt32());
+				const Sign *si = Sign::GetIfValid(args->Getint32_t());
 				if (si == nullptr) break;
 
 				if (!si->name.empty()) {
-					int64 args_array[] = {(int64)(size_t)si->name.c_str()};
+					int64_t args_array[] = {(int64_t)(size_t)si->name.c_str()};
 					StringParameters tmp_params(args_array);
 					buff = GetStringWithArgs(buff, STR_JUST_RAW_STRING, &tmp_params, last);
 				} else {
@@ -1549,7 +1549,7 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			}
 
 			case SCC_STATION_FEATURES: { // {STATIONFEATURES}
-				buff = StationGetSpecialString(buff, args->GetInt32(SCC_STATION_FEATURES), last);
+				buff = StationGetSpecialString(buff, args->Getint32_t(SCC_STATION_FEATURES), last);
 				break;
 			}
 
@@ -1574,7 +1574,7 @@ static char *StationGetSpecialString(char *buff, int x, const char *last)
 	return buff;
 }
 
-static char *GetSpecialTownNameString(char *buff, int ind, uint32 seed, const char *last)
+static char *GetSpecialTownNameString(char *buff, int ind, uint32_t seed, const char *last)
 {
 	return GenerateTownNameString(buff, last, ind, seed);
 }
@@ -1647,7 +1647,7 @@ static const char _initial_name_letters[] = {
 	'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'W',
 };
 
-static char *GenAndCoName(char *buff, uint32 arg, const char *last)
+static char *GenAndCoName(char *buff, uint32_t arg, const char *last)
 {
 	const char * const *base;
 	uint num;
@@ -1666,7 +1666,7 @@ static char *GenAndCoName(char *buff, uint32 arg, const char *last)
 	return buff;
 }
 
-static char *GenPresidentName(char *buff, uint32 x, const char *last)
+static char *GenPresidentName(char *buff, uint32_t x, const char *last)
 {
 	char initial[] = "?. ";
 	const char * const *base;
@@ -1699,18 +1699,18 @@ static char *GetSpecialNameString(char *buff, int ind, StringParameters *args, c
 {
 	switch (ind) {
 		case 1: // not used
-			return strecpy(buff, _silly_company_names[std::min<uint>(args->GetInt32() & 0xFFFF, lengthof(_silly_company_names) - 1)], last);
+			return strecpy(buff, _silly_company_names[std::min<uint>(args->Getint32_t() & 0xFFFF, lengthof(_silly_company_names) - 1)], last);
 
 		case 2: // used for Foobar & Co company names
-			return GenAndCoName(buff, args->GetInt32(), last);
+			return GenAndCoName(buff, args->Getint32_t(), last);
 
 		case 3: // President name
-			return GenPresidentName(buff, args->GetInt32(), last);
+			return GenPresidentName(buff, args->Getint32_t(), last);
 	}
 
 	/* town name? */
 	if (IsInsideMM(ind - 6, 0, SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1)) {
-		buff = GetSpecialTownNameString(buff, ind - 6, args->GetInt32(), last);
+		buff = GetSpecialTownNameString(buff, ind - 6, args->Getint32_t(), last);
 		return strecpy(buff, " Transport", last);
 	}
 
@@ -1777,7 +1777,7 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 
 	uint count = 0;
 	for (uint i = 0; i < TEXT_TAB_END; i++) {
-		uint16 num = lang_pack->offsets[i];
+		uint16_t num = lang_pack->offsets[i];
 		if (num > TAB_SIZE) return false;
 
 		tab_start[i] = count;

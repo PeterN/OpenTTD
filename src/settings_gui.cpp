@@ -193,7 +193,7 @@ struct GameOptionsWindow : Window {
 			case WID_GO_CURRENCY_DROPDOWN: { // Setup currencies dropdown
 				*selected_index = this->opt->locale.currency;
 				StringID *items = BuildCurrencyDropdown();
-				uint64 disabled = _game_mode == GM_MENU ? 0LL : ~GetMaskOfAllowedCurrencies();
+				uint64_t disabled = _game_mode == GM_MENU ? 0LL : ~GetMaskOfAllowedCurrencies();
 
 				/* Add non-custom currencies; sorted naturally */
 				for (uint i = 0; i < CURRENCY_END; items++, i++) {
@@ -557,7 +557,7 @@ struct GameOptionsWindow : Window {
 			}
 
 			case WID_GO_GUI_ZOOM_DROPDOWN: {
-				int8 new_zoom = index > 0 ? ZOOM_LVL_OUT_4X - index + 1 : ZOOM_LVL_CFG_AUTO;
+				int8_t new_zoom = index > 0 ? ZOOM_LVL_OUT_4X - index + 1 : ZOOM_LVL_CFG_AUTO;
 				if (new_zoom != _gui_zoom_cfg) {
 					GfxClearSpriteCache();
 					_gui_zoom_cfg = new_zoom;
@@ -571,7 +571,7 @@ struct GameOptionsWindow : Window {
 			}
 
 			case WID_GO_FONT_ZOOM_DROPDOWN: {
-				int8 new_zoom = index > 0 ? ZOOM_LVL_OUT_4X - index + 1 : ZOOM_LVL_CFG_AUTO;
+				int8_t new_zoom = index > 0 ? ZOOM_LVL_OUT_4X - index + 1 : ZOOM_LVL_CFG_AUTO;
 				if (new_zoom != _font_zoom_cfg) {
 					GfxClearSpriteCache();
 					_font_zoom_cfg = new_zoom;
@@ -847,7 +847,7 @@ struct SettingEntry : BaseSettingEntry {
 		return this->setting->str_help;
 	}
 
-	void SetValueDParams(uint first_param, int32 value) const;
+	void SetValueDParams(uint first_param, int32_t value) const;
 
 protected:
 	virtual void DrawSetting(GameSettings *settings_ptr, int left, int right, int y, bool highlight) const;
@@ -1082,8 +1082,8 @@ bool SettingEntry::IsVisibleByRestrictionMode(RestrictionMode mode) const
 
 	/* Read the current value. */
 	const void *object = ResolveObject(&GetGameSettings(), sd);
-	int64 current_value = sd->Read(object);
-	int64 filter_value;
+	int64_t current_value = sd->Read(object);
+	int64_t filter_value;
 
 	if (mode == RM_CHANGED_AGAINST_DEFAULT) {
 		/* This entry shall only be visible, if the value deviates from its default value. */
@@ -1160,7 +1160,7 @@ static const void *ResolveObject(const GameSettings *settings_ptr, const IntSett
  * @param first_param First DParam to use
  * @param value Setting value to set params for.
  */
-void SettingEntry::SetValueDParams(uint first_param, int32 value) const
+void SettingEntry::SetValueDParams(uint first_param, int32_t value) const
 {
 	if (this->setting->IsBoolSetting()) {
 		SetDParam(first_param++, value != 0 ? STR_CONFIG_SETTING_ON : STR_CONFIG_SETTING_OFF);
@@ -1200,7 +1200,7 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 	bool editable = sd->IsEditable();
 
 	SetDParam(0, highlight ? STR_ORANGE_STRING1_WHITE : STR_ORANGE_STRING1_LTBLUE);
-	int32 value = sd->Read(ResolveObject(settings_ptr, sd));
+	int32_t value = sd->Read(ResolveObject(settings_ptr, sd));
 	if (sd->IsBoolSetting()) {
 		/* Draw checkbox for boolean-value either on/off */
 		DrawBoolButton(buttons_left, button_y, value != 0, editable);
@@ -1210,7 +1210,7 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 	} else {
 		/* Draw [<][>] boxes for settings of an integer-type */
 		DrawArrowButtons(buttons_left, button_y, COLOUR_YELLOW, state,
-				editable && value != (sd->flags & SF_GUI_0_IS_SPECIAL ? 0 : sd->min), editable && (uint32)value != sd->max);
+				editable && value != (sd->flags & SF_GUI_0_IS_SPECIAL ? 0 : sd->min), editable && (uint32_t)value != sd->max);
 	}
 	this->SetValueDParams(1, value);
 	DrawString(text_left, text_right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, sd->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
@@ -2179,7 +2179,7 @@ struct GameSettingsWindow : Window {
 			return;
 		}
 
-		int32 value = sd->Read(ResolveObject(settings_ptr, sd));
+		int32_t value = sd->Read(ResolveObject(settings_ptr, sd));
 
 		/* clicked on the icon on the left side. Either scroller, bool on/off or dropdown */
 		if (x < SETTING_BUTTON_WIDTH && (sd->flags & SF_GUI_DROPDOWN)) {
@@ -2220,7 +2220,7 @@ struct GameSettingsWindow : Window {
 			this->SetDirty();
 		} else if (x < SETTING_BUTTON_WIDTH) {
 			this->SetDisplayedHelpText(pe);
-			int32 oldvalue = value;
+			int32_t oldvalue = value;
 
 			if (sd->IsBoolSetting()) {
 				value ^= 1;
@@ -2229,7 +2229,7 @@ struct GameSettingsWindow : Window {
 				 * 50-steps you should be able to get from min to max,
 				 * unless specified otherwise in the 'interval' variable
 				 * of the current setting. */
-				uint32 step = (sd->interval == 0) ? ((sd->max - sd->min) / 50) : sd->interval;
+				uint32_t step = (sd->interval == 0) ? ((sd->max - sd->min) / 50) : sd->interval;
 				if (step == 0) step = 1;
 
 				/* don't allow too fast scrolling */
@@ -2242,10 +2242,10 @@ struct GameSettingsWindow : Window {
 				if (x >= SETTING_BUTTON_WIDTH / 2) {
 					value += step;
 					if (sd->min < 0) {
-						assert((int32)sd->max >= 0);
-						if (value > (int32)sd->max) value = (int32)sd->max;
+						assert((int32_t)sd->max >= 0);
+						if (value > (int32_t)sd->max) value = (int32_t)sd->max;
 					} else {
-						if ((uint32)value > sd->max) value = (int32)sd->max;
+						if ((uint32_t)value > sd->max) value = (int32_t)sd->max;
 					}
 					if (value < sd->min) value = sd->min; // skip between "disabled" and minimum
 				} else {
@@ -2272,13 +2272,13 @@ struct GameSettingsWindow : Window {
 		} else {
 			/* Only open editbox if clicked for the second time, and only for types where it is sensible for. */
 			if (this->last_clicked == pe && !sd->IsBoolSetting() && !(sd->flags & SF_GUI_DROPDOWN)) {
-				int64 value64 = value;
+				int64_t value64 = value;
 				/* Show the correct currency-translated value */
 				if (sd->flags & SF_GUI_CURRENCY) value64 *= _currency->rate;
 
 				this->valuewindow_entry = pe;
 				SetDParam(0, value64);
-				/* Limit string length to 14 so that MAX_INT32 * max currency rate doesn't exceed MAX_INT64. */
+				/* Limit string length to 14 so that MAX_int32_t * max currency rate doesn't exceed MAX_int64_t. */
 				ShowQueryString(STR_JUST_INT, STR_CONFIG_SETTING_QUERY_CAPTION, 15, this, CS_NUMERAL, QSF_ENABLE_DEFAULT);
 			}
 			this->SetDisplayedHelpText(pe);
@@ -2302,14 +2302,14 @@ struct GameSettingsWindow : Window {
 		assert(this->valuewindow_entry != nullptr);
 		const IntSettingDesc *sd = this->valuewindow_entry->setting;
 
-		int32 value;
+		int32_t value;
 		if (!StrEmpty(str)) {
 			long long llvalue = atoll(str);
 
 			/* Save the correct currency-translated value */
 			if (sd->flags & SF_GUI_CURRENCY) llvalue /= _currency->rate;
 
-			value = (int32)ClampToI32(llvalue);
+			value = (int32_t)ClampToI32(llvalue);
 		} else {
 			value = sd->def;
 		}

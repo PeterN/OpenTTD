@@ -244,7 +244,7 @@ SQInteger SQFuncState::GetConstant(const SQObject &cons)
 void SQFuncState::SetIntructionParams(SQInteger pos,SQInteger arg0,SQInteger arg1,SQInteger arg2,SQInteger arg3)
 {
 	_instructions[pos]._arg0=(unsigned char)*((SQUnsignedInteger *)&arg0);
-	_instructions[pos]._arg1=(SQInt32)*((SQUnsignedInteger *)&arg1);
+	_instructions[pos]._arg1=(SQint32_t)*((SQUnsignedInteger *)&arg1);
 	_instructions[pos]._arg2=(unsigned char)*((SQUnsignedInteger *)&arg2);
 	_instructions[pos]._arg3=(unsigned char)*((SQUnsignedInteger *)&arg3);
 }
@@ -253,7 +253,7 @@ void SQFuncState::SetIntructionParam(SQInteger pos,SQInteger arg,SQInteger val)
 {
 	switch(arg){
 		case 0:_instructions[pos]._arg0=(unsigned char)*((SQUnsignedInteger *)&val);break;
-		case 1:case 4:_instructions[pos]._arg1=(SQInt32)*((SQUnsignedInteger *)&val);break;
+		case 1:case 4:_instructions[pos]._arg1=(SQint32_t)*((SQUnsignedInteger *)&val);break;
 		case 2:_instructions[pos]._arg2=(unsigned char)*((SQUnsignedInteger *)&val);break;
 		case 3:_instructions[pos]._arg3=(unsigned char)*((SQUnsignedInteger *)&val);break;
 	};

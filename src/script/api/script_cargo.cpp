@@ -40,11 +40,11 @@
 	if (!IsValidCargo(cargo_type)) return nullptr;
 	const CargoSpec *cargo = ::CargoSpec::Get(cargo_type);
 
-	/* cargo->label is a uint32 packing a 4 character non-terminated string,
+	/* cargo->label is a uint32_t packing a 4 character non-terminated string,
 	 * like "PASS", "COAL", "OIL_". New ones can be defined by NewGRFs */
 	char *cargo_label = MallocT<char>(sizeof(cargo->label) + 1);
 	for (uint i = 0; i < sizeof(cargo->label); i++) {
-		cargo_label[i] = GB(cargo->label, (uint8)(sizeof(cargo->label) - i - 1) * 8, 8);
+		cargo_label[i] = GB(cargo->label, (uint8_t)(sizeof(cargo->label) - i - 1) * 8, 8);
 	}
 	cargo_label[sizeof(cargo->label)] = '\0';
 	return cargo_label;
@@ -70,7 +70,7 @@
 	return (ScriptCargo::TownEffect)::CargoSpec::Get(cargo_type)->town_effect;
 }
 
-/* static */ Money ScriptCargo::GetCargoIncome(CargoID cargo_type, uint32 distance, uint32 days_in_transit)
+/* static */ Money ScriptCargo::GetCargoIncome(CargoID cargo_type, uint32_t distance, uint32_t days_in_transit)
 {
 	if (!IsValidCargo(cargo_type)) return -1;
 	return ::GetTransportedGoodsIncome(1, distance, Clamp(days_in_transit * 2 / 5, 0, 255), cargo_type);

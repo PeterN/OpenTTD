@@ -52,25 +52,25 @@ typedef bool (*HasProc)(const ContentInfo *ci, bool md5sum);
 bool ClientNetworkContentSocketHandler::Receive_SERVER_INFO(Packet *p)
 {
 	ContentInfo *ci = new ContentInfo();
-	ci->type     = (ContentType)p->Recv_uint8();
-	ci->id       = (ContentID)p->Recv_uint32();
-	ci->filesize = p->Recv_uint32();
+	ci->type     = (ContentType)p->Recv_uint8_t();
+	ci->id       = (ContentID)p->Recv_uint32_t();
+	ci->filesize = p->Recv_uint32_t();
 
 	ci->name        = p->Recv_string(NETWORK_CONTENT_NAME_LENGTH);
 	ci->version     = p->Recv_string(NETWORK_CONTENT_VERSION_LENGTH);
 	ci->url         = p->Recv_string(NETWORK_CONTENT_URL_LENGTH);
 	ci->description = p->Recv_string(NETWORK_CONTENT_DESC_LENGTH, SVS_REPLACE_WITH_QUESTION_MARK | SVS_ALLOW_NEWLINE);
 
-	ci->unique_id = p->Recv_uint32();
+	ci->unique_id = p->Recv_uint32_t();
 	for (uint j = 0; j < sizeof(ci->md5sum); j++) {
-		ci->md5sum[j] = p->Recv_uint8();
+		ci->md5sum[j] = p->Recv_uint8_t();
 	}
 
-	uint dependency_count = p->Recv_uint8();
+	uint dependency_count = p->Recv_uint8_t();
 	ci->dependencies.reserve(dependency_count);
-	for (uint i = 0; i < dependency_count; i++) ci->dependencies.push_back((ContentID)p->Recv_uint32());
+	for (uint i = 0; i < dependency_count; i++) ci->dependencies.push_back((ContentID)p->Recv_uint32_t());
 
-	uint tag_count = p->Recv_uint8();
+	uint tag_count = p->Recv_uint8_t();
 	ci->tags.reserve(tag_count);
 	for (uint i = 0; i < tag_count; i++) ci->tags.push_back(p->Recv_string(NETWORK_CONTENT_TAG_LENGTH));
 
@@ -200,8 +200,8 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentType type)
 	this->Connect();
 
 	Packet *p = new Packet(PACKET_CONTENT_CLIENT_INFO_LIST);
-	p->Send_uint8 ((byte)type);
-	p->Send_uint32(_openttd_newgrf_version);
+	p->Send_uint8_t ((byte)type);
+	p->Send_uint32_t(_openttd_newgrf_version);
 
 	this->SendPacket(p);
 }
@@ -218,15 +218,15 @@ void ClientNetworkContentSocketHandler::RequestContentList(uint count, const Con
 	while (count > 0) {
 		/* We can "only" send a limited number of IDs in a single packet.
 		 * A packet begins with the packet size and a byte for the type.
-		 * Then this packet adds a uint16 for the count in this packet.
+		 * Then this packet adds a uint16_t for the count in this packet.
 		 * The rest of the packet can be used for the IDs. */
-		uint p_count = std::min<uint>(count, (TCP_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(uint16)) / sizeof(uint32));
+		uint p_count = std::min<uint>(count, (TCP_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(uint16_t)) / sizeof(uint32_t));
 
 		Packet *p = new Packet(PACKET_CONTENT_CLIENT_INFO_ID, TCP_MTU);
-		p->Send_uint16(p_count);
+		p->Send_uint16_t(p_count);
 
 		for (uint i = 0; i < p_count; i++) {
-			p->Send_uint32(content_ids[i]);
+			p->Send_uint32_t(content_ids[i]);
 		}
 
 		this->SendPacket(p);
@@ -247,19 +247,19 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentVector *cv, bo
 	this->Connect();
 
 	assert(cv->size() < 255);
-	assert(cv->size() < (TCP_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(uint8)) /
-			(sizeof(uint8) + sizeof(uint32) + (send_md5sum ? /*sizeof(ContentInfo::md5sum)*/16 : 0)));
+	assert(cv->size() < (TCP_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(uint8_t)) /
+			(sizeof(uint8_t) + sizeof(uint32_t) + (send_md5sum ? /*sizeof(ContentInfo::md5sum)*/16 : 0)));
 
 	Packet *p = new Packet(send_md5sum ? PACKET_CONTENT_CLIENT_INFO_EXTID_MD5 : PACKET_CONTENT_CLIENT_INFO_EXTID, TCP_MTU);
-	p->Send_uint8((uint8)cv->size());
+	p->Send_uint8_t((uint8_t)cv->size());
 
 	for (const ContentInfo *ci : *cv) {
-		p->Send_uint8((byte)ci->type);
-		p->Send_uint32(ci->unique_id);
+		p->Send_uint8_t((byte)ci->type);
+		p->Send_uint32_t(ci->unique_id);
 		if (!send_md5sum) continue;
 
 		for (uint j = 0; j < sizeof(ci->md5sum); j++) {
-			p->Send_uint8(ci->md5sum[j]);
+			p->Send_uint8_t(ci->md5sum[j]);
 		}
 	}
 
@@ -329,7 +329,7 @@ void ClientNetworkContentSocketHandler::DownloadSelectedContentHTTP(const Conten
 
 	/* Allocate memory for the whole request.
 	 * Requests are "id\nid\n..." (as strings), so assume the maximum ID,
-	 * which is uint32 so 10 characters long. Then the newlines and
+	 * which is uint32_t so 10 characters long. Then the newlines and
 	 * multiply that all with the count and then add the '\0'. */
 	uint bytes = (10 + 1) * count + 1;
 	char *content_request = MallocT<char>(bytes);
@@ -359,15 +359,15 @@ void ClientNetworkContentSocketHandler::DownloadSelectedContentFallback(const Co
 	while (count > 0) {
 		/* We can "only" send a limited number of IDs in a single packet.
 		 * A packet begins with the packet size and a byte for the type.
-		 * Then this packet adds a uint16 for the count in this packet.
+		 * Then this packet adds a uint16_t for the count in this packet.
 		 * The rest of the packet can be used for the IDs. */
-		uint p_count = std::min<uint>(count, (TCP_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(uint16)) / sizeof(uint32));
+		uint p_count = std::min<uint>(count, (TCP_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(uint16_t)) / sizeof(uint32_t));
 
 		Packet *p = new Packet(PACKET_CONTENT_CLIENT_CONTENT, TCP_MTU);
-		p->Send_uint16(p_count);
+		p->Send_uint16_t(p_count);
 
 		for (uint i = 0; i < p_count; i++) {
-			p->Send_uint32(content_ids[i]);
+			p->Send_uint32_t(content_ids[i]);
 		}
 
 		this->SendPacket(p);
@@ -481,9 +481,9 @@ bool ClientNetworkContentSocketHandler::Receive_SERVER_CONTENT(Packet *p)
 		delete this->curInfo;
 		/* When we haven't opened a file this must be our first packet with metadata. */
 		this->curInfo = new ContentInfo;
-		this->curInfo->type     = (ContentType)p->Recv_uint8();
-		this->curInfo->id       = (ContentID)p->Recv_uint32();
-		this->curInfo->filesize = p->Recv_uint32();
+		this->curInfo->type     = (ContentType)p->Recv_uint8_t();
+		this->curInfo->id       = (ContentID)p->Recv_uint32_t();
+		this->curInfo->filesize = p->Recv_uint32_t();
 		this->curInfo->filename = p->Recv_string(NETWORK_CONTENT_FILENAME_LENGTH);
 
 		if (!this->BeforeDownload()) {

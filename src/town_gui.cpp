@@ -81,7 +81,7 @@ private:
 	 * @param n The Nth set bit from which we want to know the position
 	 * @return The position of the Nth set bit
 	 */
-	static int GetNthSetBit(uint32 bits, int n)
+	static int GetNthSetBit(uint32_t bits, int n)
 	{
 		if (n >= 0) {
 			uint i;
@@ -713,8 +713,8 @@ private:
 	/** Sort by population (default descending, as big towns are of the most interest). */
 	static bool TownPopulationSorter(const Town * const &a, const Town * const &b)
 	{
-		uint32 a_population = a->cache.population;
-		uint32 b_population = b->cache.population;
+		uint32_t a_population = a->cache.population;
+		uint32_t b_population = b->cache.population;
 		if (a_population == b_population) return TownDirectoryWindow::TownNameSorter(a, b);
 		return a_population < b_population;
 	}
@@ -727,8 +727,8 @@ private:
 		/* Towns without rating are always after towns with rating. */
 		if (HasBit(a->have_ratings, _local_company)) {
 			if (HasBit(b->have_ratings, _local_company)) {
-				int16 a_rating = a->ratings[_local_company];
-				int16 b_rating = b->ratings[_local_company];
+				int16_t a_rating = a->ratings[_local_company];
+				int16_t b_rating = b->ratings[_local_company];
 				if (a_rating == b_rating) return TownDirectoryWindow::TownNameSorter(a, b);
 				return a_rating < b_rating;
 			}
@@ -1008,7 +1008,7 @@ void ShowTownDirectory()
 	new TownDirectoryWindow(&_town_directory_desc);
 }
 
-void CcFoundTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+void CcFoundTown(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	if (result.Failed()) return;
 
@@ -1016,7 +1016,7 @@ void CcFoundTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
 }
 
-void CcFoundRandomTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+void CcFoundRandomTown(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	if (result.Succeeded()) ScrollMainWindowToTile(Town::Get(_new_town_id)->xy);
 }
@@ -1095,7 +1095,7 @@ private:
 	bool city;              ///< Are we building a city?
 	QueryString townname_editbox; ///< Townname editbox
 	bool townnamevalid;     ///< Is generated town name valid?
-	uint32 townnameparts;   ///< Generated town name
+	uint32_t townnameparts;   ///< Generated town name
 	TownNameParams params;  ///< Town name parameters
 
 public:

@@ -1511,11 +1511,11 @@ static Hotkey order_hotkeys[] = {
 	Hotkey('H', "nonstop", OHK_NONSTOP),
 	Hotkey('J', "fullload", OHK_FULLLOAD),
 	Hotkey('K', "unload", OHK_UNLOAD),
-	Hotkey((uint16)0, "nearest_depot", OHK_NEAREST_DEPOT),
-	Hotkey((uint16)0, "always_service", OHK_ALWAYS_SERVICE),
-	Hotkey((uint16)0, "transfer", OHK_TRANSFER),
-	Hotkey((uint16)0, "no_unload", OHK_NO_UNLOAD),
-	Hotkey((uint16)0, "no_load", OHK_NO_LOAD),
+	Hotkey((uint16_t)0, "nearest_depot", OHK_NEAREST_DEPOT),
+	Hotkey((uint16_t)0, "always_service", OHK_ALWAYS_SERVICE),
+	Hotkey((uint16_t)0, "transfer", OHK_TRANSFER),
+	Hotkey((uint16_t)0, "no_unload", OHK_NO_UNLOAD),
+	Hotkey((uint16_t)0, "no_load", OHK_NO_LOAD),
 	HOTKEY_LIST_END
 };
 HotkeyList OrdersWindow::hotkeys("order", order_hotkeys);

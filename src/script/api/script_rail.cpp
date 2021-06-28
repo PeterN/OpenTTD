@@ -154,7 +154,7 @@
 	EnforcePrecondition(false, IsRailTypeAvailable(GetCurrentRailType()));
 	EnforcePrecondition(false, station_id == ScriptStation::STATION_NEW || station_id == ScriptStation::STATION_JOIN_ADJACENT || ScriptStation::IsValidStation(station_id));
 
-	uint32 p1 = GetCurrentRailType() | (platform_length << 16) | (num_platforms << 8);
+	uint32_t p1 = GetCurrentRailType() | (platform_length << 16) | (num_platforms << 8);
 	if (direction == RAILTRACK_NW_SE) p1 |= (1 << 6);
 	if (station_id != ScriptStation::STATION_JOIN_ADJACENT) p1 |= (1 << 24);
 	return ScriptObject::DoCommand(tile, p1, (ScriptStation::IsValidStation(station_id) ? station_id : INVALID_STATION) << 16, CMD_BUILD_RAIL_STATION);
@@ -173,12 +173,12 @@
 	EnforcePrecondition(false, source_industry == ScriptIndustryType::INDUSTRYTYPE_UNKNOWN || source_industry == ScriptIndustryType::INDUSTRYTYPE_TOWN || ScriptIndustryType::IsValidIndustryType(source_industry));
 	EnforcePrecondition(false, goal_industry   == ScriptIndustryType::INDUSTRYTYPE_UNKNOWN || goal_industry   == ScriptIndustryType::INDUSTRYTYPE_TOWN || ScriptIndustryType::IsValidIndustryType(goal_industry));
 
-	uint32 p1 = GetCurrentRailType() | (platform_length << 16) | (num_platforms << 8);
+	uint32_t p1 = GetCurrentRailType() | (platform_length << 16) | (num_platforms << 8);
 	if (direction == RAILTRACK_NW_SE) p1 |= 1 << 6;
 	if (station_id != ScriptStation::STATION_JOIN_ADJACENT) p1 |= (1 << 24);
 
 	const GRFFile *file;
-	uint16 res = GetAiPurchaseCallbackResult(
+	uint16_t res = GetAiPurchaseCallbackResult(
 		GSF_STATIONS,
 		cargo_id,
 		0,
@@ -190,7 +190,7 @@
 		std::min(15u, num_platforms) << 4 | std::min(15u, platform_length),
 		&file
 	);
-	uint32 p2 = (ScriptStation::IsValidStation(station_id) ? station_id : INVALID_STATION) << 16;
+	uint32_t p2 = (ScriptStation::IsValidStation(station_id) ? station_id : INVALID_STATION) << 16;
 	if (res != CALLBACK_FAILED) {
 		int index = 0;
 		const StationSpec *spec = StationClass::GetByGrf(file->grfid, res, &index);
@@ -292,10 +292,10 @@
  * Prepare the second parameter for CmdBuildRailroadTrack and CmdRemoveRailroadTrack. The direction
  * depends on all three tiles. Sometimes the third tile needs to be adjusted.
  */
-static uint32 SimulateDrag(TileIndex from, TileIndex tile, TileIndex *to)
+static uint32_t SimulateDrag(TileIndex from, TileIndex tile, TileIndex *to)
 {
 	int diag_offset = abs(abs((int)::TileX(*to) - (int)::TileX(tile)) - abs((int)::TileY(*to) - (int)::TileY(tile)));
-	uint32 p2 = 0;
+	uint32_t p2 = 0;
 	if (::TileY(from) == ::TileY(*to)) {
 		p2 |= (TRACK_X << 6);
 		*to -= Clamp((int)::TileX(*to) - (int)::TileX(tile), -1, 1);
@@ -364,7 +364,7 @@ static uint32 SimulateDrag(TileIndex from, TileIndex tile, TileIndex *to)
 			(::TileX(from) == ::TileX(tile) && ::TileX(tile) == ::TileX(to)) ||
 			(::TileY(from) == ::TileY(tile) && ::TileY(tile) == ::TileY(to)));
 
-	uint32 p2 = SimulateDrag(from, tile, &to) | 1 << 10 | ScriptRail::GetCurrentRailType();;
+	uint32_t p2 = SimulateDrag(from, tile, &to) | 1 << 10 | ScriptRail::GetCurrentRailType();;
 	return ScriptObject::DoCommand(tile, to, p2, CMD_BUILD_RAILROAD_TRACK);
 }
 
@@ -381,7 +381,7 @@ static uint32 SimulateDrag(TileIndex from, TileIndex tile, TileIndex *to)
 			(::TileX(from) == ::TileX(tile) && ::TileX(tile) == ::TileX(to)) ||
 			(::TileY(from) == ::TileY(tile) && ::TileY(tile) == ::TileY(to)));
 
-	uint32 p2 = SimulateDrag(from, tile, &to);
+	uint32_t p2 = SimulateDrag(from, tile, &to);
 	return ScriptObject::DoCommand(tile, to, p2, CMD_REMOVE_RAILROAD_TRACK);
 }
 
@@ -504,14 +504,14 @@ static bool IsValidSignalType(int signal_type)
 	}
 }
 
-/* static */ int32 ScriptRail::GetMaxSpeed(RailType railtype)
+/* static */ int32_t ScriptRail::GetMaxSpeed(RailType railtype)
 {
 	if (!ScriptRail::IsRailTypeAvailable(railtype)) return -1;
 
 	return ::GetRailTypeInfo((::RailType)railtype)->max_speed;
 }
 
-/* static */ uint16 ScriptRail::GetMaintenanceCostFactor(RailType railtype)
+/* static */ uint16_t ScriptRail::GetMaintenanceCostFactor(RailType railtype)
 {
 	if (!ScriptRail::IsRailTypeAvailable(railtype)) return 0;
 

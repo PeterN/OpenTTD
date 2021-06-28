@@ -55,16 +55,16 @@
 
 struct Md5 {
 private:
-	uint32 count[2]; ///< message length in bits, lsw first
-	uint32 abcd[4];  ///< digest buffer
-	uint8 buf[64];   ///< accumulate block
+	uint32_t count[2]; ///< message length in bits, lsw first
+	uint32_t abcd[4];  ///< digest buffer
+	uint8_t buf[64];   ///< accumulate block
 
-	void Process(const uint8 *data);
+	void Process(const uint8_t *data);
 
 public:
 	Md5();
 	void Append(const void *data, const size_t nbytes);
-	void Finish(uint8 digest[16]);
+	void Finish(uint8_t digest[16]);
 };
 
 #endif /* MD5_INCLUDED */

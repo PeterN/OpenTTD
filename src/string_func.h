@@ -80,7 +80,7 @@ static inline size_t ttd_strnlen(const char *str, size_t maxlen)
 	return t - str;
 }
 
-char *md5sumToString(char *buf, const char *last, const uint8 md5sum[16]);
+char *md5sumToString(char *buf, const char *last, const uint8_t md5sum[16]);
 
 bool IsValidChar(WChar key, CharSetFilter afilter);
 
@@ -110,7 +110,7 @@ static inline WChar Utf8Consume(Titr &s)
  * @param c Unicode character.
  * @return Length of UTF-8 encoding for character.
  */
-static inline int8 Utf8CharLen(WChar c)
+static inline int8_t Utf8CharLen(WChar c)
 {
 	if (c < 0x80)       return 1;
 	if (c < 0x800)      return 2;
@@ -129,7 +129,7 @@ static inline int8 Utf8CharLen(WChar c)
  * @param c char to query length of
  * @return requested size
  */
-static inline int8 Utf8EncodedCharLen(char c)
+static inline int8_t Utf8EncodedCharLen(char c)
 {
 	if (GB(c, 3, 5) == 0x1E) return 4;
 	if (GB(c, 4, 4) == 0x0E) return 3;
@@ -207,7 +207,7 @@ static inline WChar Utf16DecodeSurrogate(uint lead, uint trail)
  * @param c Pointer to one or two UTF-16 code points.
  * @return Decoded Unicode character.
  */
-static inline WChar Utf16DecodeChar(const uint16 *c)
+static inline WChar Utf16DecodeChar(const uint16_t *c)
 {
 	if (Utf16IsLeadSurrogate(c[0])) {
 		return Utf16DecodeSurrogate(c[0], c[1]);

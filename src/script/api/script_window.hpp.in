@@ -140,7 +140,7 @@ public:
 	 * @param number The number of the window to close, or NUMBER_ALL to close all of this class.
 	 * @pre !ScriptGame::IsMultiplayer().
 	 */
-	static void Close(WindowClass window, uint32 number);
+	static void Close(WindowClass window, uint32_t number);
 
 	/**
 	 * Check if a window is open.
@@ -149,7 +149,7 @@ public:
 	 * @pre !ScriptGame::IsMultiplayer().
 	 * @return True if the window is open.
 	 */
-	static bool IsOpen(WindowClass window, uint32 number);
+	static bool IsOpen(WindowClass window, uint32_t number);
 
 	/**
 	 * Highlight a widget in a window.
@@ -162,7 +162,7 @@ public:
 	 * @pre colour < TC_END || (widget == WIDGET_ALL && colour == TC_INVALID).
 	 * @pre IsOpen(window, number).
 	 */
-	static void Highlight(WindowClass window, uint32 number, uint8 widget, TextColour colour);
+	static void Highlight(WindowClass window, uint32_t number, uint8_t widget, TextColour colour);
 
 	// @enum .*Widgets ../../widgets/*_widget.h@ENUM_WIDGETS@
 	// @endenum

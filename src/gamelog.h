@@ -13,7 +13,7 @@
 #include "newgrf_config.h"
 
 /** The actions we log. */
-enum GamelogActionType : uint8 {
+enum GamelogActionType : uint8_t {
 	GLAT_START,        ///< Game created
 	GLAT_LOAD,         ///< Game loaded
 	GLAT_GRF,          ///< GRF changed
@@ -48,19 +48,19 @@ bool GamelogTestEmergency();
 void GamelogRevision();
 void GamelogMode();
 void GamelogOldver();
-void GamelogSetting(const std::string &name, int32 oldval, int32 newval);
+void GamelogSetting(const std::string &name, int32_t oldval, int32_t newval);
 
 void GamelogGRFUpdate(const GRFConfig *oldg, const GRFConfig *newg);
 void GamelogGRFAddList(const GRFConfig *newg);
-void GamelogGRFRemove(uint32 grfid);
+void GamelogGRFRemove(uint32_t grfid);
 void GamelogGRFAdd(const GRFConfig *newg);
 void GamelogGRFCompatible(const GRFIdentifier *newg);
 
 void GamelogTestRevision();
 void GamelogTestMode();
 
-bool GamelogGRFBugReverse(uint32 grfid, uint16 internal_id);
+bool GamelogGRFBugReverse(uint32_t grfid, uint16_t internal_id);
 
-void GamelogInfo(struct LoggedAction *gamelog_action, uint gamelog_actions, uint32 *last_ottd_rev, byte *ever_modified, bool *removed_newgrfs);
+void GamelogInfo(struct LoggedAction *gamelog_action, uint gamelog_actions, uint32_t *last_ottd_rev, byte *ever_modified, bool *removed_newgrfs);
 
 #endif /* GAMELOG_H */

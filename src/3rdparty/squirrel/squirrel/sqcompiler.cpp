@@ -659,9 +659,9 @@ public:
 						if(ctype == OT_INTEGER && (_integer(constval) & (~0x7FFFFFFF)) == 0) {
 							_fs->AddInstruction(_OP_LOADINT, _exst._deref,_integer(constval));
 						}
-						else if(ctype == OT_FLOAT && sizeof(SQFloat) == sizeof(SQInt32)) {
+						else if(ctype == OT_FLOAT && sizeof(SQFloat) == sizeof(SQint32_t)) {
 							SQFloat f = _float(constval);
-							_fs->AddInstruction(_OP_LOADFLOAT, _exst._deref,*((SQInt32 *)&f));
+							_fs->AddInstruction(_OP_LOADFLOAT, _exst._deref,*((SQint32_t *)&f));
 						}
 						else {
 							_fs->AddInstruction(_OP_LOAD, _exst._deref, _fs->GetConstant(constval));
@@ -706,8 +706,8 @@ public:
 						 }
 			break;
 		case TK_FLOAT:
-			if(sizeof(SQFloat) == sizeof(SQInt32)) {
-				_fs->AddInstruction(_OP_LOADFLOAT, _fs->PushTarget(),*((SQInt32 *)&_lex._fvalue));
+			if(sizeof(SQFloat) == sizeof(SQint32_t)) {
+				_fs->AddInstruction(_OP_LOADFLOAT, _fs->PushTarget(),*((SQint32_t *)&_lex._fvalue));
 			}
 			else {
 				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetNumericConstant(_lex._fvalue));

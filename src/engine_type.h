@@ -18,7 +18,7 @@
 #include "sound_type.h"
 #include "strings_type.h"
 
-typedef uint16 EngineID; ///< Unique identification number of an engine.
+typedef uint16_t EngineID; ///< Unique identification number of an engine.
 
 struct Engine;
 
@@ -44,15 +44,15 @@ struct RailVehicleInfo {
 	RailVehicleTypes railveh_type;
 	byte cost_factor;               ///< Purchase cost factor;      For multiheaded engines the sum of both engine prices.
 	RailType railtype;
-	uint16 max_speed;               ///< Maximum speed (1 unit = 1/1.6 mph = 1 km-ish/h)
-	uint16 power;                   ///< Power of engine (hp);      For multiheaded engines the sum of both engine powers.
-	uint16 weight;                  ///< Weight of vehicle (tons);  For multiheaded engines the weight of each single engine.
+	uint16_t max_speed;               ///< Maximum speed (1 unit = 1/1.6 mph = 1 km-ish/h)
+	uint16_t power;                   ///< Power of engine (hp);      For multiheaded engines the sum of both engine powers.
+	uint16_t weight;                  ///< Weight of vehicle (tons);  For multiheaded engines the weight of each single engine.
 	byte running_cost;              ///< Running cost of engine;    For multiheaded engines the sum of both running costs.
 	Price running_cost_class;
 	EngineClass engclass;           ///< Class of engine for this vehicle
 	byte capacity;                  ///< Cargo capacity of vehicle; For multiheaded engines the capacity of each single engine.
 	byte ai_passenger_only;         ///< Bit value to tell AI that this engine is for passenger use only
-	uint16 pow_wag_power;           ///< Extra power applied to consist if wagon should be powered
+	uint16_t pow_wag_power;           ///< Extra power applied to consist if wagon should be powered
 	byte pow_wag_weight;            ///< Extra weight applied to consist if wagon should be powered
 	byte visual_effect;             ///< Bitstuffed NewGRF visual effect data
 	byte shorten_factor;            ///< length on main map for this type is 8 - shorten_factor
@@ -65,8 +65,8 @@ struct RailVehicleInfo {
 struct ShipVehicleInfo {
 	byte image_index;
 	byte cost_factor;
-	uint16 max_speed;      ///< Maximum speed (1 unit = 1/3.2 mph = 0.5 km-ish/h)
-	uint16 capacity;
+	uint16_t max_speed;      ///< Maximum speed (1 unit = 1/3.2 mph = 0.5 km-ish/h)
+	uint16_t capacity;
 	byte running_cost;
 	SoundID sfx;
 	bool old_refittable;   ///< Is ship refittable; only used during initialisation. Later use EngineInfo::refit_mask.
@@ -101,10 +101,10 @@ struct AircraftVehicleInfo {
 	byte subtype;               ///< Type of aircraft. @see AircraftSubTypeBits
 	SoundID sfx;
 	byte acceleration;
-	uint16 max_speed;           ///< Maximum speed (1 unit = 8 mph = 12.8 km-ish/h)
+	uint16_t max_speed;           ///< Maximum speed (1 unit = 8 mph = 12.8 km-ish/h)
 	byte mail_capacity;         ///< Mail capacity (bags).
-	uint16 passenger_capacity;  ///< Passenger capacity (persons).
-	uint16 max_range;           ///< Maximum range of this aircraft.
+	uint16_t passenger_capacity;  ///< Passenger capacity (persons).
+	uint16_t max_range;           ///< Maximum range of this aircraft.
 };
 
 /** Information about a road vehicle. */
@@ -114,12 +114,12 @@ struct RoadVehicleInfo {
 	byte running_cost;
 	Price running_cost_class;
 	SoundID sfx;
-	uint16 max_speed;        ///< Maximum speed (1 unit = 1/3.2 mph = 0.5 km-ish/h)
+	uint16_t max_speed;        ///< Maximum speed (1 unit = 1/3.2 mph = 0.5 km-ish/h)
 	byte capacity;
-	uint8 weight;            ///< Weight in 1/4t units
-	uint8 power;             ///< Power in 10hp units
-	uint8 tractive_effort;   ///< Coefficient of tractive effort
-	uint8 air_drag;          ///< Coefficient of air drag
+	uint8_t weight;            ///< Weight in 1/4t units
+	uint8_t power;             ///< Power in 10hp units
+	uint8_t tractive_effort;   ///< Coefficient of tractive effort
+	uint8_t air_drag;          ///< Coefficient of air drag
 	byte visual_effect;      ///< Bitstuffed NewGRF visual effect data
 	byte shorten_factor;     ///< length on main map for this type is 8 - shorten_factor
 	RoadType roadtype;       ///< Road type
@@ -141,9 +141,9 @@ struct EngineInfo {
 	byte refit_cost;
 	byte misc_flags;    ///< Miscellaneous flags. @see EngineMiscFlags
 	byte callback_mask; ///< Bitmask of vehicle callbacks that have to be called
-	int8 retire_early;  ///< Number of years early to retire vehicle
+	int8_t retire_early;  ///< Number of years early to retire vehicle
 	StringID string_id; ///< Default name of engine
-	uint16 cargo_age_period; ///< Number of ticks before carried cargo is aged.
+	uint16_t cargo_age_period; ///< Number of ticks before carried cargo is aged.
 };
 
 /**

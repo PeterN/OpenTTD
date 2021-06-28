@@ -537,7 +537,7 @@ void CocoaDialog(const char *title, const char *message, const char *buttonLabel
 
 - (BOOL)emulateRightButton:(NSEvent *)event
 {
-	uint32 keymask = 0;
+	uint32_t keymask = 0;
 	if (_settings_client.gui.right_mouse_btn_emulation == RMBE_COMMAND) keymask |= NSEventModifierFlagCommand;
 	if (_settings_client.gui.right_mouse_btn_emulation == RMBE_CONTROL) keymask |= NSEventModifierFlagControl;
 
@@ -676,7 +676,7 @@ void CocoaDialog(const char *title, const char *message, const char *buttonLabel
 	if (down) {
 		/* Map keycode to OTTD code. */
 		auto vk = std::find_if(std::begin(_vk_mapping), std::end(_vk_mapping), [=](const CocoaVkMapping &m) { return m.vk_from == keycode; });
-		uint32 pressed_key = vk != std::end(_vk_mapping) ? vk->map_to : 0;
+		uint32_t pressed_key = vk != std::end(_vk_mapping) ? vk->map_to : 0;
 
 		if (modifiers & NSEventModifierFlagShift)   pressed_key |= WKC_SHIFT;
 		if (modifiers & NSEventModifierFlagControl) pressed_key |= (_settings_client.gui.right_mouse_btn_emulation != RMBE_CONTROL ? WKC_CTRL : WKC_META);

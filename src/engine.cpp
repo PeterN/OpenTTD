@@ -47,7 +47,7 @@ EngineOverrideManager _engine_mngr;
 static Year _year_engine_aging_stops;
 
 /** Number of engines of each vehicle type in original engine data */
-const uint8 _engine_counts[4] = {
+const uint8_t _engine_counts[4] = {
 	lengthof(_orig_rail_vehicle_info),
 	lengthof(_orig_road_vehicle_info),
 	lengthof(_orig_ship_vehicle_info),
@@ -55,7 +55,7 @@ const uint8 _engine_counts[4] = {
 };
 
 /** Offset of the first engine of each vehicle type in original engine data */
-const uint8 _engine_offsets[4] = {
+const uint8_t _engine_offsets[4] = {
 	0,
 	lengthof(_orig_rail_vehicle_info),
 	lengthof(_orig_rail_vehicle_info) + lengthof(_orig_road_vehicle_info),
@@ -144,7 +144,7 @@ bool Engine::IsEnabled() const
  * This is the GRF providing the Action 3.
  * @return GRF ID of the associated NewGRF.
  */
-uint32 Engine::GetGRFID() const
+uint32_t Engine::GetGRFID() const
 {
 	const GRFFile *file = this->GetGRF();
 	return file == nullptr ? 0 : file->grfid;
@@ -188,7 +188,7 @@ bool Engine::CanCarryCargo() const
  * @param mail_capacity returns secondary cargo (mail) capacity of aircraft
  * @return Capacity
  */
-uint Engine::DetermineCapacity(const Vehicle *v, uint16 *mail_capacity) const
+uint Engine::DetermineCapacity(const Vehicle *v, uint16_t *mail_capacity) const
 {
 	assert(v == nullptr || this->index == v->engine_type);
 	if (mail_capacity != nullptr) *mail_capacity = 0;
@@ -206,7 +206,7 @@ uint Engine::DetermineCapacity(const Vehicle *v, uint16 *mail_capacity) const
 	/* Check the refit capacity callback if we are not in the default configuration, or if we are using the new multiplier algorithm. */
 	if (HasBit(this->info.callback_mask, CBM_VEHICLE_REFIT_CAPACITY) &&
 			(new_multipliers || default_cargo != cargo_type || (v != nullptr && v->cargo_subtype != 0))) {
-		uint16 callback = GetVehicleCallback(CBID_VEHICLE_REFIT_CAPACITY, 0, 0, this->index, v);
+		uint16_t callback = GetVehicleCallback(CBID_VEHICLE_REFIT_CAPACITY, 0, 0, this->index, v);
 		if (callback != CALLBACK_FAILED) return callback;
 	}
 
@@ -249,8 +249,8 @@ uint Engine::DetermineCapacity(const Vehicle *v, uint16 *mail_capacity) const
 
 	/* Apply multipliers depending on cargo- and vehicletype. */
 	if (new_multipliers || (this->type != VEH_SHIP && default_cargo != cargo_type)) {
-		uint16 default_multiplier = new_multipliers ? 0x100 : CargoSpec::Get(default_cargo)->multiplier;
-		uint16 cargo_multiplier = CargoSpec::Get(cargo_type)->multiplier;
+		uint16_t default_multiplier = new_multipliers ? 0x100 : CargoSpec::Get(default_cargo)->multiplier;
+		uint16_t cargo_multiplier = CargoSpec::Get(cargo_type)->multiplier;
 		capacity *= cargo_multiplier;
 		if (extra_mail_cap > 0) {
 			uint mail_multiplier = CargoSpec::Get(CT_MAIL)->multiplier;
@@ -438,7 +438,7 @@ Date Engine::GetLifeLengthInDays() const
  * Get the range of an aircraft type.
  * @return Range of the aircraft type in tiles or 0 if unlimited range.
  */
-uint16 Engine::GetRange() const
+uint16_t Engine::GetRange() const
 {
 	switch (this->type) {
 		case VEH_AIRCRAFT:
@@ -493,7 +493,7 @@ void EngineOverrideManager::ResetToDefaultMapping()
  *              If dynnamic_engines is disabled, all newgrf share the same ID scope identified by INVALID_GRFID.
  * @return The engine ID if present, or INVALID_ENGINE if not.
  */
-EngineID EngineOverrideManager::GetID(VehicleType type, uint16 grf_local_id, uint32 grfid)
+EngineID EngineOverrideManager::GetID(VehicleType type, uint16_t grf_local_id, uint32_t grfid)
 {
 	EngineID index = 0;
 	for (const EngineIDMapping &eid : *this) {
@@ -640,7 +640,7 @@ void StartupOneEngine(Engine *e, Date aging_date)
 	              ei->base_intro ^
 	              e->type ^
 	              e->GetGRFID());
-	uint32 r = Random();
+	uint32_t r = Random();
 
 	/* Don't randomise the start-date in the first two years after gamestart to ensure availability
 	 * of engines in early starting games.
@@ -782,7 +782,7 @@ static CompanyID GetPreviewCompany(Engine *e)
 	/* For trains the cargomask has no useful meaning, since you can attach other wagons */
 	CargoTypes cargomask = e->type != VEH_TRAIN ? GetUnionOfArticulatedRefitMasks(e->index, true) : ALL_CARGOTYPES;
 
-	int32 best_hist = -1;
+	int32_t best_hist = -1;
 	for (const Company *c : Company::Iterate()) {
 		if (c->block_preview == 0 && !HasBit(e->preview_asked, c->index) &&
 				c->old_economy[0].performance_history > best_hist) {
@@ -881,7 +881,7 @@ void ClearEnginesHiddenFlagOfCompany(CompanyID cid)
  * @param text Unused.
  * @return The cost of this operation or an error.
  */
-CommandCost CmdSetVehicleVisibility(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdSetVehicleVisibility(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	Engine *e = Engine::GetIfValid(GB(p2, 0, 31));
 	if (e == nullptr || _current_company >= MAX_COMPANIES) return CMD_ERROR;
@@ -905,7 +905,7 @@ CommandCost CmdSetVehicleVisibility(TileIndex tile, DoCommandFlag flags, uint32 
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdWantEnginePreview(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdWantEnginePreview(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	Engine *e = Engine::GetIfValid(p1);
 	if (e == nullptr || !(e->flags & ENGINE_EXCLUSIVE_PREVIEW) || e->preview_company != _current_company) return CMD_ERROR;
@@ -926,7 +926,7 @@ CommandCost CmdWantEnginePreview(TileIndex tile, DoCommandFlag flags, uint32 p1,
  * @param text unused
  * @return the cost of this operation or an error
  */
-CommandCost CmdEngineCtrl(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdEngineCtrl(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	if (_current_company != OWNER_DEITY) return CMD_ERROR;
 	EngineID engine_id = (EngineID)p1;
@@ -1078,7 +1078,7 @@ static bool IsUniqueEngineName(const std::string &name)
  * @param text the new name or an empty string when resetting to the default
  * @return the cost of this operation or an error
  */
-CommandCost CmdRenameEngine(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const std::string &text)
+CommandCost CmdRenameEngine(TileIndex tile, DoCommandFlag flags, uint32_t p1, uint32_t p2, const std::string &text)
 {
 	Engine *e = Engine::GetIfValid(p1);
 	if (e == nullptr) return CMD_ERROR;

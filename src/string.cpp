@@ -550,7 +550,7 @@ int CDECL seprintf(char *str, const char *last, const char *format, ...)
  * @param md5sum the md5sum itself
  * @return a pointer to the next character after the md5sum
  */
-char *md5sumToString(char *buf, const char *last, const uint8 md5sum[16])
+char *md5sumToString(char *buf, const char *last, const uint8_t md5sum[16])
 {
 	char *p = buf;
 
@@ -851,7 +851,7 @@ public:
 				 * break point, but we only want word starts. Move to the next location in
 				 * case the new position points to whitespace. */
 				while (pos != icu::BreakIterator::DONE &&
-						IsWhitespace(Utf16DecodeChar((const uint16 *)&this->utf16_str[pos]))) {
+						IsWhitespace(Utf16DecodeChar((const uint16_t *)&this->utf16_str[pos]))) {
 					int32_t new_pos = this->word_itr->next();
 					/* Don't set it to DONE if it was valid before. Otherwise we'll return END
 					 * even though the iterator wasn't at the end of the string before. */
@@ -883,7 +883,7 @@ public:
 				 * break point, but we only want word starts. Move to the previous location in
 				 * case the new position points to whitespace. */
 				while (pos != icu::BreakIterator::DONE &&
-						IsWhitespace(Utf16DecodeChar((const uint16 *)&this->utf16_str[pos]))) {
+						IsWhitespace(Utf16DecodeChar((const uint16_t *)&this->utf16_str[pos]))) {
 					int32_t new_pos = this->word_itr->previous();
 					/* Don't set it to DONE if it was valid before. Otherwise we'll return END
 					 * even though the iterator wasn't at the start of the string before. */

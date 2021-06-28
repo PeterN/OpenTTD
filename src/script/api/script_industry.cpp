@@ -24,9 +24,9 @@
 
 #include "../../safeguards.h"
 
-/* static */ int32 ScriptIndustry::GetIndustryCount()
+/* static */ int32_t ScriptIndustry::GetIndustryCount()
 {
-	return (int32)::Industry::GetNumItems();
+	return (int32_t)::Industry::GetNumItems();
 }
 
 /* static */ bool ScriptIndustry::IsValidIndustry(IndustryID industry_id)
@@ -59,7 +59,7 @@
 	}
 	EnforcePrecondition(false, IsValidIndustry(industry_id));
 
-	return ScriptObject::DoCommand(0, industry_id, static_cast<uint32>(IndustryAction::SetText), CMD_INDUSTRY_CTRL, encoded_text);
+	return ScriptObject::DoCommand(0, industry_id, static_cast<uint32_t>(IndustryAction::SetText), CMD_INDUSTRY_CTRL, encoded_text);
 }
 
 /* static */ ScriptIndustry::CargoAcceptState ScriptIndustry::IsCargoAccepted(IndustryID industry_id, CargoID cargo_id)
@@ -79,7 +79,7 @@
 	return CAS_NOT_ACCEPTED;
 }
 
-/* static */ int32 ScriptIndustry::GetStockpiledCargo(IndustryID industry_id, CargoID cargo_id)
+/* static */ int32_t ScriptIndustry::GetStockpiledCargo(IndustryID industry_id, CargoID cargo_id)
 {
 	if (!IsValidIndustry(industry_id)) return -1;
 	if (!ScriptCargo::IsValidCargo(cargo_id)) return -1;
@@ -95,7 +95,7 @@
 	return -1;
 }
 
-/* static */ int32 ScriptIndustry::GetLastMonthProduction(IndustryID industry_id, CargoID cargo_id)
+/* static */ int32_t ScriptIndustry::GetLastMonthProduction(IndustryID industry_id, CargoID cargo_id)
 {
 	if (!IsValidIndustry(industry_id)) return -1;
 	if (!ScriptCargo::IsValidCargo(cargo_id)) return -1;
@@ -109,7 +109,7 @@
 	return -1;
 }
 
-/* static */ int32 ScriptIndustry::GetLastMonthTransported(IndustryID industry_id, CargoID cargo_id)
+/* static */ int32_t ScriptIndustry::GetLastMonthTransported(IndustryID industry_id, CargoID cargo_id)
 {
 	if (!IsValidIndustry(industry_id)) return -1;
 	if (!ScriptCargo::IsValidCargo(cargo_id)) return -1;
@@ -123,7 +123,7 @@
 	return -1;
 }
 
-/* static */ int32 ScriptIndustry::GetLastMonthTransportedPercentage(IndustryID industry_id, CargoID cargo_id)
+/* static */ int32_t ScriptIndustry::GetLastMonthTransportedPercentage(IndustryID industry_id, CargoID cargo_id)
 {
 	if (!IsValidIndustry(industry_id)) return -1;
 	if (!ScriptCargo::IsValidCargo(cargo_id)) return -1;
@@ -144,22 +144,22 @@
 	return ::Industry::Get(industry_id)->location.tile;
 }
 
-/* static */ int32 ScriptIndustry::GetAmountOfStationsAround(IndustryID industry_id)
+/* static */ int32_t ScriptIndustry::GetAmountOfStationsAround(IndustryID industry_id)
 {
 	if (!IsValidIndustry(industry_id)) return -1;
 
 	Industry *ind = ::Industry::Get(industry_id);
-	return (int32)ind->stations_near.size();
+	return (int32_t)ind->stations_near.size();
 }
 
-/* static */ int32 ScriptIndustry::GetDistanceManhattanToTile(IndustryID industry_id, TileIndex tile)
+/* static */ int32_t ScriptIndustry::GetDistanceManhattanToTile(IndustryID industry_id, TileIndex tile)
 {
 	if (!IsValidIndustry(industry_id)) return -1;
 
 	return ScriptMap::DistanceManhattan(tile, GetLocation(industry_id));
 }
 
-/* static */ int32 ScriptIndustry::GetDistanceSquareToTile(IndustryID industry_id, TileIndex tile)
+/* static */ int32_t ScriptIndustry::GetDistanceSquareToTile(IndustryID industry_id, TileIndex tile)
 {
 	if (!IsValidIndustry(industry_id)) return -1;
 
@@ -224,7 +224,7 @@
 	return ::Industry::Get(industry_id)->type;
 }
 
-int32 ScriptIndustry::GetLastProductionYear(IndustryID industry_id)
+int32_t ScriptIndustry::GetLastProductionYear(IndustryID industry_id)
 {
 	Industry *i = Industry::GetIfValid(industry_id);
 	if (i == nullptr) return 0;
@@ -245,14 +245,14 @@ ScriptDate::Date ScriptIndustry::GetCargoLastAcceptedDate(IndustryID industry_id
 	}
 }
 
-uint32 ScriptIndustry::GetControlFlags(IndustryID industry_id)
+uint32_t ScriptIndustry::GetControlFlags(IndustryID industry_id)
 {
 	Industry *i = Industry::GetIfValid(industry_id);
 	if (i == nullptr) return 0;
 	return i->ctlflags;
 }
 
-bool ScriptIndustry::SetControlFlags(IndustryID industry_id, uint32 control_flags)
+bool ScriptIndustry::SetControlFlags(IndustryID industry_id, uint32_t control_flags)
 {
 	if (ScriptObject::GetCompany() != OWNER_DEITY) return false;
 	if (!IsValidIndustry(industry_id)) return false;
@@ -276,7 +276,7 @@ bool ScriptIndustry::SetControlFlags(IndustryID industry_id, uint32 control_flag
 
 	auto company = ScriptCompany::ResolveCompanyID(company_id);
 	::Owner owner = (company == ScriptCompany::COMPANY_INVALID ? ::INVALID_OWNER : (::Owner)company);
-	return ScriptObject::DoCommand(0, industry_id, 1 | (((uint8)owner) << 16), CMD_INDUSTRY_CTRL);
+	return ScriptObject::DoCommand(0, industry_id, 1 | (((uint8_t)owner) << 16), CMD_INDUSTRY_CTRL);
 }
 
 /* static */ ScriptCompany::CompanyID ScriptIndustry::GetExclusiveConsumer(IndustryID industry_id)
@@ -295,5 +295,5 @@ bool ScriptIndustry::SetControlFlags(IndustryID industry_id, uint32 control_flag
 
 	auto company = ScriptCompany::ResolveCompanyID(company_id);
 	::Owner owner = (company == ScriptCompany::COMPANY_INVALID ? ::INVALID_OWNER : (::Owner)company);
-	return ScriptObject::DoCommand(0, industry_id, 2 | (((uint8)owner) << 16), CMD_INDUSTRY_CTRL);
+	return ScriptObject::DoCommand(0, industry_id, 2 | (((uint8_t)owner) << 16), CMD_INDUSTRY_CTRL);
 }

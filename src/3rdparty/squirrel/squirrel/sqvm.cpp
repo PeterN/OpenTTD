@@ -381,9 +381,9 @@ bool SQVM::StartCall(SQClosure *closure,SQInteger target,SQInteger args,SQIntege
 		CallInfo lc = {};
 		lc._generator = nullptr;
 		lc._etraps = 0;
-		lc._prevstkbase = (SQInt32) ( stackbase - _stackbase );
-		lc._target = (SQInt32) target;
-		lc._prevtop = (SQInt32) (_top - _stackbase);
+		lc._prevstkbase = (SQint32_t) ( stackbase - _stackbase );
+		lc._target = (SQint32_t) target;
+		lc._prevtop = (SQint32_t) (_top - _stackbase);
 		lc._ncalls = 1;
 		lc._root = SQFalse;
 		PUSH_CALLINFO(this, lc);
@@ -391,8 +391,8 @@ bool SQVM::StartCall(SQClosure *closure,SQInteger target,SQInteger args,SQIntege
 	else {
 		ci->_ncalls++;
 	}
-	ci->_vargs.size = (SQInt32)(nargs - paramssize);
-	ci->_vargs.base = (SQInt32)(_vargsstack.size()-(ci->_vargs.size));
+	ci->_vargs.size = (SQint32_t)(nargs - paramssize);
+	ci->_vargs.base = (SQint32_t)(_vargsstack.size()-(ci->_vargs.size));
 	ci->_closure = closure;
 	ci->_literals = func->_literals;
 	ci->_ip = func->_instructions;
@@ -470,7 +470,7 @@ bool SQVM::DerefInc(SQInteger op,SQObjectPtr &target, SQObjectPtr &self, SQObjec
 
 #define arg0 (_i_._arg0)
 #define arg1 (_i_._arg1)
-#define sarg1 (*(const_cast<SQInt32 *>(&_i_._arg1)))
+#define sarg1 (*(const_cast<SQint32_t *>(&_i_._arg1)))
 #define arg2 (_i_._arg2)
 #define arg3 (_i_._arg3)
 #define sarg3 ((SQInteger)*((const signed char *)&_i_._arg3))
@@ -919,7 +919,7 @@ common_call:
 					return true;
 				}
 				continue;
-			case _OP_LOADNULLS:{ for(SQInt32 n=0; n < arg1; n++) STK(arg0+n) = _null_; }continue;
+			case _OP_LOADNULLS:{ for(SQint32_t n=0; n < arg1; n++) STK(arg0+n) = _null_; }continue;
 			case _OP_LOADROOTTABLE:	TARGET = _roottable; continue;
 			case _OP_LOADBOOL: TARGET = arg1?_true_:_false_; continue;
 			case _OP_DMOVE: STK(arg0) = STK(arg1); STK(arg2) = STK(arg3); continue;
@@ -1162,9 +1162,9 @@ bool SQVM::CallNative(SQNativeClosure *nclosure,SQInteger nargs,SQInteger stackb
 	lci._closure = nclosure;
 	lci._generator = nullptr;
 	lci._etraps = 0;
-	lci._prevstkbase = (SQInt32) (stackbase - _stackbase);
+	lci._prevstkbase = (SQint32_t) (stackbase - _stackbase);
 	lci._ncalls = 1;
-	lci._prevtop = (SQInt32) (oldtop - oldstackbase);
+	lci._prevtop = (SQint32_t) (oldtop - oldstackbase);
 	PUSH_CALLINFO(this, lci);
 	_stackbase = stackbase;
 	//push free variables

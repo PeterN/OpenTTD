@@ -822,19 +822,19 @@ BOOL WINAPI wglGetVideoInfoNV (HPVIDEODEV hpVideoDevice, unsigned long *pulCount
 
 #ifndef WGL_OML_sync_control
 #define WGL_OML_sync_control 1
-typedef BOOL (WINAPI * PFNWGLGETSYNCVALUESOMLPROC) (HDC hdc, INT64 *ust, INT64 *msc, INT64 *sbc);
-typedef BOOL (WINAPI * PFNWGLGETMSCRATEOMLPROC) (HDC hdc, INT32 *numerator, INT32 *denominator);
-typedef INT64 (WINAPI * PFNWGLSWAPBUFFERSMSCOMLPROC) (HDC hdc, INT64 target_msc, INT64 divisor, INT64 remainder);
-typedef INT64 (WINAPI * PFNWGLSWAPLAYERBUFFERSMSCOMLPROC) (HDC hdc, INT fuPlanes, INT64 target_msc, INT64 divisor, INT64 remainder);
-typedef BOOL (WINAPI * PFNWGLWAITFORMSCOMLPROC) (HDC hdc, INT64 target_msc, INT64 divisor, INT64 remainder, INT64 *ust, INT64 *msc, INT64 *sbc);
-typedef BOOL (WINAPI * PFNWGLWAITFORSBCOMLPROC) (HDC hdc, INT64 target_sbc, INT64 *ust, INT64 *msc, INT64 *sbc);
+typedef BOOL (WINAPI * PFNWGLGETSYNCVALUESOMLPROC) (HDC hdc, int64_t *ust, int64_t *msc, int64_t *sbc);
+typedef BOOL (WINAPI * PFNWGLGETMSCRATEOMLPROC) (HDC hdc, int32_t *numerator, int32_t *denominator);
+typedef int64_t (WINAPI * PFNWGLSWAPBUFFERSMSCOMLPROC) (HDC hdc, int64_t target_msc, int64_t divisor, int64_t remainder);
+typedef int64_t (WINAPI * PFNWGLSWAPLAYERBUFFERSMSCOMLPROC) (HDC hdc, INT fuPlanes, int64_t target_msc, int64_t divisor, int64_t remainder);
+typedef BOOL (WINAPI * PFNWGLWAITFORMSCOMLPROC) (HDC hdc, int64_t target_msc, int64_t divisor, int64_t remainder, int64_t *ust, int64_t *msc, int64_t *sbc);
+typedef BOOL (WINAPI * PFNWGLWAITFORSBCOMLPROC) (HDC hdc, int64_t target_sbc, int64_t *ust, int64_t *msc, int64_t *sbc);
 #ifdef WGL_WGLEXT_PROTOTYPES
-BOOL WINAPI wglGetSyncValuesOML (HDC hdc, INT64 *ust, INT64 *msc, INT64 *sbc);
-BOOL WINAPI wglGetMscRateOML (HDC hdc, INT32 *numerator, INT32 *denominator);
-INT64 WINAPI wglSwapBuffersMscOML (HDC hdc, INT64 target_msc, INT64 divisor, INT64 remainder);
-INT64 WINAPI wglSwapLayerBuffersMscOML (HDC hdc, INT fuPlanes, INT64 target_msc, INT64 divisor, INT64 remainder);
-BOOL WINAPI wglWaitForMscOML (HDC hdc, INT64 target_msc, INT64 divisor, INT64 remainder, INT64 *ust, INT64 *msc, INT64 *sbc);
-BOOL WINAPI wglWaitForSbcOML (HDC hdc, INT64 target_sbc, INT64 *ust, INT64 *msc, INT64 *sbc);
+BOOL WINAPI wglGetSyncValuesOML (HDC hdc, int64_t *ust, int64_t *msc, int64_t *sbc);
+BOOL WINAPI wglGetMscRateOML (HDC hdc, int32_t *numerator, int32_t *denominator);
+int64_t WINAPI wglSwapBuffersMscOML (HDC hdc, int64_t target_msc, int64_t divisor, int64_t remainder);
+int64_t WINAPI wglSwapLayerBuffersMscOML (HDC hdc, INT fuPlanes, int64_t target_msc, int64_t divisor, int64_t remainder);
+BOOL WINAPI wglWaitForMscOML (HDC hdc, int64_t target_msc, int64_t divisor, int64_t remainder, int64_t *ust, int64_t *msc, int64_t *sbc);
+BOOL WINAPI wglWaitForSbcOML (HDC hdc, int64_t target_sbc, int64_t *ust, int64_t *msc, int64_t *sbc);
 #endif
 #endif /* WGL_OML_sync_control */
 

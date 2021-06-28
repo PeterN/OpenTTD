@@ -247,7 +247,7 @@ std::vector<int> VideoDriver_Allegro::GetListOfMonitorRefreshRates()
 }
 
 struct AllegroVkMapping {
-	uint16 vk_from;
+	uint16_t vk_from;
 	byte vk_count;
 	byte map_to;
 };
@@ -308,7 +308,7 @@ static const AllegroVkMapping _vk_mapping[] = {
 	AS(KEY_TILDE,   WKC_BACKQUOTE),
 };
 
-static uint32 ConvertAllegroKeyIntoMy(WChar *character)
+static uint32_t ConvertAllegroKeyIntoMy(WChar *character)
 {
 	int scancode;
 	int unicode = ureadkey(&scancode);

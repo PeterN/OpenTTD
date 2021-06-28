@@ -28,12 +28,12 @@ struct NamePartList {
 	byte partcount;
 	byte bitstart;
 	byte bitcount;
-	uint16 maxprob;
+	uint16_t maxprob;
 	NamePart *parts;
 };
 
 struct GRFTownName {
-	uint32 grfid;
+	uint32_t grfid;
 	byte nb_gen;
 	byte id[128];
 	StringID name[128];
@@ -42,13 +42,13 @@ struct GRFTownName {
 	GRFTownName *next;
 };
 
-GRFTownName *AddGRFTownName(uint32 grfid);
-GRFTownName *GetGRFTownName(uint32 grfid);
-void DelGRFTownName(uint32 grfid);
+GRFTownName *AddGRFTownName(uint32_t grfid);
+GRFTownName *GetGRFTownName(uint32_t grfid);
+void DelGRFTownName(uint32_t grfid);
 void CleanUpGRFTownNames();
-char *GRFTownNameGenerate(char *buf, uint32 grfid, uint16 gen, uint32 seed, const char *last);
-uint32 GetGRFTownNameId(int gen);
-uint16 GetGRFTownNameType(int gen);
+char *GRFTownNameGenerate(char *buf, uint32_t grfid, uint16_t gen, uint32_t seed, const char *last);
+uint32_t GetGRFTownNameId(int gen);
+uint16_t GetGRFTownNameType(int gen);
 StringID GetGRFTownNameName(uint gen);
 
 const std::vector<StringID>& GetGRFTownNameList();

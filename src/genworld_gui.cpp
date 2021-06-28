@@ -773,7 +773,7 @@ struct GenerateLandscapeWindow : public Window {
 				break;
 
 			case WID_GL_WATER_PULLDOWN: { // Water quantity
-				uint32 hidden_mask = 0;
+				uint32_t hidden_mask = 0;
 				/* Disable custom water level when the original map generator is active. */
 				if (_settings_newgame.game_creation.land_generator == LG_ORIGINAL) {
 					SetBit(hidden_mask, CUSTOM_SEA_LEVEL_NUMBER_DIFFICULTY);
@@ -900,7 +900,7 @@ struct GenerateLandscapeWindow : public Window {
 		/* Was 'cancel' pressed? */
 		if (str == nullptr) return;
 
-		int32 value;
+		int32_t value;
 		if (!StrEmpty(str)) {
 			value = atoi(str);
 		} else {
@@ -1018,7 +1018,7 @@ void StartScenarioEditor()
  * Start a normal game without the GUI.
  * @param seed The seed of the new game.
  */
-void StartNewGameWithoutGUI(uint32 seed)
+void StartNewGameWithoutGUI(uint32_t seed)
 {
 	/* GenerateWorld takes care of the possible GENERATE_NEW_SEED value in 'seed' */
 	_settings_newgame.game_creation.generation_seed = seed;
@@ -1186,7 +1186,7 @@ struct CreateScenarioWindow : public Window
 	void OnQueryTextFinished(char *str) override
 	{
 		if (!StrEmpty(str)) {
-			int32 value = atoi(str);
+			int32_t value = atoi(str);
 
 			switch (this->widget_id) {
 				case WID_CS_START_DATE_TEXT:

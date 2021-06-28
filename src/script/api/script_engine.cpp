@@ -82,7 +82,7 @@
 }
 
 
-/* static */ int32 ScriptEngine::GetCapacity(EngineID engine_id)
+/* static */ int32_t ScriptEngine::GetCapacity(EngineID engine_id)
 {
 	if (!IsValidEngine(engine_id)) return -1;
 
@@ -106,7 +106,7 @@
 	}
 }
 
-/* static */ int32 ScriptEngine::GetReliability(EngineID engine_id)
+/* static */ int32_t ScriptEngine::GetReliability(EngineID engine_id)
 {
 	if (!IsValidEngine(engine_id)) return -1;
 	if (GetVehicleType(engine_id) == ScriptVehicle::VT_RAIL && IsWagon(engine_id)) return -1;
@@ -114,12 +114,12 @@
 	return ::ToPercent16(::Engine::Get(engine_id)->reliability);
 }
 
-/* static */ int32 ScriptEngine::GetMaxSpeed(EngineID engine_id)
+/* static */ int32_t ScriptEngine::GetMaxSpeed(EngineID engine_id)
 {
 	if (!IsValidEngine(engine_id)) return -1;
 
 	const Engine *e = ::Engine::Get(engine_id);
-	int32 max_speed = e->GetDisplayMaxSpeed(); // km-ish/h
+	int32_t max_speed = e->GetDisplayMaxSpeed(); // km-ish/h
 	if (e->type == VEH_AIRCRAFT) max_speed /= _settings_game.vehicle.plane_speed;
 	return max_speed;
 }
@@ -131,7 +131,7 @@
 	return ::Engine::Get(engine_id)->GetCost();
 }
 
-/* static */ int32 ScriptEngine::GetMaxAge(EngineID engine_id)
+/* static */ int32_t ScriptEngine::GetMaxAge(EngineID engine_id)
 {
 	if (!IsValidEngine(engine_id)) return -1;
 	if (GetVehicleType(engine_id) == ScriptVehicle::VT_RAIL && IsWagon(engine_id)) return -1;
@@ -146,7 +146,7 @@
 	return ::Engine::Get(engine_id)->GetRunningCost();
 }
 
-/* static */ int32 ScriptEngine::GetPower(EngineID engine_id)
+/* static */ int32_t ScriptEngine::GetPower(EngineID engine_id)
 {
 	if (!IsValidEngine(engine_id)) return -1;
 	if (GetVehicleType(engine_id) != ScriptVehicle::VT_RAIL && GetVehicleType(engine_id) != ScriptVehicle::VT_ROAD) return -1;
@@ -155,7 +155,7 @@
 	return ::Engine::Get(engine_id)->GetPower();
 }
 
-/* static */ int32 ScriptEngine::GetWeight(EngineID engine_id)
+/* static */ int32_t ScriptEngine::GetWeight(EngineID engine_id)
 {
 	if (!IsValidEngine(engine_id)) return -1;
 	if (GetVehicleType(engine_id) != ScriptVehicle::VT_RAIL && GetVehicleType(engine_id) != ScriptVehicle::VT_ROAD) return -1;
@@ -163,7 +163,7 @@
 	return ::Engine::Get(engine_id)->GetDisplayWeight();
 }
 
-/* static */ int32 ScriptEngine::GetMaxTractiveEffort(EngineID engine_id)
+/* static */ int32_t ScriptEngine::GetMaxTractiveEffort(EngineID engine_id)
 {
 	if (!IsValidEngine(engine_id)) return -1;
 	if (GetVehicleType(engine_id) != ScriptVehicle::VT_RAIL && GetVehicleType(engine_id) != ScriptVehicle::VT_ROAD) return -1;
@@ -285,7 +285,7 @@
 	EnforcePrecondition(false, IsValidEngine(engine_id));
 	EnforcePrecondition(false, company != ScriptCompany::COMPANY_INVALID);
 
-	return ScriptObject::DoCommand(0, engine_id, (uint32)company | (1 << 31), CMD_ENGINE_CTRL);
+	return ScriptObject::DoCommand(0, engine_id, (uint32_t)company | (1 << 31), CMD_ENGINE_CTRL);
 }
 
 /* static */ bool ScriptEngine::DisableForCompany(EngineID engine_id, ScriptCompany::CompanyID company)

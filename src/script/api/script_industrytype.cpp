@@ -120,8 +120,8 @@
 	EnforcePrecondition(false, CanBuildIndustry(industry_type));
 	EnforcePrecondition(false, ScriptMap::IsValidTile(tile));
 
-	uint32 seed = ::InteractiveRandom();
-	uint32 layout_index = ::InteractiveRandomRange((uint32)::GetIndustrySpec(industry_type)->layouts.size());
+	uint32_t seed = ::InteractiveRandom();
+	uint32_t layout_index = ::InteractiveRandomRange((uint32_t)::GetIndustrySpec(industry_type)->layouts.size());
 	return ScriptObject::DoCommand(tile, (1 << 16) | (layout_index << 8) | industry_type, seed, CMD_BUILD_INDUSTRY);
 }
 
@@ -129,7 +129,7 @@
 {
 	EnforcePrecondition(false, CanProspectIndustry(industry_type));
 
-	uint32 seed = ::InteractiveRandom();
+	uint32_t seed = ::InteractiveRandom();
 	return ScriptObject::DoCommand(0, industry_type, seed, CMD_BUILD_INDUSTRY);
 }
 

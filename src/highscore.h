@@ -22,16 +22,16 @@ struct HighScore {
 	 */
 	char company[(MAX_LENGTH_COMPANY_NAME_CHARS + MAX_LENGTH_PRESIDENT_NAME_CHARS + 5) * MAX_CHAR_LENGTH];
 	StringID title; ///< NOSAVE, has troubles with changing string-numbers.
-	uint16 score;   ///< The score for this high score. Do NOT change type, will break hs.dat
+	uint16_t score;   ///< The score for this high score. Do NOT change type, will break hs.dat
 };
 
 extern HighScore _highscore_table[SP_HIGHSCORE_END][5];
 
 void SaveToHighScore();
 void LoadFromHighScore();
-int8 SaveHighScoreValue(const Company *c);
-int8 SaveHighScoreValueNetwork();
+int8_t SaveHighScoreValue(const Company *c);
+int8_t SaveHighScoreValueNetwork();
 StringID EndGameGetPerformanceTitleFromValue(uint value);
-void ShowHighscoreTable(int difficulty = SP_CUSTOM, int8 rank = -1);
+void ShowHighscoreTable(int difficulty = SP_CUSTOM, int8_t rank = -1);
 
 #endif /* HIGHSCORE_H */

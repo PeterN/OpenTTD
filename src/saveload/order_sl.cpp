@@ -22,7 +22,7 @@
  */
 void Order::ConvertFromOldSavegame()
 {
-	uint8 old_flags = this->flags;
+	uint8_t old_flags = this->flags;
 	this->flags = 0;
 
 	/* First handle non-stop - use value from savegame if possible, else use value from config file */
@@ -76,7 +76,7 @@ void Order::ConvertFromOldSavegame()
  * @param packed packed order
  * @return unpacked order
  */
-static Order UnpackVersion4Order(uint16 packed)
+static Order UnpackVersion4Order(uint16_t packed)
 {
 	return Order(GB(packed, 8, 8) << 16 | GB(packed, 4, 4) << 8 | GB(packed, 0, 4));
 }
@@ -86,7 +86,7 @@ static Order UnpackVersion4Order(uint16 packed)
  * @param packed packed order
  * @return unpacked order
  */
-Order UnpackOldOrder(uint16 packed)
+Order UnpackOldOrder(uint16_t packed)
 {
 	Order order = UnpackVersion4Order(packed);
 
@@ -137,9 +137,9 @@ static void Load_ORDR()
 
 		if (IsSavegameVersionBefore(SLV_5)) {
 			/* Pre-version 5 had another layout for orders
-			 * (uint16 instead of uint32) */
-			len /= sizeof(uint16);
-			uint16 *orders = MallocT<uint16>(len + 1);
+			 * (uint16_t instead of uint32_t) */
+			len /= sizeof(uint16_t);
+			uint16_t *orders = MallocT<uint16_t>(len + 1);
 
 			SlCopy(orders, len, SLE_UINT16);
 
@@ -150,8 +150,8 @@ static void Load_ORDR()
 
 			free(orders);
 		} else if (IsSavegameVersionBefore(SLV_5, 2)) {
-			len /= sizeof(uint32);
-			uint32 *orders = MallocT<uint32>(len + 1);
+			len /= sizeof(uint32_t);
+			uint32_t *orders = MallocT<uint32_t>(len + 1);
 
 			SlCopy(orders, len, SLE_UINT32);
 

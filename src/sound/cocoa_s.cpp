@@ -36,7 +36,7 @@ static FSoundDriver_Cocoa iFSoundDriver_Cocoa;
 static AudioUnit _outputAudioUnit;
 
 /* The CoreAudio callback */
-static OSStatus audioCallback(void *inRefCon, AudioUnitRenderActionFlags *inActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList * ioData)
+static OSStatus audioCallback(void *inRefCon, AudioUnitRenderActionFlags *inActionFlags, const AudioTimeStamp *inTimeStamp, Uint32_t inBusNumber, Uint32_t inNumberFrames, AudioBufferList * ioData)
 {
 	MxMixSamples(ioData->mBuffers[0].mData, ioData->mBuffers[0].mDataByteSize / 4);
 

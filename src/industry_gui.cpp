@@ -88,7 +88,7 @@ static void GetCargoSuffix(uint cargo, CargoSuffixType cst, const Industry *ind,
 
 	if (HasBit(indspec->callback_mask, CBM_IND_CARGO_SUFFIX)) {
 		TileIndex t = (cst != CST_FUND) ? ind->location.tile : INVALID_TILE;
-		uint16 callback = GetIndustryCallback(CBID_INDUSTRY_CARGO_SUFFIX, 0, (cst << 8) | cargo, const_cast<Industry *>(ind), ind_type, t);
+		uint16_t callback = GetIndustryCallback(CBID_INDUSTRY_CARGO_SUFFIX, 0, (cst << 8) | cargo, const_cast<Industry *>(ind), ind_type, t);
 		if (callback == CALLBACK_FAILED) return;
 
 		if (indspec->grf_prop.grffile->grf_version < 8) {
@@ -224,11 +224,11 @@ void SortIndustryTypes()
  * @param p2     Additional data of the #CMD_BUILD_INDUSTRY command.
  * @param cmd    Unused.
  */
-void CcBuildIndustry(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+void CcBuildIndustry(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	if (result.Succeeded()) return;
 
-	uint8 indtype = GB(p1, 0, 8);
+	uint8_t indtype = GB(p1, 0, 8);
 	if (indtype < NUM_INDUSTRYTYPES) {
 		const IndustrySpec *indsp = GetIndustrySpec(indtype);
 		if (indsp->enabled) {
@@ -280,7 +280,7 @@ static WindowDesc _build_industry_desc(
 class BuildIndustryWindow : public Window {
 	int selected_index;                         ///< index of the element in the matrix
 	IndustryType selected_type;                 ///< industry corresponding to the above index
-	uint16 count;                               ///< How many industries are loaded
+	uint16_t count;                               ///< How many industries are loaded
 	IndustryType index[NUM_INDUSTRYTYPES + 1];  ///< Type of industry, in the order it was loaded
 	bool enabled[NUM_INDUSTRYTYPES + 1];        ///< availability state, coming from CBID_INDUSTRY_PROBABILITY (if ever)
 	Scrollbar *vscroll;
@@ -419,7 +419,7 @@ public:
 		switch (widget) {
 			case WID_DPI_MATRIX_WIDGET: {
 				Dimension d = GetStringBoundingBox(STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES);
-				for (uint16 i = 0; i < this->count; i++) {
+				for (uint16_t i = 0; i < this->count; i++) {
 					if (this->index[i] == INVALID_INDUSTRYTYPE) continue;
 					d = maxdim(d, GetStringBoundingBox(GetIndustrySpec(this->index[i])->name));
 				}
@@ -438,7 +438,7 @@ public:
 				uint extra_lines_newgrf = 0;
 				uint max_minwidth = FONT_HEIGHT_NORMAL * MAX_MINWIDTH_LINEHEIGHTS;
 				Dimension d = {0, 0};
-				for (uint16 i = 0; i < this->count; i++) {
+				for (uint16_t i = 0; i < this->count; i++) {
 					if (this->index[i] == INVALID_INDUSTRYTYPE) continue;
 
 					const IndustrySpec *indsp = GetIndustrySpec(this->index[i]);
@@ -528,7 +528,7 @@ public:
 				int icon_bottom = icon_top + this->legend.height;
 
 				int y = r.top;
-				for (uint16 i = 0; i < this->vscroll->GetCapacity() && i + this->vscroll->GetPosition() < this->count; i++) {
+				for (uint16_t i = 0; i < this->vscroll->GetCapacity() && i + this->vscroll->GetPosition() < this->count; i++) {
 					bool selected = this->selected_index == i + this->vscroll->GetPosition();
 
 					if (this->index[i + this->vscroll->GetPosition()] == INVALID_INDUSTRYTYPE) {
@@ -581,7 +581,7 @@ public:
 
 				/* Get the additional purchase info text, if it has not already been queried. */
 				if (HasBit(indsp->callback_mask, CBM_IND_FUND_MORE_TEXT)) {
-					uint16 callback_res = GetIndustryCallback(CBID_INDUSTRY_FUND_MORE_TEXT, 0, 0, nullptr, this->selected_type, INVALID_TILE);
+					uint16_t callback_res = GetIndustryCallback(CBID_INDUSTRY_FUND_MORE_TEXT, 0, 0, nullptr, this->selected_type, INVALID_TILE);
 					if (callback_res != CALLBACK_FAILED && callback_res != 0x400) {
 						if (callback_res > 0x400) {
 							ErrorUnknownCallbackResult(indsp->grf_prop.grffile->grfid, CBID_INDUSTRY_FUND_MORE_TEXT, callback_res);
@@ -700,8 +700,8 @@ public:
 		bool success = true;
 		/* We do not need to protect ourselves against "Random Many Industries" in this mode */
 		const IndustrySpec *indsp = GetIndustrySpec(this->selected_type);
-		uint32 seed = InteractiveRandom();
-		uint32 layout_index = InteractiveRandomRange((uint32)indsp->layouts.size());
+		uint32_t seed = InteractiveRandom();
+		uint32_t layout_index = InteractiveRandomRange((uint32_t)indsp->layouts.size());
 
 		if (_game_mode == GM_EDITOR) {
 			/* Show error if no town exists at all */
@@ -951,7 +951,7 @@ public:
 
 		/* Get the extra message for the GUI */
 		if (HasBit(ind->callback_mask, CBM_IND_WINDOW_MORE_TEXT)) {
-			uint16 callback_res = GetIndustryCallback(CBID_INDUSTRY_WINDOW_MORE_TEXT, 0, 0, i, i->type, i->location.tile);
+			uint16_t callback_res = GetIndustryCallback(CBID_INDUSTRY_WINDOW_MORE_TEXT, 0, 0, i, i->type, i->location.tile);
 			if (callback_res != CALLBACK_FAILED && callback_res != 0x400) {
 				if (callback_res > 0x400) {
 					ErrorUnknownCallbackResult(ind->grf_prop.grffile->grfid, CBID_INDUSTRY_WINDOW_MORE_TEXT, callback_res);
@@ -1505,7 +1505,7 @@ protected:
 		GetAllCargoSuffixes(CARGOSUFFIX_OUT, CST_DIR, i, i->type, indsp, i->produced_cargo, cargo_suffix);
 
 		/* Get industry productions (CargoID, production, suffix, transported) */
-		typedef std::tuple<CargoID, uint16, const char*, uint> CargoInfo;
+		typedef std::tuple<CargoID, uint16_t, const char*, uint> CargoInfo;
 		std::vector<CargoInfo> cargos;
 
 		for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
@@ -3070,7 +3070,7 @@ struct IndustryCargoesWindow : public Window {
 		}
 		if (cid != INVALID_CARGO && (this->ind_cargo < NUM_INDUSTRYTYPES || cid != this->ind_cargo - NUM_INDUSTRYTYPES)) {
 			const CargoSpec *csp = CargoSpec::Get(cid);
-			uint64 params[5];
+			uint64_t params[5];
 			params[0] = csp->name;
 			GuiShowTooltips(this, STR_INDUSTRY_CARGOES_CARGO_TOOLTIP, 1, params, close_cond);
 			return true;

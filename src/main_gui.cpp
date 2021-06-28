@@ -76,7 +76,7 @@ bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyl
 }
 
 
-void CcPlaySound_EXPLOSION(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+void CcPlaySound_EXPLOSION(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_12_EXPLOSION, tile);
 }
@@ -437,12 +437,12 @@ struct MainWindow : Window
 	static HotkeyList hotkeys;
 };
 
-const uint16 _ghk_quit_keys[] = {'Q' | WKC_CTRL, 'Q' | WKC_META, 0};
-const uint16 _ghk_abandon_keys[] = {'W' | WKC_CTRL, 'W' | WKC_META, 0};
-const uint16 _ghk_chat_keys[] = {WKC_RETURN, 'T', 0};
-const uint16 _ghk_chat_all_keys[] = {WKC_SHIFT | WKC_RETURN, WKC_SHIFT | 'T', 0};
-const uint16 _ghk_chat_company_keys[] = {WKC_CTRL | WKC_RETURN, WKC_CTRL | 'T', 0};
-const uint16 _ghk_chat_server_keys[] = {WKC_CTRL | WKC_SHIFT | WKC_RETURN, WKC_CTRL | WKC_SHIFT | 'T', 0};
+const uint16_t _ghk_quit_keys[] = {'Q' | WKC_CTRL, 'Q' | WKC_META, 0};
+const uint16_t _ghk_abandon_keys[] = {'W' | WKC_CTRL, 'W' | WKC_META, 0};
+const uint16_t _ghk_chat_keys[] = {WKC_RETURN, 'T', 0};
+const uint16_t _ghk_chat_all_keys[] = {WKC_SHIFT | WKC_RETURN, WKC_SHIFT | 'T', 0};
+const uint16_t _ghk_chat_company_keys[] = {WKC_CTRL | WKC_RETURN, WKC_CTRL | 'T', 0};
+const uint16_t _ghk_chat_server_keys[] = {WKC_CTRL | WKC_SHIFT | WKC_RETURN, WKC_CTRL | WKC_SHIFT | 'T', 0};
 
 static Hotkey global_hotkeys[] = {
 	Hotkey(_ghk_quit_keys, "quit", GHK_QUIT),
@@ -504,7 +504,7 @@ static WindowDesc _main_window_desc(
  * @param keycode The keycode that was pressed by the user.
  * @return True iff the keycode matches one of the hotkeys for 'quit'.
  */
-bool IsQuitKey(uint16 keycode)
+bool IsQuitKey(uint16_t keycode)
 {
 	int num = MainWindow::hotkeys.CheckMatch(keycode);
 	return num == GHK_QUIT;

@@ -195,7 +195,7 @@ struct PacketWriter : SaveFilter {
 
 		/* Fast-track the size to the client. */
 		this->current = new Packet(PACKET_SERVER_MAP_SIZE);
-		this->current->Send_uint32((uint32)this->total_size);
+		this->current->Send_uint32_t((uint32_t)this->total_size);
 		this->PrependQueue();
 	}
 };
@@ -342,8 +342,8 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendClientInfo(NetworkClientIn
 {
 	if (ci->client_id != INVALID_CLIENT_ID) {
 		Packet *p = new Packet(PACKET_SERVER_CLIENT_INFO);
-		p->Send_uint32(ci->client_id);
-		p->Send_uint8 (ci->client_playas);
+		p->Send_uint32_t(ci->client_id);
+		p->Send_uint8_t (ci->client_playas);
 		p->Send_string(ci->client_name);
 
 		this->SendPacket(p);
@@ -398,7 +398,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyInfo()
 	for (const Company *company : Company::Iterate()) {
 		p = new Packet(PACKET_SERVER_COMPANY_INFO);
 
-		p->Send_uint8 (NETWORK_COMPANY_INFO_VERSION);
+		p->Send_uint8_t (NETWORK_COMPANY_INFO_VERSION);
 		p->Send_bool  (true);
 		this->SendCompanyInformation(p, company, &company_stats[company->index]);
 
@@ -413,7 +413,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyInfo()
 
 	p = new Packet(PACKET_SERVER_COMPANY_INFO);
 
-	p->Send_uint8 (NETWORK_COMPANY_INFO_VERSION);
+	p->Send_uint8_t (NETWORK_COMPANY_INFO_VERSION);
 	p->Send_bool  (false);
 
 	this->SendPacket(p);
@@ -429,7 +429,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendError(NetworkErrorCode err
 {
 	Packet *p = new Packet(PACKET_SERVER_ERROR);
 
-	p->Send_uint8(error);
+	p->Send_uint8_t(error);
 	if (!reason.empty()) p->Send_string(reason);
 	this->SendPacket(p);
 
@@ -478,7 +478,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendNewGRFCheck()
 		if (!HasBit(c->flags, GCF_STATIC)) grf_count++;
 	}
 
-	p->Send_uint8 (grf_count);
+	p->Send_uint8_t (grf_count);
 	for (c = _grfconfig; c != nullptr; c = c->next) {
 		if (!HasBit(c->flags, GCF_STATIC)) SerializeGRFIdentifier(p, &c->ident);
 	}
@@ -513,7 +513,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendNeedCompanyPassword()
 	this->last_frame = this->last_frame_server = _frame_counter;
 
 	Packet *p = new Packet(PACKET_SERVER_NEED_COMPANY_PASSWORD);
-	p->Send_uint32(_settings_game.game_creation.generation_seed);
+	p->Send_uint32_t(_settings_game.game_creation.generation_seed);
 	p->Send_string(_settings_client.network.network_id);
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
@@ -534,8 +534,8 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendWelcome()
 	_network_game_info.clients_on++;
 
 	p = new Packet(PACKET_SERVER_WELCOME);
-	p->Send_uint32(this->client_id);
-	p->Send_uint32(_settings_game.game_creation.generation_seed);
+	p->Send_uint32_t(this->client_id);
+	p->Send_uint32_t(_settings_game.game_creation.generation_seed);
 	p->Send_string(_settings_client.network.network_id);
 	this->SendPacket(p);
 
@@ -562,7 +562,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendWait()
 	}
 
 	p = new Packet(PACKET_SERVER_WAIT);
-	p->Send_uint8(waiting);
+	p->Send_uint8_t(waiting);
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -607,7 +607,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendMap()
 
 		/* Now send the _frame_counter and how many packets are coming */
 		Packet *p = new Packet(PACKET_SERVER_MAP_BEGIN);
-		p->Send_uint32(_frame_counter);
+		p->Send_uint32_t(_frame_counter);
 		this->SendPacket(p);
 
 		NetworkSyncCommandQueue(this);
@@ -645,7 +645,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendJoin(ClientID client_id)
 {
 	Packet *p = new Packet(PACKET_SERVER_JOIN);
 
-	p->Send_uint32(client_id);
+	p->Send_uint32_t(client_id);
 
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
@@ -655,19 +655,19 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendJoin(ClientID client_id)
 NetworkRecvStatus ServerNetworkGameSocketHandler::SendFrame()
 {
 	Packet *p = new Packet(PACKET_SERVER_FRAME);
-	p->Send_uint32(_frame_counter);
-	p->Send_uint32(_frame_counter_max);
+	p->Send_uint32_t(_frame_counter);
+	p->Send_uint32_t(_frame_counter_max);
 #ifdef ENABLE_NETWORK_SYNC_EVERY_FRAME
-	p->Send_uint32(_sync_seed_1);
+	p->Send_uint32_t(_sync_seed_1);
 #ifdef NETWORK_SEND_DOUBLE_SEED
-	p->Send_uint32(_sync_seed_2);
+	p->Send_uint32_t(_sync_seed_2);
 #endif
 #endif
 
 	/* If token equals 0, we need to make a new token and send that. */
 	if (this->last_token == 0) {
 		this->last_token = InteractiveRandomRange(UINT8_MAX - 1) + 1;
-		p->Send_uint8(this->last_token);
+		p->Send_uint8_t(this->last_token);
 	}
 
 	this->SendPacket(p);
@@ -678,11 +678,11 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendFrame()
 NetworkRecvStatus ServerNetworkGameSocketHandler::SendSync()
 {
 	Packet *p = new Packet(PACKET_SERVER_SYNC);
-	p->Send_uint32(_frame_counter);
-	p->Send_uint32(_sync_seed_1);
+	p->Send_uint32_t(_frame_counter);
+	p->Send_uint32_t(_sync_seed_1);
 
 #ifdef NETWORK_SEND_DOUBLE_SEED
-	p->Send_uint32(_sync_seed_2);
+	p->Send_uint32_t(_sync_seed_2);
 #endif
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
@@ -697,7 +697,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCommand(const CommandPacke
 	Packet *p = new Packet(PACKET_SERVER_COMMAND);
 
 	this->NetworkGameSocketHandler::SendCommand(p, cp);
-	p->Send_uint32(cp->frame);
+	p->Send_uint32_t(cp->frame);
 	p->Send_bool  (cp->my_cmd);
 
 	this->SendPacket(p);
@@ -712,17 +712,17 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCommand(const CommandPacke
  * @param msg The actual message.
  * @param data Arbitrary extra data.
  */
-NetworkRecvStatus ServerNetworkGameSocketHandler::SendChat(NetworkAction action, ClientID client_id, bool self_send, const std::string &msg, int64 data)
+NetworkRecvStatus ServerNetworkGameSocketHandler::SendChat(NetworkAction action, ClientID client_id, bool self_send, const std::string &msg, int64_t data)
 {
 	if (this->status < STATUS_PRE_ACTIVE) return NETWORK_RECV_STATUS_OKAY;
 
 	Packet *p = new Packet(PACKET_SERVER_CHAT);
 
-	p->Send_uint8 (action);
-	p->Send_uint32(client_id);
+	p->Send_uint8_t (action);
+	p->Send_uint32_t(client_id);
 	p->Send_bool  (self_send);
 	p->Send_string(msg);
-	p->Send_uint64(data);
+	p->Send_uint64_t(data);
 
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
@@ -737,8 +737,8 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendErrorQuit(ClientID client_
 {
 	Packet *p = new Packet(PACKET_SERVER_ERROR_QUIT);
 
-	p->Send_uint32(client_id);
-	p->Send_uint8 (errorno);
+	p->Send_uint32_t(client_id);
+	p->Send_uint8_t (errorno);
 
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
@@ -752,7 +752,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendQuit(ClientID client_id)
 {
 	Packet *p = new Packet(PACKET_SERVER_QUIT);
 
-	p->Send_uint32(client_id);
+	p->Send_uint32_t(client_id);
 
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
@@ -779,11 +779,11 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendNewGame()
  * @param colour The colour of the result.
  * @param command The command that was executed.
  */
-NetworkRecvStatus ServerNetworkGameSocketHandler::SendRConResult(uint16 colour, const std::string &command)
+NetworkRecvStatus ServerNetworkGameSocketHandler::SendRConResult(uint16_t colour, const std::string &command)
 {
 	Packet *p = new Packet(PACKET_SERVER_RCON);
 
-	p->Send_uint16(colour);
+	p->Send_uint16_t(colour);
 	p->Send_string(command);
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
@@ -798,8 +798,8 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendMove(ClientID client_id, C
 {
 	Packet *p = new Packet(PACKET_SERVER_MOVE);
 
-	p->Send_uint32(client_id);
-	p->Send_uint8(company_id);
+	p->Send_uint32_t(client_id);
+	p->Send_uint8_t(company_id);
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -809,7 +809,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyUpdate()
 {
 	Packet *p = new Packet(PACKET_SERVER_COMPANY_UPDATE);
 
-	p->Send_uint16(_network_company_passworded);
+	p->Send_uint16_t(_network_company_passworded);
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -819,8 +819,8 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendConfigUpdate()
 {
 	Packet *p = new Packet(PACKET_SERVER_CONFIG_UPDATE);
 
-	p->Send_uint8(_settings_client.network.max_companies);
-	p->Send_uint8(_settings_client.network.max_spectators);
+	p->Send_uint8_t(_settings_client.network.max_companies);
+	p->Send_uint8_t(_settings_client.network.max_spectators);
 	this->SendPacket(p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -869,7 +869,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_JOIN(Packet *p)
 	}
 
 	std::string client_revision = p->Recv_string(NETWORK_REVISION_LENGTH);
-	uint32 newgrf_version = p->Recv_uint32();
+	uint32_t newgrf_version = p->Recv_uint32_t();
 
 	/* Check if the client has revision control enabled */
 	if (!IsNetworkCompatibleVersion(client_revision) || _openttd_newgrf_version != newgrf_version) {
@@ -878,7 +878,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_JOIN(Packet *p)
 	}
 
 	std::string client_name = p->Recv_string(NETWORK_CLIENT_NAME_LENGTH);
-	CompanyID playas = (Owner)p->Recv_uint8();
+	CompanyID playas = (Owner)p->Recv_uint8_t();
 
 	if (this->HasClientQuit()) return NETWORK_RECV_STATUS_CLIENT_QUIT;
 
@@ -1113,7 +1113,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_ERROR(Packet *p
 {
 	/* This packets means a client noticed an error and is reporting this
 	 *  to us. Display the error and report it to the other clients */
-	NetworkErrorCode errorno = (NetworkErrorCode)p->Recv_uint8();
+	NetworkErrorCode errorno = (NetworkErrorCode)p->Recv_uint8_t();
 
 	/* The client was never joined.. thank the client for the packet, but ignore it */
 	if (this->status < STATUS_DONE_MAP || this->HasClientQuit()) {
@@ -1167,7 +1167,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_ACK(Packet *p)
 		return this->SendError(NETWORK_ERROR_NOT_AUTHORIZED);
 	}
 
-	uint32 frame = p->Recv_uint32();
+	uint32_t frame = p->Recv_uint32_t();
 
 	/* The client is trying to catch up with the server */
 	if (this->status == STATUS_PRE_ACTIVE) {
@@ -1183,7 +1183,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_ACK(Packet *p)
 	}
 
 	/* Get, and validate the token. */
-	uint8 token = p->Recv_uint8();
+	uint8_t token = p->Recv_uint8_t();
 	if (token == this->last_token) {
 		/* We differentiate between last_token_frame and last_frame so the lag
 		 * test uses the actual lag of the client instead of the lag for getting
@@ -1216,7 +1216,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_ACK(Packet *p)
  * @param data Arbitrary data.
  * @param from_admin Whether the origin is an admin or not.
  */
-void NetworkServerSendChat(NetworkAction action, DestType desttype, int dest, const std::string &msg, ClientID from_id, int64 data, bool from_admin)
+void NetworkServerSendChat(NetworkAction action, DestType desttype, int dest, const std::string &msg, ClientID from_id, int64_t data, bool from_admin)
 {
 	const NetworkClientInfo *ci, *ci_own, *ci_to;
 
@@ -1334,12 +1334,12 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_CHAT(Packet *p)
 		return this->SendError(NETWORK_ERROR_NOT_AUTHORIZED);
 	}
 
-	NetworkAction action = (NetworkAction)p->Recv_uint8();
-	DestType desttype = (DestType)p->Recv_uint8();
-	int dest = p->Recv_uint32();
+	NetworkAction action = (NetworkAction)p->Recv_uint8_t();
+	DestType desttype = (DestType)p->Recv_uint8_t();
+	int dest = p->Recv_uint32_t();
 
 	std::string msg = p->Recv_string(NETWORK_CHAT_LENGTH);
-	int64 data = p->Recv_uint64();
+	int64_t data = p->Recv_uint64_t();
 
 	NetworkClientInfo *ci = this->GetInfo();
 	switch (action) {
@@ -1427,7 +1427,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::Receive_CLIENT_MOVE(Packet *p)
 {
 	if (this->status != STATUS_ACTIVE) return this->SendError(NETWORK_ERROR_NOT_EXPECTED);
 
-	CompanyID company_id = (Owner)p->Recv_uint8();
+	CompanyID company_id = (Owner)p->Recv_uint8_t();
 
 	/* Check if the company is valid, we don't allow moving to AI companies */
 	if (company_id != COMPANY_SPECTATOR && !Company::IsValidHumanID(company_id)) return NETWORK_RECV_STATUS_OKAY;
@@ -1479,23 +1479,23 @@ void NetworkSocketHandler::SendCompanyInformation(Packet *p, const Company *c, c
 	}
 
 	/* Send the information */
-	p->Send_uint8 (c->index);
+	p->Send_uint8_t (c->index);
 	p->Send_string(company_name);
-	p->Send_uint32(c->inaugurated_year);
-	p->Send_uint64(c->old_economy[0].company_value);
-	p->Send_uint64(c->money);
-	p->Send_uint64(income);
-	p->Send_uint16(c->old_economy[0].performance_history);
+	p->Send_uint32_t(c->inaugurated_year);
+	p->Send_uint64_t(c->old_economy[0].company_value);
+	p->Send_uint64_t(c->money);
+	p->Send_uint64_t(income);
+	p->Send_uint16_t(c->old_economy[0].performance_history);
 
 	/* Send 1 if there is a password for the company else send 0 */
 	p->Send_bool  (!_network_company_states[c->index].password.empty());
 
 	for (uint i = 0; i < NETWORK_VEH_END; i++) {
-		p->Send_uint16(stats->num_vehicle[i]);
+		p->Send_uint16_t(stats->num_vehicle[i]);
 	}
 
 	for (uint i = 0; i < NETWORK_VEH_END; i++) {
-		p->Send_uint16(stats->num_station[i]);
+		p->Send_uint16_t(stats->num_station[i]);
 	}
 
 	p->Send_bool(c->is_ai);

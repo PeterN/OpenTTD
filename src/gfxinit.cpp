@@ -414,8 +414,8 @@ MD5File::ChecksumResult MD5File::CheckMD5(Subdirectory subdir, size_t max_size) 
 	size = std::min(size, max_size);
 
 	Md5 checksum;
-	uint8 buffer[1024];
-	uint8 digest[16];
+	uint8_t buffer[1024];
+	uint8_t digest[16];
 	size_t len;
 
 	while ((len = fread(buffer, 1, (size > sizeof(buffer)) ? sizeof(buffer) : size, f)) != 0 && size != 0) {

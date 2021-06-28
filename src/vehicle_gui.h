@@ -40,7 +40,7 @@ struct TestedEngineDetails {
 	Money cost;           ///< Refit cost
 	CargoID cargo;        ///< Cargo type
 	uint capacity;        ///< Cargo capacity
-	uint16 mail_capacity; ///< Mail capacity if available
+	uint16_t mail_capacity; ///< Mail capacity if available
 };
 
 int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number, TestedEngineDetails &te);

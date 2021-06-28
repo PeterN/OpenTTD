@@ -37,7 +37,7 @@
 	return static_cast<ScriptCompany::CompanyID>((int)::Vehicle::Get(vehicle_id)->owner);
 }
 
-/* static */ int32 ScriptVehicle::GetNumWagons(VehicleID vehicle_id)
+/* static */ int32_t ScriptVehicle::GetNumWagons(VehicleID vehicle_id)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 
@@ -282,7 +282,7 @@
 	return v->engine_type;
 }
 
-/* static */ int32 ScriptVehicle::GetUnitNumber(VehicleID vehicle_id)
+/* static */ int32_t ScriptVehicle::GetUnitNumber(VehicleID vehicle_id)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 
@@ -297,14 +297,14 @@
 	return GetString(STR_VEHICLE_NAME);
 }
 
-/* static */ int32 ScriptVehicle::GetAge(VehicleID vehicle_id)
+/* static */ int32_t ScriptVehicle::GetAge(VehicleID vehicle_id)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 
 	return ::Vehicle::Get(vehicle_id)->age;
 }
 
-/* static */ int32 ScriptVehicle::GetWagonAge(VehicleID vehicle_id, int wagon)
+/* static */ int32_t ScriptVehicle::GetWagonAge(VehicleID vehicle_id, int wagon)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 	if (wagon >= GetNumWagons(vehicle_id)) return -1;
@@ -316,21 +316,21 @@
 	return v->age;
 }
 
-/* static */ int32 ScriptVehicle::GetMaxAge(VehicleID vehicle_id)
+/* static */ int32_t ScriptVehicle::GetMaxAge(VehicleID vehicle_id)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 
 	return ::Vehicle::Get(vehicle_id)->max_age;
 }
 
-/* static */ int32 ScriptVehicle::GetAgeLeft(VehicleID vehicle_id)
+/* static */ int32_t ScriptVehicle::GetAgeLeft(VehicleID vehicle_id)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 
 	return ::Vehicle::Get(vehicle_id)->max_age - ::Vehicle::Get(vehicle_id)->age;
 }
 
-/* static */ int32 ScriptVehicle::GetCurrentSpeed(VehicleID vehicle_id)
+/* static */ int32_t ScriptVehicle::GetCurrentSpeed(VehicleID vehicle_id)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 
@@ -402,12 +402,12 @@
 	return (ScriptRoad::RoadType)(int)(::RoadVehicle::Get(vehicle_id))->roadtype;
 }
 
-/* static */ int32 ScriptVehicle::GetCapacity(VehicleID vehicle_id, CargoID cargo)
+/* static */ int32_t ScriptVehicle::GetCapacity(VehicleID vehicle_id, CargoID cargo)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 	if (!ScriptCargo::IsValidCargo(cargo)) return -1;
 
-	uint32 amount = 0;
+	uint32_t amount = 0;
 	for (const Vehicle *v = ::Vehicle::Get(vehicle_id); v != nullptr; v = v->Next()) {
 		if (v->cargo_type == cargo) amount += v->cargo_cap;
 	}
@@ -415,12 +415,12 @@
 	return amount;
 }
 
-/* static */ int32 ScriptVehicle::GetCargoLoad(VehicleID vehicle_id, CargoID cargo)
+/* static */ int32_t ScriptVehicle::GetCargoLoad(VehicleID vehicle_id, CargoID cargo)
 {
 	if (!IsValidVehicle(vehicle_id)) return -1;
 	if (!ScriptCargo::IsValidCargo(cargo)) return -1;
 
-	uint32 amount = 0;
+	uint32_t amount = 0;
 	for (const Vehicle *v = ::Vehicle::Get(vehicle_id); v != nullptr; v = v->Next()) {
 		if (v->cargo_type == cargo) amount += v->cargo.StoredCount();
 	}

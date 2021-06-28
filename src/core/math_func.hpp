@@ -132,15 +132,15 @@ static inline uint ClampU(const uint a, const uint min, const uint max)
  * value 0x80000000 this value is returned (the left one bit is the sign bit).
  * If the 64-bit value is greater than the greatest 32-bit integer value 0x7FFFFFFF
  * this value is returned. In all other cases the 64-bit value 'fits' in a
- * 32-bits integer field and so the value is casted to int32 and returned.
+ * 32-bits integer field and so the value is casted to int32_t and returned.
  *
  * @param a The 64-bit value to clamps
  * @return The 64-bit value reduced to a 32-bit value
  * @see Clamp(int, int, int)
  */
-static inline int32 ClampToI32(const int64 a)
+static inline int32_t ClampToI32(const int64_t a)
 {
-	return static_cast<int32>(Clamp<int64>(a, INT32_MIN, INT32_MAX));
+	return static_cast<int32_t>(Clamp<int64_t>(a, INT32_MIN, INT32_MAX));
 }
 
 /**
@@ -150,13 +150,13 @@ static inline int32 ClampToI32(const int64 a)
  * @return The 64-bit value reduced to a 16-bit value
  * @see ClampU(uint, uint, uint)
  */
-static inline uint16 ClampToU16(const uint64 a)
+static inline uint16_t ClampToU16(const uint64_t a)
 {
 	/* MSVC thinks, in its infinite wisdom, that int min(int, int) is a better
-	 * match for min(uint64, uint) than uint64 min(uint64, uint64). As such we
+	 * match for min(uint64_t, uint) than uint64_t min(uint64_t, uint64_t). As such we
 	 * need to cast the UINT16_MAX to prevent MSVC from displaying its
 	 * infinite loads of warnings. */
-	return static_cast<uint16>(std::min(a, static_cast<uint64>(UINT16_MAX)));
+	return static_cast<uint16_t>(std::min(a, static_cast<uint64_t>(UINT16_MAX)));
 }
 
 /**
@@ -301,6 +301,6 @@ static inline int DivAwayFromZero(int a, uint b)
 	}
 }
 
-uint32 IntSqrt(uint32 num);
+uint32_t IntSqrt(uint32_t num);
 
 #endif /* MATH_FUNC_HPP */

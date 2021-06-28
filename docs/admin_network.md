@@ -222,10 +222,10 @@ Last updated:    2011-01-20
   `ADMIN_PACKET_ADMIN_UPDATE_FREQUENCY` and `ADMIN_PACKET_ADMIN_POLL`
 
     Potential gotcha: the AdminUpdateType integer type used is a
-    uint16 for `UPDATE_FREQUENCY`, and a uint8 for `POLL`.
+    uint16_t for `UPDATE_FREQUENCY`, and a uint8_t for `POLL`.
     This is due to boring legacy reasons.
     It is safe to cast between the two when sending
-    (i.e cast from a uint8 to a uint16).
+    (i.e cast from a uint8_t to a uint16_t).
 
   All `ADMIN_PACKET_SERVER_*` packets have an enum value greater 100.
 

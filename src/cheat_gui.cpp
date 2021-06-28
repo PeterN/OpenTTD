@@ -40,7 +40,7 @@
  * This variable is semantically a constant value, but because the cheat
  * code requires to be able to write to the variable it is not constified.
  */
-static int32 _money_cheat_amount = 10000000;
+static int32_t _money_cheat_amount = 10000000;
 
 /**
  * Handle cheating of money.
@@ -51,9 +51,9 @@ static int32 _money_cheat_amount = 10000000;
  * @param p2 is -1 or +1 (down/up)
  * @return Amount of money cheat.
  */
-static int32 ClickMoneyCheat(int32 p1, int32 p2)
+static int32_t ClickMoneyCheat(int32_t p1, int32_t p2)
 {
-	DoCommandP(0, (uint32)(p2 * _money_cheat_amount), 0, CMD_MONEY_CHEAT);
+	DoCommandP(0, (uint32_t)(p2 * _money_cheat_amount), 0, CMD_MONEY_CHEAT);
 	return _money_cheat_amount;
 }
 
@@ -63,7 +63,7 @@ static int32 ClickMoneyCheat(int32 p1, int32 p2)
  * @param p2 is -1 or +1 (down/up)
  * @return The new company.
  */
-static int32 ClickChangeCompanyCheat(int32 p1, int32 p2)
+static int32_t ClickChangeCompanyCheat(int32_t p1, int32_t p2)
 {
 	while ((uint)p1 < Company::GetPoolSize()) {
 		if (Company::IsValidID((CompanyID)p1)) {
@@ -82,7 +82,7 @@ static int32 ClickChangeCompanyCheat(int32 p1, int32 p2)
  * @param p2 unused
  * @return New value allowing change of industry production.
  */
-static int32 ClickSetProdCheat(int32 p1, int32 p2)
+static int32_t ClickSetProdCheat(int32_t p1, int32_t p2)
 {
 	_cheats.setup_prod.value = (p1 != 0);
 	InvalidateWindowClassesData(WC_INDUSTRY_VIEW);
@@ -97,7 +97,7 @@ extern void EnginesMonthlyLoop();
  * @param p2 +1 (increase) or -1 (decrease).
  * @return New year.
  */
-static int32 ClickChangeDateCheat(int32 p1, int32 p2)
+static int32_t ClickChangeDateCheat(int32_t p1, int32_t p2)
 {
 	YearMonthDay ymd;
 	ConvertDateToYMD(_date, &ymd);
@@ -123,14 +123,14 @@ static int32 ClickChangeDateCheat(int32 p1, int32 p2)
  * @return New value (or unchanged old value) of the maximum
  *         allowed heightlevel value.
  */
-static int32 ClickChangeMaxHlCheat(int32 p1, int32 p2)
+static int32_t ClickChangeMaxHlCheat(int32_t p1, int32_t p2)
 {
 	p1 = Clamp(p1, MIN_MAP_HEIGHT_LIMIT, MAX_MAP_HEIGHT_LIMIT);
 
 	/* Check if at least one mountain on the map is higher than the new value.
 	 * If yes, disallow the change. */
 	for (TileIndex t = 0; t < MapSize(); t++) {
-		if ((int32)TileHeight(t) > p1) {
+		if ((int32_t)TileHeight(t) > p1) {
 			ShowErrorMessage(STR_CONFIG_SETTING_TOO_HIGH_MOUNTAIN, INVALID_STRING_ID, WL_ERROR);
 			/* Return old, unchanged value */
 			return _settings_game.construction.map_height_limit;
@@ -166,7 +166,7 @@ enum CheatNumbers {
  * @param p1 The new value.
  * @param p2 Change direction (+1, +1), \c 0 for boolean settings.
  */
-typedef int32 CheckButtonClick(int32 p1, int32 p2);
+typedef int32_t CheckButtonClick(int32_t p1, int32_t p2);
 
 /** Information of a cheat. */
 struct CheatEntry {
@@ -251,7 +251,7 @@ struct CheatWindow : Window {
 				}
 
 				default: {
-					int32 val = (int32)ReadValue(ce->variable, ce->type);
+					int32_t val = (int32_t)ReadValue(ce->variable, ce->type);
 					char buf[512];
 
 					/* Draw [<][>] boxes for settings of an integer-type */
@@ -339,7 +339,7 @@ struct CheatWindow : Window {
 		if (btn >= lengthof(_cheats_ui)) return;
 
 		const CheatEntry *ce = &_cheats_ui[btn];
-		int value = (int32)ReadValue(ce->variable, ce->type);
+		int value = (int32_t)ReadValue(ce->variable, ce->type);
 		int oldvalue = value;
 
 		if (btn == CHT_CHANGE_DATE && x >= 20 + this->box_width + SETTING_BUTTON_WIDTH) {
@@ -375,7 +375,7 @@ struct CheatWindow : Window {
 				break;
 		}
 
-		if (value != oldvalue) WriteValue(ce->variable, ce->type, (int64)value);
+		if (value != oldvalue) WriteValue(ce->variable, ce->type, (int64_t)value);
 
 		this->SetTimeout();
 
@@ -394,12 +394,12 @@ struct CheatWindow : Window {
 		if (str == nullptr || StrEmpty(str)) return;
 
 		const CheatEntry *ce = &_cheats_ui[clicked_widget];
-		int oldvalue = (int32)ReadValue(ce->variable, ce->type);
+		int oldvalue = (int32_t)ReadValue(ce->variable, ce->type);
 		int value = atoi(str);
 		*ce->been_used = true;
 		value = ce->proc(value, value - oldvalue);
 
-		if (value != oldvalue) WriteValue(ce->variable, ce->type, (int64)value);
+		if (value != oldvalue) WriteValue(ce->variable, ce->type, (int64_t)value);
 		this->SetDirty();
 	}
 };

@@ -73,7 +73,7 @@ public:
 	 * @param port the port
 	 * @param family the address family
 	 */
-	NetworkAddress(std::string_view hostname = "", uint16 port = 0, int family = AF_UNSPEC) :
+	NetworkAddress(std::string_view hostname = "", uint16_t port = 0, int family = AF_UNSPEC) :
 		address_length(0),
 		resolved(false)
 	{
@@ -103,8 +103,8 @@ public:
 		return this->address_length;
 	}
 
-	uint16 GetPort() const;
-	void SetPort(uint16 port);
+	uint16_t GetPort() const;
+	void SetPort(uint16_t port);
 
 	/**
 	 * Check whether the IP address has been resolved already

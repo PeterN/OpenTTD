@@ -20,10 +20,10 @@
 
 /** Container for all information about a text effect */
 struct TextEffect : public ViewportSign {
-	uint64 params_1;     ///< DParam parameter
-	uint64 params_2;     ///< second DParam parameter
+	uint64_t params_1;     ///< DParam parameter
+	uint64_t params_2;     ///< second DParam parameter
 	StringID string_id;  ///< String to draw for the text effect, if INVALID_STRING_ID then it's not valid
-	uint8 duration;      ///< How long the text effect should stay, in ticks (applies only when mode == TE_RISING)
+	uint8_t duration;      ///< How long the text effect should stay, in ticks (applies only when mode == TE_RISING)
 	TextEffectMode mode; ///< Type of text effect
 
 	/** Reset the text effect */
@@ -38,7 +38,7 @@ struct TextEffect : public ViewportSign {
 static std::vector<struct TextEffect> _text_effects; ///< Text effects are stored there
 
 /* Text Effects */
-TextEffectID AddTextEffect(StringID msg, int center, int y, uint8 duration, TextEffectMode mode)
+TextEffectID AddTextEffect(StringID msg, int center, int y, uint8_t duration, TextEffectMode mode)
 {
 	if (_game_mode == GM_MENU) return INVALID_TE_ID;
 

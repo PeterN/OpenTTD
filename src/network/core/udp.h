@@ -75,27 +75,27 @@ protected:
 
 	/**
 	 * Reply with detailed company information.
-	 * uint8   Version of the packet.
-	 * uint8   Number of companies.
+	 * uint8_t   Version of the packet.
+	 * uint8_t   Number of companies.
 	 * For each company:
-	 *   uint8   ID of the company.
+	 *   uint8_t   ID of the company.
 	 *   string  Name of the company.
-	 *   uint32  Year the company was inaugurated.
-	 *   uint64  Value.
-	 *   uint64  Money.
-	 *   uint64  Income.
-	 *   uint16  Performance (last quarter).
+	 *   uint32_t  Year the company was inaugurated.
+	 *   uint64_t  Value.
+	 *   uint64_t  Money.
+	 *   uint64_t  Income.
+	 *   uint16_t  Performance (last quarter).
 	 *   bool    Company is password protected.
-	 *   uint16  Number of trains.
-	 *   uint16  Number of lorries.
-	 *   uint16  Number of busses.
-	 *   uint16  Number of planes.
-	 *   uint16  Number of ships.
-	 *   uint16  Number of train stations.
-	 *   uint16  Number of lorry stations.
-	 *   uint16  Number of bus stops.
-	 *   uint16  Number of airports and heliports.
-	 *   uint16  Number of harbours.
+	 *   uint16_t  Number of trains.
+	 *   uint16_t  Number of lorries.
+	 *   uint16_t  Number of busses.
+	 *   uint16_t  Number of planes.
+	 *   uint16_t  Number of ships.
+	 *   uint16_t  Number of train stations.
+	 *   uint16_t  Number of lorry stations.
+	 *   uint16_t  Number of bus stops.
+	 *   uint16_t  Number of airports and heliports.
+	 *   uint16_t  Number of harbours.
 	 *   bool    Company is an AI.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
@@ -105,9 +105,9 @@ protected:
 	/**
 	 * Registers the server to the master server.
 	 * string  The "welcome" message to root out other binary packets.
-	 * uint8   Version of the protocol.
-	 * uint16  The port to unregister.
-	 * uint64  The session key.
+	 * uint8_t   Version of the protocol.
+	 * uint16_t  The port to unregister.
+	 * uint64_t  The session key.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
@@ -122,8 +122,8 @@ protected:
 
 	/**
 	 * The client requests a list of servers.
-	 * uint8   The protocol version.
-	 * uint8   The type of server to look for: IPv4, IPv6 or based on the received packet.
+	 * uint8_t   The protocol version.
+	 * uint8_t   The type of server to look for: IPv4, IPv6 or based on the received packet.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
@@ -131,10 +131,10 @@ protected:
 
 	/**
 	 * The server sends a list of servers.
-	 * uint8   The protocol version.
+	 * uint8_t   The protocol version.
 	 * For each server:
 	 *   4 or 16 bytes of IPv4 or IPv6 address.
-	 *   uint8   The port.
+	 *   uint8_t   The port.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
@@ -142,8 +142,8 @@ protected:
 
 	/**
 	 * A server unregisters itself at the master server.
-	 * uint8   Version of the protocol.
-	 * uint16  The port to unregister.
+	 * uint8_t   Version of the protocol.
+	 * uint16_t  The port to unregister.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
@@ -151,10 +151,10 @@ protected:
 
 	/**
 	 * The client requests information about some NewGRFs.
-	 * uint8   The number of NewGRFs information is requested about.
+	 * uint8_t   The number of NewGRFs information is requested about.
 	 * For each NewGRF:
-	 *   uint32      The GRFID.
-	 *   16 * uint8  MD5 checksum of the GRF.
+	 *   uint32_t      The GRFID.
+	 *   16 * uint8_t  MD5 checksum of the GRF.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
@@ -162,10 +162,10 @@ protected:
 
 	/**
 	 * The server returns information about some NewGRFs.
-	 * uint8   The number of NewGRFs information is requested about.
+	 * uint8_t   The number of NewGRFs information is requested about.
 	 * For each NewGRF:
-	 *   uint32      The GRFID.
-	 *   16 * uint8  MD5 checksum of the GRF.
+	 *   uint32_t      The GRFID.
+	 *   16 * uint8_t  MD5 checksum of the GRF.
 	 *   string      The name of the NewGRF.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
@@ -174,7 +174,7 @@ protected:
 
 	/**
 	 * The master server sends us a session key.
-	 * uint64  The session key.
+	 * uint64_t  The session key.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */

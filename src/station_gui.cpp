@@ -1498,7 +1498,7 @@ struct StationViewWindow : public Window {
 			StationID from = it->first;
 			CargoDataEntry *source_entry = cargo_entry->InsertOrRetrieve(from);
 			const FlowStat::SharesMap *shares = it->second.GetShares();
-			uint32 prev_count = 0;
+			uint32_t prev_count = 0;
 			for (FlowStat::SharesMap::const_iterator flow_it = shares->begin(); flow_it != shares->end(); ++flow_it) {
 				StationID via = flow_it->second;
 				CargoDataEntry *via_entry = source_entry->InsertOrRetrieve(via);
@@ -1529,7 +1529,7 @@ struct StationViewWindow : public Window {
 			FlowStatMap::const_iterator map_it = flowmap.find(source);
 			if (map_it != flowmap.end()) {
 				const FlowStat::SharesMap *shares = map_it->second.GetShares();
-				uint32 prev_count = 0;
+				uint32_t prev_count = 0;
 				for (FlowStat::SharesMap::const_iterator i = shares->begin(); i != shares->end(); ++i) {
 					tmp.InsertOrRetrieve(i->second)->Update(i->first - prev_count);
 					prev_count = i->first;

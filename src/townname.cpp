@@ -46,10 +46,10 @@ TownNameParams::TownNameParams(const Town *t) :
  * @param last end of buffer
  * @return pointer to terminating '\0'
  */
-char *GetTownName(char *buff, const TownNameParams *par, uint32 townnameparts, const char *last)
+char *GetTownName(char *buff, const TownNameParams *par, uint32_t townnameparts, const char *last)
 {
 	if (par->grfid == 0) {
-		int64 args_array[1] = { townnameparts };
+		int64_t args_array[1] = { townnameparts };
 		StringParameters tmp_params(args_array);
 		return GetStringWithArgs(buff, par->type, &tmp_params, last);
 	}
@@ -79,7 +79,7 @@ char *GetTownName(char *buff, const Town *t, const char *last)
  * @param town_names if a name is generated, check its uniqueness with the set
  * @return true iff name is valid and unique
  */
-bool VerifyTownName(uint32 r, const TownNameParams *par, TownNames *town_names)
+bool VerifyTownName(uint32_t r, const TownNameParams *par, TownNames *town_names)
 {
 	/* reserve space for extra unicode character and terminating '\0' */
 	char buf1[(MAX_LENGTH_TOWN_NAME_CHARS + 1) * MAX_CHAR_LENGTH];
@@ -116,7 +116,7 @@ bool VerifyTownName(uint32 r, const TownNameParams *par, TownNames *town_names)
  * @param town_names if a name is generated, check its uniqueness with the set
  * @return true iff a name was generated
  */
-bool GenerateTownName(uint32 *townnameparts, TownNames *town_names)
+bool GenerateTownName(uint32_t *townnameparts, TownNames *town_names)
 {
 	TownNameParams par(_settings_game.game_creation.town_name);
 
@@ -130,7 +130,7 @@ bool GenerateTownName(uint32 *townnameparts, TownNames *town_names)
 	 * the other towns may take considerable amount of time (10000 is
 	 * too much). */
 	for (int i = 1000; i != 0; i--) {
-		uint32 r = _generating_world ? Random() : InteractiveRandom();
+		uint32_t r = _generating_world ? Random() : InteractiveRandom();
 		if (!VerifyTownName(r, &par, town_names)) continue;
 
 		*townnameparts = r;
@@ -149,7 +149,7 @@ bool GenerateTownName(uint32 *townnameparts, TownNames *town_names)
  * @param seed seed
  * @return seed transformed to a number from given range
  */
-static inline uint32 SeedChance(byte shift_by, int max, uint32 seed)
+static inline uint32_t SeedChance(byte shift_by, int max, uint32_t seed)
 {
 	return (GB(seed, shift_by, 16) * max) >> 16;
 }
@@ -162,7 +162,7 @@ static inline uint32 SeedChance(byte shift_by, int max, uint32 seed)
  * @param seed seed
  * @return seed transformed to a number from given range
  */
-static inline uint32 SeedModChance(byte shift_by, int max, uint32 seed)
+static inline uint32_t SeedModChance(byte shift_by, int max, uint32_t seed)
 {
 	/* This actually gives *MUCH* more even distribution of the values
 	 * than SeedChance(), which is absolutely horrible in that. If
@@ -185,7 +185,7 @@ static inline uint32 SeedModChance(byte shift_by, int max, uint32 seed)
  * @param bias minimum value that can be returned
  * @return seed transformed to a number from given range
  */
-static inline int32 SeedChanceBias(byte shift_by, int max, uint32 seed, int bias)
+static inline int32_t SeedChanceBias(byte shift_by, int max, uint32_t seed, int bias)
 {
 	return SeedChance(shift_by, max + bias, seed) - bias;
 }
@@ -229,7 +229,7 @@ static void ReplaceEnglishWords(char *buf, bool original)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeEnglishOriginalTownName(char *buf, const char *last, uint32 seed)
+static char *MakeEnglishOriginalTownName(char *buf, const char *last, uint32_t seed)
 {
 	char *orig = buf;
 
@@ -265,7 +265,7 @@ static char *MakeEnglishOriginalTownName(char *buf, const char *last, uint32 see
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeEnglishAdditionalTownName(char *buf, const char *last, uint32 seed)
+static char *MakeEnglishAdditionalTownName(char *buf, const char *last, uint32_t seed)
 {
 	char *orig = buf;
 
@@ -304,7 +304,7 @@ static char *MakeEnglishAdditionalTownName(char *buf, const char *last, uint32 s
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeAustrianTownName(char *buf, const char *last, uint32 seed)
+static char *MakeAustrianTownName(char *buf, const char *last, uint32_t seed)
 {
 	/* Bad, Maria, Gross, ... */
 	int i = SeedChanceBias(0, lengthof(_name_austrian_a1), seed, 15);
@@ -348,7 +348,7 @@ static char *MakeAustrianTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeGermanTownName(char *buf, const char *last, uint32 seed)
+static char *MakeGermanTownName(char *buf, const char *last, uint32_t seed)
 {
 	uint seed_derivative = SeedChance(7, 28, seed);
 
@@ -391,7 +391,7 @@ static char *MakeGermanTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeSpanishTownName(char *buf, const char *last, uint32 seed)
+static char *MakeSpanishTownName(char *buf, const char *last, uint32_t seed)
 {
 	return strecpy(buf, _name_spanish_real[SeedChance(0, lengthof(_name_spanish_real), seed)], last);
 }
@@ -403,7 +403,7 @@ static char *MakeSpanishTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeFrenchTownName(char *buf, const char *last, uint32 seed)
+static char *MakeFrenchTownName(char *buf, const char *last, uint32_t seed)
 {
 	return strecpy(buf, _name_french_real[SeedChance(0, lengthof(_name_french_real), seed)], last);
 }
@@ -415,7 +415,7 @@ static char *MakeFrenchTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeSillyTownName(char *buf, const char *last, uint32 seed)
+static char *MakeSillyTownName(char *buf, const char *last, uint32_t seed)
 {
 	buf = strecpy(buf, _name_silly_1[SeedChance( 0, lengthof(_name_silly_1), seed)], last);
 	buf = strecpy(buf, _name_silly_2[SeedChance(16, lengthof(_name_silly_2), seed)], last);
@@ -430,7 +430,7 @@ static char *MakeSillyTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeSwedishTownName(char *buf, const char *last, uint32 seed)
+static char *MakeSwedishTownName(char *buf, const char *last, uint32_t seed)
 {
 	/* optional first segment */
 	int i = SeedChanceBias(0, lengthof(_name_swedish_1), seed, 50);
@@ -457,7 +457,7 @@ static char *MakeSwedishTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeDutchTownName(char *buf, const char *last, uint32 seed)
+static char *MakeDutchTownName(char *buf, const char *last, uint32_t seed)
 {
 	/* optional first segment */
 	int i = SeedChanceBias(0, lengthof(_name_dutch_1), seed, 50);
@@ -483,7 +483,7 @@ static char *MakeDutchTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeFinnishTownName(char *buf, const char *last, uint32 seed)
+static char *MakeFinnishTownName(char *buf, const char *last, uint32_t seed)
 {
 	char *orig = buf;
 
@@ -531,7 +531,7 @@ static char *MakeFinnishTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakePolishTownName(char *buf, const char *last, uint32 seed)
+static char *MakePolishTownName(char *buf, const char *last, uint32_t seed)
 {
 	/* optional first segment */
 	uint i = SeedChance(0,
@@ -593,7 +593,7 @@ static char *MakePolishTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeCzechTownName(char *buf, const char *last, uint32 seed)
+static char *MakeCzechTownName(char *buf, const char *last, uint32_t seed)
 {
 	/* 1:3 chance to use a real name. */
 	if (SeedModChance(0, 4, seed) == 0) {
@@ -774,7 +774,7 @@ static char *MakeCzechTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeRomanianTownName(char *buf, const char *last, uint32 seed)
+static char *MakeRomanianTownName(char *buf, const char *last, uint32_t seed)
 {
 	return strecpy(buf, _name_romanian_real[SeedChance(0, lengthof(_name_romanian_real), seed)], last);
 }
@@ -786,7 +786,7 @@ static char *MakeRomanianTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeSlovakTownName(char *buf, const char *last, uint32 seed)
+static char *MakeSlovakTownName(char *buf, const char *last, uint32_t seed)
 {
 	return strecpy(buf, _name_slovak_real[SeedChance(0, lengthof(_name_slovak_real), seed)], last);
 }
@@ -798,7 +798,7 @@ static char *MakeSlovakTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeNorwegianTownName(char *buf, const char *last, uint32 seed)
+static char *MakeNorwegianTownName(char *buf, const char *last, uint32_t seed)
 {
 	/* Use first 4 bit from seed to decide whether or not this town should
 	 * have a real name 3/16 chance.  Bit 0-3 */
@@ -822,7 +822,7 @@ static char *MakeNorwegianTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeHungarianTownName(char *buf, const char *last, uint32 seed)
+static char *MakeHungarianTownName(char *buf, const char *last, uint32_t seed)
 {
 	if (SeedChance(12, 15, seed) < 3) {
 		return strecpy(buf, _name_hungarian_real[SeedChance(0, lengthof(_name_hungarian_real), seed)], last);
@@ -852,7 +852,7 @@ static char *MakeHungarianTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeSwissTownName(char *buf, const char *last, uint32 seed)
+static char *MakeSwissTownName(char *buf, const char *last, uint32_t seed)
 {
 	return strecpy(buf, _name_swiss_real[SeedChance(0, lengthof(_name_swiss_real), seed)], last);
 }
@@ -864,7 +864,7 @@ static char *MakeSwissTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeDanishTownName(char *buf, const char *last, uint32 seed)
+static char *MakeDanishTownName(char *buf, const char *last, uint32_t seed)
 {
 	/* optional first segment */
 	int i = SeedChanceBias(0, lengthof(_name_danish_1), seed, 50);
@@ -884,7 +884,7 @@ static char *MakeDanishTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeTurkishTownName(char *buf, const char *last, uint32 seed)
+static char *MakeTurkishTownName(char *buf, const char *last, uint32_t seed)
 {
 	uint i = SeedModChance(0, 5, seed);
 
@@ -921,7 +921,7 @@ static char *MakeTurkishTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeItalianTownName(char *buf, const char *last, uint32 seed)
+static char *MakeItalianTownName(char *buf, const char *last, uint32_t seed)
 {
 	if (SeedModChance(0, 6, seed) == 0) { // real city names
 		return strecpy(buf, _name_italian_real[SeedModChance(4, lengthof(_name_italian_real), seed)], last);
@@ -969,7 +969,7 @@ static char *MakeItalianTownName(char *buf, const char *last, uint32 seed)
  * @param seed town name seed
  * @param last end of buffer
  */
-static char *MakeCatalanTownName(char *buf, const char *last, uint32 seed)
+static char *MakeCatalanTownName(char *buf, const char *last, uint32_t seed)
 {
 	if (SeedModChance(0, 3, seed) == 0) { // real city names
 		return strecpy(buf, _name_catalan_real[SeedModChance(4, lengthof(_name_catalan_real), seed)], last);
@@ -1007,7 +1007,7 @@ static char *MakeCatalanTownName(char *buf, const char *last, uint32 seed)
  * @param seed The seed of the town name.
  * @return The end of the filled buffer.
  */
-typedef char *TownNameGenerator(char *buf, const char *last, uint32 seed);
+typedef char *TownNameGenerator(char *buf, const char *last, uint32_t seed);
 
 /** Contains pointer to generator and minimum buffer size (not incl. terminating '\0') */
 struct TownNameGeneratorParams {
@@ -1049,7 +1049,7 @@ static const TownNameGeneratorParams _town_name_generators[] = {
  * @param seed generation seed
  * @return last character ('/0')
  */
-char *GenerateTownNameString(char *buf, const char *last, size_t lang, uint32 seed)
+char *GenerateTownNameString(char *buf, const char *last, size_t lang, uint32_t seed)
 {
 	assert(lang < lengthof(_town_name_generators));
 

@@ -47,21 +47,21 @@
 	return ::IsTileType(tile, MP_STATION) && ::IsAirport(tile);
 }
 
-/* static */ int32 ScriptAirport::GetAirportWidth(AirportType type)
+/* static */ int32_t ScriptAirport::GetAirportWidth(AirportType type)
 {
 	if (!IsAirportInformationAvailable(type)) return -1;
 
 	return ::AirportSpec::Get(type)->size_x;
 }
 
-/* static */ int32 ScriptAirport::GetAirportHeight(AirportType type)
+/* static */ int32_t ScriptAirport::GetAirportHeight(AirportType type)
 {
 	if (!IsAirportInformationAvailable(type)) return -1;
 
 	return ::AirportSpec::Get(type)->size_y;
 }
 
-/* static */ int32 ScriptAirport::GetAirportCoverageRadius(AirportType type)
+/* static */ int32_t ScriptAirport::GetAirportCoverageRadius(AirportType type)
 {
 	if (!IsAirportInformationAvailable(type)) return -1;
 
@@ -89,7 +89,7 @@
 	return ScriptObject::DoCommand(tile, 0, 0, CMD_LANDSCAPE_CLEAR);
 }
 
-/* static */ int32 ScriptAirport::GetNumHangars(TileIndex tile)
+/* static */ int32_t ScriptAirport::GetNumHangars(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return -1;
 	if (!::IsTileType(tile, MP_STATION)) return -1;
@@ -129,7 +129,7 @@
 /* static */ int ScriptAirport::GetNoiseLevelIncrease(TileIndex tile, AirportType type)
 {
 	extern Town *AirportGetNearestTown(const AirportSpec *as, const TileIterator &it, uint &mindist);
-	extern uint8 GetAirportNoiseLevelForDistance(const AirportSpec *as, uint distance);
+	extern uint8_t GetAirportNoiseLevelForDistance(const AirportSpec *as, uint distance);
 
 	if (!::IsValidTile(tile)) return -1;
 	if (!IsAirportInformationAvailable(type)) return -1;
@@ -161,7 +161,7 @@
 	return AirportGetNearestTown(as, AirportTileTableIterator(as->table[0], tile), dist)->index;
 }
 
-/* static */ uint16 ScriptAirport::GetMaintenanceCostFactor(AirportType type)
+/* static */ uint16_t ScriptAirport::GetMaintenanceCostFactor(AirportType type)
 {
 	if (!IsAirportInformationAvailable(type)) return INVALID_TOWN;
 
@@ -172,5 +172,5 @@
 {
 	if (!IsAirportInformationAvailable(type)) return -1;
 
-	return (int64)GetMaintenanceCostFactor(type) * _price[PR_INFRASTRUCTURE_AIRPORT] >> 3;
+	return (int64_t)GetMaintenanceCostFactor(type) * _price[PR_INFRASTRUCTURE_AIRPORT] >> 3;
 }

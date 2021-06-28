@@ -68,17 +68,17 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 	Town *town;                                            ///< Nearest town
 	Station *neutral_station;                              ///< Associated neutral station
 	CargoID produced_cargo[INDUSTRY_NUM_OUTPUTS];          ///< 16 production cargo slots
-	uint16 produced_cargo_waiting[INDUSTRY_NUM_OUTPUTS];   ///< amount of cargo produced per cargo
-	uint16 incoming_cargo_waiting[INDUSTRY_NUM_INPUTS];    ///< incoming cargo waiting to be processed
+	uint16_t produced_cargo_waiting[INDUSTRY_NUM_OUTPUTS];   ///< amount of cargo produced per cargo
+	uint16_t incoming_cargo_waiting[INDUSTRY_NUM_INPUTS];    ///< incoming cargo waiting to be processed
 	byte production_rate[INDUSTRY_NUM_OUTPUTS];            ///< production rate for each cargo
 	byte prod_level;                                       ///< general production level
 	CargoID accepts_cargo[INDUSTRY_NUM_INPUTS];            ///< 16 input cargo slots
-	uint16 this_month_production[INDUSTRY_NUM_OUTPUTS];    ///< stats of this month's production per cargo
-	uint16 this_month_transported[INDUSTRY_NUM_OUTPUTS];   ///< stats of this month's transport per cargo
+	uint16_t this_month_production[INDUSTRY_NUM_OUTPUTS];    ///< stats of this month's production per cargo
+	uint16_t this_month_transported[INDUSTRY_NUM_OUTPUTS];   ///< stats of this month's transport per cargo
 	byte last_month_pct_transported[INDUSTRY_NUM_OUTPUTS]; ///< percentage transported per cargo in the last full month
-	uint16 last_month_production[INDUSTRY_NUM_OUTPUTS];    ///< total units produced per cargo in the last full month
-	uint16 last_month_transported[INDUSTRY_NUM_OUTPUTS];   ///< total units transported per cargo in the last full month
-	uint16 counter;                                        ///< used for animation and/or production (if available cargo)
+	uint16_t last_month_production[INDUSTRY_NUM_OUTPUTS];    ///< total units produced per cargo in the last full month
+	uint16_t last_month_transported[INDUSTRY_NUM_OUTPUTS];   ///< total units transported per cargo in the last full month
+	uint16_t counter;                                        ///< used for animation and/or production (if available cargo)
 
 	IndustryType type;             ///< type of industry.
 	Owner owner;                   ///< owner of the industry.  Which SHOULD always be (imho) OWNER_NONE
@@ -93,14 +93,14 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 
 	Owner founder;                 ///< Founder of the industry
 	Date construction_date;        ///< Date of the construction of the industry
-	uint8 construction_type;       ///< Way the industry was constructed (@see IndustryConstructionType)
+	uint8_t construction_type;       ///< Way the industry was constructed (@see IndustryConstructionType)
 	Date last_cargo_accepted_at[INDUSTRY_NUM_INPUTS]; ///< Last day each cargo type was accepted by this industry
 	byte selected_layout;          ///< Which tile layout was used when creating the industry
 	Owner exclusive_supplier;      ///< Which company has exclusive rights to deliver cargo (INVALID_OWNER = anyone)
 	Owner exclusive_consumer;      ///< Which company has exclusive rights to take cargo (INVALID_OWNER = anyone)
 	std::string text;              ///< General text with additional information.
 
-	uint16 random;                 ///< Random value used for randomisation of all kinds of things
+	uint16_t random;                 ///< Random value used for randomisation of all kinds of things
 
 	PersistentStorage *psa;        ///< Persistent storage for NewGRF industries.
 
@@ -176,7 +176,7 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 	 * @param type IndustryType to query
 	 * @pre type < NUM_INDUSTRYTYPES
 	 */
-	static inline uint16 GetIndustryTypeCount(IndustryType type)
+	static inline uint16_t GetIndustryTypeCount(IndustryType type)
 	{
 		assert(type < NUM_INDUSTRYTYPES);
 		return counts[type];
@@ -198,7 +198,7 @@ private:
 	void FillCachedName() const;
 
 protected:
-	static uint16 counts[NUM_INDUSTRYTYPES]; ///< Number of industries per type ingame
+	static uint16_t counts[NUM_INDUSTRYTYPES]; ///< Number of industries per type ingame
 };
 
 void ClearAllIndustryCachedNames();
@@ -211,11 +211,11 @@ bool IsTileForestIndustry(TileIndex tile);
 
 /** Data for managing the number of industries of a single industry type. */
 struct IndustryTypeBuildData {
-	uint32 probability;  ///< Relative probability of building this industry.
+	uint32_t probability;  ///< Relative probability of building this industry.
 	byte   min_number;   ///< Smallest number of industries that should exist (either \c 0 or \c 1).
-	uint16 target_count; ///< Desired number of industries of this type.
-	uint16 max_wait;     ///< Starting number of turns to wait (copied to #wait_count).
-	uint16 wait_count;   ///< Number of turns to wait before trying to build again.
+	uint16_t target_count; ///< Desired number of industries of this type.
+	uint16_t max_wait;     ///< Starting number of turns to wait (copied to #wait_count).
+	uint16_t wait_count;   ///< Number of turns to wait before trying to build again.
 
 	void Reset();
 
@@ -227,7 +227,7 @@ struct IndustryTypeBuildData {
  */
 struct IndustryBuildData {
 	IndustryTypeBuildData builddata[NUM_INDUSTRYTYPES]; ///< Industry build data for every industry type.
-	uint32 wanted_inds; ///< Number of wanted industries (bits 31-16), and a fraction (bits 15-0).
+	uint32_t wanted_inds; ///< Number of wanted industries (bits 31-16), and a fraction (bits 15-0).
 
 	void Reset();
 

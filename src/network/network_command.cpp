@@ -133,7 +133,7 @@ static CommandQueue _local_execution_queue;
  * @param text The text to pass
  * @param company The company that wants to send the command
  */
-void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const std::string &text, CompanyID company)
+void NetworkSendCommand(TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd, CommandCallback *callback, const std::string &text, CompanyID company)
 {
 	assert((cmd & CMD_FLAGS_MASK) == 0);
 
@@ -294,18 +294,18 @@ void NetworkDistributeCommands()
  */
 const char *NetworkGameSocketHandler::ReceiveCommand(Packet *p, CommandPacket *cp)
 {
-	cp->company = (CompanyID)p->Recv_uint8();
-	cp->cmd     = p->Recv_uint32();
+	cp->company = (CompanyID)p->Recv_uint8_t();
+	cp->cmd     = p->Recv_uint32_t();
 	if (!IsValidCommand(cp->cmd))               return "invalid command";
 	if (GetCommandFlags(cp->cmd) & CMD_OFFLINE) return "single-player only command";
 	if ((cp->cmd & CMD_FLAGS_MASK) != 0)        return "invalid command flag";
 
-	cp->p1      = p->Recv_uint32();
-	cp->p2      = p->Recv_uint32();
-	cp->tile    = p->Recv_uint32();
+	cp->p1      = p->Recv_uint32_t();
+	cp->p2      = p->Recv_uint32_t();
+	cp->tile    = p->Recv_uint32_t();
 	cp->text    = p->Recv_string(NETWORK_COMPANY_NAME_LENGTH, (!_network_server && GetCommandFlags(cp->cmd) & CMD_STR_CTRL) != 0 ? SVS_ALLOW_CONTROL_CODE | SVS_REPLACE_WITH_QUESTION_MARK : SVS_REPLACE_WITH_QUESTION_MARK);
 
-	byte callback = p->Recv_uint8();
+	byte callback = p->Recv_uint8_t();
 	if (callback >= lengthof(_callback_table))  return "invalid callback";
 
 	cp->callback = _callback_table[callback];
@@ -319,11 +319,11 @@ const char *NetworkGameSocketHandler::ReceiveCommand(Packet *p, CommandPacket *c
  */
 void NetworkGameSocketHandler::SendCommand(Packet *p, const CommandPacket *cp)
 {
-	p->Send_uint8 (cp->company);
-	p->Send_uint32(cp->cmd);
-	p->Send_uint32(cp->p1);
-	p->Send_uint32(cp->p2);
-	p->Send_uint32(cp->tile);
+	p->Send_uint8_t (cp->company);
+	p->Send_uint32_t(cp->cmd);
+	p->Send_uint32_t(cp->p1);
+	p->Send_uint32_t(cp->p2);
+	p->Send_uint32_t(cp->tile);
 	p->Send_string(cp->text);
 
 	byte callback = 0;
@@ -335,5 +335,5 @@ void NetworkGameSocketHandler::SendCommand(Packet *p, const CommandPacket *cp)
 		Debug(net, 0, "Unknown callback for command; no callback sent (command: {})", cp->cmd);
 		callback = 0; // _callback_table[0] == nullptr
 	}
-	p->Send_uint8 (callback);
+	p->Send_uint8_t (callback);
 }

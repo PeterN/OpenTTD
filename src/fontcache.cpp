@@ -89,7 +89,7 @@ public:
 	virtual uint GetGlyphWidth(GlyphID key);
 	virtual bool GetDrawGlyphShadow();
 	virtual GlyphID MapCharToGlyph(WChar key) { assert(IsPrintable(key)); return SPRITE_GLYPH | key; }
-	virtual const void *GetFontTable(uint32 tag, size_t &length) { length = 0; return nullptr; }
+	virtual const void *GetFontTable(uint32_t tag, size_t &length) { length = 0; return nullptr; }
 	virtual const char *GetFontName() { return "sprite"; }
 	virtual bool IsBuiltInFont() { return true; }
 };
@@ -366,7 +366,7 @@ const Sprite *TrueTypeFontCache::GetGlyph(GlyphID key)
 	return this->InternalGetGlyph(key, GetFontAAState(this->fs));
 }
 
-const void *TrueTypeFontCache::GetFontTable(uint32 tag, size_t &length)
+const void *TrueTypeFontCache::GetFontTable(uint32_t tag, size_t &length)
 {
 	const FontTable::iterator iter = this->font_tables.Find(tag);
 	if (iter != this->font_tables.data() + this->font_tables.size()) {
@@ -393,7 +393,7 @@ private:
 	FT_Face face;  ///< The font face associated with this font.
 
 	void SetFontSize(FontSize fs, FT_Face face, int pixels);
-	virtual const void *InternalGetFontTable(uint32 tag, size_t &length);
+	virtual const void *InternalGetFontTable(uint32_t tag, size_t &length);
 	virtual const Sprite *InternalGetGlyph(GlyphID key, bool aa);
 
 public:
@@ -656,7 +656,7 @@ GlyphID FreeTypeFontCache::MapCharToGlyph(WChar key)
 	return FT_Get_Char_Index(this->face, key);
 }
 
-const void *FreeTypeFontCache::InternalGetFontTable(uint32 tag, size_t &length)
+const void *FreeTypeFontCache::InternalGetFontTable(uint32_t tag, size_t &length)
 {
 	FT_ULong len = 0;
 	FT_Byte *result = nullptr;

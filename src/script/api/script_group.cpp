@@ -99,7 +99,7 @@
 	return HasBit(::Group::Get(group_id)->flags, GroupFlags::GF_REPLACE_PROTECTION);
 }
 
-/* static */ int32 ScriptGroup::GetNumEngines(GroupID group_id, EngineID engine_id)
+/* static */ int32_t ScriptGroup::GetNumEngines(GroupID group_id, EngineID engine_id)
 {
 	if (!IsValidGroup(group_id) && group_id != GROUP_DEFAULT && group_id != GROUP_ALL) return -1;
 
@@ -171,12 +171,12 @@
 	return ::Group::Get(group_id)->statistics.profit_last_year;
 }
 
-/* static */ uint32 ScriptGroup::GetCurrentUsage(GroupID group_id)
+/* static */ uint32_t ScriptGroup::GetCurrentUsage(GroupID group_id)
 {
 	if (!IsValidGroup(group_id)) return -1;
 
-	uint32 occupancy = 0;
-	uint32 vehicle_count = 0;
+	uint32_t occupancy = 0;
+	uint32_t vehicle_count = 0;
 
 	for (const Vehicle *v : Vehicle::Iterate()) {
 		if (v->group_id != group_id) continue;

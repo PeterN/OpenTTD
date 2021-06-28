@@ -19,8 +19,8 @@
 #include <functional>
 #include <limits>
 
-typedef uint16 PacketSize; ///< Size of the whole packet.
-typedef uint8  PacketType; ///< Identifier for the packet
+typedef uint16_t PacketSize; ///< Size of the whole packet.
+typedef uint8_t  PacketType; ///< Identifier for the packet
 
 /**
  * Internal entity of a packet. As everything is sent as a packet,
@@ -67,10 +67,10 @@ public:
 
 	bool   CanWriteToPacket(size_t bytes_to_write);
 	void   Send_bool  (bool   data);
-	void   Send_uint8 (uint8  data);
-	void   Send_uint16(uint16 data);
-	void   Send_uint32(uint32 data);
-	void   Send_uint64(uint64 data);
+	void   Send_uint8_t (uint8_t  data);
+	void   Send_uint16_t(uint16_t data);
+	void   Send_uint32_t(uint32_t data);
+	void   Send_uint64_t(uint64_t data);
 	void   Send_string(const std::string_view data);
 	size_t Send_bytes (const byte *begin, const byte *end);
 
@@ -83,10 +83,10 @@ public:
 
 	bool   CanReadFromPacket(size_t bytes_to_read, bool close_connection = false);
 	bool   Recv_bool  ();
-	uint8  Recv_uint8 ();
-	uint16 Recv_uint16();
-	uint32 Recv_uint32();
-	uint64 Recv_uint64();
+	uint8_t  Recv_uint8_t ();
+	uint16_t Recv_uint16_t();
+	uint32_t Recv_uint32_t();
+	uint64_t Recv_uint64_t();
 	std::string Recv_string(size_t length, StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK);
 
 	size_t RemainingBytesToTransfer() const;

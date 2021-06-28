@@ -59,7 +59,7 @@ static inline StringID MakeStringID(StringTab tab, uint index)
 
 class StringParameters {
 	StringParameters *parent; ///< If not nullptr, this instance references data from this parent instance.
-	uint64 *data;             ///< Array with the actual data.
+	uint64_t *data;             ///< Array with the actual data.
 	WChar *type;              ///< Array with type information about the data. Can be nullptr when no type information is needed. See #StringControlCode.
 
 public:
@@ -67,7 +67,7 @@ public:
 	uint num_param;           ///< Length of the data array.
 
 	/** Create a new StringParameters instance. */
-	StringParameters(uint64 *data, uint num_param, WChar *type) :
+	StringParameters(uint64_t *data, uint num_param, WChar *type) :
 		parent(nullptr),
 		data(data),
 		type(type),
@@ -77,14 +77,14 @@ public:
 
 	/** Create a new StringParameters instance. */
 	template <size_t Tnum_param>
-	StringParameters(int64 (&data)[Tnum_param]) :
+	StringParameters(int64_t (&data)[Tnum_param]) :
 		parent(nullptr),
-		data((uint64 *)data),
+		data((uint64_t *)data),
 		type(nullptr),
 		offset(0),
 		num_param(Tnum_param)
 	{
-		static_assert(sizeof(data[0]) == sizeof(uint64));
+		static_assert(sizeof(data[0]) == sizeof(uint64_t));
 	}
 
 	/**
@@ -114,18 +114,18 @@ public:
 
 	void ClearTypeInformation();
 
-	int64 GetInt64(WChar type = 0);
+	int64_t Getint64_t(WChar type = 0);
 
-	/** Read an int32 from the argument array. @see GetInt64. */
-	int32 GetInt32(WChar type = 0)
+	/** Read an int32_t from the argument array. @see Getint64_t. */
+	int32_t Getint32_t(WChar type = 0)
 	{
-		return (int32)this->GetInt64(type);
+		return (int32_t)this->Getint64_t(type);
 	}
 
 	void ShiftParameters(uint amount);
 
 	/** Get a pointer to the current element in the data array. */
-	uint64 *GetDataPointer() const
+	uint64_t *GetDataPointer() const
 	{
 		return &this->data[this->offset];
 	}
@@ -137,7 +137,7 @@ public:
 	}
 
 	/** Get a pointer to a specific element in the data array. */
-	uint64 *GetPointerToOffset(uint offset) const
+	uint64_t *GetPointerToOffset(uint offset) const
 	{
 		assert(offset < this->num_param);
 		return &this->data[offset];
@@ -157,13 +157,13 @@ public:
 		return this->type[offset];
 	}
 
-	void SetParam(uint n, uint64 v)
+	void SetParam(uint n, uint64_t v)
 	{
 		assert(n < this->num_param);
 		this->data[n] = v;
 	}
 
-	uint64 GetParam(uint n) const
+	uint64_t GetParam(uint n) const
 	{
 		assert(n < this->num_param);
 		return this->data[n];
@@ -187,7 +187,7 @@ void InjectDParam(uint amount);
  * @param n Index of the string parameter.
  * @param v Value of the string parameter.
  */
-static inline void SetDParamX(uint64 *s, uint n, uint64 v)
+static inline void SetDParamX(uint64_t *s, uint n, uint64_t v)
 {
 	s[n] = v;
 }
@@ -197,20 +197,20 @@ static inline void SetDParamX(uint64 *s, uint n, uint64 v)
  * @param n Index of the string parameter.
  * @param v Value of the string parameter.
  */
-static inline void SetDParam(uint n, uint64 v)
+static inline void SetDParam(uint n, uint64_t v)
 {
 	_global_string_params.SetParam(n, v);
 }
 
-void SetDParamMaxValue(uint n, uint64 max_value, uint min_count = 0, FontSize size = FS_NORMAL);
+void SetDParamMaxValue(uint n, uint64_t max_value, uint min_count = 0, FontSize size = FS_NORMAL);
 void SetDParamMaxDigits(uint n, uint count, FontSize size = FS_NORMAL);
 
 void SetDParamStr(uint n, const char *str);
 void SetDParamStr(uint n, const std::string &str);
 
-void CopyInDParam(int offs, const uint64 *src, int num);
-void CopyOutDParam(uint64 *dst, int offs, int num);
-void CopyOutDParam(uint64 *dst, const char **strings, StringID string, int num);
+void CopyInDParam(int offs, const uint64_t *src, int num);
+void CopyOutDParam(uint64_t *dst, int offs, int num);
+void CopyOutDParam(uint64_t *dst, const char **strings, StringID string, int num);
 
 /**
  * Get the current string parameter at index \a n from parameter array \a s.
@@ -218,7 +218,7 @@ void CopyOutDParam(uint64 *dst, const char **strings, StringID string, int num);
  * @param n Index of the string parameter.
  * @return Value of the requested string parameter.
  */
-static inline uint64 GetDParamX(const uint64 *s, uint n)
+static inline uint64_t GetDParamX(const uint64_t *s, uint n)
 {
 	return s[n];
 }
@@ -228,7 +228,7 @@ static inline uint64 GetDParamX(const uint64 *s, uint n)
  * @param n Index of the string parameter.
  * @return Value of the requested string parameter.
  */
-static inline uint64 GetDParam(uint n)
+static inline uint64_t GetDParam(uint n)
 {
 	return _global_string_params.GetParam(n);
 }

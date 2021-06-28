@@ -535,7 +535,7 @@ struct AISettingsWindow : public Window {
 		for (int i = 0; i < this->clicked_row; i++) it++;
 		const ScriptConfigItem config_item = **it;
 		if (_game_mode == GM_NORMAL && ((this->slot == OWNER_DEITY) || Company::IsValidID(this->slot)) && (config_item.flags & SCRIPTCONFIG_INGAME) == 0) return;
-		int32 value = atoi(str);
+		int32_t value = atoi(str);
 		this->ai_config->SetSetting(config_item.name, value);
 		this->SetDirty();
 	}
@@ -1459,15 +1459,15 @@ static Hotkey aidebug_hotkeys[] = {
 	Hotkey('7', "company_7", WID_AID_COMPANY_BUTTON_START + 6),
 	Hotkey('8', "company_8", WID_AID_COMPANY_BUTTON_START + 7),
 	Hotkey('9', "company_9", WID_AID_COMPANY_BUTTON_START + 8),
-	Hotkey((uint16)0, "company_10", WID_AID_COMPANY_BUTTON_START + 9),
-	Hotkey((uint16)0, "company_11", WID_AID_COMPANY_BUTTON_START + 10),
-	Hotkey((uint16)0, "company_12", WID_AID_COMPANY_BUTTON_START + 11),
-	Hotkey((uint16)0, "company_13", WID_AID_COMPANY_BUTTON_START + 12),
-	Hotkey((uint16)0, "company_14", WID_AID_COMPANY_BUTTON_START + 13),
-	Hotkey((uint16)0, "company_15", WID_AID_COMPANY_BUTTON_START + 14),
+	Hotkey((uint16_t)0, "company_10", WID_AID_COMPANY_BUTTON_START + 9),
+	Hotkey((uint16_t)0, "company_11", WID_AID_COMPANY_BUTTON_START + 10),
+	Hotkey((uint16_t)0, "company_12", WID_AID_COMPANY_BUTTON_START + 11),
+	Hotkey((uint16_t)0, "company_13", WID_AID_COMPANY_BUTTON_START + 12),
+	Hotkey((uint16_t)0, "company_14", WID_AID_COMPANY_BUTTON_START + 13),
+	Hotkey((uint16_t)0, "company_15", WID_AID_COMPANY_BUTTON_START + 14),
 	Hotkey('S', "settings", WID_AID_SETTINGS),
 	Hotkey('0', "game_script", WID_AID_SCRIPT_GAME),
-	Hotkey((uint16)0, "reload", WID_AID_RELOAD_TOGGLE),
+	Hotkey((uint16_t)0, "reload", WID_AID_RELOAD_TOGGLE),
 	Hotkey('B', "break_toggle", WID_AID_BREAK_STR_ON_OFF_BTN),
 	Hotkey('F', "break_string", WID_AID_BREAK_STR_EDIT_BOX),
 	Hotkey('C', "match_case", WID_AID_MATCH_CASE_BTN),

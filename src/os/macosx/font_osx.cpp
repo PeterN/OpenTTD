@@ -37,7 +37,7 @@ FT_Error GetFontByFaceName(const char *font_name, FT_Face *face)
 	FT_Error err = FT_Err_Cannot_Open_Resource;
 
 	/* Get font reference from name. */
-	UInt8 file_path[PATH_MAX];
+	Uint8_t file_path[PATH_MAX];
 	OSStatus os_err = -1;
 	CFAutoRelease<CFStringRef> name(CFStringCreateWithCString(kCFAllocatorDefault, font_name, kCFStringEncodingUTF8));
 
@@ -188,8 +188,8 @@ void CoreTextFontCache::SetFontSize(int pixels)
 			CFAutoRelease<CFDataRef> data(CTFontCopyTable(font.get(), kCTFontTableHead, kCTFontTableOptionNoOptions));
 			if (data) {
 				uint16_t lowestRecPPEM; // At offset 46 of the 'head' TrueType table.
-				CFDataGetBytes(data.get(), CFRangeMake(46, sizeof(lowestRecPPEM)), (UInt8 *)&lowestRecPPEM);
-				min_size = CFSwapInt16BigToHost(lowestRecPPEM); // TrueType data is always big-endian.
+				CFDataGetBytes(data.get(), CFRangeMake(46, sizeof(lowestRecPPEM)), (Uint8_t *)&lowestRecPPEM);
+				min_size = CFSwapint16_tBigToHost(lowestRecPPEM); // TrueType data is always big-endian.
 			} else {
 				CFAutoRelease<CFNumberRef> size((CFNumberRef)CTFontCopyAttribute(font.get(), kCTFontSizeAttribute));
 				CFNumberGetValue(size.get(), kCFNumberFloatType, &min_size);
@@ -249,13 +249,13 @@ GlyphID CoreTextFontCache::MapCharToGlyph(WChar key)
 	return 0;
 }
 
-const void *CoreTextFontCache::InternalGetFontTable(uint32 tag, size_t &length)
+const void *CoreTextFontCache::InternalGetFontTable(uint32_t tag, size_t &length)
 {
 	CFAutoRelease<CFDataRef> data(CTFontCopyTable(this->font.get(), (CTFontTableTag)tag, kCTFontTableOptionNoOptions));
 	if (!data) return nullptr;
 
 	length = CFDataGetLength(data.get());
-	auto buf = MallocT<UInt8>(length);
+	auto buf = MallocT<Uint8_t>(length);
 
 	CFDataGetBytes(data.get(), CFRangeMake(0, (CFIndex)length), buf);
 	return buf;
@@ -289,8 +289,8 @@ const Sprite *CoreTextFontCache::InternalGetGlyph(GlyphID key, bool use_aa)
 	sprite.colours = (use_aa ? SCC_PAL | SCC_ALPHA : SCC_PAL);
 	sprite.width = width;
 	sprite.height = height;
-	sprite.x_offs = (int16)std::round(CGRectGetMinX(bounds));
-	sprite.y_offs = this->ascender - (int16)std::ceil(CGRectGetMaxY(bounds));
+	sprite.x_offs = (int16_t)std::round(CGRectGetMinX(bounds));
+	sprite.y_offs = this->ascender - (int16_t)std::ceil(CGRectGetMaxY(bounds));
 
 	if (bounds.size.width > 0) {
 		/* Glyph is not a white-space glyph. Render it to a bitmap context. */

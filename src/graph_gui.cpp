@@ -36,7 +36,7 @@ static CompanyMask _legend_excluded_companies;
 static CargoTypes _legend_excluded_cargo;
 
 /* Apparently these don't play well with enums. */
-static const OverflowSafeInt64 INVALID_DATAPOINT(INT64_MAX); // Value used for a datapoint that shouldn't be drawn.
+static const OverflowSafeint64_t INVALID_DATAPOINT(INT64_MAX); // Value used for a datapoint that shouldn't be drawn.
 static const uint INVALID_DATAPOINT_POS = UINT_MAX;  // Used to determine if the previous point was drawn.
 
 /****************/
@@ -157,8 +157,8 @@ static void ShowGraphLegend()
 
 /** Contains the interval of a graph's data. */
 struct ValuesInterval {
-	OverflowSafeInt64 highest; ///< Highest value of this interval. Must be zero or greater.
-	OverflowSafeInt64 lowest;  ///< Lowest value of this interval. Must be zero or less.
+	OverflowSafeint64_t highest; ///< Highest value of this interval. Must be zero or greater.
+	OverflowSafeint64_t lowest;  ///< Lowest value of this interval. Must be zero or less.
 };
 
 /******************/
@@ -180,7 +180,7 @@ protected:
 	static const int MIN_GRAPH_NUM_LINES_Y  =   9; ///< Minimal number of horizontal lines to draw.
 	static const int MIN_GRID_PIXEL_SIZE    =  20; ///< Minimum distance between graph lines.
 
-	uint64 excluded_data; ///< bitmask of the datasets that shouldn't be displayed.
+	uint64_t excluded_data; ///< bitmask of the datasets that shouldn't be displayed.
 	byte num_dataset;
 	byte num_on_x_axis;
 	byte num_vert_lines;
@@ -192,13 +192,13 @@ protected:
 
 	/* These values are used if the graph is being plotted against values
 	 * rather than the dates specified by month and year. */
-	uint16 x_values_start;
-	uint16 x_values_increment;
+	uint16_t x_values_start;
+	uint16_t x_values_increment;
 
 	int graph_widget;
 	StringID format_str_y_axis;
 	byte colours[GRAPH_MAX_DATASETS];
-	OverflowSafeInt64 cost[GRAPH_MAX_DATASETS][GRAPH_NUM_MONTHS]; ///< Stored costs for the last #GRAPH_NUM_MONTHS months
+	OverflowSafeint64_t cost[GRAPH_MAX_DATASETS][GRAPH_NUM_MONTHS]; ///< Stored costs for the last #GRAPH_NUM_MONTHS months
 
 	/**
 	 * Get the interval that contains the graph's data. Excluded data is ignored to show smaller values in
@@ -217,7 +217,7 @@ protected:
 		for (int i = 0; i < this->num_dataset; i++) {
 			if (HasBit(this->excluded_data, i)) continue;
 			for (int j = 0; j < this->num_on_x_axis; j++) {
-				OverflowSafeInt64 datapoint = this->cost[i][j];
+				OverflowSafeint64_t datapoint = this->cost[i][j];
 
 				if (datapoint != INVALID_DATAPOINT) {
 					current_interval.highest = std::max(current_interval.highest, datapoint);
@@ -235,7 +235,7 @@ protected:
 		double abs_higher = (current_interval.highest < 0) ? 0 : (double)current_interval.highest;
 
 		int num_pos_grids;
-		int64 grid_size;
+		int64_t grid_size;
 
 		if (abs_lower != 0 || abs_higher != 0) {
 			/* The number of grids to reserve for the positive part is: */
@@ -246,8 +246,8 @@ protected:
 			if (num_pos_grids == num_hori_lines && abs_lower != 0) num_pos_grids--;
 
 			/* Get the required grid size for each side and use the maximum one. */
-			int64 grid_size_higher = (abs_higher > 0) ? ((int64)abs_higher + num_pos_grids - 1) / num_pos_grids : 0;
-			int64 grid_size_lower = (abs_lower > 0) ? ((int64)abs_lower + num_hori_lines - num_pos_grids - 1) / (num_hori_lines - num_pos_grids) : 0;
+			int64_t grid_size_higher = (abs_higher > 0) ? ((int64_t)abs_higher + num_pos_grids - 1) / num_pos_grids : 0;
+			int64_t grid_size_lower = (abs_lower > 0) ? ((int64_t)abs_lower + num_hori_lines - num_pos_grids - 1) / (num_hori_lines - num_pos_grids) : 0;
 			grid_size = std::max(grid_size_higher, grid_size_lower);
 		} else {
 			/* If both values are zero, show an empty graph. */
@@ -268,8 +268,8 @@ protected:
 	uint GetYLabelWidth(ValuesInterval current_interval, int num_hori_lines) const
 	{
 		/* draw text strings on the y axis */
-		int64 y_label = current_interval.highest;
-		int64 y_label_separation = (current_interval.highest - current_interval.lowest) / num_hori_lines;
+		int64_t y_label = current_interval.highest;
+		int64_t y_label_separation = (current_interval.highest - current_interval.lowest) / num_hori_lines;
 
 		uint max_width = 0;
 
@@ -327,7 +327,7 @@ protected:
 		r.right = r.left + x_sep * this->num_vert_lines;
 		r.bottom = r.top + y_sep * num_hori_lines;
 
-		OverflowSafeInt64 interval_size = interval.highest + abs(interval.lowest);
+		OverflowSafeint64_t interval_size = interval.highest + abs(interval.lowest);
 		/* Where to draw the X axis. Use floating point to avoid overflowing and results of zero. */
 		x_axis_offset = (int)((r.bottom - r.top) * (double)interval.highest / (double)interval_size);
 
@@ -367,8 +367,8 @@ protected:
 		assert(this->num_dataset > 0);
 
 		/* draw text strings on the y axis */
-		int64 y_label = interval.highest;
-		int64 y_label_separation = abs(interval.highest - interval.lowest) / num_hori_lines;
+		int64_t y_label = interval.highest;
+		int64_t y_label_separation = abs(interval.highest - interval.lowest) / num_hori_lines;
 
 		y = r.top - GetCharacterHeight(FS_SMALL) / 2;
 
@@ -406,7 +406,7 @@ protected:
 			/* Draw x-axis labels for graphs not based on quarterly performance (cargo payment rates). */
 			x = r.left;
 			y = r.bottom + 2;
-			uint16 label = this->x_values_start;
+			uint16_t label = this->x_values_start;
 
 			for (int i = 0; i < this->num_on_x_axis; i++) {
 				SetDParam(0, label);
@@ -431,7 +431,7 @@ protected:
 				uint prev_y = INVALID_DATAPOINT_POS;
 
 				for (int j = 0; j < this->num_on_x_axis; j++) {
-					OverflowSafeInt64 datapoint = this->cost[i][j];
+					OverflowSafeint64_t datapoint = this->cost[i][j];
 
 					if (datapoint != INVALID_DATAPOINT) {
 						/*
@@ -537,7 +537,7 @@ public:
 		DrawGraph(r);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	virtual OverflowSafeint64_t GetGraphData(const Company *c, int j)
 	{
 		return INVALID_DATAPOINT;
 	}
@@ -629,7 +629,7 @@ struct OperatingProfitGraphWindow : BaseGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	OverflowSafeInt64 GetGraphData(const Company *c, int j) override
+	OverflowSafeint64_t GetGraphData(const Company *c, int j) override
 	{
 		return c->old_economy[j].income + c->old_economy[j].expenses;
 	}
@@ -680,7 +680,7 @@ struct IncomeGraphWindow : BaseGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	OverflowSafeInt64 GetGraphData(const Company *c, int j) override
+	OverflowSafeint64_t GetGraphData(const Company *c, int j) override
 	{
 		return c->old_economy[j].income;
 	}
@@ -729,9 +729,9 @@ struct DeliveredCargoGraphWindow : BaseGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	OverflowSafeInt64 GetGraphData(const Company *c, int j) override
+	OverflowSafeint64_t GetGraphData(const Company *c, int j) override
 	{
-		return c->old_economy[j].delivered_cargo.GetSum<OverflowSafeInt64>();
+		return c->old_economy[j].delivered_cargo.GetSum<OverflowSafeint64_t>();
 	}
 };
 
@@ -778,7 +778,7 @@ struct PerformanceHistoryGraphWindow : BaseGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	OverflowSafeInt64 GetGraphData(const Company *c, int j) override
+	OverflowSafeint64_t GetGraphData(const Company *c, int j) override
 	{
 		return c->old_economy[j].performance_history;
 	}
@@ -834,7 +834,7 @@ struct CompanyValueGraphWindow : BaseGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	OverflowSafeInt64 GetGraphData(const Company *c, int j) override
+	OverflowSafeint64_t GetGraphData(const Company *c, int j) override
 	{
 		return c->old_economy[j].company_value;
 	}
@@ -1413,8 +1413,8 @@ struct PerformanceRatingDetailWindow : Window {
 		int colour_notdone = _colour_gradient[COLOUR_RED][4];
 
 		/* Draw all the score parts */
-		int64 val    = _score_part[company][score_type];
-		int64 needed = _score_info[score_type].needed;
+		int64_t val    = _score_part[company][score_type];
+		int64_t needed = _score_info[score_type].needed;
 		int   score  = _score_info[score_type].score;
 
 		/* SCORE_TOTAL has its own rules ;) */
@@ -1433,7 +1433,7 @@ struct PerformanceRatingDetailWindow : Window {
 		DrawString(this->score_info_left, this->score_info_right, text_top, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT);
 
 		/* Calculate the %-bar */
-		uint x = Clamp<int64>(val, 0, needed) * this->bar_width / needed;
+		uint x = Clamp<int64_t>(val, 0, needed) * this->bar_width / needed;
 		bool rtl = _current_text_dir == TD_RTL;
 		if (rtl) {
 			x = this->bar_right - x;
@@ -1446,7 +1446,7 @@ struct PerformanceRatingDetailWindow : Window {
 		if (x != this->bar_right) GfxFillRect(x, bar_top, this->bar_right, bar_top + this->bar_height, rtl ? colour_done : colour_notdone);
 
 		/* Draw it */
-		SetDParam(0, Clamp<int64>(val, 0, needed) * 100 / needed);
+		SetDParam(0, Clamp<int64_t>(val, 0, needed) * 100 / needed);
 		DrawString(this->bar_left, this->bar_right, text_top, STR_PERFORMANCE_DETAIL_PERCENT, TC_FROMSTRING, SA_HOR_CENTER);
 
 		/* SCORE_LOAN is inversed */

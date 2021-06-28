@@ -241,7 +241,7 @@ public:
 	 *  returns the first/main.
 	 * @return The capacity of the engine.
 	 */
-	int32 GetCapacity();
+	int32_t GetCapacity();
 
 	/**
 	 * Get the maximum speed of the offered engine.
@@ -250,7 +250,7 @@ public:
 	 *       This is mph / 1.6, which is roughly km/h.
 	 *       To get km/h multiply this number by 1.00584.
 	 */
-	int32 GetMaxSpeed();
+	int32_t GetMaxSpeed();
 
 	/**
 	 * Get the new cost of the offered engine.
@@ -272,7 +272,7 @@ public:
 #ifdef DOXYGEN_API
 	ScriptVehicle::VehicleType GetVehicleType();
 #else
-	int32 GetVehicleType();
+	int32_t GetVehicleType();
 #endif /* DOXYGEN_API */
 
 	/**
@@ -364,7 +364,7 @@ public:
 	 * @param owner The company that can be bought.
 	 * @param value The value/costs of buying the company.
 	 */
-	ScriptEventCompanyAskMerger(Owner owner, int32 value) :
+	ScriptEventCompanyAskMerger(Owner owner, int32_t value) :
 		ScriptEvent(ET_COMPANY_ASK_MERGER),
 		owner((ScriptCompany::CompanyID)owner),
 		value(value)
@@ -388,7 +388,7 @@ public:
 	 * Get the value of the new company.
 	 * @return The value of the new company.
 	 */
-	int32 GetValue() { return this->value; }
+	int32_t GetValue() { return this->value; }
 
 	/**
 	 * Take over the company for this merger.
@@ -398,7 +398,7 @@ public:
 
 private:
 	ScriptCompany::CompanyID owner; ///< The company that is in trouble.
-	int32 value;                ///< The value of the company, i.e. the amount you would pay.
+	int32_t value;                ///< The value of the company, i.e. the amount you would pay.
 };
 
 /**
@@ -887,7 +887,7 @@ public:
 	 * @param number The windownumber that was clicked.
 	 * @param widget The widget in the window that was clicked.
 	 */
-	ScriptEventWindowWidgetClick(ScriptWindow::WindowClass window, uint32 number, uint8 widget) :
+	ScriptEventWindowWidgetClick(ScriptWindow::WindowClass window, uint32_t number, uint8_t widget) :
 		ScriptEvent(ET_WINDOW_WIDGET_CLICK),
 		window(window),
 		number(number),
@@ -909,17 +909,17 @@ public:
 	/**
 	 * Get the number of the window that was clicked.
 	 */
-	uint32 GetWindowNumber() { return this->number; }
+	uint32_t GetWindowNumber() { return this->number; }
 
 	/**
 	 * Get the number of the widget that was clicked.
 	 */
-	uint8 GetWidgetNumber() { return this->widget; }
+	uint8_t GetWidgetNumber() { return this->widget; }
 
 private:
 	ScriptWindow::WindowClass window; ///< Window of the click.
-	uint32 number;                    ///< Number of the click.
-	uint8 widget;                     ///< Widget of the click.
+	uint32_t number;                    ///< Number of the click.
+	uint8_t widget;                     ///< Widget of the click.
 };
 
 /**
@@ -935,7 +935,7 @@ public:
 	 * @param company The company that is replying.
 	 * @param button The button the company pressed.
 	 */
-	ScriptEventGoalQuestionAnswer(uint16 uniqueid, ScriptCompany::CompanyID company, ScriptGoal::QuestionButton button) :
+	ScriptEventGoalQuestionAnswer(uint16_t uniqueid, ScriptCompany::CompanyID company, ScriptGoal::QuestionButton button) :
 		ScriptEvent(ET_GOAL_QUESTION_ANSWER),
 		uniqueid(uniqueid),
 		company(company),
@@ -952,7 +952,7 @@ public:
 	/**
 	 * Get the unique id of the question.
 	 */
-	uint16 GetUniqueID() { return this->uniqueid; }
+	uint16_t GetUniqueID() { return this->uniqueid; }
 
 	/**
 	 * Get the company that pressed a button.
@@ -965,7 +965,7 @@ public:
 	ScriptGoal::QuestionButton GetButton() { return this->button; }
 
 private:
-	uint16 uniqueid;                   ///< The uniqueid of the question.
+	uint16_t uniqueid;                   ///< The uniqueid of the question.
 	ScriptCompany::CompanyID company;  ///< The company given the answer.
 	ScriptGoal::QuestionButton button; ///< The button that was pressed.
 };

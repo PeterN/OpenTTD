@@ -25,7 +25,7 @@ extern const SaveLoadVersion SAVEGAME_VERSION;  ///< current savegame version
 
 extern SavegameType _savegame_type; ///< type of savegame we are loading
 
-extern uint32 _ttdp_version;        ///< version of TTDP savegame (if applicable)
+extern uint32_t _ttdp_version;        ///< version of TTDP savegame (if applicable)
 extern SaveLoadVersion _sl_version; ///< the major savegame version identifier
 extern byte   _sl_minor_version;    ///< the minor savegame version, DO NOT USE!
 
@@ -131,7 +131,7 @@ void GamelogReset()
  * @param gc GrfConfig, if known
  * @return The buffer location.
  */
-static char *PrintGrfInfo(char *buf, const char *last, uint grfid, const uint8 *md5sum, const GRFConfig *gc)
+static char *PrintGrfInfo(char *buf, const char *last, uint grfid, const uint8_t *md5sum, const GRFConfig *gc)
 {
 	char txt[40];
 
@@ -183,7 +183,7 @@ struct GRFPresence{
 	GRFPresence(const GRFConfig *gc) : gc(gc), was_missing(false) {}
 	GRFPresence() = default;
 };
-typedef SmallMap<uint32, GRFPresence> GrfIDMapping;
+typedef SmallMap<uint32_t, GRFPresence> GrfIDMapping;
 
 /**
  * Prints active gamelog
@@ -474,7 +474,7 @@ void GamelogOldver()
 	if (lc == nullptr) return;
 
 	lc->oldver.type = _savegame_type;
-	lc->oldver.version = (_savegame_type == SGT_OTTD ? ((uint32)_sl_version << 8 | _sl_minor_version) : _ttdp_version);
+	lc->oldver.version = (_savegame_type == SGT_OTTD ? ((uint32_t)_sl_version << 8 | _sl_minor_version) : _ttdp_version);
 }
 
 /**
@@ -483,7 +483,7 @@ void GamelogOldver()
  * @param oldval old setting value
  * @param newval new setting value
  */
-void GamelogSetting(const std::string &name, int32 oldval, int32 newval)
+void GamelogSetting(const std::string &name, int32_t oldval, int32_t newval)
 {
 	assert(_gamelog_action_type == GLAT_SETTING);
 
@@ -545,7 +545,7 @@ void GamelogTestMode()
  * @param bug type of bug, @see enum GRFBugs
  * @param data additional data
  */
-static void GamelogGRFBug(uint32 grfid, byte bug, uint64 data)
+static void GamelogGRFBug(uint32_t grfid, byte bug, uint64_t data)
 {
 	assert(_gamelog_action_type == GLAT_GRFBUG);
 
@@ -566,7 +566,7 @@ static void GamelogGRFBug(uint32 grfid, byte bug, uint64 data)
  * @param internal_id the internal ID of whatever's broken in the NewGRF
  * @return true iff a unique record was done
  */
-bool GamelogGRFBugReverse(uint32 grfid, uint16 internal_id)
+bool GamelogGRFBugReverse(uint32_t grfid, uint16_t internal_id)
 {
 	const LoggedAction *laend = &_gamelog_action[_gamelog_actions];
 	for (const LoggedAction *la = _gamelog_action; la != laend; la++) {
@@ -601,7 +601,7 @@ static inline bool IsLoggableGrfConfig(const GRFConfig *g)
  * Logs removal of a GRF
  * @param grfid ID of removed GRF
  */
-void GamelogGRFRemove(uint32 grfid)
+void GamelogGRFRemove(uint32_t grfid)
 {
 	assert(_gamelog_action_type == GLAT_LOAD || _gamelog_action_type == GLAT_GRF);
 
@@ -647,7 +647,7 @@ void GamelogGRFCompatible(const GRFIdentifier *newg)
  * @param grfid GRF that is moved
  * @param offset how far it is moved, positive = moved down
  */
-static void GamelogGRFMove(uint32 grfid, int32 offset)
+static void GamelogGRFMove(uint32_t grfid, int32_t offset)
 {
 	assert(_gamelog_action_type == GLAT_GRF);
 
@@ -663,7 +663,7 @@ static void GamelogGRFMove(uint32 grfid, int32 offset)
  * Details about parameters changed are not stored
  * @param grfid ID of GRF to store
  */
-static void GamelogGRFParameters(uint32 grfid)
+static void GamelogGRFParameters(uint32_t grfid)
 {
 	assert(_gamelog_action_type == GLAT_GRF);
 
@@ -803,7 +803,7 @@ void GamelogGRFUpdate(const GRFConfig *oldc, const GRFConfig *newc)
  * @param[out] ever_modified Max value of 'modified' from all binaries that ever saved this savegame.
  * @param[out] removed_newgrfs Set to true if any NewGRFs have been removed.
  */
-void GamelogInfo(LoggedAction *gamelog_action, uint gamelog_actions, uint32 *last_ottd_rev, byte *ever_modified, bool *removed_newgrfs)
+void GamelogInfo(LoggedAction *gamelog_action, uint gamelog_actions, uint32_t *last_ottd_rev, byte *ever_modified, bool *removed_newgrfs)
 {
 	const LoggedAction *laend = &gamelog_action[gamelog_actions];
 	for (const LoggedAction *la = gamelog_action; la != laend; la++) {

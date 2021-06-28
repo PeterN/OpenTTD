@@ -129,7 +129,7 @@ void NetworkGameListRequery()
 {
 	NetworkGameListHandleDelayedInsert();
 
-	static uint8 requery_cnt = 0;
+	static uint8_t requery_cnt = 0;
 
 	if (++requery_cnt < REQUERY_EVERY_X_GAMELOOPS) return;
 	requery_cnt = 0;
@@ -139,7 +139,7 @@ void NetworkGameListRequery()
 		if (item->retries < REFRESH_GAMEINFO_X_REQUERIES && (item->online || item->retries >= MAX_GAME_LIST_REQUERY_COUNT)) continue;
 
 		/* item gets mostly zeroed by NetworkUDPQueryServer */
-		uint8 retries = item->retries;
+		uint8_t retries = item->retries;
 		NetworkUDPQueryServer(item->connection_string);
 		item->retries = (retries >= REFRESH_GAMEINFO_X_REQUERIES) ? 0 : retries;
 	}

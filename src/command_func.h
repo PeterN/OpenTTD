@@ -32,23 +32,23 @@ static const CommandCost CMD_ERROR = CommandCost(INVALID_STRING_ID);
  */
 #define return_cmd_error(errcode) return CommandCost(errcode);
 
-CommandCost DoCommand(TileIndex tile, uint32 p1, uint32 p2, DoCommandFlag flags, uint32 cmd, const std::string &text = {});
+CommandCost DoCommand(TileIndex tile, uint32_t p1, uint32_t p2, DoCommandFlag flags, uint32_t cmd, const std::string &text = {});
 CommandCost DoCommand(const CommandContainer *container, DoCommandFlag flags);
 
-bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback = nullptr, const std::string &text = {}, bool my_cmd = true);
+bool DoCommandP(TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd, CommandCallback *callback = nullptr, const std::string &text = {}, bool my_cmd = true);
 bool DoCommandP(const CommandContainer *container, bool my_cmd = true);
 
-CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const std::string &text, bool my_cmd, bool estimate_only);
+CommandCost DoCommandPInternal(TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd, CommandCallback *callback, const std::string &text, bool my_cmd, bool estimate_only);
 
-void NetworkSendCommand(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallback *callback, const std::string &text, CompanyID company);
+void NetworkSendCommand(TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd, CommandCallback *callback, const std::string &text, CompanyID company);
 
 extern Money _additional_cash_required;
 
-bool IsValidCommand(uint32 cmd);
-CommandFlags GetCommandFlags(uint32 cmd);
-const char *GetCommandName(uint32 cmd);
+bool IsValidCommand(uint32_t cmd);
+CommandFlags GetCommandFlags(uint32_t cmd);
+const char *GetCommandName(uint32_t cmd);
 Money GetAvailableMoneyForCommand();
-bool IsCommandAllowedWhilePaused(uint32 cmd);
+bool IsCommandAllowedWhilePaused(uint32_t cmd);
 
 /**
  * Extracts the DC flags needed for DoCommand from the flags returned by GetCommandFlags

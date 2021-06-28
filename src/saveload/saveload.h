@@ -29,7 +29,7 @@
  *
  * Note that this list must not be reordered.
  */
-enum SaveLoadVersion : uint16 {
+enum SaveLoadVersion : uint16_t {
 	SL_MIN_VERSION,                         ///< First savegame version
 
 	SLV_1,                                  ///<   1.0         0.1.x, 0.2.x
@@ -283,7 +283,7 @@ enum SaveLoadVersion : uint16 {
 	SLV_198,                                ///< 198  PR#6763 Switch town growth rate and counter to actual game ticks
 	SLV_EXTEND_CARGOTYPES,                  ///< 199  PR#6802 Extend cargotypes to 64
 
-	SLV_EXTEND_RAILTYPES,                   ///< 200  PR#6805 Extend railtypes to 64, adding uint16 to map array.
+	SLV_EXTEND_RAILTYPES,                   ///< 200  PR#6805 Extend railtypes to 64, adding uint16_t to map array.
 	SLV_EXTEND_PERSISTENT_STORAGE,          ///< 201  PR#6885 Extend NewGRF persistent storages.
 	SLV_EXTEND_INDUSTRY_CARGO_SLOTS,        ///< 202  PR#6867 Increase industry cargo slots to 16 in, 16 out
 	SLV_SHIP_PATH_CACHE,                    ///< 203  PR#7072 Add path cache for ships
@@ -393,7 +393,7 @@ enum ChunkType {
 
 /** Handlers and description of chunk. */
 struct ChunkHandler {
-	uint32 id;                          ///< Unique ID (4 letters).
+	uint32_t id;                          ///< Unique ID (4 letters).
 	ChunkSaveLoadProc *save_proc;       ///< Save procedure of the chunk.
 	ChunkSaveLoadProc *load_proc;       ///< Load procedure of the chunk.
 	ChunkSaveLoadProc *ptrs_proc;       ///< Manipulate pointers in the chunk.
@@ -561,7 +561,7 @@ enum VarTypes {
 	SLF_ALLOW_NEWLINE   = 1 << 9, ///< Allow new lines in the strings.
 };
 
-typedef uint32 VarType;
+typedef uint32_t VarType;
 
 /** Type of data saved. */
 enum SaveLoadType : byte {
@@ -588,7 +588,7 @@ typedef void *SaveLoadAddrProc(void *base, size_t extra);
 struct SaveLoad {
 	SaveLoadType cmd;    ///< the action to take with the saved/loaded type, All types need different action
 	VarType conv;        ///< type of the variable to be saved, int
-	uint16 length;       ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
+	uint16_t length;       ///< (conditional) length of the variable (eg. arrays) (max array size is 65536 elements)
 	SaveLoadVersion version_from;   ///< save/load the variable starting from this savegame version
 	SaveLoadVersion version_to;     ///< save/load the variable until this savegame version
 	size_t size;                    ///< the sizeof size.
@@ -1009,8 +1009,8 @@ static inline void *GetVariableAddress(const void *object, const SaveLoad &sld)
 	return sld.address_proc(const_cast<void *>(object), sld.extra_data);
 }
 
-int64 ReadValue(const void *ptr, VarType conv);
-void WriteValue(void *ptr, VarType conv, int64 val);
+int64_t ReadValue(const void *ptr, VarType conv);
+void WriteValue(void *ptr, VarType conv, int64_t val);
 
 void SlSetArrayIndex(uint index);
 int SlIterateArray();

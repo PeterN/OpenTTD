@@ -41,11 +41,11 @@ struct SQVM : public CHAINABLE_OBJ
 		SQObjectPtr *_literals;
 		SQObjectPtr _closure;
 		SQGenerator *_generator;
-		SQInt32 _etraps;
-		SQInt32 _prevstkbase;
-		SQInt32 _prevtop;
-		SQInt32 _target;
-		SQInt32 _ncalls;
+		SQint32_t _etraps;
+		SQint32_t _prevstkbase;
+		SQint32_t _prevtop;
+		SQint32_t _target;
+		SQint32_t _ncalls;
 		SQBool _root;
 		VarArgs _vargs;
 	};

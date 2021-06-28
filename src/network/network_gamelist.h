@@ -25,7 +25,7 @@ struct NetworkGameList {
 	std::string connection_string;   ///< Address of the server
 	bool online = false;             ///< False if the server did not respond (default status)
 	bool manually = false;           ///< True if the server was added manually
-	uint8 retries = 0;               ///< Number of retries (to stop requerying)
+	uint8_t retries = 0;               ///< Number of retries (to stop requerying)
 	NetworkGameList *next = nullptr; ///< Next pointer to make a linked game list
 };
 

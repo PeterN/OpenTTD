@@ -54,7 +54,7 @@ struct UniscribeRun {
 };
 
 /** Break a string into language formatting ranges. */
-static std::vector<SCRIPT_ITEM> UniscribeItemizeString(UniscribeParagraphLayoutFactory::CharType *buff, int32 length);
+static std::vector<SCRIPT_ITEM> UniscribeItemizeString(UniscribeParagraphLayoutFactory::CharType *buff, int32_t length);
 /** Generate and place glyphs for a run of characters. */
 static bool UniscribeShapeRun(const UniscribeParagraphLayoutFactory::CharType *buff, UniscribeRun &range);
 
@@ -247,7 +247,7 @@ static bool UniscribeShapeRun(const UniscribeParagraphLayoutFactory::CharType *b
 	return true;
 }
 
-static std::vector<SCRIPT_ITEM> UniscribeItemizeString(UniscribeParagraphLayoutFactory::CharType *buff, int32 length)
+static std::vector<SCRIPT_ITEM> UniscribeItemizeString(UniscribeParagraphLayoutFactory::CharType *buff, int32_t length)
 {
 	/* Itemize text. */
 	SCRIPT_CONTROL control;
@@ -280,7 +280,7 @@ static std::vector<SCRIPT_ITEM> UniscribeItemizeString(UniscribeParagraphLayoutF
 
 /* static */ ParagraphLayouter *UniscribeParagraphLayoutFactory::GetParagraphLayout(CharType *buff, CharType *buff_end, FontMap &fontMapping)
 {
-	int32 length = buff_end - buff;
+	int32_t length = buff_end - buff;
 	/* Can't layout an empty string. */
 	if (length == 0) return nullptr;
 
@@ -551,7 +551,7 @@ const int *UniscribeParagraphLayout::UniscribeVisualRun::GetGlyphToCharMap() con
 
 	if (utf16_str.size() > 0) {
 		/* Itemize string into language runs. */
-		std::vector<SCRIPT_ITEM> runs = UniscribeItemizeString(&utf16_str[0], (int32)utf16_str.size());
+		std::vector<SCRIPT_ITEM> runs = UniscribeItemizeString(&utf16_str[0], (int32_t)utf16_str.size());
 
 		for (std::vector<SCRIPT_ITEM>::const_iterator run = runs.begin(); runs.size() > 0 && run != runs.end() - 1; run++) {
 			/* Get information on valid word and character break.s */

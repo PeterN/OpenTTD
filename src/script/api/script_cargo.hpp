@@ -145,7 +145,7 @@ public:
 	 * @param days_in_transit Amount of (game) days the cargo is in transit. The max value of this variable is 637. Any value higher returns the same as 637 would.
 	 * @return The amount of money that would be earned by this trip.
 	 */
-	static Money GetCargoIncome(CargoID cargo_type, uint32 distance, uint32 days_in_transit);
+	static Money GetCargoIncome(CargoID cargo_type, uint32_t distance, uint32_t days_in_transit);
 
 	/**
 	 * Get the cargo distribution type for a cargo.

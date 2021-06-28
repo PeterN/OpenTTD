@@ -163,21 +163,21 @@
 	return (Slope)::ComplementSlope((::Slope)slope);
 }
 
-/* static */ int32 ScriptTile::GetMinHeight(TileIndex tile)
+/* static */ int32_t ScriptTile::GetMinHeight(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return -1;
 
 	return ::GetTileZ(tile);
 }
 
-/* static */ int32 ScriptTile::GetMaxHeight(TileIndex tile)
+/* static */ int32_t ScriptTile::GetMaxHeight(TileIndex tile)
 {
 	if (!::IsValidTile(tile)) return -1;
 
 	return ::GetTileMaxZ(tile);
 }
 
-/* static */ int32 ScriptTile::GetCornerHeight(TileIndex tile, Corner corner)
+/* static */ int32_t ScriptTile::GetCornerHeight(TileIndex tile, Corner corner)
 {
 	if (!::IsValidTile(tile) || !::IsValidCorner((::Corner)corner)) return -1;
 
@@ -207,7 +207,7 @@
 	}
 }
 
-/* static */ int32 ScriptTile::GetCargoAcceptance(TileIndex tile, CargoID cargo_type, int width, int height, int radius)
+/* static */ int32_t ScriptTile::GetCargoAcceptance(TileIndex tile, CargoID cargo_type, int width, int height, int radius)
 {
 	if (!::IsValidTile(tile) || width <= 0 || height <= 0 || radius < 0 || !ScriptCargo::IsValidCargo(cargo_type)) return -1;
 
@@ -215,7 +215,7 @@
 	return acceptance[cargo_type];
 }
 
-/* static */ int32 ScriptTile::GetCargoProduction(TileIndex tile, CargoID cargo_type, int width, int height, int radius)
+/* static */ int32_t ScriptTile::GetCargoProduction(TileIndex tile, CargoID cargo_type, int width, int height, int radius)
 {
 	if (!::IsValidTile(tile) || width <= 0 || height <= 0 || radius < 0 || !ScriptCargo::IsValidCargo(cargo_type)) return -1;
 
@@ -223,17 +223,17 @@
 	return produced[cargo_type];
 }
 
-/* static */ int32 ScriptTile::GetDistanceManhattanToTile(TileIndex tile_from, TileIndex tile_to)
+/* static */ int32_t ScriptTile::GetDistanceManhattanToTile(TileIndex tile_from, TileIndex tile_to)
 {
 	return ScriptMap::DistanceManhattan(tile_from, tile_to);
 }
 
-/* static */ int32 ScriptTile::GetDistanceSquareToTile(TileIndex tile_from, TileIndex tile_to)
+/* static */ int32_t ScriptTile::GetDistanceSquareToTile(TileIndex tile_from, TileIndex tile_to)
 {
 	return ScriptMap::DistanceSquare(tile_from, tile_to);
 }
 
-/* static */ bool ScriptTile::RaiseTile(TileIndex tile, int32 slope)
+/* static */ bool ScriptTile::RaiseTile(TileIndex tile, int32_t slope)
 {
 	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
 	EnforcePrecondition(false, tile < ::MapSize());
@@ -241,7 +241,7 @@
 	return ScriptObject::DoCommand(tile, slope, 1, CMD_TERRAFORM_LAND);
 }
 
-/* static */ bool ScriptTile::LowerTile(TileIndex tile, int32 slope)
+/* static */ bool ScriptTile::LowerTile(TileIndex tile, int32_t slope)
 {
 	EnforcePrecondition(false, ScriptObject::GetCompany() != OWNER_DEITY);
 	EnforcePrecondition(false, tile < ::MapSize());

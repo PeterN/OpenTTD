@@ -542,7 +542,7 @@ public:
 	{
 		switch (widget) {
 			case WID_NG_MATRIX: {
-				uint16 y = r.top;
+				uint16_t y = r.top;
 
 				const int max = std::min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), (int)this->servers.size());
 
@@ -626,7 +626,7 @@ public:
 			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6, STR_NETWORK_SERVER_LIST_GAME_INFO, TC_FROMSTRING, SA_HOR_CENTER);
 			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, sel->info.server_name, TC_ORANGE, SA_HOR_CENTER); // game name
 
-			uint16 y = r.top + detail_height + 4;
+			uint16_t y = r.top + detail_height + 4;
 
 			SetDParam(0, sel->info.clients_on);
 			SetDParam(1, sel->info.clients_max);
@@ -776,7 +776,7 @@ public:
 		this->SetDirty();
 	}
 
-	EventState OnKeyPress(WChar key, uint16 keycode) override
+	EventState OnKeyPress(WChar key, uint16_t keycode) override
 	{
 		EventState state = ES_NOT_HANDLED;
 
@@ -1164,7 +1164,7 @@ struct NetworkStartServerWindow : public Window {
 		if (this->widget_id == WID_NSS_SETPWD) {
 			_settings_client.network.server_password = str;
 		} else {
-			int32 value = atoi(str);
+			int32_t value = atoi(str);
 			this->SetWidgetDirty(this->widget_id);
 			switch (this->widget_id) {
 				default: NOT_REACHED();
@@ -2407,9 +2407,9 @@ void ShowClientList()
 }
 
 NetworkJoinStatus _network_join_status; ///< The status of joining.
-uint8 _network_join_waiting;            ///< The number of clients waiting in front of us.
-uint32 _network_join_bytes;             ///< The number of bytes we already downloaded.
-uint32 _network_join_bytes_total;       ///< The total number of bytes to download.
+uint8_t _network_join_waiting;            ///< The number of clients waiting in front of us.
+uint32_t _network_join_bytes;             ///< The number of bytes we already downloaded.
+uint32_t _network_join_bytes_total;       ///< The total number of bytes to download.
 
 struct NetworkJoinStatusWindow : Window {
 	NetworkPasswordType password_type;
@@ -2424,7 +2424,7 @@ struct NetworkJoinStatusWindow : Window {
 	{
 		if (widget != WID_NJS_BACKGROUND) return;
 
-		uint8 progress; // used for progress bar
+		uint8_t progress; // used for progress bar
 		DrawString(r.left + 2, r.right - 2, r.top + 20, STR_NETWORK_CONNECTING_1 + _network_join_status, TC_FROMSTRING, SA_HOR_CENTER);
 		switch (_network_join_status) {
 			case NETWORK_JOIN_STATUS_CONNECTING: case NETWORK_JOIN_STATUS_AUTHORIZING:

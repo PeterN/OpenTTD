@@ -76,7 +76,7 @@ void GetMacOSVersion(int *return_major, int *return_minor, int *return_bugfix)
 #	pragma clang diagnostic push
 #	pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
-	SInt32 systemVersion, version_major, version_minor, version_bugfix;
+	Sint32_t systemVersion, version_major, version_minor, version_bugfix;
 	if (Gestalt(gestaltSystemVersion, &systemVersion) == noErr) {
 		if (systemVersion >= 0x1040) {
 			if (Gestalt(gestaltSystemVersionMajor,  &version_major) == noErr) *return_major = (int)version_major;

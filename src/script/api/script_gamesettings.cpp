@@ -21,7 +21,7 @@
 	return sd != nullptr && sd->IsIntSetting();
 }
 
-/* static */ int32 ScriptGameSettings::GetValue(const char *setting)
+/* static */ int32_t ScriptGameSettings::GetValue(const char *setting)
 {
 	if (!IsValid(setting)) return -1;
 

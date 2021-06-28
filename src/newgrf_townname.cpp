@@ -24,7 +24,7 @@
 static GRFTownName *_grf_townnames = nullptr;
 static std::vector<StringID> _grf_townname_names;
 
-GRFTownName *GetGRFTownName(uint32 grfid)
+GRFTownName *GetGRFTownName(uint32_t grfid)
 {
 	GRFTownName *t = _grf_townnames;
 	for (; t != nullptr; t = t->next) {
@@ -33,7 +33,7 @@ GRFTownName *GetGRFTownName(uint32 grfid)
 	return nullptr;
 }
 
-GRFTownName *AddGRFTownName(uint32 grfid)
+GRFTownName *AddGRFTownName(uint32_t grfid)
 {
 	GRFTownName *t = GetGRFTownName(grfid);
 	if (t == nullptr) {
@@ -45,7 +45,7 @@ GRFTownName *AddGRFTownName(uint32 grfid)
 	return t;
 }
 
-void DelGRFTownName(uint32 grfid)
+void DelGRFTownName(uint32_t grfid)
 {
 	GRFTownName *t = _grf_townnames;
 	GRFTownName *p = nullptr;
@@ -69,13 +69,13 @@ void DelGRFTownName(uint32 grfid)
 	}
 }
 
-static char *RandomPart(char *buf, GRFTownName *t, uint32 seed, byte id, const char *last)
+static char *RandomPart(char *buf, GRFTownName *t, uint32_t seed, byte id, const char *last)
 {
 	assert(t != nullptr);
 	for (int i = 0; i < t->nbparts[id]; i++) {
 		byte count = t->partlist[id][i].bitcount;
-		uint16 maxprob = t->partlist[id][i].maxprob;
-		uint32 r = (GB(seed, t->partlist[id][i].bitstart, count) * maxprob) >> count;
+		uint16_t maxprob = t->partlist[id][i].maxprob;
+		uint32_t r = (GB(seed, t->partlist[id][i].bitstart, count) * maxprob) >> count;
 		for (int j = 0; j < t->partlist[id][i].partcount; j++) {
 			byte prob = t->partlist[id][i].parts[j].prob;
 			maxprob -= GB(prob, 0, 7);
@@ -91,7 +91,7 @@ static char *RandomPart(char *buf, GRFTownName *t, uint32 seed, byte id, const c
 	return buf;
 }
 
-char *GRFTownNameGenerate(char *buf, uint32 grfid, uint16 gen, uint32 seed, const char *last)
+char *GRFTownNameGenerate(char *buf, uint32_t grfid, uint16_t gen, uint32_t seed, const char *last)
 {
 	strecpy(buf, "", last);
 	for (GRFTownName *t = _grf_townnames; t != nullptr; t = t->next) {
@@ -129,7 +129,7 @@ void CleanUpGRFTownNames()
 	while (_grf_townnames != nullptr) DelGRFTownName(_grf_townnames->grfid);
 }
 
-uint32 GetGRFTownNameId(int gen)
+uint32_t GetGRFTownNameId(int gen)
 {
 	for (GRFTownName *t = _grf_townnames; t != nullptr; t = t->next) {
 		if (gen < t->nb_gen) return t->grfid;
@@ -139,7 +139,7 @@ uint32 GetGRFTownNameId(int gen)
 	return 0;
 }
 
-uint16 GetGRFTownNameType(int gen)
+uint16_t GetGRFTownNameType(int gen)
 {
 	for (GRFTownName *t = _grf_townnames; t != nullptr; t = t->next) {
 		if (gen < t->nb_gen) return gen;

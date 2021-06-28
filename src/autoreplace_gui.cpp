@@ -30,7 +30,7 @@
 
 #include "safeguards.h"
 
-void DrawEngineList(VehicleType type, int x, int r, int y, const GUIEngineList *eng_list, uint16 min, uint16 max, EngineID selected_id, bool show_count, GroupID selected_group);
+void DrawEngineList(VehicleType type, int x, int r, int y, const GUIEngineList *eng_list, uint16_t min, uint16_t max, EngineID selected_id, bool show_count, GroupID selected_group);
 
 static bool EngineNumberSorter(const EngineID &a, const EngineID &b)
 {
@@ -650,7 +650,7 @@ public:
 		if (widget != WID_RV_TRAIN_WAGONREMOVE_TOGGLE) return false;
 
 		if (Group::IsValidID(this->sel_group)) {
-			uint64 params[1];
+			uint64_t params[1];
 			params[0] = STR_REPLACE_REMOVE_WAGON_HELP;
 			GuiShowTooltips(this, STR_REPLACE_REMOVE_WAGON_GROUP_HELP, 1, params, close_cond);
 		} else {

@@ -74,7 +74,7 @@ inline bool IsCargoTypeValid(CargoType t) { return t != CT_INVALID; }
 /** Test whether cargo type is not CT_INVALID */
 inline bool IsCargoIDValid(CargoID t) { return t != CT_INVALID; }
 
-typedef uint64 CargoTypes;
+typedef uint64_t CargoTypes;
 
 static const CargoTypes ALL_CARGOTYPES = (CargoTypes)UINT64_MAX;
 
@@ -150,7 +150,7 @@ enum SourceType : byte {
 	ST_HEADQUARTERS, ///< Source/destination are company headquarters
 };
 
-typedef uint16 SourceID; ///< Contains either industry ID, town ID or company ID (or INVALID_SOURCE)
+typedef uint16_t SourceID; ///< Contains either industry ID, town ID or company ID (or INVALID_SOURCE)
 static const SourceID INVALID_SOURCE = 0xFFFF; ///< Invalid/unknown index of source
 
 #endif /* CARGO_TYPE_H */

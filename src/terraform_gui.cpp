@@ -38,7 +38,7 @@
 
 #include "safeguards.h"
 
-void CcTerraform(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint32 cmd)
+void CcTerraform(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint32_t cmd)
 {
 	if (result.Succeeded()) {
 		if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_CONSTRUCTION_OTHER, tile);
@@ -253,7 +253,7 @@ struct TerraformToolbarWindow : Window {
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
-	Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number) override
+	Point OnInitialPosition(int16_t sm_width, int16_t sm_height, int window_number) override
 	{
 		Point pt = GetToolbarAlignedWindowPosition(sm_width);
 		pt.y += sm_height;
@@ -394,7 +394,7 @@ static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
 		StringID msg =
 			mode ? STR_ERROR_CAN_T_RAISE_LAND_HERE : STR_ERROR_CAN_T_LOWER_LAND_HERE;
 
-		DoCommandP(tile, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND | CMD_MSG(msg), CcTerraform);
+		DoCommandP(tile, SLOPE_N, (uint32_t)mode, CMD_TERRAFORM_LAND | CMD_MSG(msg), CcTerraform);
 	} else {
 		assert(_terraform_size != 0);
 		TileArea ta(tile, _terraform_size, _terraform_size);
@@ -421,13 +421,13 @@ static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
 
 		for (TileIndex tile2 : ta) {
 			if (TileHeight(tile2) == h) {
-				DoCommandP(tile2, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND);
+				DoCommandP(tile2, SLOPE_N, (uint32_t)mode, CMD_TERRAFORM_LAND);
 			}
 		}
 	}
 }
 
-static const int8 _multi_terraform_coords[][2] = {
+static const int8_t _multi_terraform_coords[][2] = {
 	{  0, -2},
 	{  4,  0}, { -4,  0}, {  0,  2},
 	{ -8,  2}, { -4,  4}, {  0,  6}, {  4,  4}, {  8,  2},
@@ -559,7 +559,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		int center_y = RoundDivSU(r.top + r.bottom, 2);
 
 		int n = _terraform_size * _terraform_size;
-		const int8 *coords = &_multi_terraform_coords[0][0];
+		const int8_t *coords = &_multi_terraform_coords[0][0];
 
 		assert(n != 0);
 		do {
