@@ -20,7 +20,11 @@
 #include "../spritecache.h"
 #include "grf.hpp"
 
+#include "../3rdparty/nanosvg/nanosvg.h"
+#include "../3rdparty/nanosvg/nanosvgrast.h"
+
 #include "../safeguards.h"
+#include "zoom_func.h"
 
 extern const byte _palmap_w2d[];
 
@@ -42,6 +46,52 @@ static bool WarnCorruptSprite(const SpriteFile &file, size_t file_pos, int line)
 	Debug(sprite, warning_level, "[{}] Loading corrupted sprite from {} at position {}", line, file.GetSimplifiedFilename(), file_pos);
 	warning_level = 6;
 	return false;
+}
+
+bool DecodeSvgSprite(SpriteLoader::Sprite *sprite, SpriteFile &file, size_t file_pos, SpriteType sprite_type, int64_t num)
+{
+	if (num < 0 || num > 64 * 1024 * 1024) return WarnCorruptSprite(file, file_pos, __LINE__);
+
+	std::unique_ptr<char[]> dest_orig(new char[num]);
+	file.ReadBlock(dest_orig.get(), num);
+	dest_orig[num - 1] = '\0'; // Ensure string is nul-terminated.
+
+	NSVGimage *image = nsvgParse(dest_orig.get(), "px", 96);
+	NSVGrasterizer *rast = nsvgCreateRasterizer();
+
+	std::unique_ptr<byte[]> img(new byte[static_cast<size_t>(sprite[0].width) * sprite[0].height * 4]);
+
+	for (ZoomLevel zoom_lvl = ZOOM_LVL_NORMAL; zoom_lvl != ZOOM_LVL_END; zoom_lvl++) {
+		sprite[zoom_lvl].width = UnScaleByZoom(sprite[0].width, zoom_lvl);
+		sprite[zoom_lvl].height = UnScaleByZoom(sprite[0].height, zoom_lvl);
+		sprite[zoom_lvl].x_offs = UnScaleByZoom(sprite[0].x_offs, zoom_lvl);
+		sprite[zoom_lvl].y_offs = UnScaleByZoom(sprite[0].y_offs, zoom_lvl);
+
+		const int w = sprite[zoom_lvl].width;
+		const int h = sprite[zoom_lvl].height;
+
+		nsvgRasterize(rast, image, sprite[zoom_lvl].width, sprite[zoom_lvl].height, (float)sprite[zoom_lvl].width / (float)sprite[0].width, img.get(), w, h, w * 4);
+
+		sprite->AllocateData(zoom_lvl, static_cast<size_t>(w) * h);
+
+		/* Copy from 32bpp to CommonPixel. */
+		SpriteLoader::CommonPixel *dst = sprite->data;
+		byte *src = img.get();
+		byte *src_end = img.get() + (static_cast<size_t>(w) * h * 4);
+		while (src < src_end) {
+			dst->r = *src++;
+			dst->g = *src++;
+			dst->b = *src++;
+			dst->a = *src++;
+			if (sprite_type == SpriteType::Font) dst->m = std::max(dst->r + dst->g + dst->b, 1);
+			dst++;
+		}
+	}
+
+	nsvgDeleteRasterizer(rast);
+	nsvgDelete(image);
+
+	return true;
 }
 
 /**
@@ -272,6 +322,19 @@ uint8_t LoadSpriteV2(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, s
 
 		/* Type 0xFF indicates either a colourmap or some other non-sprite info; we do not handle them here. */
 		if (type == 0xFF) return 0;
+
+		if (type == 0xFE) {
+			file.ReadByte(); // Zoom is not needed
+			sprite[0].height = file.ReadWord();
+			sprite[0].width  = file.ReadWord();
+			sprite[0].x_offs = file.ReadWord();
+			sprite[0].y_offs = file.ReadWord();
+
+			bool valid = DecodeSvgSprite(sprite, file, file_pos, sprite_type, file.ReadDword());
+			if (valid) loaded_sprites = (1U << ZOOM_LVL_END) - 1;
+
+			continue;
+		}
 
 		byte colour = type & SCC_MASK;
 		byte zoom = file.ReadByte();
