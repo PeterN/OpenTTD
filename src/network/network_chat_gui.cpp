@@ -49,7 +49,9 @@ static std::deque<ChatMessage> _chatmsg_list; ///< The actual chat message list.
 static bool _chatmessage_dirty = false;   ///< Does the chat message need repainting?
 static bool _chatmessage_visible = false; ///< Is a chat message visible.
 static bool _chat_tab_completion_active;  ///< Whether tab completion is active.
-static uint MAX_CHAT_MESSAGES = 0;        ///< The limit of chat messages to show.
+const uint MAX_CHAT_MESSAGES = 25;        ///< The limit of chat messages to show.
+const uint NETWORK_CHAT_WIDTH_PCT = 40;   ///< Width of the chat box in percent.
+const uint NETWORK_CHAT_TIMEOUT = 20;     ///< Timeout of chat messages in seconds.
 
 /**
  * Time the chat history was marked dirty. This is used to determine if expired
@@ -84,10 +86,9 @@ static inline bool HaveChatMessages(bool show_all)
 /**
  * Add a text message to the 'chat window' to be shown
  * @param colour The colour this message is to be shown in
- * @param duration The duration of the chat message in seconds
  * @param message message itself in printf() style
  */
-void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const std::string &message)
+void CDECL NetworkAddChatMessage(TextColour colour, const std::string &message)
 {
 	if (_chatmsg_list.size() == MAX_CHAT_MESSAGES) {
 		_chatmsg_list.pop_back();
@@ -96,7 +97,7 @@ void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const std::st
 	ChatMessage *cmsg = &_chatmsg_list.emplace_front();
 	cmsg->message = message;
 	cmsg->colour = colour;
-	cmsg->remove_time = std::chrono::steady_clock::now() + std::chrono::seconds(duration);
+	cmsg->remove_time = std::chrono::steady_clock::now() + std::chrono::seconds(NETWORK_CHAT_TIMEOUT);
 
 	_chatmessage_dirty_time = std::chrono::steady_clock::now();
 	_chatmessage_dirty = true;
@@ -113,11 +114,9 @@ void NetworkReInitChatBoxSize()
 /** Initialize all buffers of the chat visualisation. */
 void NetworkInitChatMessage()
 {
-	MAX_CHAT_MESSAGES    = _settings_client.gui.network_chat_box_height;
-
 	_chatmsg_list.clear();
 	_chatmsg_box.x       = 10;
-	_chatmsg_box.width   = _settings_client.gui.network_chat_box_width_pct * _screen.width / 100;
+	_chatmsg_box.width   = NETWORK_CHAT_WIDTH_PCT * _screen.width / 100;
 	NetworkReInitChatBoxSize();
 	_chatmessage_visible = false;
 }

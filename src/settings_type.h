@@ -180,9 +180,6 @@ struct GUISettings {
 	uint8  station_gui_group_order;          ///< the order of grouping cargo entries in the station gui
 	uint8  station_gui_sort_by;              ///< sort cargo entries in the station gui by station name or amount
 	uint8  station_gui_sort_order;           ///< the sort order of entries in the station gui - ascending or descending
-	uint16 network_chat_box_width_pct;       ///< width of the chat box in percent
-	uint8  network_chat_box_height;          ///< height of the chat box in lines
-	uint16 network_chat_timeout;             ///< timeout of chat messages in seconds
 
 	uint8  developer;                        ///< print non-fatal warnings in console (>= 1), copy debug output to console (== 2)
 	bool   show_date_in_logs;                ///< whether to show dates in console logs
