@@ -250,6 +250,95 @@ static bool ResizeSpriteIn(SpriteLoader::Sprite *sprite, ZoomLevel src, ZoomLeve
 	return true;
 }
 
+static constexpr SpriteLoader::CommonPixel empty = {0, 0, 0, 0, 0};
+
+inline const SpriteLoader::CommonPixel &GetPixel(SpriteLoader::Sprite *sprite, ZoomLevel src, int x, int y)
+{
+	if (x < 0 || y < 0 || x >= sprite[src].width || y >= sprite[src].height) return empty;
+	return sprite[src].data[y * sprite[src].width + x];
+}
+
+inline bool eq(const SpriteLoader::CommonPixel &a0,
+			   const SpriteLoader::CommonPixel &a1)
+{
+	return (a0.m == a1.m);
+}
+
+/* Input grid layout        Output grid layout
+ *         +---+
+ *         | p |
+ *     +---+---+---+        +---+---+
+ *     | a | b | c |        | j | k |
+ * +---+---+---+---+---+    +---+---+
+ * | q | d | e | f | r |    | l | m |
+ * +---+---+---+---+---+    +---+---+
+ *     | g | h | i |
+ *     +---+---+---+
+ *         | s |
+ *         +---+
+ */
+static bool ResizeSpriteInScalerScale2x(SpriteLoader::Sprite *sprite, ZoomLevel src)
+{
+	ZoomLevel tgt = (ZoomLevel)(src - 1);
+	uint8 scaled_1 = 2;
+
+	/* Check for possible memory overflow. */
+	if (sprite[src].width * scaled_1 > UINT16_MAX || sprite[src].height * scaled_1 > UINT16_MAX) return false;
+
+	sprite[tgt].width  = sprite[src].width  * scaled_1;
+	sprite[tgt].height = sprite[src].height * scaled_1;
+	sprite[tgt].x_offs = sprite[src].x_offs * scaled_1;
+	sprite[tgt].y_offs = sprite[src].y_offs * scaled_1;
+	sprite[tgt].colours = sprite[src].colours;
+
+	sprite[tgt].AllocateData(tgt, sprite[tgt].width * sprite[tgt].height);
+
+	/* Crude detection of ground sprites, to avoid terrain holes */
+	bool ground = sprite[ZOOM_LVL_OUT_4X].width == 64;
+
+	for (int y = 0; y < sprite[src].height; y++) {
+		int y2 = y * 2;
+		int x = 0;
+
+		auto d = empty;
+		auto e = GetPixel(sprite, src, x,     y);
+		auto f = GetPixel(sprite, src, x + 1, y);
+
+		for (x = 0; x < sprite[src].width; x++) {
+			int x2 = x * 2;
+
+			auto b = GetPixel(sprite, src, x, y - 1);
+			auto h = GetPixel(sprite, src, x, y + 1);
+
+			auto &j = sprite[tgt].data[y2 * sprite[tgt].width + x2];
+			auto &k = sprite[tgt].data[y2 * sprite[tgt].width + x2 + 1];
+			auto &l = sprite[tgt].data[(y2 + 1) * sprite[tgt].width + x2];
+			auto &m = sprite[tgt].data[(y2 + 1) * sprite[tgt].width + x2 + 1];
+
+			if (!eq(b, h) && !eq(d, f)) {
+				if (ground) {
+					j = eq(d, b) ? (eq(d, empty) ? e : d) : e;
+					k = eq(b, f) ? (eq(f, empty) ? e : f) : e;
+					l = eq(d, h) ? (eq(d, empty) ? e : d) : e;
+					m = eq(h, f) ? (eq(f, empty) ? e : f) : e;
+				} else {
+					j = eq(d, b) ? d : e;
+					k = eq(b, f) ? f : e;
+					l = eq(d, h) ? d : e;
+					m = eq(h, f) ? f : e;
+				}
+			} else {
+				j = k = l = m = e;
+			}
+
+			/* Move along */
+			d = e; e = f; f = GetPixel(sprite, src, x + 2, y);
+		}
+	}
+
+	return true;
+}
+
 static void ResizeSpriteOut(SpriteLoader::Sprite *sprite, ZoomLevel zoom)
 {
 	/* Algorithm based on 32bpp_Optimized::ResizeSprite() */
@@ -385,8 +474,10 @@ static bool ResizeSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail, Spri
 	/* Create a fully zoomed image if it does not exist */
 	ZoomLevel first_avail = static_cast<ZoomLevel>(FIND_FIRST_BIT(sprite_avail));
 	if (first_avail != ZOOM_LVL_NORMAL) {
-		if (!ResizeSpriteIn(sprite, first_avail, ZOOM_LVL_NORMAL)) return false;
-		SetBit(sprite_avail, ZOOM_LVL_NORMAL);
+		for (ZoomLevel zoom = first_avail; zoom != ZOOM_LVL_NORMAL; zoom--) {
+			if (!ResizeSpriteInScalerScale2x(sprite, zoom)) return false;
+			SetBit(sprite_avail, (ZoomLevel)(zoom - 1));
+		}
 	}
 
 	/* Pad sprites to make sizes match. */
