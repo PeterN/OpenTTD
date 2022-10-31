@@ -339,6 +339,180 @@ static bool ResizeSpriteInScalerScale2x(SpriteLoader::Sprite *sprite, ZoomLevel 
 	return true;
 }
 
+static inline uint luma(const SpriteLoader::CommonPixel &c)
+{
+	if (c.m == 0) return 0;
+	const int r = _cur_palette.palette[c.m].r;
+	const int g = _cur_palette.palette[c.m].g;
+	const int b = _cur_palette.palette[c.m].b;
+	return (r + g + b + 1) * (256 - c.a);
+}
+
+static inline bool all_eq2(const SpriteLoader::CommonPixel &b,
+		const SpriteLoader::CommonPixel &a0,
+		const SpriteLoader::CommonPixel &a1)
+{
+	return ((b.m ^ a0.m) | (b.m ^ a1.m)) == 0;
+}
+
+
+static inline bool all_eq3(const SpriteLoader::CommonPixel &b,
+		const SpriteLoader::CommonPixel &a0,
+		const SpriteLoader::CommonPixel &a1,
+		const SpriteLoader::CommonPixel &a2)
+{
+	return ((b.m ^ a0.m) | (b.m ^ a1.m) | (b.m ^ a2.m)) == 0;
+}
+
+static inline bool all_eq4(const SpriteLoader::CommonPixel &b,
+		const SpriteLoader::CommonPixel &a0,
+		const SpriteLoader::CommonPixel &a1,
+		const SpriteLoader::CommonPixel &a2,
+		const SpriteLoader::CommonPixel &a3)
+{
+	return ((b.m ^ a0.m) | (b.m ^ a1.m) | (b.m ^ a2.m) | (b.m ^ a3.m)) == 0;
+}
+
+static inline bool any_eq3(const SpriteLoader::CommonPixel &b,
+		const SpriteLoader::CommonPixel &a0,
+		const SpriteLoader::CommonPixel &a1,
+		const SpriteLoader::CommonPixel &a2)
+{
+	return b.m == a0.m || b.m == a1.m || b.m == a2.m;
+}
+
+static inline bool none_eq2(const SpriteLoader::CommonPixel &b,
+		const SpriteLoader::CommonPixel &a0,
+		const SpriteLoader::CommonPixel &a1)
+{
+	return (b.m != a0.m) && (b.m != a1.m);
+}
+
+static inline bool none_eq4(const SpriteLoader::CommonPixel &b,
+		const SpriteLoader::CommonPixel &a0,
+		const SpriteLoader::CommonPixel &a1,
+		const SpriteLoader::CommonPixel &a2,
+		const SpriteLoader::CommonPixel &a3)
+{
+	return (b.m != a0.m) && (b.m != a1.m) && (b.m != a2.m) && (b.m != a3.m);
+}
+
+static inline bool none_eq8(const SpriteLoader::CommonPixel &b,
+		const SpriteLoader::CommonPixel &a0,
+		const SpriteLoader::CommonPixel &a1,
+		const SpriteLoader::CommonPixel &a2,
+		const SpriteLoader::CommonPixel &a3,
+		const SpriteLoader::CommonPixel &a4,
+		const SpriteLoader::CommonPixel &a5,
+		const SpriteLoader::CommonPixel &a6,
+		const SpriteLoader::CommonPixel &a7)
+{
+	return ((a0.m ^ b.m) | (a1.m ^ b.m) | (a2.m ^ b.m) | (a3.m ^ b.m) |
+			(a4.m ^ b.m) | (a5.m ^ b.m) | (a6.m ^ b.m) | (a7.m ^ b.m)) != 0;
+}
+
+static bool ResizeSpriteInScalerMMPX(SpriteLoader::Sprite *sprite, ZoomLevel src)
+{
+	ZoomLevel tgt = (ZoomLevel)(src - 1);
+	uint8 scaled_1 = 2;
+
+	/* Check for possible memory overflow. */
+	if (sprite[src].width * scaled_1 > UINT16_MAX || sprite[src].height * scaled_1 > UINT16_MAX) return false;
+
+	sprite[tgt].width  = sprite[src].width  * scaled_1;
+	sprite[tgt].height = sprite[src].height * scaled_1;
+	sprite[tgt].x_offs = sprite[src].x_offs * scaled_1;
+	sprite[tgt].y_offs = sprite[src].y_offs * scaled_1;
+	sprite[tgt].colours = sprite[src].colours;
+
+	sprite[tgt].AllocateData(tgt, sprite[tgt].width * sprite[tgt].height);
+
+	for (int y = 0; y < sprite[src].height; y++) {
+		int y2 = y * 2;
+		int x = 0;
+
+		auto a = empty;
+		auto b = GetPixel(sprite, src, x,     y - 1);
+		auto c = GetPixel(sprite, src, x + 1, y - 1);
+		auto d = empty;
+		auto e = GetPixel(sprite, src, x,     y);
+		auto f = GetPixel(sprite, src, x + 1, y);
+		auto g = empty;
+		auto h = GetPixel(sprite, src, x,     y + 1);
+		auto i = GetPixel(sprite, src, x + 1, y + 1);
+
+		auto q = empty;
+		auto r = GetPixel(sprite, src, x + 2, y);
+
+		for (x = 0; x < sprite[src].width; x++) {
+			int x2 = x * 2;
+
+			auto &j = sprite[tgt].data[y2 * sprite[tgt].width + x2];
+			auto &k = sprite[tgt].data[y2 * sprite[tgt].width + x2 + 1];
+			auto &l = sprite[tgt].data[(y2 + 1) * sprite[tgt].width + x2];
+			auto &m = sprite[tgt].data[(y2 + 1) * sprite[tgt].width + x2 + 1];
+
+			j = k = l = m = e;
+
+			if (none_eq8(e, a, b, c, d, f, g, h, i))
+			{
+				auto p = GetPixel(sprite, src, x, y - 2);
+				auto s = GetPixel(sprite, src, x, y + 2);
+
+				/* luma bits, no */
+				uint bl = luma(b), dl = luma(d), el = luma(e), fl = luma(f), hl = luma(h);
+
+				// 1:1 slope rules, extended from EPX
+				if ((eq(d, b) && !eq(d, h) && !eq(d, f)) && (el >= dl || eq(e, a)) && any_eq3(e, a, c, g) && (el < dl || !eq(a, d) || !eq(e, p) || !eq(e, q))) j = d;
+				if ((eq(b, f) && !eq(b, d) && !eq(b, h)) && (el >= bl || eq(e, c)) && any_eq3(e, a, c, i) && (el < bl || !eq(c, b) || !eq(e, p) || !eq(e, r))) k = b;
+				if ((eq(h, d) && !eq(h, f) && !eq(h, b)) && (el >= hl || eq(e, g)) && any_eq3(e, a, g, i) && (el < hl || !eq(g, h) || !eq(e, s) || !eq(e, q))) l = h;
+				if ((eq(f, h) && !eq(f, b) && !eq(f, d)) && (el >= fl || eq(e, i)) && any_eq3(e, c, g, i) && (el < fl || !eq(i, h) || !eq(e, r) || !eq(e, s))) m = f;
+
+				// Intersection rules
+				if ((!eq(e, f) && all_eq4(e, c, i, d, q) && all_eq2(f, b, h)) && (!eq(f, GetPixel(sprite, src, x + 3, y)))) k = m = f;
+				if ((!eq(e, d) && all_eq4(e, a, g, f, r) && all_eq2(d, b, h)) && (!eq(d, GetPixel(sprite, src, x - 3, y)))) j = l = d;
+				if ((!eq(e, h) && all_eq4(e, g, i, b, p) && all_eq2(h, d, f)) && (!eq(h, GetPixel(sprite, src, x, y + 3)))) l = m = h;
+				if ((!eq(e, b) && all_eq4(e, a, c, h, s) && all_eq2(b, d, f)) && (!eq(b, GetPixel(sprite, src, x, y - 3)))) j = k = b;
+
+				// Triangle tip rules
+				if (bl < el && all_eq4(e, g, h, i, s) && none_eq4(e, a, d, c, f)) j = k = b;
+				if (hl < el && all_eq4(e, a, b, c, p) && none_eq4(e, d, g, i, f)) l = m = h;
+				if (fl < el && all_eq4(e, a, d, g, q) && none_eq4(e, b, c, i, h)) k = m = f;
+				if (dl < el && all_eq4(e, c, f, i, r) && none_eq4(e, b, a, g, h)) j = l = d;
+
+				// 2:1 edge rules
+				if (!eq(h, b)) {
+					if (!eq(h, a) && !eq(h, e) && !eq(h, c)) {
+						if (all_eq3(h, g, f, r) && none_eq2(h, d, GetPixel(sprite, src, x + 2, y - 1))) l = m;
+						if (all_eq3(h, i, d, q) && none_eq2(h, f, GetPixel(sprite, src, x - 2, y - 1))) m = l;
+					}
+					if (!eq(b, i) && !eq(b, g) && !eq(b, e)) {
+						if (all_eq3(b, a, f, r) && none_eq2(b, d, GetPixel(sprite, src, x + 2, y + 1))) j = k;
+						if (all_eq3(b, c, d, q) && none_eq2(b, f, GetPixel(sprite, src, x - 2, y + 1))) k = j;
+					}
+				}
+				if (!eq(f, d)) {
+					if (!eq(d, i) && !eq(d, e) && !eq(d, c)) {
+						if (all_eq3(d, a, h, s) && none_eq2(d, b, GetPixel(sprite, src, x + 1, y + 2))) j = l;
+						if (all_eq3(d, g, b, p) && none_eq2(d, h, GetPixel(sprite, src, x + 1, y - 2))) l = j;
+					}
+					if (!eq(f, e) && !eq(f, a) && !eq(f, g)) {
+						if (all_eq3(f, c, h, s) && none_eq2(f, b, GetPixel(sprite, src, x - 1, y + 2))) k = m;
+						if (all_eq3(f, i, b, p) && none_eq2(f, h, GetPixel(sprite, src, x - 1, y - 2))) m = k;
+					}
+				}
+			}
+
+			/* Move along */
+			a = b; b = c; c = GetPixel(sprite, src, x + 2, y - 1);
+			q = d; d = e; e = f; f = r; r = GetPixel(sprite, src, x + 3, y);
+			g = h; h = i; i = GetPixel(sprite, src, x + 2, y + 1);
+		}
+	}
+
+	return true;
+}
+
 static void ResizeSpriteOut(SpriteLoader::Sprite *sprite, ZoomLevel zoom)
 {
 	/* Algorithm based on 32bpp_Optimized::ResizeSprite() */
@@ -475,7 +649,7 @@ static bool ResizeSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail, Spri
 	ZoomLevel first_avail = static_cast<ZoomLevel>(FIND_FIRST_BIT(sprite_avail));
 	if (first_avail != ZOOM_LVL_NORMAL) {
 		for (ZoomLevel zoom = first_avail; zoom != ZOOM_LVL_NORMAL; zoom--) {
-			if (!ResizeSpriteInScalerScale2x(sprite, zoom)) return false;
+			if (!ResizeSpriteInScalerMMPX(sprite, zoom)) return false;
 			SetBit(sprite_avail, (ZoomLevel)(zoom - 1));
 		}
 	}
