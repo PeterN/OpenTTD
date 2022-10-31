@@ -780,6 +780,13 @@ static bool ResizeSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail, Spri
 	ZoomLevel first_avail = static_cast<ZoomLevel>(FIND_FIRST_BIT(sprite_avail));
 	if (first_avail != ZOOM_LVL_NORMAL) {
 		for (ZoomLevel zoom = first_avail; zoom != ZOOM_LVL_NORMAL; zoom--) {
+			if (sprite->type == ST_FONT) {
+				// Remove font shadow
+				for (int x = 0; x < sprite[zoom].width * sprite[zoom].height; x++) {
+					auto &e = sprite[zoom].data[x];
+					if (e.m > 1) { e.m = 0; e.a = 0; }
+				}
+			}
 			if (!ResizeSpriteInScalerMMPX(sprite, zoom)) return false;
 			SetBit(sprite_avail, (ZoomLevel)(zoom - 1));
 		}
