@@ -175,6 +175,16 @@ void FixTitleGameZoom(int zoom_adjust)
 	vp->virtual_height = ScaleByZoom(vp->height, vp->zoom);
 }
 
+void SwitchScaler()
+{
+	extern int _scaler;
+	if (++_scaler > 3) _scaler = 0;
+
+	GfxClearSpriteCache();
+	MarkWholeScreenDirty();
+}
+
+
 static const struct NWidgetPart _nested_main_window_widgets[] = {
 	NWidget(NWID_VIEWPORT, INVALID_COLOUR, WID_M_VIEWPORT), SetResize(1, 1),
 };
@@ -185,6 +195,7 @@ enum {
 	GHK_CONSOLE,
 	GHK_BOUNDING_BOXES,
 	GHK_DIRTY_BLOCKS,
+	GHK_SCALER,
 	GHK_CENTER,
 	GHK_CENTER_ZOOM,
 	GHK_RESET_OBJECT_TO_PLACE,
@@ -298,6 +309,10 @@ struct MainWindow : Window
 
 			case GHK_DIRTY_BLOCKS:
 				ToggleDirtyBlocks();
+				return ES_HANDLED;
+
+			case GHK_SCALER:
+				SwitchScaler();
 				return ES_HANDLED;
 		}
 
@@ -469,6 +484,7 @@ static Hotkey global_hotkeys[] = {
 	Hotkey(WKC_BACKQUOTE, "console", GHK_CONSOLE),
 	Hotkey('B' | WKC_CTRL, "bounding_boxes", GHK_BOUNDING_BOXES),
 	Hotkey('I' | WKC_CTRL, "dirty_blocks", GHK_DIRTY_BLOCKS),
+	Hotkey('S' | WKC_CTRL | WKC_SHIFT, "scaler", GHK_SCALER),
 	Hotkey('C', "center", GHK_CENTER),
 	Hotkey('Z', "center_zoom", GHK_CENTER_ZOOM),
 	Hotkey(WKC_ESC, "reset_object_to_place", GHK_RESET_OBJECT_TO_PLACE),

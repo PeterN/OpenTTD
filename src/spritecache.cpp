@@ -774,21 +774,30 @@ static bool PadSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail, SpriteE
 	return true;
 }
 
+int _scaler = 0;
+
 static bool ResizeSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail, SpriteEncoder *encoder)
 {
 	/* Create a fully zoomed image if it does not exist */
 	ZoomLevel first_avail = static_cast<ZoomLevel>(FIND_FIRST_BIT(sprite_avail));
 	if (first_avail != ZOOM_LVL_NORMAL) {
-		for (ZoomLevel zoom = first_avail; zoom != ZOOM_LVL_NORMAL; zoom--) {
-			if (sprite->type == ST_FONT) {
-				// Remove font shadow
-				for (int x = 0; x < sprite[zoom].width * sprite[zoom].height; x++) {
-					auto &e = sprite[zoom].data[x];
-					if (e.m > 1) { e.m = 0; e.a = 0; }
+		if (_scaler == 0) {
+			if (!ResizeSpriteIn(sprite, first_avail, ZOOM_LVL_NORMAL)) return false;
+			SetBit(sprite_avail, ZOOM_LVL_NORMAL);
+		} else {
+			for (ZoomLevel zoom = first_avail; zoom != ZOOM_LVL_NORMAL; zoom--) {
+				if (sprite->type == ST_FONT) {
+					// Remove font shadow
+					for (int x = 0; x < sprite[zoom].width * sprite[zoom].height; x++) {
+						auto &e = sprite[zoom].data[x];
+						if (e.m > 1) { e.m = 0; e.a = 0; }
+					}
 				}
+				if (_scaler == 1 && !ResizeSpriteInScalerScale2x(sprite, zoom)) return false;
+				if (_scaler == 2 && !ResizeSpriteInScalerMMPX(sprite, zoom)) return false;
+				if (_scaler == 3 && !ResizeSpriteInScaler2(sprite, zoom)) return false;
+				SetBit(sprite_avail, (ZoomLevel)(zoom - 1));
 			}
-			if (!ResizeSpriteInScalerMMPX(sprite, zoom)) return false;
-			SetBit(sprite_avail, (ZoomLevel)(zoom - 1));
 		}
 	}
 
