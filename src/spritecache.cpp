@@ -339,6 +339,137 @@ static bool ResizeSpriteInScalerScale2x(SpriteLoader::Sprite *sprite, ZoomLevel 
 	return true;
 }
 
+static uint8 _fcd[256][256]; ///< Filter colour distance lookup table.
+
+static void InitFCD()
+{
+	float gamma = 1.8f;
+	uint8 gt[256];
+
+	/* Fill the gamma lookup table */
+	for (int i = 0; i < 256; i++) {
+		gt[i] = powf(i / 255.0f, gamma) * 255.0f;
+	}
+
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			if (i == 0 || j == 0) {
+				_fcd[i][j] = 255;
+			} else {
+				int r = gt[_cur_palette.palette[i].r] - gt[_cur_palette.palette[j].r];
+				int g = gt[_cur_palette.palette[i].g] - gt[_cur_palette.palette[j].g];
+				int b = gt[_cur_palette.palette[i].b] - gt[_cur_palette.palette[j].b];
+				_fcd[i][j] = sqrtf(r * r + g * g + b * b) / 1.7320508f;
+			}
+		}
+	}
+}
+
+#define FILTER_DIAG_GRAD 19
+#define FILTER_DIAG_EDGE 24
+#define FILTER_VERT_GRAD 31
+#define FILTER_VERT_EDGE 64
+#define FILTER_ISO_GRAD 30
+#define FILTER_ISO_EDGE 12
+
+static bool ResizeSpriteInScaler2(SpriteLoader::Sprite *sprite, ZoomLevel src)
+{
+	ZoomLevel tgt = (ZoomLevel)(src - 1);
+	uint8 scaled_1 = 2;
+	static bool init = false;
+
+	if (!init) {
+		InitFCD();
+		init = true;
+	}
+
+	/* Check for possible memory overflow. */
+	if (sprite[src].width * scaled_1 > UINT16_MAX || sprite[src].height * scaled_1 > UINT16_MAX) return false;
+
+	sprite[tgt].width  = sprite[src].width  * scaled_1;
+	sprite[tgt].height = sprite[src].height * scaled_1;
+	sprite[tgt].x_offs = sprite[src].x_offs * scaled_1;
+	sprite[tgt].y_offs = sprite[src].y_offs * scaled_1;
+	sprite[tgt].colours = sprite[src].colours;
+
+	sprite[tgt].AllocateData(tgt, sprite[tgt].width * sprite[tgt].height);
+
+	for (int y = 0; y < sprite[src].height; y++) {
+		int y2 = y * 2;
+		int x = 0;
+
+		auto a = empty;
+		auto b = GetPixel(sprite, src, x,     y - 1);
+		auto c = GetPixel(sprite, src, x + 1, y - 1);
+		auto d = empty;
+		auto e = GetPixel(sprite, src, x,     y);
+		auto f = GetPixel(sprite, src, x + 1, y);
+		auto g = empty;
+		auto h = GetPixel(sprite, src, x,     y + 1);
+		auto i = GetPixel(sprite, src, x + 1, y + 1);
+
+		for (x = 0; x < sprite[src].width; x++) {
+			int x2 = x * 2;
+
+			auto &j = sprite[tgt].data[y2 * sprite[tgt].width + x2];
+			auto &k = sprite[tgt].data[y2 * sprite[tgt].width + x2 + 1];
+			auto &l = sprite[tgt].data[(y2 + 1) * sprite[tgt].width + x2];
+			auto &m = sprite[tgt].data[(y2 + 1) * sprite[tgt].width + x2 + 1];
+
+			j = k = l = m = e;
+
+			bool done = false;
+
+			if (_fcd[d.m][h.m] < FILTER_DIAG_GRAD && // W-S
+			    _fcd[d.m][e.m] > FILTER_DIAG_EDGE && // W-C
+			    _fcd[h.m][i.m] > FILTER_DIAG_EDGE) { // S-SE
+				/* 3 segment 45 degree NW/SE */
+				l = d;
+				done = true;
+			}
+			if (_fcd[f.m][h.m] < FILTER_DIAG_GRAD && // E-S
+			    _fcd[f.m][e.m] > FILTER_DIAG_EDGE && // E-C
+			    _fcd[h.m][g.m] > FILTER_DIAG_EDGE) { // S-SW
+				/* 3 segment 45 degree NE/SW */
+				m = f;
+				done = true;
+			}
+			if (done || ((
+				(_fcd[e.m][h.m] < FILTER_VERT_GRAD && _fcd[e.m][b.m] < FILTER_VERT_GRAD) ||
+				(_fcd[f.m][i.m] < FILTER_VERT_GRAD && _fcd[f.m][c.m] < FILTER_VERT_GRAD)) &&
+				 _fcd[e.m][f.m] > FILTER_VERT_EDGE)) {
+				/* Vertical or horizontal line. Do nothing special. */
+			} else if (_fcd[d.m][i.m] < FILTER_ISO_GRAD &&
+				   _fcd[e.m][h.m] > FILTER_ISO_EDGE &&
+				   _fcd[f.m][i.m] > FILTER_ISO_EDGE) {
+				if (_fcd[g.m][f.m] < FILTER_ISO_GRAD &&
+				    _fcd[e.m][h.m] > FILTER_ISO_EDGE &&
+				    _fcd[d.m][g.m] > FILTER_ISO_EDGE) {
+					/* Both 30 degree diagonals. */
+					l = d;
+					m = f;
+				} else {
+					/* 30 degree NW/SE. */
+					l = m = d;
+				}
+			} else if (_fcd[g.m][f.m] < FILTER_ISO_GRAD &&
+				   _fcd[e.m][h.m] > FILTER_ISO_EDGE &&
+				   _fcd[d.m][g.m] > FILTER_ISO_EDGE) {
+				/* 30 degree NE/Sw. */
+				l = m = f;
+			}
+
+			/* Move along */
+			a = b; b = c; c = GetPixel(sprite, src, x + 2, y - 1);
+			d = e; e = f; f = GetPixel(sprite, src, x + 2, y    );
+			g = h; h = i; i = GetPixel(sprite, src, x + 2, y + 1);
+		}
+	}
+
+	return true;
+}
+
+
 static inline uint luma(const SpriteLoader::CommonPixel &c)
 {
 	if (c.m == 0) return 0;
