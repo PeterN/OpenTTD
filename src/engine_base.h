@@ -30,7 +30,7 @@ enum class EngineDisplayFlags : byte {
 };
 DECLARE_ENUM_AS_BIT_SET(EngineDisplayFlags)
 
-typedef Pool<Engine, EngineID, 64, 64000> EnginePool;
+typedef Pool<Engine, EngineID, 64, 1000000> EnginePool;
 extern EnginePool _engine_pool;
 
 struct Engine : EnginePool::PoolItem<&_engine_pool> {

@@ -89,7 +89,7 @@
 typedef uint BridgeType;     ///< Internal name, not of any use for you.
 typedef byte CargoID;        ///< The ID of a cargo.
 class CommandCost;           ///< The cost of a command.
-typedef uint16 EngineID;     ///< The ID of an engine.
+typedef uint32 EngineID;     ///< The ID of an engine.
 typedef uint16 GoalID;       ///< The ID of a goal.
 typedef uint16 GroupID;      ///< The ID of a group.
 typedef uint16 IndustryID;   ///< The ID of an industry.

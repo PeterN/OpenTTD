@@ -18,7 +18,7 @@
 #include "sound_type.h"
 #include "strings_type.h"
 
-typedef uint16 EngineID; ///< Unique identification number of an engine.
+typedef uint32 EngineID; ///< Unique identification number of an engine.
 
 struct Engine;
 
@@ -183,6 +183,6 @@ enum EngineFlags {
 
 static const uint MAX_LENGTH_ENGINE_NAME_CHARS = 32; ///< The maximum length of an engine name in characters including '\0'
 
-static const EngineID INVALID_ENGINE = 0xFFFF; ///< Constant denoting an invalid engine.
+static const EngineID INVALID_ENGINE = 0xFFFFFFFFU; ///< Constant denoting an invalid engine.
 
 #endif /* ENGINE_TYPE_H */

@@ -610,7 +610,8 @@ public:
 		    SLE_VAR(Vehicle, direction,             SLE_UINT8),
 
 		    SLE_VAR(Vehicle, spritenum,             SLE_UINT8),
-		    SLE_VAR(Vehicle, engine_type,           SLE_UINT16),
+		SLE_CONDVAR(Vehicle, engine_type,           SLE_FILE_U16 | SLE_VAR_U32,   SL_MIN_VERSION, SLV_U32_ENGINEID),
+		SLE_CONDVAR(Vehicle, engine_type,           SLE_UINT32,                   SLV_U32_ENGINEID, SL_MAX_VERSION),
 		    SLE_VAR(Vehicle, cur_speed,             SLE_UINT16),
 		    SLE_VAR(Vehicle, subspeed,              SLE_UINT8),
 		    SLE_VAR(Vehicle, acceleration,          SLE_UINT8),
