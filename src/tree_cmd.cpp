@@ -576,7 +576,7 @@ static void DrawTile_Trees(TileInfo *ti)
 			}
 		}
 
-		AddSortableSpriteToDraw(te[mi].sprite, te[mi].pal, ti->x + te[mi].x, ti->y + te[mi].y, 16 - te[mi].x, 16 - te[mi].y, 0x30, z, IsTransparencySet(TO_TREES), -te[mi].x, -te[mi].y);
+		AddSortableSpriteToDraw(te[mi].sprite, te[mi].pal, ti->x + te[mi].x, ti->y + te[mi].y, 16, 16, 0x30, z, IsTransparencySet(TO_TREES), -te[mi].x, -te[mi].y);
 
 		/* replace the removed one with the last one */
 		te[mi] = te[trees - 1];

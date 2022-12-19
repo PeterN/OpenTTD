@@ -1463,8 +1463,8 @@ void Train::UpdateDeltaXY()
 	/* Set common defaults. */
 	this->x_offs    = -1;
 	this->y_offs    = -1;
-	this->x_extent  =  3;
-	this->y_extent  =  3;
+	this->x_extent  =  2;
+	this->y_extent  =  2;
 	this->z_extent  =  6;
 	this->x_bb_offs =  0;
 	this->y_bb_offs =  0;
@@ -1492,21 +1492,21 @@ void Train::UpdateDeltaXY()
 		/* For all straight directions, move the bound box to the centre of the vehicle, but keep the size. */
 		this->x_offs -= half_shorten * _sign_table[dir];
 		this->y_offs -= half_shorten * _sign_table[dir + 1];
-		this->x_extent += this->x_bb_offs = half_shorten * _sign_table[dir];
-		this->y_extent += this->y_bb_offs = half_shorten * _sign_table[dir + 1];
+		this->x_bb_offs = half_shorten * _sign_table[dir];
+		this->y_bb_offs = half_shorten * _sign_table[dir + 1];
 	} else {
 		switch (dir) {
 				/* Shorten southern corner of the bounding box according the vehicle length
 				 * and center the bounding box on the vehicle. */
 			case DIR_NE:
 				this->x_offs    = 1 - (this->gcache.cached_veh_length + 1) / 2 + flip_offs;
-				this->x_extent  = this->gcache.cached_veh_length - 1;
+				this->x_extent  = this->gcache.cached_veh_length;
 				this->x_bb_offs = -1;
 				break;
 
 			case DIR_NW:
 				this->y_offs    = 1 - (this->gcache.cached_veh_length + 1) / 2 + flip_offs;
-				this->y_extent  = this->gcache.cached_veh_length - 1;
+				this->y_extent  = this->gcache.cached_veh_length;
 				this->y_bb_offs = -1;
 				break;
 
@@ -1514,13 +1514,13 @@ void Train::UpdateDeltaXY()
 				 * and center the bounding box on the vehicle. */
 			case DIR_SW:
 				this->x_offs    = 1 + (this->gcache.cached_veh_length + 1) / 2 - VEHICLE_LENGTH - flip_offs;
-				this->x_extent  = VEHICLE_LENGTH - 1;
+				this->x_extent  = this->gcache.cached_veh_length;
 				this->x_bb_offs = VEHICLE_LENGTH - this->gcache.cached_veh_length - 1;
 				break;
 
 			case DIR_SE:
 				this->y_offs    = 1 + (this->gcache.cached_veh_length + 1) / 2 - VEHICLE_LENGTH - flip_offs;
-				this->y_extent  = VEHICLE_LENGTH - 1;
+				this->y_extent  = this->gcache.cached_veh_length;
 				this->y_bb_offs = VEHICLE_LENGTH - this->gcache.cached_veh_length - 1;
 				break;
 

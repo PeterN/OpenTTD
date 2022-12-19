@@ -692,12 +692,16 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 	Point pt = RemapCoords(x, y, z);
 	int tmp_left, tmp_top, tmp_x = pt.x, tmp_y = pt.y;
 
+	x += bb_offset_x;
+	y += bb_offset_y;
+	z += bb_offset_z;
+
 	/* Compute screen extents of sprite */
 	if (image == SPR_EMPTY_BOUNDING_BOX) {
-		left = tmp_left = RemapCoords(x + w          , y + bb_offset_y, z + bb_offset_z).x;
-		right           = RemapCoords(x + bb_offset_x, y + h          , z + bb_offset_z).x + 1;
-		top  = tmp_top  = RemapCoords(x + bb_offset_x, y + bb_offset_y, z + dz         ).y;
-		bottom          = RemapCoords(x + w          , y + h          , z + bb_offset_z).y + 1;
+		left = tmp_left = RemapCoords(x + w, y    , z     ).x;
+		right           = RemapCoords(x    , y + h, z     ).x + 1;
+		top  = tmp_top  = RemapCoords(x    , y    , z + dz).y;
+		bottom          = RemapCoords(x + w, y + h, z     ).y + 1;
 	} else {
 		const Sprite *spr = GetSprite(image & SPRITE_MASK, SpriteType::Normal);
 		left = tmp_left = (pt.x += spr->x_offs);
@@ -708,10 +712,10 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 
 	if (_draw_bounding_boxes && (image != SPR_EMPTY_BOUNDING_BOX)) {
 		/* Compute maximal extents of sprite and its bounding box */
-		left   = std::min(left  , RemapCoords(x + w          , y + bb_offset_y, z + bb_offset_z).x);
-		right  = std::max(right , RemapCoords(x + bb_offset_x, y + h          , z + bb_offset_z).x + 1);
-		top    = std::min(top   , RemapCoords(x + bb_offset_x, y + bb_offset_y, z + dz         ).y);
-		bottom = std::max(bottom, RemapCoords(x + w          , y + h          , z + bb_offset_z).y + 1);
+		left   = std::min(left  , RemapCoords(x + w, y    , z     ).x);
+		right  = std::max(right , RemapCoords(x,     y + h, z     ).x + 1);
+		top    = std::min(top   , RemapCoords(x,     y    , z + dz).y);
+		bottom = std::max(bottom, RemapCoords(x + w, y + h, z     ).y + 1);
 	}
 
 	/* Do not add the sprite to the viewport, if it is outside */
@@ -732,14 +736,14 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 	ps.image = image;
 	ps.pal = pal;
 	ps.sub = sub;
-	ps.xmin = x + bb_offset_x;
-	ps.xmax = x + std::max(bb_offset_x, w) - 1;
+	ps.xmin = x;
+	ps.xmax = x + w - 1;
 
-	ps.ymin = y + bb_offset_y;
-	ps.ymax = y + std::max(bb_offset_y, h) - 1;
+	ps.ymin = y;
+	ps.ymax = y + h - 1;
 
-	ps.zmin = z + bb_offset_z;
-	ps.zmax = z + std::max(bb_offset_z, dz) - 1;
+	ps.zmin = z;
+	ps.zmax = z + dz - 1;
 
 	ps.first_child = -1;
 
