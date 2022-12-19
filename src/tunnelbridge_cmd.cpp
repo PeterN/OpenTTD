@@ -1245,6 +1245,21 @@ static void DrawBridgeRoadBits(TileIndex head_tile, int x, int y, int z, int off
 	}
 }
 
+struct TunnelBridgeBoundData {
+	int8_t pos_x;
+	int8_t pos_y;
+	int8_t size_x;
+	int8_t size_y;
+	int8_t offs_x;
+	int8_t offs_y;
+};
+
+struct TunnelBridgeBoundsData {
+	TunnelBridgeBoundData roof; ///< Tunnel roof
+	TunnelBridgeBoundData sep;  ///< Z-separator to assist sprite sorter.
+	TunnelBridgeBoundData tram; ///< Tram catenary
+};
+
 /**
  * Draws a tunnel of bridge tile.
  * For tunnels, this is rather simple, as you only need to draw the entrance.
@@ -1272,16 +1287,15 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 		 *   1    3                  2 = SpriteCombine of tunnel-roof and catenary (tram & elrail)
 		 *
 		 */
-
-		static const int _tunnel_BB[4][12] = {
+		static const TunnelBridgeBoundsData _tunnel_BB[4] = {
 			/*  tunnnel-roof  |  Z-separator  | tram-catenary
 			 * w  h  bb_x bb_y| x   y   w   h |bb_x bb_y w h */
-			{  1,  0, -15, -14,  0, 15, 16,  1, 0, 1, 16, 15 }, // NE
-			{  0,  1, -14, -15, 15,  0,  1, 16, 1, 0, 15, 16 }, // SE
-			{  1,  0, -15, -14,  0, 15, 16,  1, 0, 1, 16, 15 }, // SW
-			{  0,  1, -14, -15, 15,  0,  1, 16, 1, 0, 15, 16 }, // NW
+			{ { TILE_SIZE - 1, TILE_SIZE - 1, 1, 0, -15, -14}, { 0, 15, 16,  1, 0, 0}, {0, 0, 16, 15, 0, 1} }, // NE
+			{ { TILE_SIZE - 1, TILE_SIZE - 1, 0, 1, -14, -15}, {15,  0,  1, 16, 0, 0}, {0, 0, 15, 16, 1, 0} }, // SE
+			{ { TILE_SIZE - 1, TILE_SIZE - 1, 1, 0, -15, -14}, { 0, 15, 16,  1, 0, 0}, {0, 0, 16, 15, 0, 1} }, // SW
+			{ { TILE_SIZE - 1, TILE_SIZE - 1, 0, 1, -14, -15}, {15,  0,  1, 16, 0, 0}, {0, 0, 15, 16, 1, 0} }, // NW
 		};
-		const int *BB_data = _tunnel_BB[tunnelbridge_direction];
+		const TunnelBridgeBoundsData &BB_data = _tunnel_BB[tunnelbridge_direction];
 
 		bool catenary = false;
 
@@ -1354,7 +1368,7 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 			if (catenary_sprite_base != 0) {
 				catenary = true;
 				StartSpriteCombine();
-				AddSortableSpriteToDraw(catenary_sprite_base + tunnelbridge_direction, PAL_NONE, ti->x, ti->y, BB_data[10], BB_data[11], TILE_HEIGHT, ti->z, IsTransparencySet(TO_CATENARY), BB_data[8], BB_data[9], BB_Z_SEPARATOR);
+				AddSortableSpriteToDraw(catenary_sprite_base + tunnelbridge_direction, PAL_NONE, ti->x + BB_data.tram.pos_x, ti->y + BB_data.tram.pos_x, BB_data.tram.size_x, BB_data.tram.size_y, TILE_HEIGHT, ti->z, IsTransparencySet(TO_CATENARY), BB_data.tram.offs_x, BB_data.tram.offs_y, BB_Z_SEPARATOR);
 			}
 		} else {
 			const RailTypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
@@ -1386,15 +1400,15 @@ static void DrawTile_TunnelBridge(TileInfo *ti)
 
 		if (railtype_overlay != 0 && !catenary) StartSpriteCombine();
 
-		AddSortableSpriteToDraw(image + 1, PAL_NONE, ti->x + TILE_SIZE - 1, ti->y + TILE_SIZE - 1, BB_data[0], BB_data[1], TILE_HEIGHT, ti->z, false, BB_data[2], BB_data[3], BB_Z_SEPARATOR);
+		AddSortableSpriteToDraw(image + 1, PAL_NONE, ti->x + BB_data.roof.pos_x, ti->y + BB_data.roof.pos_y, BB_data.roof.size_x, BB_data.roof.size_y, TILE_HEIGHT, ti->z, false, BB_data.roof.offs_x, BB_data.roof.offs_y, BB_Z_SEPARATOR);
 		/* Draw railtype tunnel portal overlay if defined. */
-		if (railtype_overlay != 0) AddSortableSpriteToDraw(railtype_overlay + tunnelbridge_direction, PAL_NONE, ti->x + TILE_SIZE - 1, ti->y + TILE_SIZE - 1, BB_data[0], BB_data[1], TILE_HEIGHT, ti->z, false, BB_data[2], BB_data[3], BB_Z_SEPARATOR);
+		if (railtype_overlay != 0) AddSortableSpriteToDraw(railtype_overlay + tunnelbridge_direction, PAL_NONE, ti->x + BB_data.roof.pos_x, ti->y + BB_data.roof.pos_y, BB_data.roof.size_x, BB_data.roof.size_y, TILE_HEIGHT, ti->z, false, BB_data.roof.offs_x, BB_data.roof.offs_y, BB_Z_SEPARATOR);
 
 		if (catenary || railtype_overlay != 0) EndSpriteCombine();
 
 		/* Add helper BB for sprite sorting that separates the tunnel from things beside of it. */
-		AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x,              ti->y,              BB_data[6], BB_data[7], TILE_HEIGHT, ti->z);
-		AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x + BB_data[4], ti->y + BB_data[5], BB_data[6], BB_data[7], TILE_HEIGHT, ti->z);
+		AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x,                     ti->y,                     BB_data.sep.size_x, BB_data.sep.size_y, TILE_HEIGHT, ti->z, BB_data.sep.offs_x, BB_data.sep.offs_y);
+		AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x + BB_data.sep.pos_x, ti->y + BB_data.sep.pos_y, BB_data.sep.size_x, BB_data.sep.size_y, TILE_HEIGHT, ti->z, BB_data.sep.offs_x, BB_data.sep.offs_y);
 
 		DrawBridgeMiddle(ti);
 	} else { // IsBridge(ti->tile)
@@ -1648,10 +1662,10 @@ void DrawBridgeMiddle(const TileInfo *ti)
 	if (!IsInvisibilitySet(TO_BRIDGES)) {
 		if (axis == AXIS_X) {
 			y += 12;
-			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 16, 4, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 3, BRIDGE_Z_START);
+			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 16, 1, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 3, BRIDGE_Z_START);
 		} else {
 			x += 12;
-			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 4, 16, 0x28, z, IsTransparencySet(TO_BRIDGES), 3, 0, BRIDGE_Z_START);
+			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 1, 16, 0x28, z, IsTransparencySet(TO_BRIDGES), 3, 0, BRIDGE_Z_START);
 		}
 	}
 
