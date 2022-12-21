@@ -48,6 +48,13 @@ struct FontFamily
 };
 
 /**
+ * Split font name into family and style
+ * @param font_name full name of font to split.
+ * @return font family and style as separate strings.
+ */
+std::tuple<std::string, std::string> SplitFontFamilyAndStyle(std::string_view font_name);
+
+/**
  * List available fonts.
  * @param language_isocode the language, e.g. en_GB.
  * @param winlangid the language ID windows style.

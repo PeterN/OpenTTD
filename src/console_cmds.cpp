@@ -2226,6 +2226,8 @@ DEF_CONSOLE_CMD(ConFont)
 		}
 
 		SetFont(argfs, font, size);
+
+		InvalidateWindowData(WC_GAME_OPTIONS, WN_GAME_OPTIONS_FONT, 0, true);
 	}
 
 	for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {

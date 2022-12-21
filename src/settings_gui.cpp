@@ -541,6 +541,18 @@ struct GameOptionsWindow : Window {
 				plugin->SetStringParameters(widget);
 				break;
 			}
+
+			case WID_GO_FONT_NORMAL_BUTTON:
+			case WID_GO_FONT_SMALL_BUTTON:
+			case WID_GO_FONT_LARGE_BUTTON:
+			case WID_GO_FONT_MONO_BUTTON: {
+				FontSize fs = static_cast<FontSize>(widget - WID_GO_FONT_NORMAL_BUTTON);
+				FontCache *fc = FontCache::Get(fs);
+
+				SetDParamStr(0, fc->GetFontName());
+				SetDParam(1, fc->GetFontSize());
+				break;
+			}
 		}
 	}
 
@@ -583,16 +595,17 @@ struct GameOptionsWindow : Window {
 
 	void SetTab(WidgetID widget)
 	{
-		this->SetWidgetsLoweredState(false, WID_GO_TAB_GENERAL, WID_GO_TAB_GRAPHICS, WID_GO_TAB_SOUND, WID_GO_TAB_SOCIAL);
+		this->SetWidgetsLoweredState(false, WID_GO_TAB_GENERAL, WID_GO_TAB_FONTS, WID_GO_TAB_GRAPHICS, WID_GO_TAB_SOUND, WID_GO_TAB_SOCIAL);
 		this->LowerWidget(widget);
 		GameOptionsWindow::active_tab = widget;
 
 		int pane;
 		switch (widget) {
 			case WID_GO_TAB_GENERAL: pane = 0; break;
-			case WID_GO_TAB_GRAPHICS: pane = 1; break;
-			case WID_GO_TAB_SOUND: pane = 2; break;
-			case WID_GO_TAB_SOCIAL: pane = 3; break;
+			case WID_GO_TAB_FONTS: pane = 1; break;
+			case WID_GO_TAB_GRAPHICS: pane = 2; break;
+			case WID_GO_TAB_SOUND: pane = 3; break;
+			case WID_GO_TAB_SOCIAL: pane = 4; break;
 			default: NOT_REACHED();
 		}
 
@@ -685,6 +698,7 @@ struct GameOptionsWindow : Window {
 		}
 		switch (widget) {
 			case WID_GO_TAB_GENERAL:
+			case WID_GO_TAB_FONTS:
 			case WID_GO_TAB_GRAPHICS:
 			case WID_GO_TAB_SOUND:
 			case WID_GO_TAB_SOCIAL:
@@ -793,6 +807,15 @@ struct GameOptionsWindow : Window {
 
 				if (click_count > 0) this->mouse_capture_widget = widget;
 				break;
+
+			case WID_GO_FONT_NORMAL_BUTTON:
+			case WID_GO_FONT_SMALL_BUTTON:
+			case WID_GO_FONT_LARGE_BUTTON:
+			case WID_GO_FONT_MONO_BUTTON: {
+				FontSize fs = static_cast<FontSize>(widget - WID_GO_FONT_NORMAL_BUTTON);
+				ShowFontFamilyWindow(this, widget, fs);
+				break;
+			}
 
 			case WID_GO_GUI_SCALE_AUTO:
 			{
@@ -923,6 +946,7 @@ struct GameOptionsWindow : Window {
 				ClearAllCachedNames();
 				UpdateAllVirtCoords();
 				CheckBlitter();
+				InvalidateWindowData(WC_GAME_OPTIONS, WN_GAME_OPTIONS_FONT, 1, true);
 				ReInitAllWindows(false);
 				break;
 
@@ -1014,6 +1038,7 @@ static constexpr NWidgetPart _nested_game_options_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY),
 		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE), SetPadding(WidgetDimensions::unscaled.sparse),
 			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_GENERAL),  SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_GENERAL, STR_GAME_OPTIONS_TAB_GENERAL_TT), SetFill(1, 0),
+			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_FONTS),    SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_FONTS, STR_GAME_OPTIONS_TAB_FONTS_TT), SetFill(1, 0),
 			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_GRAPHICS), SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_GRAPHICS, STR_GAME_OPTIONS_TAB_GRAPHICS_TT), SetFill(1, 0),
 			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_SOUND),    SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_SOUND, STR_GAME_OPTIONS_TAB_SOUND_TT), SetFill(1, 0),
 			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_SOCIAL),   SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_SOCIAL, STR_GAME_OPTIONS_TAB_SOCIAL_TT), SetFill(1, 0),
@@ -1044,6 +1069,30 @@ static constexpr NWidgetPart _nested_game_options_widgets[] = {
 						NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
 							NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_SURVEY_PREVIEW_BUTTON), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_GAME_OPTIONS_PARTICIPATE_SURVEY_PREVIEW, STR_GAME_OPTIONS_PARTICIPATE_SURVEY_PREVIEW_TOOLTIP),
 							NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_SURVEY_LINK_BUTTON), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_GAME_OPTIONS_PARTICIPATE_SURVEY_LINK, STR_GAME_OPTIONS_PARTICIPATE_SURVEY_LINK_TOOLTIP),
+						EndContainer(),
+					EndContainer(),
+				EndContainer(),
+			EndContainer(),
+
+			/* Fonts tab */
+			NWidget(NWID_VERTICAL), SetPadding(10), SetPIP(0, WidgetDimensions::unscaled.vsep_wide, 0),
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_TAB_FONTS, STR_NULL),
+					NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
+						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
+							NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_NORMAL, STR_NULL), SetFill(1, 1),
+							NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GO_FONT_NORMAL_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP),
+						EndContainer(),
+						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
+							NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_SMALL, STR_NULL), SetFill(1, 1),
+							NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GO_FONT_SMALL_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP),
+						EndContainer(),
+						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
+							NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_LARGE, STR_NULL), SetFill(1, 1),
+							NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GO_FONT_LARGE_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP),
+						EndContainer(),
+						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
+							NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_MONO, STR_NULL), SetFill(1, 1),
+							NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GO_FONT_MONO_BUTTON),  SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP),
 						EndContainer(),
 					EndContainer(),
 				EndContainer(),

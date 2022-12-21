@@ -25,6 +25,7 @@ enum WindowNumberEnum {
 	WN_GAME_OPTIONS_NEWGRF_STATE,    ///< NewGRF settings.
 	WN_GAME_OPTIONS_GAME_OPTIONS,    ///< Game options.
 	WN_GAME_OPTIONS_GAME_SETTINGS,   ///< Game settings.
+	WN_GAME_OPTIONS_FONT, ///< Font selection.
 
 	WN_QUERY_STRING = 0,  ///< Query string.
 	WN_QUERY_STRING_SIGN, ///< Query string for signs.

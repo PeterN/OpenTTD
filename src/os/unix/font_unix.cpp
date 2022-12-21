@@ -28,7 +28,7 @@ extern FT_Library _library;
  * @param font_name The font name.
  * @return The font family and style.
  */
-static std::tuple<std::string, std::string> SplitFontFamilyAndStyle(std::string_view font_name)
+std::tuple<std::string, std::string> SplitFontFamilyAndStyle(std::string_view font_name)
 {
 	auto separator = font_name.find(',');
 	if (separator == std::string_view::npos) return { std::string(font_name), std::string() };

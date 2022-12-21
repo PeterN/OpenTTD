@@ -28,5 +28,7 @@ DropDownList BuildSetDropDownList(int *selected_index);
 /* Actually implemented in music_gui.cpp */
 void ChangeMusicSet(int index);
 
+void ShowFontFamilyWindow(Window *parent, int button, FontSize fs);
+
 #endif /* SETTING_GUI_H */
 

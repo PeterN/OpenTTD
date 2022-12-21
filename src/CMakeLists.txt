@@ -377,6 +377,7 @@ add_files(
     settings.cpp
     settings_cmd.h
     settings_func.h
+    settings_fonts_gui.cpp
     settings_gui.cpp
     settings_gui.h
     settings_internal.h

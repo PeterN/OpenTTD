@@ -945,6 +945,8 @@ STR_GAME_OPTIONS_CAPTION                                        :{WHITE}Game Opt
 
 STR_GAME_OPTIONS_TAB_GENERAL                                    :General
 STR_GAME_OPTIONS_TAB_GENERAL_TT                                 :{BLACK}Choose general settings
+STR_GAME_OPTIONS_TAB_FONTS                                      :Fonts
+STR_GAME_OPTIONS_TAB_FONTS_TT                                   :{BLACK}Choose font settings
 STR_GAME_OPTIONS_TAB_GRAPHICS                                   :Graphics
 STR_GAME_OPTIONS_TAB_GRAPHICS_TT                                :{BLACK}Choose graphics settings
 STR_GAME_OPTIONS_TAB_SOUND                                      :Sound
@@ -1055,6 +1057,18 @@ STR_GAME_OPTIONS_GUI_FONT_AA                                    :{BLACK}Anti-ali
 STR_GAME_OPTIONS_GUI_FONT_AA_TOOLTIP                            :{BLACK}Check this box to anti-alias resizable fonts
 
 STR_GAME_OPTIONS_GUI_SCALE_MARK                                 :{DECIMAL}x
+
+STR_GAME_OPTIONS_FONT_NORMAL                                    :Medium font
+STR_GAME_OPTIONS_FONT_SMALL                                     :Small font
+STR_GAME_OPTIONS_FONT_LARGE                                     :Large font
+STR_GAME_OPTIONS_FONT_MONO                                      :Monospace font
+
+STR_GAME_OPTIONS_FONT_PANGRAM                                   :The quick brown fox jumps over the lazy dog.
+
+STR_GAME_OPTIONS_FONT_SETTING                                   :{RAW_STRING} {NUM}
+STR_GAME_OPTIONS_FONT_SPRITE                                    :Built-in sprites
+STR_GAME_OPTIONS_FONT_ANTIALIAS                                 :Anti-aliasing
+STR_GAME_OPTIONS_FONT_ANTIALIAS_TOOLTIP                         :Check this box to enable smoothing of font edges
 
 STR_GAME_OPTIONS_PARTICIPATE_SURVEY_FRAME                       :{BLACK}Automated survey
 STR_GAME_OPTIONS_PARTICIPATE_SURVEY                             :{BLACK}Participate in automated survey

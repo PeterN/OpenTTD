@@ -13,6 +13,7 @@
 /** Widgets of the #GameOptionsWindow class. */
 enum GameOptionsWidgets : WidgetID {
 	WID_GO_TAB_GENERAL,            ///< General tab.
+	WID_GO_TAB_FONTS,              ///< Fonts tab.
 	WID_GO_TAB_GRAPHICS,           ///< Graphics tab.
 	WID_GO_TAB_SOUND,              ///< Sound tab.
 	WID_GO_TAB_SOCIAL,             ///< Social tab.
@@ -61,6 +62,10 @@ enum GameOptionsWidgets : WidgetID {
 	WID_GO_SOCIAL_PLUGIN_TITLE,    ///< Title of the frame of the social plugin.
 	WID_GO_SOCIAL_PLUGIN_PLATFORM, ///< Platform of the social plugin.
 	WID_GO_SOCIAL_PLUGIN_STATE,    ///< State of the social plugin.
+	WID_GO_FONT_NORMAL_BUTTON,
+	WID_GO_FONT_SMALL_BUTTON,
+	WID_GO_FONT_LARGE_BUTTON,
+	WID_GO_FONT_MONO_BUTTON,
 };
 
 /** Widgets of the #GameSettingsWindow class. */
