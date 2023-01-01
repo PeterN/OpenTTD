@@ -620,10 +620,10 @@ public:
 	}
 };
 
-struct Hsv {
+struct Hsl {
 	double h; ///< "Angle" in 0.0 ... 360.0
 	double s; ///< Saturation 0.0 ... 1.0
-	double v; ///< Value      0.0 ... 1.0
+	double l; ///< Lightness  0.0 ... 1.0
 };
 
 class SelectRGBWindow : public Window {
@@ -638,13 +638,13 @@ class SelectRGBWindow : public Window {
 	uint32 temp, current;
 
 	Colour current_rgb;
-	Hsv current_hsv;
+	Hsl current_hsl;
 
 	static const int BUTTON_SIZE = 10;
 
-	Hsv RgbToHsv(Colour rgb) const
+	Hsl RgbToHsv(Colour rgb) const
 	{
-		Hsv hsv;
+		Hsl hsl;
 		double r = rgb.r / 255.0;
 		double g = rgb.g / 255.0;
 		double b = rgb.b / 255.0;
@@ -652,56 +652,55 @@ class SelectRGBWindow : public Window {
 		double minrgb = std::min({r, g, b});
 		double maxrgb = std::max({r, g, b});
 
-		hsv.v = maxrgb;
+		hsl.l = (minrgb + maxrgb) / 2;
 		double d = maxrgb - minrgb;
 
 		if (d > 0.0 && maxrgb > 0.0) {
-			hsv.s = (d / maxrgb);
+			hsl.s = (hsl.l > 0.5) ? d / (2 - d) : d / (maxrgb + minrgb);
 		} else {
-			hsv.s = 0.0;
-			hsv.h = 0.0;
-			return hsv;
+			hsl.s = 0.0;
+			hsl.h = 0.0;
+			return hsl;
 		}
 
 		/* Calculate hue */
 		if (r >= maxrgb) {
-			hsv.h = (g - b) / d;
+			hsl.h = (g - b) / d + (g < b ? 6 : 0);
 		} else if (g >= maxrgb) {
-			hsv.h = 2.0 + (b - r) / d;
+			hsl.h = 2.0 + (b - r) / d;
 		} else {
-			hsv.h = 4.0 + (r - g) / d;
+			hsl.h = 4.0 + (r - g) / d;
 		}
+		hsl.h /= 6.0;
 
 		/* Convert hue to degrees */
-		hsv.h *= 60.0;
-		if (hsv.h < 0.0) hsv.h += 360.0;
+		// hsl.h *= 60.0;
+		// if (hsl.h < 0.0) hsl.h += 360.0;
 
-		return hsv;
+		return hsl;
 	}
 
-	Colour HsvToRgb(Hsv hsv) const
+	double Hue2Rgb(double p, double q, double t) const
+	{
+		if (t < 0) t += 1;
+		if (t > 1) t -= 1;
+		if (t < 1/6.0) return p + (q - p) * 6.0 * t;
+		if (t < 1/2.0) return q;
+		if (t < 2/3.0) return p + (q - p) * (2 / 3.0 - t) * 6.0;
+		return p;
+	}
+
+	Colour HsvToRgb(Hsl hsl) const
 	{
 		Colour c;
 		c.a = 255;
 
-		double hh = hsv.h / 60.0;
-		int i = (int)hh;
-		double ff = hh - i;
+		double q = hsl.l < 0.5 ? hsl.l * (1 + hsl.s) : (hsl.l + hsl.s - hsl.l * hsl.s);
+		double p = 2 * hsl.l - q;
 
-		double p = hsv.v * (1.0 - hsv.s) * 255.0;
-		double q = hsv.v * (1.0 - (hsv.s * ff)) * 255.0;
-		double t = hsv.v * (1.0 - (hsv.s * (1.0 - ff))) * 255.0;
-		double v = hsv.v * 255.0;
-
-		switch (i) {
-			case 0: c.r = v; c.g = t; c.b = p; break;
-			case 1: c.r = q; c.g = v; c.b = p; break;
-			case 2: c.r = p; c.g = v; c.b = t; break;
-			case 3: c.r = p; c.g = q; c.b = v; break;
-			case 4: c.r = t; c.g = p; c.b = v; break;
-			default:
-			case 5: c.r = v; c.g = p; c.b = q; break;
-		}
+		c.r = 255 * Hue2Rgb(p, q, hsl.h + 1/3.0);
+		c.g = 255 * Hue2Rgb(p, q, hsl.h);
+		c.b = 255 * Hue2Rgb(p, q, hsl.h - 1/3.0);
 
 		/* Bottom 2 bits are not used due to packing into 6 * 4 = 24 bits. */
 		c.r &= 0xFC;
@@ -726,15 +725,15 @@ public:
 			rgb = GetCompanyColourRGB(colour);
 		}
 
-		Hsv hsv = RgbToHsv(rgb);
+		Hsl hsv = RgbToHsv(rgb);
 
 		this->current_rgb = rgb;
-		this->current_hsv = hsv;
+		this->current_hsl = hsv;
 
 		this->hue = this->GetScrollbar(WID_RGB_SCROLLBAR_HUE);
 		this->hue->SetCapacity(BUTTON_SIZE);
 		this->hue->SetCount(360 + BUTTON_SIZE);
-		this->hue->SetPosition(hsv.h);
+		this->hue->SetPosition(hsv.h * 360.0f);
 		this->sat = this->GetScrollbar(WID_RGB_SCROLLBAR_SAT);
 		this->sat->SetCapacity(BUTTON_SIZE);
 		this->sat->SetCount(100 + BUTTON_SIZE);
@@ -742,7 +741,7 @@ public:
 		this->val = this->GetScrollbar(WID_RGB_SCROLLBAR_VAL);
 		this->val->SetCapacity(BUTTON_SIZE);
 		this->val->SetCount(100 + BUTTON_SIZE);
-		this->val->SetPosition(hsv.v * 100.0f);
+		this->val->SetPosition(hsv.l * 100.0f);
 		this->con = this->GetScrollbar(WID_RGB_SCROLLBAR_CON);
 		this->con->SetCapacity(BUTTON_SIZE);
 		this->con->SetCount(255 + BUTTON_SIZE);
@@ -760,12 +759,12 @@ public:
 
 	void DrawWidget(const Rect &r, int widget) const override
 	{
-		Hsv hsv = this->current_hsv;
+		Hsl hsv = this->current_hsl;
 		switch (widget) {
 			case WID_RGB_HUE: {
 				int width = r.Width();
 				for (int i = 0; i < width; i++) {
-					hsv.h = (i * 360.0) / width;
+					hsv.h = (double)i / width;
 					GfxFillRect(r.left + i, r.top, r.left + i, r.bottom, HsvToRgb(hsv).data << 8, FILLRECT_OPAQUE);
 				}
 				break;
@@ -783,7 +782,7 @@ public:
 			case WID_RGB_VAL: {
 				int width = r.Width();
 				for (int i = 0; i < width; i++) {
-					hsv.v = (double)i / width;
+					hsv.l = (double)i / width;
 					GfxFillRect(r.left + i, r.top, r.left + i, r.bottom, HsvToRgb(hsv).data << 8, FILLRECT_OPAQUE);
 				}
 				break;
@@ -826,12 +825,12 @@ public:
 
 			Colour cur = this->current_rgb;
 			this->current_rgb = GetCompanyColourRGB(wi->colour);
-			this->current_hsv = RgbToHsv(this->current_rgb);
+			this->current_hsl = RgbToHsv(this->current_rgb);
 
 			/* Update scrollbar positions */
-			this->hue->SetPosition(this->current_hsv.h);
-			this->sat->SetPosition(this->current_hsv.s * 100.0f);
-			this->val->SetPosition(this->current_hsv.v * 100.0f);
+			this->hue->SetPosition(this->current_hsl.h * 360.0f);
+			this->sat->SetPosition(this->current_hsl.s * 100.0f);
+			this->val->SetPosition(this->current_hsl.l * 100.0f);
 			this->con->SetPosition(this->current_rgb.a);
 
 			/* Selection has changed, so update in a moment. */
@@ -844,10 +843,10 @@ public:
 		Colour cur = this->current_rgb;
 
 		/* Scrollbars cause a repaint */
-		this->current_hsv.h = this->hue->GetPosition() % 360;
-		this->current_hsv.s = this->sat->GetPosition() / 100.0f;
-		this->current_hsv.v = this->val->GetPosition() / 100.0f;
-		this->current_rgb = HsvToRgb(this->current_hsv);
+		this->current_hsl.h = this->hue->GetPosition() / 360.0f;
+		this->current_hsl.s = this->sat->GetPosition() / 100.0f;
+		this->current_hsl.l = this->val->GetPosition() / 100.0f;
+		this->current_rgb = HsvToRgb(this->current_hsl);
 		this->current_rgb.a = this->con->GetPosition();
 
 		/* Selection has changed, so update in a moment. */
@@ -923,7 +922,7 @@ static const NWidgetPart _nested_select_rgb_widgets [] = {
 						NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_SAT), SetMinimalSize(240, 16),
 					EndContainer(),
 					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_SAT),
-					NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_BRIGHTNESS, STR_NULL),
+					NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_LIGHTNESS, STR_NULL),
 					NWidget(WWT_INSET, COLOUR_GREY),
 						NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_VAL), SetMinimalSize(240, 16),
 					EndContainer(),

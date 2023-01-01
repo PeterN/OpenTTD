@@ -2163,7 +2163,7 @@ STR_LIVERY_FREIGHT_TRAM                                         :Freight Tram
 
 STR_LIVERY_HUE                                                  :{BLACK}Hue
 STR_LIVERY_SATURATION                                           :{BLACK}Saturation
-STR_LIVERY_BRIGHTNESS                                           :{BLACK}Brightness
+STR_LIVERY_LIGHTNESS                                            :{BLACK}Lightness
 STR_LIVERY_CONTRAST                                             :{BLACK}Contrast
 
 # Face selection window
