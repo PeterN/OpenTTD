@@ -758,7 +758,7 @@ public:
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget(const Rect &r, int widget) const override
 	{
 		Hsv hsv = this->current_hsv;
 		switch (widget) {
@@ -820,7 +820,7 @@ public:
 		}
 	}
 
-	void OnPaint()
+	void OnPaint() override
 	{
 		Colour cur = this->current_rgb;
 
