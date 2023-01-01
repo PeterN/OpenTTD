@@ -22,10 +22,12 @@ static const SaveLoad _group_desc[] = {
 	     SLE_VAR(Group, owner,              SLE_UINT8),
 	     SLE_VAR(Group, vehicle_type,       SLE_UINT8),
 	     SLE_VAR(Group, flags,              SLE_UINT8),
-	 SLE_CONDVAR(Group, livery.in_use,      SLE_UINT8,                     SLV_GROUP_LIVERIES, SL_MAX_VERSION),
-	 SLE_CONDVAR(Group, livery.colour1,     SLE_UINT8,                     SLV_GROUP_LIVERIES, SL_MAX_VERSION),
-	 SLE_CONDVAR(Group, livery.colour2,     SLE_UINT8,                     SLV_GROUP_LIVERIES, SL_MAX_VERSION),
-	 SLE_CONDVAR(Group, parent,             SLE_UINT16,                    SLV_189, SL_MAX_VERSION),
+	 SLE_CONDVAR(Group, livery.in_use,      SLE_UINT8,                      SLV_GROUP_LIVERIES, SL_MAX_VERSION),
+	 SLE_CONDVAR(Group, livery.colour1,     SLE_FILE_U8 | SLE_VAR_U32,      SLV_GROUP_LIVERIES, SLV_RGB_CC),
+	 SLE_CONDVAR(Group, livery.colour1,     SLE_UINT32,                     SLV_RGB_CC,         SL_MAX_VERSION),
+	 SLE_CONDVAR(Group, livery.colour2,     SLE_FILE_U8 | SLE_VAR_U32,      SLV_GROUP_LIVERIES, SLV_RGB_CC),
+	 SLE_CONDVAR(Group, livery.colour2,     SLE_UINT32,                     SLV_RGB_CC,         SL_MAX_VERSION),
+	 SLE_CONDVAR(Group, parent,             SLE_UINT16,                     SLV_189, SL_MAX_VERSION),
 };
 
 struct GRPSChunkHandler : ChunkHandler {

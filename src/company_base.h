@@ -68,7 +68,7 @@ struct CompanyProperties {
 	byte money_fraction;             ///< Fraction of money of the company, too small to represent in #money.
 	Money current_loan;              ///< Amount of money borrowed from the bank.
 
-	byte colour;                     ///< Company colour.
+	uint32 colour;                   ///< Company colour.
 
 	byte block_preview;              ///< Number of quarters that the company is not allowed to get new exclusive engine previews (see CompaniesGenStatistics).
 
