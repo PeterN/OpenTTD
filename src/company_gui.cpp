@@ -816,7 +816,26 @@ public:
 				}
 				break;
 			}
+		}
+	}
 
+	void OnClick(Point pt, int widget, int click_count) override
+	{
+		if (widget >= WID_RGB_DEFAULT) {
+			const NWidgetCore *wi = this->GetWidget<NWidgetCore>(widget);
+
+			Colour cur = this->current_rgb;
+			this->current_rgb = GetCompanyColourRGB(wi->colour);
+			this->current_hsv = RgbToHsv(this->current_rgb);
+
+			/* Update scrollbar positions */
+			this->hue->SetPosition(this->current_hsv.h);
+			this->sat->SetPosition(this->current_hsv.s * 100.0f);
+			this->val->SetPosition(this->current_hsv.v * 100.0f);
+			this->con->SetPosition(this->current_rgb.a);
+
+			/* Selection has changed, so update in a moment. */
+			if (this->current_rgb.data != cur.data) this->SetTimeout();
 		}
 	}
 
@@ -873,30 +892,48 @@ static const NWidgetPart _nested_select_rgb_widgets [] = {
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_RGB_CAPTION), SetDataTip(STR_LIVERY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 	EndContainer(),
 	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
-		NWidget(NWID_HORIZONTAL), SetPIP(6, WidgetDimensions::unscaled.hsep_wide, 6),
-			NWidget(NWID_VERTICAL), SetPIP(6, WidgetDimensions::unscaled.vsep_normal, 6),
-				NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_HUE, STR_NULL),
-				NWidget(WWT_INSET, COLOUR_GREY),
-					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_HUE), SetMinimalSize(240, 16),
-				EndContainer(),
-				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_HUE),
-				NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_SATURATION, STR_NULL),
-				NWidget(WWT_INSET, COLOUR_GREY),
-					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_SAT), SetMinimalSize(240, 16),
-				EndContainer(),
-				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_SAT),
-				NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_BRIGHTNESS, STR_NULL),
-				NWidget(WWT_INSET, COLOUR_GREY),
-					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_VAL), SetMinimalSize(240, 16),
-				EndContainer(),
-				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_VAL),
-				NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_CONTRAST, STR_NULL),
-				NWidget(WWT_INSET, COLOUR_GREY),
-					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_CON), SetMinimalSize(240, 16),
-				EndContainer(),
-				NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_CON),
+		NWidget(NWID_VERTICAL), SetPIP(6, WidgetDimensions::unscaled.vsep_wide, 6),
+			NWidget(NWID_HORIZONTAL), SetPIP(6, 0, 6),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_DARK_BLUE,  WID_RGB_DEFAULT +  0), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_PALE_GREEN, WID_RGB_DEFAULT +  1), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_PINK,       WID_RGB_DEFAULT +  2), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_YELLOW,     WID_RGB_DEFAULT +  3), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_RED,        WID_RGB_DEFAULT +  4), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_LIGHT_BLUE, WID_RGB_DEFAULT +  5), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREEN,      WID_RGB_DEFAULT +  6), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_DARK_GREEN, WID_RGB_DEFAULT +  7), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BLUE,       WID_RGB_DEFAULT +  8), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_CREAM,      WID_RGB_DEFAULT +  9), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_MAUVE,      WID_RGB_DEFAULT + 10), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_PURPLE,     WID_RGB_DEFAULT + 11), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE,     WID_RGB_DEFAULT + 12), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN,      WID_RGB_DEFAULT + 13), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY,       WID_RGB_DEFAULT + 14), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_WHITE,      WID_RGB_DEFAULT + 15), SetDataTip(STR_EMPTY, STR_NULL), SetFill(1, 0),
 			EndContainer(),
-			NWidget(NWID_VERTICAL), SetPIP(6, WidgetDimensions::unscaled.vsep_normal, 6),
+			NWidget(NWID_HORIZONTAL), SetPIP(6, WidgetDimensions::unscaled.hsep_wide, 6),
+				NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
+					NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_HUE, STR_NULL),
+					NWidget(WWT_INSET, COLOUR_GREY),
+						NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_HUE), SetMinimalSize(240, 16),
+					EndContainer(),
+					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_HUE),
+					NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_SATURATION, STR_NULL),
+					NWidget(WWT_INSET, COLOUR_GREY),
+						NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_SAT), SetMinimalSize(240, 16),
+					EndContainer(),
+					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_SAT),
+					NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_BRIGHTNESS, STR_NULL),
+					NWidget(WWT_INSET, COLOUR_GREY),
+						NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_VAL), SetMinimalSize(240, 16),
+					EndContainer(),
+					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_VAL),
+					NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_LIVERY_CONTRAST, STR_NULL),
+					NWidget(WWT_INSET, COLOUR_GREY),
+						NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_CON), SetMinimalSize(240, 16),
+					EndContainer(),
+					NWidget(NWID_HSCROLLBAR, COLOUR_GREY, WID_RGB_SCROLLBAR_CON),
+				EndContainer(),
 				NWidget(WWT_INSET, COLOUR_GREY),
 					NWidget(WWT_EMPTY, INVALID_COLOUR, WID_RGB_OUTPUT), SetFill(1, 1), SetMinimalSize(24, 0),
 				EndContainer(),

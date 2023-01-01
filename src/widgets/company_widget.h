@@ -91,6 +91,7 @@ enum SelectRGBWidgets {
 	WID_RGB_CON,
 	WID_RGB_SCROLLBAR_CON, ///< Contrast scrollbar.
 	WID_RGB_OUTPUT,
+	WID_RGB_DEFAULT,       ///< First default colour 'preset'.
 };
 
 
