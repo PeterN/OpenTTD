@@ -9771,6 +9771,9 @@ static void AfterLoadGRFs()
 	for (Company *c : Company::Iterate()) {
 		UpdateCompanyLiveries(c);
 	}
+	for (Group *g : Group::Iterate()) {
+		UpdateLivery(g->livery);
+	}
 
 	for (Engine *e : Engine::IterateType(VEH_ROAD)) {
 		if (_gted[e->index].rv_max_speed != 0) {
