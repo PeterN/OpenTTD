@@ -790,14 +790,21 @@ public:
 
 			case WID_RGB_CON: {
 				int width = r.Width();
+				int mid = CenterBounds(r.top, r.bottom, 0);
 				for (int i = 0; i < width; i++) {
 					Colour c;
-					int j = (i * 8.0) / width;
-					int adj = ((j - 4) * this->current_rgb.a) / 4;
+					int a = (i * 255 / width) & 0xFC;
+					int adj = -3 * a / 4;
 					c.r = Clamp(this->current_rgb.r + adj, 0, 255) & 0xFC;
 					c.g = Clamp(this->current_rgb.g + adj, 0, 255) & 0xFC;
 					c.b = Clamp(this->current_rgb.b + adj, 0, 255) & 0xFC;
-					GfxFillRect(r.left + i, r.top, r.left + i, r.bottom, c.data << 8, FILLRECT_OPAQUE);
+					GfxFillRect(r.left + i, mid + 1, r.left + i, r.bottom, c.data << 8, FILLRECT_OPAQUE);
+
+					adj = 2 * a / 4;
+					c.r = Clamp(this->current_rgb.r + adj, 0, 255) & 0xFC;
+					c.g = Clamp(this->current_rgb.g + adj, 0, 255) & 0xFC;
+					c.b = Clamp(this->current_rgb.b + adj, 0, 255) & 0xFC;
+					GfxFillRect(r.left + i, r.top, r.left + i, mid, c.data << 8, FILLRECT_OPAQUE);
 				}
 				break;
 			}
