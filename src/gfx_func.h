@@ -244,9 +244,9 @@ static inline Colours PackColourFromRGB(Colour rgb)
 {
 	/* TextColour only has 20 bits free after the 5 or 8 bit colour index,
 	 * so we lose 2 bits of each value to fit in the remaining space. */
-	return (Colours)(((rgb.r >> 2) << 12) |
+	return (Colours)(((rgb.b >> 2) << 12) |
 	                 ((rgb.g >> 2) << 18) |
-	                 ((rgb.b >> 2) << 24));
+	                 ((rgb.r >> 2) << 24));
 }
 
 uint32 ShadeColour(uint32 colour, int shade);
