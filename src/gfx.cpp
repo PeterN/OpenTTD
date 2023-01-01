@@ -2197,20 +2197,48 @@ PaletteID CreateCompanyColourRemap(uint32 colour1, uint32 colour2, bool twocc, P
  * @param amt Amount to adjust colour by
  * @return Adjusted colour.
  */
-static inline uint32 AdjustRGBShade(uint32 colour, int amt)
+static inline uint32 AdjustColoursRGBShade(Colours colour, int amt)
 {
 	if ((colour & TC_IS_RGB_COLOUR) == 0) return 0;
-	SB(colour,  8, 8, Clamp((GB(colour, 12, 6) << 2) + amt, 0, 255));
-	SB(colour, 16, 8, Clamp((GB(colour, 18, 6) << 2) + amt, 0, 255));
-	SB(colour, 24, 8, Clamp((GB(colour, 24, 6) << 2) + amt, 0, 255));
-	return colour & 0xFFFFFF00;
+
+	Colour c(Clamp((GB(colour, 12, 6) << 2) + amt, 0, 255),
+	         Clamp((GB(colour, 18, 6) << 2) + amt, 0, 255),
+	         Clamp((GB(colour, 24, 6) << 2) + amt, 0, 255));
+
+	return c.data << 8;
 }
 
 /**
  * All 16 colour gradients
  * 8 colours per gradient from darkest (0) to lightest (7)
  */
-uint32 ShadeColour(uint32 colour, int shade)
+uint32 ShadeColour(Colours colour, int shade)
 {
-	return _colour_gradient[colour & 0xF][shade & 0x7] | AdjustRGBShade(colour, (shade - 4) * 16);
+	return _colour_gradient[colour & 0xF][shade & 0x7] | AdjustColoursRGBShade(colour, (shade - 4) * 16);
+}
+
+/**
+ * Adjust an RGB colour by an amount.
+ * @param rgb Base colour to adjust
+ * @param amt Amount to adjust colour by
+ * @return Adjusted colour.
+ */
+static inline uint32 AdjustTextColourRGBShade(Colours colour, int amt)
+{
+	if ((colour & TC_IS_RGB_COLOUR) == 0) return 0;
+
+	uint32 c = TC_IS_RGB_COLOUR;
+	SB(c, 12, 6, Clamp((GB(colour, 12, 6) << 2) + amt, 0, 255) >> 2);
+	SB(c, 18, 6, Clamp((GB(colour, 18, 6) << 2) + amt, 0, 255) >> 2);
+	SB(c, 24, 6, Clamp((GB(colour, 24, 6) << 2) + amt, 0, 255) >> 2);
+	return c;
+}
+
+/**
+ * All 16 colour gradients
+ * 8 colours per gradient from darkest (0) to lightest (7)
+ */
+TextColour ShadeTextColour(Colours colour, int shade)
+{
+	return (TextColour)(_colour_gradient[colour & 0xF][shade & 0x7] | TC_IS_PALETTE_COLOUR | AdjustTextColourRGBShade(colour, (shade - 4) * 16));
 }
