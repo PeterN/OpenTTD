@@ -894,7 +894,7 @@ void *InjectSprite(SpriteType type, int load_index, size_t len)
 	if (SpriteExists(load_index)) DeleteEntryFromSpriteCache(load_index);
 
 	SpriteCache *sc = AllocateSpriteCache(load_index);
-	sc->file_pos      = 0;
+	sc->file_pos      = SIZE_MAX;
 	sc->file          = nullptr;
 	sc->ptr           = AllocSprite(len);
 	sc->id            = 0;
