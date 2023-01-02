@@ -38,6 +38,12 @@ public:
 
 	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
 
+	static inline Colour UnpackColour(uint32 colour)
+	{
+		if (GB(colour, 8, 24) == 0) return 0;
+		return (Colour)(colour >> 8);
+	}
+
 protected:
 	static inline Colour RealizeBlendedColour(uint8 anim, Colour c)
 	{
