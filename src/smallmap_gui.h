@@ -188,17 +188,17 @@ public:
 	Point GetStationMiddle(const Station *st) const;
 
 	void Close() override;
-	void SetStringParameters(int widget) const override;
+	void SetStringParameters(WidgetIndex widget) const override;
 	void OnInit() override;
 	void OnPaint() override;
-	void DrawWidget(const Rect &r, int widget) const override;
-	void OnClick(Point pt, int widget, int click_count) override;
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override;
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override;
 	void OnInvalidateData(int data = 0, bool gui_scope = true) override;
-	bool OnRightClick(Point pt, int widget) override;
+	bool OnRightClick(Point pt, WidgetIndex widget) override;
 	void OnMouseWheel(int wheel) override;
 	void OnRealtimeTick(uint delta_ms) override;
 	void OnScroll(Point delta) override;
-	void OnMouseOver(Point pt, int widget) override;
+	void OnMouseOver(Point pt, WidgetIndex widget) override;
 };
 
 #endif /* SMALLMAP_GUI_H */

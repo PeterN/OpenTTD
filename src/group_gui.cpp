@@ -384,7 +384,7 @@ public:
 		*this->sorting = this->vehgroups.GetListing();
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_GL_LIST_GROUP:
@@ -466,7 +466,7 @@ public:
 		this->SetDirty();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_GL_FILTER_BY_CARGO:
@@ -558,7 +558,7 @@ public:
 		this->DrawWidgets();
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_GL_ALL_VEHICLES:
@@ -654,7 +654,7 @@ public:
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_GL_SORT_BY_ORDER: // Flip sorting method ascending/descending
@@ -828,7 +828,7 @@ public:
 		}
 	}
 
-	void OnDragDrop_Group(Point pt, int widget)
+	void OnDragDrop_Group(Point pt, WidgetIndex widget)
 	{
 		const Group *g = Group::Get(this->group_sel);
 
@@ -860,7 +860,7 @@ public:
 		}
 	}
 
-	void OnDragDrop_Vehicle(Point pt, int widget)
+	void OnDragDrop_Vehicle(Point pt, WidgetIndex widget)
 	{
 		switch (widget) {
 			case WID_GL_DEFAULT_VEHICLES: // Ungrouped vehicles
@@ -926,7 +926,7 @@ public:
 		}
 	}
 
-	void OnDragDrop(Point pt, int widget) override
+	void OnDragDrop(Point pt, WidgetIndex widget) override
 	{
 		if (this->vehicle_sel != INVALID_VEHICLE) OnDragDrop_Vehicle(pt, widget);
 		if (this->group_sel != INVALID_GROUP) OnDragDrop_Group(pt, widget);
@@ -946,7 +946,7 @@ public:
 		this->vscroll->SetCapacityFromWidget(this, WID_GL_LIST_VEHICLE);
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		switch (widget) {
 			case WID_GL_GROUP_BY_DROPDOWN:
@@ -1011,7 +1011,7 @@ public:
 		this->SetWidgetDirty(WID_GL_LIST_VEHICLE);
 	}
 
-	void OnMouseDrag(Point pt, int widget) override
+	void OnMouseDrag(Point pt, WidgetIndex widget) override
 	{
 		if (this->vehicle_sel == INVALID_VEHICLE && this->group_sel == INVALID_GROUP) return;
 

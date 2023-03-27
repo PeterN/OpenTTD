@@ -257,25 +257,25 @@ public:
 	SmallMap<int, QueryString*> querystrings; ///< QueryString associated to WWT_EDITBOX widgets.
 	NWidgetBase *nested_root;        ///< Root of the nested tree.
 	NWidgetBase **nested_array;      ///< Array of pointers into the tree. Do not access directly, use #Window::GetWidget() instead.
-	uint nested_array_size;          ///< Size of the nested array.
+	WidgetIndex nested_array_size;   ///< Size of the nested array.
 	NWidgetStacked *shade_select;    ///< Selection widget (#NWID_SELECTION) to use for shading the window. If \c nullptr, window cannot shade.
 	Dimension unshaded_size;         ///< Last known unshaded size (only valid while shaded).
 
-	int mouse_capture_widget;        ///< Widgetindex of current mouse capture widget (e.g. dragged scrollbar). -1 if no widget has mouse capture.
+	WidgetIndex mouse_capture_widget; ///< Widgetindex of current mouse capture widget (e.g. dragged scrollbar). WIDGET_INVALID if no widget has mouse capture.
 
 	Window *parent;                  ///< Parent window.
 	WindowList::iterator z_position;
 
 	template <class NWID>
-	inline const NWID *GetWidget(uint widnum) const;
+	inline const NWID *GetWidget(WidgetIndex widnum) const;
 	template <class NWID>
-	inline NWID *GetWidget(uint widnum);
+	inline NWID *GetWidget(WidgetIndex widnum);
 
-	const Scrollbar *GetScrollbar(uint widnum) const;
-	Scrollbar *GetScrollbar(uint widnum);
+	const Scrollbar *GetScrollbar(WidgetIndex widnum) const;
+	Scrollbar *GetScrollbar(WidgetIndex widnum);
 
-	const QueryString *GetQueryString(uint widnum) const;
-	QueryString *GetQueryString(uint widnum);
+	const QueryString *GetQueryString(WidgetIndex widnum) const;
+	QueryString *GetQueryString(WidgetIndex widnum);
 	void UpdateQueryStringSize();
 
 	virtual const char *GetFocusedText() const;
@@ -308,8 +308,8 @@ public:
 	}
 
 	void DisableAllWidgetHighlight();
-	void SetWidgetHighlight(byte widget_index, TextColour highlighted_colour);
-	bool IsWidgetHighlighted(byte widget_index) const;
+	void SetWidgetHighlight(WidgetIndex widget_index, TextColour highlighted_colour);
+	bool IsWidgetHighlighted(WidgetIndex widget_index) const;
 
 	/**
 	 * Sets the enabled/disabled status of a widget.
@@ -318,7 +318,7 @@ public:
 	 * @param widget_index index of this widget in the window
 	 * @param disab_stat status to use ie: disabled = true, enabled = false
 	 */
-	inline void SetWidgetDisabledState(byte widget_index, bool disab_stat)
+	inline void SetWidgetDisabledState(WidgetIndex widget_index, bool disab_stat)
 	{
 		assert(widget_index < this->nested_array_size);
 		if (this->nested_array[widget_index] != nullptr) this->GetWidget<NWidgetCore>(widget_index)->SetDisabled(disab_stat);
@@ -328,7 +328,7 @@ public:
 	 * Sets a widget to disabled.
 	 * @param widget_index index of this widget in the window
 	 */
-	inline void DisableWidget(byte widget_index)
+	inline void DisableWidget(WidgetIndex widget_index)
 	{
 		SetWidgetDisabledState(widget_index, true);
 	}
@@ -337,7 +337,7 @@ public:
 	 * Sets a widget to Enabled.
 	 * @param widget_index index of this widget in the window
 	 */
-	inline void EnableWidget(byte widget_index)
+	inline void EnableWidget(WidgetIndex widget_index)
 	{
 		SetWidgetDisabledState(widget_index, false);
 	}
@@ -347,7 +347,7 @@ public:
 	 * @param widget_index index of this widget in the window
 	 * @return status of the widget ie: disabled = true, enabled = false
 	 */
-	inline bool IsWidgetDisabled(byte widget_index) const
+	inline bool IsWidgetDisabled(WidgetIndex widget_index) const
 	{
 		assert(widget_index < this->nested_array_size);
 		return this->GetWidget<NWidgetCore>(widget_index)->IsDisabled();
@@ -358,7 +358,7 @@ public:
 	 * @param widget_index : index of the widget in the window to check
 	 * @return true if given widget is the focused window in this window
 	 */
-	inline bool IsWidgetFocused(byte widget_index) const
+	inline bool IsWidgetFocused(WidgetIndex widget_index) const
 	{
 		return this->nested_focus != nullptr && this->nested_focus->index == widget_index;
 	}
@@ -369,7 +369,7 @@ public:
 	 * @param widget_index : index of the widget in the window to check
 	 * @return true if given widget is the focused window in this window and this window has focus
 	 */
-	inline bool IsWidgetGloballyFocused(byte widget_index) const
+	inline bool IsWidgetGloballyFocused(WidgetIndex widget_index) const
 	{
 		return _focused_window == this && IsWidgetFocused(widget_index);
 	}
@@ -379,7 +379,7 @@ public:
 	 * @param widget_index index of this widget in the window
 	 * @param lowered_stat status to use ie: lowered = true, raised = false
 	 */
-	inline void SetWidgetLoweredState(byte widget_index, bool lowered_stat)
+	inline void SetWidgetLoweredState(WidgetIndex widget_index, bool lowered_stat)
 	{
 		assert(widget_index < this->nested_array_size);
 		this->GetWidget<NWidgetCore>(widget_index)->SetLowered(lowered_stat);
@@ -389,7 +389,7 @@ public:
 	 * Invert the lowered/raised  status of a widget.
 	 * @param widget_index index of this widget in the window
 	 */
-	inline void ToggleWidgetLoweredState(byte widget_index)
+	inline void ToggleWidgetLoweredState(WidgetIndex widget_index)
 	{
 		assert(widget_index < this->nested_array_size);
 		bool lowered_state = this->GetWidget<NWidgetCore>(widget_index)->IsLowered();
@@ -400,7 +400,7 @@ public:
 	 * Marks a widget as lowered.
 	 * @param widget_index index of this widget in the window
 	 */
-	inline void LowerWidget(byte widget_index)
+	inline void LowerWidget(WidgetIndex widget_index)
 	{
 		SetWidgetLoweredState(widget_index, true);
 	}
@@ -409,7 +409,7 @@ public:
 	 * Marks a widget as raised.
 	 * @param widget_index index of this widget in the window
 	 */
-	inline void RaiseWidget(byte widget_index)
+	inline void RaiseWidget(WidgetIndex widget_index)
 	{
 		SetWidgetLoweredState(widget_index, false);
 	}
@@ -419,29 +419,29 @@ public:
 	 * @param widget_index index of this widget in the window
 	 * @return status of the widget ie: lowered = true, raised= false
 	 */
-	inline bool IsWidgetLowered(byte widget_index) const
+	inline bool IsWidgetLowered(WidgetIndex widget_index) const
 	{
 		assert(widget_index < this->nested_array_size);
 		return this->GetWidget<NWidgetCore>(widget_index)->IsLowered();
 	}
 
 	void UnfocusFocusedWidget();
-	bool SetFocusedWidget(int widget_index);
+	bool SetFocusedWidget(WidgetIndex widget_index);
 
-	EventState HandleEditBoxKey(int wid, WChar key, uint16 keycode);
-	virtual void InsertTextString(int wid, const char *str, bool marked, const char *caret, const char *insert_location, const char *replacement_end);
+	EventState HandleEditBoxKey(WidgetIndex wid, WChar key, uint16 keycode);
+	virtual void InsertTextString(WidgetIndex wid, const char *str, bool marked, const char *caret, const char *insert_location, const char *replacement_end);
 
-	void HandleButtonClick(byte widget);
-	int GetRowFromWidget(int clickpos, int widget, int padding, int line_height = -1) const;
+	void HandleButtonClick(WidgetIndex widget);
+	int GetRowFromWidget(int clickpos, WidgetIndex widget, int padding, int line_height = -1) const;
 
 	void RaiseButtons(bool autoraise = false);
-	void CDECL SetWidgetsDisabledState(bool disab_stat, int widgets, ...);
-	void CDECL SetWidgetsLoweredState(bool lowered_stat, int widgets, ...);
-	void SetWidgetDirty(byte widget_index) const;
+	void CDECL SetWidgetsDisabledState(bool disab_stat, WidgetIndex widgets, ...);
+	void CDECL SetWidgetsLoweredState(bool lowered_stat, WidgetIndex widgets, ...);
+	void SetWidgetDirty(WidgetIndex widget_index) const;
 
 	void DrawWidgets() const;
 	void DrawViewport() const;
-	void DrawSortButtonState(int widget, SortButtonState state) const;
+	void DrawSortButtonState(WidgetIndex widget, SortButtonState state) const;
 	static int SortButtonWidth();
 
 	void CloseChildWindows(WindowClass wc = WC_INVALID) const;
@@ -497,7 +497,7 @@ public:
 	 * @param widget Number of the widget to draw.
 	 * @note This method may not change any state, it may only use drawing functions.
 	 */
-	virtual void DrawWidget(const Rect &r, int widget) const {}
+	virtual void DrawWidget(const Rect &r, WidgetIndex widget) const {}
 
 	/**
 	 * Update size and resize step of a widget in the window.
@@ -511,7 +511,7 @@ public:
 	 * @param fill    Fill step of the widget.
 	 * @param resize  Resize step of the widget.
 	 */
-	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) {}
+	virtual void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) {}
 
 	/**
 	 * Initialize string parameters for a widget.
@@ -519,7 +519,7 @@ public:
 	 * and while re-initializing the window. Only for widgets that render text initializing is requested.
 	 * @param widget  Widget number.
 	 */
-	virtual void SetStringParameters(int widget) const {}
+	virtual void SetStringParameters(WidgetIndex widget) const {}
 
 	virtual void OnFocus();
 
@@ -550,7 +550,7 @@ public:
 	 * @param widget the clicked widget.
 	 * @param click_count Number of fast consecutive clicks at same position
 	 */
-	virtual void OnClick(Point pt, int widget, int click_count) {}
+	virtual void OnClick(Point pt, WidgetIndex widget, int click_count) {}
 
 	/**
 	 * A click with the right mouse button has been made on the window.
@@ -559,14 +559,14 @@ public:
 	 * @return true if the click was actually handled, i.e. do not show a
 	 *         tooltip if tooltip-on-right-click is enabled.
 	 */
-	virtual bool OnRightClick(Point pt, int widget) { return false; }
+	virtual bool OnRightClick(Point pt, WidgetIndex widget) { return false; }
 
 	/**
 	 * The mouse is hovering over a widget in the window, perform an action for it.
 	 * @param pt     The point where the mouse is hovering.
 	 * @param widget The widget where the mouse is hovering.
 	 */
-	virtual void OnHover(Point pt, int widget) {}
+	virtual void OnHover(Point pt, WidgetIndex widget) {}
 
 	/**
 	 * Event to display a custom tooltip.
@@ -574,21 +574,21 @@ public:
 	 * @param widget The widget where the mouse is located.
 	 * @return True if the event is handled, false if it is ignored.
 	 */
-	virtual bool OnTooltip(Point pt, int widget, TooltipCloseCondition close_cond) { return false; }
+	virtual bool OnTooltip(Point pt, WidgetIndex widget, TooltipCloseCondition close_cond) { return false; }
 
 	/**
 	 * An 'object' is being dragged at the provided position, highlight the target if possible.
 	 * @param pt     The point inside the window that the mouse hovers over.
 	 * @param widget The widget the mouse hovers over.
 	 */
-	virtual void OnMouseDrag(Point pt, int widget) {}
+	virtual void OnMouseDrag(Point pt, WidgetIndex widget) {}
 
 	/**
 	 * A dragged 'object' has been released.
 	 * @param pt     the point inside the window where the release took place.
 	 * @param widget the widget where the release took place.
 	 */
-	virtual void OnDragDrop(Point pt, int widget) {}
+	virtual void OnDragDrop(Point pt, WidgetIndex widget) {}
 
 	/**
 	 * Handle the request for (viewport) scrolling.
@@ -602,7 +602,7 @@ public:
 	 * @param pt     the point inside the window that the mouse hovers over.
 	 * @param widget the widget the mouse hovers over.
 	 */
-	virtual void OnMouseOver(Point pt, int widget) {}
+	virtual void OnMouseOver(Point pt, WidgetIndex widget) {}
 
 	/**
 	 * The mouse wheel has been turned.
@@ -650,15 +650,15 @@ public:
 	 * @param widget the widget (button) that the dropdown is associated with.
 	 * @param index  the element in the dropdown that is selected.
 	 */
-	virtual void OnDropdownSelect(int widget, int index) {}
+	virtual void OnDropdownSelect(WidgetIndex widget, int index) {}
 
-	virtual void OnDropdownClose(Point pt, int widget, int index, bool instant_close);
+	virtual void OnDropdownClose(Point pt, WidgetIndex widget, int index, bool instant_close);
 
 	/**
 	 * The text in an editbox has been edited.
 	 * @param widget The widget of the editbox.
 	 */
-	virtual void OnEditboxChanged(int widget) {}
+	virtual void OnEditboxChanged(WidgetIndex widget) {}
 
 	/**
 	 * The query window opened from this window has closed.
@@ -839,9 +839,9 @@ inline bool AllEqual(It begin, It end, Pred pred)
  * @return The requested widget if it is instantiated, \c nullptr otherwise.
  */
 template <class NWID>
-inline NWID *Window::GetWidget(uint widnum)
+inline NWID *Window::GetWidget(WidgetIndex widnum)
 {
-	if (widnum >= this->nested_array_size || this->nested_array[widnum] == nullptr) return nullptr;
+	if (widnum == WIDGET_INVALID || widnum >= this->nested_array_size || this->nested_array[widnum] == nullptr) return nullptr;
 	NWID *nwid = dynamic_cast<NWID *>(this->nested_array[widnum]);
 	assert(nwid != nullptr);
 	return nwid;
@@ -849,9 +849,9 @@ inline NWID *Window::GetWidget(uint widnum)
 
 /** Specialized case of #Window::GetWidget for the nested widget base class. */
 template <>
-inline const NWidgetBase *Window::GetWidget<NWidgetBase>(uint widnum) const
+inline const NWidgetBase *Window::GetWidget<NWidgetBase>(WidgetIndex widnum) const
 {
-	if (widnum >= this->nested_array_size) return nullptr;
+	if (widnum == WIDGET_INVALID || widnum >= this->nested_array_size) return nullptr;
 	return this->nested_array[widnum];
 }
 
@@ -862,7 +862,7 @@ inline const NWidgetBase *Window::GetWidget<NWidgetBase>(uint widnum) const
  * @return The requested widget if it is instantiated, \c nullptr otherwise.
  */
 template <class NWID>
-inline const NWID *Window::GetWidget(uint widnum) const
+inline const NWID *Window::GetWidget(WidgetIndex widnum) const
 {
 	return const_cast<Window *>(this)->GetWidget<NWID>(widnum);
 }

@@ -368,7 +368,7 @@ public:
 		this->last_sorting = this->stations.GetListing();
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_STL_SORTBY: {
@@ -422,7 +422,7 @@ public:
 		this->DrawWidgets();
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_STL_SORTBY:
@@ -496,7 +496,7 @@ public:
 		}
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget == WID_STL_CAPTION) {
 			SetDParam(0, this->window_number);
@@ -504,7 +504,7 @@ public:
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_STL_LIST: {
@@ -543,7 +543,7 @@ public:
 				break;
 
 			case WID_STL_FACILALL:
-				for (uint i = WID_STL_TRAIN; i <= WID_STL_SHIP; i++) {
+				for (WidgetIndex i = WID_STL_TRAIN; i <= WID_STL_SHIP; i++) {
 					this->LowerWidget(i);
 				}
 
@@ -619,7 +619,7 @@ public:
 		}
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		if (this->stations.SortType() != index) {
 			this->stations.SetSortType(index);
@@ -692,7 +692,7 @@ const StringID CompanyStationsWindow::sorter_names[] = {
  * @param biggest_index Pointer to store biggest used widget number of the buttons.
  * @return Horizontal row.
  */
-static NWidgetBase *CargoWidgets(int *biggest_index)
+static NWidgetBase *CargoWidgets(WidgetIndex *biggest_index)
 {
 	NWidgetHorizontal *container = new NWidgetHorizontal();
 
@@ -1363,7 +1363,7 @@ struct StationViewWindow : public Window {
 		data->Update(count);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_SV_WAITING:
@@ -1447,7 +1447,7 @@ struct StationViewWindow : public Window {
 		}
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		const Station *st = Station::Get(this->window_number);
 		SetDParam(0, st->index);
@@ -1881,7 +1881,7 @@ struct StationViewWindow : public Window {
 		this->SetWidgetDirty(WID_SV_WAITING);
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_SV_WAITING:
@@ -2046,7 +2046,7 @@ struct StationViewWindow : public Window {
 		this->SetDirty();
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		if (widget == WID_SV_SORT_BY) {
 			this->SelectSortBy(index);
@@ -2265,7 +2265,7 @@ struct SelectStationWindow : Window {
 		this->Window::Close();
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_JS_PANEL) return;
 
@@ -2285,7 +2285,7 @@ struct SelectStationWindow : Window {
 		*size = d;
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_JS_PANEL) return;
 
@@ -2306,7 +2306,7 @@ struct SelectStationWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget != WID_JS_PANEL) return;
 
@@ -2349,7 +2349,7 @@ struct SelectStationWindow : Window {
 		this->SetDirty();
 	}
 
-	void OnMouseOver(Point pt, int widget) override
+	void OnMouseOver(Point pt, WidgetIndex widget) override
 	{
 		if (widget != WID_JS_PANEL || T::EXPECTED_FACIL == FACIL_WAYPOINT) {
 			SetViewportCatchmentStation(nullptr, true);

@@ -105,7 +105,7 @@ struct BaseSetTextfileWindow : public TextfileWindow {
 		this->LoadTextfile(textfile, BASESET_DIR);
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget == WID_TF_CAPTION) {
 			SetDParam(0, content_type);
@@ -194,7 +194,7 @@ struct GameOptionsWindow : Window {
 	 * @param selected_index Currently selected item
 	 * @return the built dropdown list, or nullptr if the widget has no dropdown menu.
 	 */
-	DropDownList BuildDropDownList(int widget, int *selected_index) const
+	DropDownList BuildDropDownList(WidgetIndex widget, int *selected_index) const
 	{
 		DropDownList list;
 		switch (widget) {
@@ -287,7 +287,7 @@ struct GameOptionsWindow : Window {
 		return list;
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_GO_CURRENCY_DROPDOWN:     SetDParam(0, _currency_specs[this->opt->locale.currency].name); break;
@@ -315,7 +315,7 @@ struct GameOptionsWindow : Window {
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_GO_BASE_GRF_DESCRIPTION:
@@ -347,7 +347,7 @@ struct GameOptionsWindow : Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_GO_BASE_GRF_DESCRIPTION:
@@ -413,7 +413,7 @@ struct GameOptionsWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget >= WID_GO_BASE_GRF_TEXTFILE && widget < WID_GO_BASE_GRF_TEXTFILE + TFT_END) {
 			if (BaseGraphics::GetUsedSet() == nullptr) return;
@@ -568,7 +568,7 @@ struct GameOptionsWindow : Window {
 		}
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		switch (widget) {
 			case WID_GO_CURRENCY_DROPDOWN: // Currency
@@ -1985,7 +1985,7 @@ struct GameSettingsWindow : Window {
 		_circle_size = maxdim(GetSpriteSize(SPR_CIRCLE_FOLDED), GetSpriteSize(SPR_CIRCLE_UNFOLDED));
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_GS_OPTIONSPANEL:
@@ -2053,7 +2053,7 @@ struct GameSettingsWindow : Window {
 		}
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_GS_RESTRICT_DROPDOWN:
@@ -2071,7 +2071,7 @@ struct GameSettingsWindow : Window {
 		}
 	}
 
-	DropDownList BuildDropDownList(int widget) const
+	DropDownList BuildDropDownList(WidgetIndex widget) const
 	{
 		DropDownList list;
 		switch (widget) {
@@ -2095,7 +2095,7 @@ struct GameSettingsWindow : Window {
 		return list;
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_GS_OPTIONSPANEL: {
@@ -2145,7 +2145,7 @@ struct GameSettingsWindow : Window {
 		this->last_clicked = pe;
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_GS_EXPAND_ALL:
@@ -2363,7 +2363,7 @@ struct GameSettingsWindow : Window {
 		this->SetDirty();
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		switch (widget) {
 			case WID_GS_RESTRICT_DROPDOWN:
@@ -2402,7 +2402,7 @@ struct GameSettingsWindow : Window {
 		}
 	}
 
-	void OnDropdownClose(Point pt, int widget, int index, bool instant_close) override
+	void OnDropdownClose(Point pt, WidgetIndex widget, int index, bool instant_close) override
 	{
 		if (widget >= 0) {
 			/* Normally the default implementation of OnDropdownClose() takes care of
@@ -2451,7 +2451,7 @@ struct GameSettingsWindow : Window {
 		this->SetWidgetDisabledState(WID_GS_COLLAPSE_ALL, all_folded);
 	}
 
-	void OnEditboxChanged(int wid) override
+	void OnEditboxChanged(WidgetIndex wid) override
 	{
 		if (wid == WID_GS_FILTER) {
 			this->filter.string.SetFilterTerm(this->filter_editbox.text.buf);
@@ -2614,7 +2614,7 @@ struct CustomCurrencyWindow : Window {
 		this->SetWidgetDisabledState(WID_CC_YEAR_UP, _custom_currency.to_euro == MAX_YEAR);
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_CC_RATE:      SetDParam(0, 1); SetDParam(1, 1);            break;
@@ -2632,7 +2632,7 @@ struct CustomCurrencyWindow : Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			/* Set the appropriate width for the edit 'buttons' */
@@ -2651,7 +2651,7 @@ struct CustomCurrencyWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		int line = 0;
 		int len = 0;

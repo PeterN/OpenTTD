@@ -106,7 +106,7 @@ uint TextfileWindow::GetContentHeight()
 	return this->lines.back().bottom;
 }
 
-/* virtual */ void TextfileWindow::UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+/* virtual */ void TextfileWindow::UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 {
 	switch (widget) {
 		case WID_TF_BACKGROUND:
@@ -135,7 +135,7 @@ void TextfileWindow::SetupScrollbars(bool force_reflow)
 	this->SetWidgetDisabledState(WID_TF_HSCROLLBAR, IsWidgetLowered(WID_TF_WRAPTEXT));
 }
 
-/* virtual */ void TextfileWindow::OnClick(Point pt, int widget, int click_count)
+/* virtual */ void TextfileWindow::OnClick(Point pt, WidgetIndex widget, int click_count)
 {
 	switch (widget) {
 		case WID_TF_WRAPTEXT:
@@ -145,7 +145,7 @@ void TextfileWindow::SetupScrollbars(bool force_reflow)
 	}
 }
 
-/* virtual */ void TextfileWindow::DrawWidget(const Rect &r, int widget) const
+/* virtual */ void TextfileWindow::DrawWidget(const Rect &r, WidgetIndex widget) const
 {
 	if (widget != WID_TF_BACKGROUND) return;
 

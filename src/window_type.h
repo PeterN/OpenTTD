@@ -10,6 +10,9 @@
 #ifndef WINDOW_TYPE_H
 #define WINDOW_TYPE_H
 
+/* Defined here so that widget_type.h does not need to be included just for WidgetIndex. */
+typedef int WidgetIndex;
+
 /** %Window numbers. */
 enum WindowNumberEnum {
 	WN_GAME_OPTIONS_AI = 0,          ///< AI settings.

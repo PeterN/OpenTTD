@@ -130,7 +130,7 @@ struct GSConfigWindow : public Window {
 		this->vscroll->SetCount((int)this->visible_settings.size());
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_GSC_SETTINGS:
@@ -156,7 +156,7 @@ struct GSConfigWindow : public Window {
 		return _game_mode != GM_NORMAL || Game::GetInstance() != nullptr;
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_GSC_GSLIST: {
@@ -237,7 +237,7 @@ struct GSConfigWindow : public Window {
 		this->DrawWidgets();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget >= WID_GSC_TEXTFILE && widget < WID_GSC_TEXTFILE + TFT_END) {
 			if (GameConfig::GetConfig() == nullptr) return;
@@ -365,13 +365,13 @@ struct GSConfigWindow : public Window {
 		SetValue(value);
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		assert(this->clicked_dropdown);
 		SetValue(index);
 	}
 
-	void OnDropdownClose(Point pt, int widget, int index, bool instant_close) override
+	void OnDropdownClose(Point pt, WidgetIndex widget, int index, bool instant_close) override
 	{
 		/* We cannot raise the dropdown button just yet. OnClick needs some hint, whether
 		 * the same dropdown button was clicked again, and then not open the dropdown again.

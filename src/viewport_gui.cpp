@@ -78,7 +78,7 @@ public:
 		this->viewport->dest_scrollpos_y = this->viewport->scrollpos_y;
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_EV_CAPTION:
@@ -88,7 +88,7 @@ public:
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_EV_ZOOM_IN: DoZoomInOutWindow(ZOOM_IN,  this); break;

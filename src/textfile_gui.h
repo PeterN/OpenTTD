@@ -39,9 +39,9 @@ struct TextfileWindow : public Window, MissingGlyphSearcher {
 	TextfileWindow(TextfileType file_type);
 	~TextfileWindow();
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override;
-	void OnClick(Point pt, int widget, int click_count) override;
-	void DrawWidget(const Rect &r, int widget) const override;
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override;
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override;
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override;
 	void OnResize() override;
 	void OnInvalidateData(int data = 0, bool gui_scope = true) override;
 

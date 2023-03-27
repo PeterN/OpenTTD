@@ -1505,7 +1505,7 @@ struct BuildVehicleWindow : Window {
 		this->eng_list.RebuildDone();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_BV_SORT_ASCENDING_DESCENDING:
@@ -1626,7 +1626,7 @@ struct BuildVehicleWindow : Window {
 		this->eng_list.ForceRebuild();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_BV_CAPTION:
@@ -1661,7 +1661,7 @@ struct BuildVehicleWindow : Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_BV_LIST:
@@ -1698,7 +1698,7 @@ struct BuildVehicleWindow : Window {
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_BV_LIST:
@@ -1756,7 +1756,7 @@ struct BuildVehicleWindow : Window {
 		Command<CMD_RENAME_ENGINE>::Post(STR_ERROR_CAN_T_RENAME_TRAIN_TYPE + this->vehicle_type, this->rename_engine, str);
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		switch (widget) {
 			case WID_BV_SORT_DROPDOWN:

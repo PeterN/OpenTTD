@@ -56,7 +56,7 @@ public:
 	 * @param company_mask Bitmask of companies to be shown.
 	 * @param scale Desired thickness of lines and size of station dots.
 	 */
-	LinkGraphOverlay(Window *w, uint wid, CargoTypes cargo_mask, uint32 company_mask, uint scale) :
+	LinkGraphOverlay(Window *w, WidgetIndex wid, CargoTypes cargo_mask, uint32 company_mask, uint scale) :
 			window(w), widget_id(wid), cargo_mask(cargo_mask), company_mask(company_mask), scale(scale)
 	{}
 
@@ -77,7 +77,7 @@ public:
 
 protected:
 	Window *window;                    ///< Window to be drawn into.
-	const uint widget_id;              ///< ID of Widget in Window to be drawn to.
+	const WidgetIndex widget_id;       ///< ID of Widget in Window to be drawn to.
 	CargoTypes cargo_mask;             ///< Bitmask of cargos to be displayed.
 	uint32 company_mask;               ///< Bitmask of companies to be displayed.
 	LinkMap cached_links;              ///< Cache for links to reduce recalculation.
@@ -110,10 +110,10 @@ public:
 	LinkGraphLegendWindow(WindowDesc *desc, int window_number);
 	void SetOverlay(LinkGraphOverlay *overlay);
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override;
-	void DrawWidget(const Rect &r, int widget) const override;
-	bool OnTooltip(Point pt, int widget, TooltipCloseCondition close_cond) override;
-	void OnClick(Point pt, int widget, int click_count) override;
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override;
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override;
+	bool OnTooltip(Point pt, WidgetIndex widget, TooltipCloseCondition close_cond) override;
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override;
 	void OnInvalidateData(int data = 0, bool gui_scope = true) override;
 
 private:

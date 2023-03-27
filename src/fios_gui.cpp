@@ -417,7 +417,7 @@ public:
 		this->Window::Close();
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_SL_SORT_BYNAME:
@@ -576,7 +576,7 @@ public:
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_SL_BACKGROUND:
@@ -609,7 +609,7 @@ public:
 		this->DrawWidgets();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_SL_SORT_BYNAME: // Sort save names by name
@@ -742,7 +742,7 @@ public:
 		}
 	}
 
-	void OnMouseOver(Point pt, int widget) override
+	void OnMouseOver(Point pt, WidgetIndex widget) override
 	{
 		if (widget == WID_SL_DRIVES_DIRECTORIES_LIST) {
 			int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SL_DRIVES_DIRECTORIES_LIST, WidgetDimensions::scaled.inset.top);
@@ -899,7 +899,7 @@ public:
 		}
 	}
 
-	void OnEditboxChanged(int wid) override
+	void OnEditboxChanged(WidgetIndex wid) override
 	{
 		if (wid == WID_SL_FILTER) {
 			this->string_filter.SetFilterTerm(this->filter_editbox.text.buf);

@@ -71,7 +71,7 @@ class LandInfoWindow : public Window {
 public:
 	TileIndex tile;
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_LI_BACKGROUND) return;
 
@@ -87,7 +87,7 @@ public:
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_LI_BACKGROUND) return;
 
@@ -339,7 +339,7 @@ public:
 		::ShowNewGRFInspectWindow(GetGrfSpecFeature(this->tile), this->tile);
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_LI_LOCATION:
@@ -480,13 +480,13 @@ struct AboutWindow : public Window {
 		this->text_position = this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->pos_y + this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->current_y;
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget == WID_A_WEBSITE) SetDParamStr(0, "Website: https://www.openttd.org");
 		if (widget == WID_A_COPYRIGHT) SetDParamStr(0, _openttd_revision_year);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_A_SCROLLING_TEXT) return;
 
@@ -506,7 +506,7 @@ struct AboutWindow : public Window {
 		this->timer.SetInterval(TIMER_INTERVAL / FONT_HEIGHT_NORMAL);
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_A_SCROLLING_TEXT) return;
 
@@ -710,7 +710,7 @@ struct TooltipsWindow : public Window
 		return pt;
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		/* There is only one widget. */
 		for (uint i = 0; i != this->paramcount; i++) SetDParam(i, this->params[i]);
@@ -723,7 +723,7 @@ struct TooltipsWindow : public Window
 		size->height += WidgetDimensions::scaled.framerect.Vertical()    + WidgetDimensions::scaled.fullbevel.Vertical();
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		/* There is only one widget. */
 		GfxFillRect(r, PC_BLACK);
@@ -776,7 +776,7 @@ void GuiShowTooltips(Window *parent, StringID str, uint paramcount, const uint64
 	new TooltipsWindow(parent, str, paramcount, params, close_tooltip);
 }
 
-void QueryString::HandleEditBox(Window *w, int wid)
+void QueryString::HandleEditBox(Window *w, WidgetIndex wid)
 {
 	if (w->IsWidgetGloballyFocused(wid) && this->text.HandleCaret()) {
 		w->SetWidgetDirty(wid);
@@ -791,7 +791,7 @@ static int GetCaretWidth()
 	return GetCharacterWidth(FS_NORMAL, '_');
 }
 
-void QueryString::DrawEditBox(const Window *w, int wid) const
+void QueryString::DrawEditBox(const Window *w, WidgetIndex wid) const
 {
 	const NWidgetLeaf *wi = w->GetWidget<NWidgetLeaf>(wid);
 
@@ -843,7 +843,7 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
  * @param wid Widget index.
  * @return Top-left location of the caret, relative to the window.
  */
-Point QueryString::GetCaretPosition(const Window *w, int wid) const
+Point QueryString::GetCaretPosition(const Window *w, WidgetIndex wid) const
 {
 	const NWidgetLeaf *wi = w->GetWidget<NWidgetLeaf>(wid);
 
@@ -872,7 +872,7 @@ Point QueryString::GetCaretPosition(const Window *w, int wid) const
  * @param to End of the string range.
  * @return Rectangle encompassing the string range, relative to the window.
  */
-Rect QueryString::GetBoundingRect(const Window *w, int wid, const char *from, const char *to) const
+Rect QueryString::GetBoundingRect(const Window *w, WidgetIndex wid, const char *from, const char *to) const
 {
 	const NWidgetLeaf *wi = w->GetWidget<NWidgetLeaf>(wid);
 
@@ -903,7 +903,7 @@ Rect QueryString::GetBoundingRect(const Window *w, int wid, const char *from, co
  * @param pt Position to test.
  * @return Pointer to the character at the position or nullptr if no character is at the position.
  */
-const char *QueryString::GetCharAtPosition(const Window *w, int wid, const Point &pt) const
+const char *QueryString::GetCharAtPosition(const Window *w, WidgetIndex wid, const Point &pt) const
 {
 	const NWidgetLeaf *wi = w->GetWidget<NWidgetLeaf>(wid);
 
@@ -925,7 +925,7 @@ const char *QueryString::GetCharAtPosition(const Window *w, int wid, const Point
 	return ::GetCharAtPosition(tb->buf, pt.x - delta - r.left);
 }
 
-void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bool focus_changed)
+void QueryString::ClickEditBox(Window *w, Point pt, WidgetIndex wid, int click_count, bool focus_changed)
 {
 	const NWidgetLeaf *wi = w->GetWidget<NWidgetLeaf>(wid);
 
@@ -1006,7 +1006,7 @@ struct QueryStringWindow : public Window
 		this->ReInit();
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget == WID_QS_DEFAULT && (this->flags & QSF_ENABLE_DEFAULT) == 0) {
 			/* We don't want this widget to show! */
@@ -1020,7 +1020,7 @@ struct QueryStringWindow : public Window
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_QS_WARNING) return;
 
@@ -1030,7 +1030,7 @@ struct QueryStringWindow : public Window
 		}
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget == WID_QS_CAPTION) SetDParam(0, this->editbox.caption);
 	}
@@ -1045,7 +1045,7 @@ struct QueryStringWindow : public Window
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_QS_DEFAULT:
@@ -1149,7 +1149,7 @@ struct QueryWindow : public Window {
 		this->SetDirty();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_Q_CAPTION:
@@ -1163,7 +1163,7 @@ struct QueryWindow : public Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_Q_TEXT) return;
 
@@ -1173,7 +1173,7 @@ struct QueryWindow : public Window {
 		*size = d;
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_Q_TEXT) return;
 
@@ -1181,7 +1181,7 @@ struct QueryWindow : public Window {
 				this->message, TC_FROMSTRING, SA_CENTER);
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_Q_YES: {

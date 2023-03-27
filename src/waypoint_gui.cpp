@@ -82,12 +82,12 @@ public:
 		this->Window::Close();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget == WID_W_CAPTION) SetDParam(0, this->wp->index);
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_W_CENTER_VIEW: // scroll to location

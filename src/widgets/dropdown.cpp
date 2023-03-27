@@ -240,7 +240,7 @@ struct DropdownWindow : Window {
 		return false;
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_DM_ITEMS) return;
 
@@ -269,7 +269,7 @@ struct DropdownWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget != WID_DM_ITEMS) return;
 		int item;

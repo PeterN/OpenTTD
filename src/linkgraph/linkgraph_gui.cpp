@@ -452,12 +452,12 @@ void LinkGraphOverlay::SetCompanyMask(uint32 company_mask)
 }
 
 /** Make a number of rows with buttons for each company for the linkgraph legend window. */
-NWidgetBase *MakeCompanyButtonRowsLinkGraphGUI(int *biggest_index)
+NWidgetBase *MakeCompanyButtonRowsLinkGraphGUI(WidgetIndex *biggest_index)
 {
 	return MakeCompanyButtonRows(biggest_index, WID_LGL_COMPANY_FIRST, WID_LGL_COMPANY_LAST, COLOUR_GREY, 3, STR_NULL);
 }
 
-NWidgetBase *MakeSaturationLegendLinkGraphGUI(int *biggest_index)
+NWidgetBase *MakeSaturationLegendLinkGraphGUI(WidgetIndex *biggest_index)
 {
 	NWidgetVertical *panel = new NWidgetVertical(NC_EQUALSIZE);
 	for (uint i = 0; i < lengthof(LinkGraphOverlay::LINK_COLOURS[0]); ++i) {
@@ -472,7 +472,7 @@ NWidgetBase *MakeSaturationLegendLinkGraphGUI(int *biggest_index)
 	return panel;
 }
 
-NWidgetBase *MakeCargoesLegendLinkGraphGUI(int *biggest_index)
+NWidgetBase *MakeCargoesLegendLinkGraphGUI(WidgetIndex *biggest_index)
 {
 	static const uint ENTRIES_PER_ROW = CeilDiv(NUM_CARGO, 5);
 	NWidgetVertical *panel = new NWidgetVertical(NC_EQUALSIZE);
@@ -578,7 +578,7 @@ void LinkGraphLegendWindow::SetOverlay(LinkGraphOverlay *overlay) {
 	}
 }
 
-void LinkGraphLegendWindow::UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+void LinkGraphLegendWindow::UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 {
 	if (IsInsideMM(widget, WID_LGL_SATURATION_FIRST, WID_LGL_SATURATION_LAST + 1)) {
 		StringID str = STR_NULL;
@@ -607,7 +607,7 @@ void LinkGraphLegendWindow::UpdateWidgetSize(int widget, Dimension *size, const 
 	}
 }
 
-void LinkGraphLegendWindow::DrawWidget(const Rect &r, int widget) const
+void LinkGraphLegendWindow::DrawWidget(const Rect &r, WidgetIndex widget) const
 {
 	Rect br = r.Shrink(WidgetDimensions::scaled.bevel);
 	if (this->IsWidgetLowered(widget)) br = br.Translate(WidgetDimensions::scaled.pressed, WidgetDimensions::scaled.pressed);
@@ -640,7 +640,7 @@ void LinkGraphLegendWindow::DrawWidget(const Rect &r, int widget) const
 	}
 }
 
-bool LinkGraphLegendWindow::OnTooltip(Point pt, int widget, TooltipCloseCondition close_cond)
+bool LinkGraphLegendWindow::OnTooltip(Point pt, WidgetIndex widget, TooltipCloseCondition close_cond)
 {
 	if (IsInsideMM(widget, WID_LGL_COMPANY_FIRST, WID_LGL_COMPANY_LAST + 1)) {
 		if (this->IsWidgetDisabled(widget)) {
@@ -693,7 +693,7 @@ void LinkGraphLegendWindow::UpdateOverlayCargoes()
 	this->overlay->SetCargoMask(mask);
 }
 
-void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
+void LinkGraphLegendWindow::OnClick(Point pt, WidgetIndex widget, int click_count)
 {
 	/* Check which button is clicked */
 	if (IsInsideMM(widget, WID_LGL_COMPANY_FIRST, WID_LGL_COMPANY_LAST + 1)) {

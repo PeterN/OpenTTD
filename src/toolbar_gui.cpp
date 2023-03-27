@@ -188,7 +188,7 @@ public:
  * @param list List of items
  * @param def Default item
  */
-static void PopupMainToolbMenu(Window *w, int widget, DropDownList &&list, int def)
+static void PopupMainToolbMenu(Window *w, WidgetIndex widget, DropDownList &&list, int def)
 {
 	ShowDropDownList(w, std::move(list), def, widget, 0, true, true);
 	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
@@ -201,7 +201,7 @@ static void PopupMainToolbMenu(Window *w, int widget, DropDownList &&list, int d
  * @param string String for the first item in the menu
  * @param count Number of items in the menu
  */
-static void PopupMainToolbMenu(Window *w, int widget, StringID string, int count)
+static void PopupMainToolbMenu(Window *w, WidgetIndex widget, StringID string, int count)
 {
 	DropDownList list;
 	for (int i = 0; i < count; i++) {
@@ -221,7 +221,7 @@ static const int CTMN_SPECTATOR   = -3; ///< Show a company window as spectator
  * @param widget The button widget id.
  * @param grey A bitbask of which items to mark as disabled.
  */
-static void PopupMainCompanyToolbMenu(Window *w, int widget, int grey = 0)
+static void PopupMainCompanyToolbMenu(Window *w, WidgetIndex widget, int grey = 0)
 {
 	DropDownList list;
 
@@ -2028,12 +2028,12 @@ struct MainToolbarWindow : Window {
 		this->DrawWidgets();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (_game_mode != GM_MENU && !this->IsWidgetDisabled(widget)) _toolbar_button_procs[widget](this);
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		CallBackFunction cbf = _menu_clicked_procs[widget](index);
 		if (cbf != CBF_NONE) _last_started_action = cbf;
@@ -2129,7 +2129,7 @@ struct MainToolbarWindow : Window {
 	{
 		/* We do not want to automatically raise the pause, fast forward and
 		 * switchbar buttons; they have to stay down when pressed etc. */
-		for (uint i = WID_TN_SETTINGS; i < WID_TN_SWITCH_BAR; i++) {
+		for (WidgetIndex i = WID_TN_SETTINGS; i < WID_TN_SWITCH_BAR; i++) {
 			if (this->IsWidgetLowered(i)) {
 				this->RaiseWidget(i);
 				this->SetWidgetDirty(i);
@@ -2201,7 +2201,7 @@ static Hotkey maintoolbar_hotkeys[] = {
 };
 HotkeyList MainToolbarWindow::hotkeys("maintoolbar", maintoolbar_hotkeys);
 
-static NWidgetBase *MakeMainToolbar(int *biggest_index)
+static NWidgetBase *MakeMainToolbar(WidgetIndex *biggest_index)
 {
 	/** Sprites to use for the different toolbar buttons */
 	static const SpriteID toolbar_button_sprites[] = {
@@ -2239,7 +2239,7 @@ static NWidgetBase *MakeMainToolbar(int *biggest_index)
 	};
 
 	NWidgetMainToolbarContainer *hor = new NWidgetMainToolbarContainer();
-	for (uint i = 0; i < WID_TN_END; i++) {
+	for (WidgetIndex i = 0; i < WID_TN_END; i++) {
 		switch (i) {
 			case WID_TN_SMALL_MAP:
 			case WID_TN_FINANCES:
@@ -2255,7 +2255,7 @@ static NWidgetBase *MakeMainToolbar(int *biggest_index)
 		hor->Add(leaf);
 	}
 
-	*biggest_index = std::max<int>(*biggest_index, WID_TN_SWITCH_BAR);
+	*biggest_index = std::max<WidgetIndex>(*biggest_index, WID_TN_SWITCH_BAR);
 	return hor;
 }
 
@@ -2382,7 +2382,7 @@ struct ScenarioEditorToolbarWindow : Window {
 		this->DrawWidgets();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_TE_DATE:
@@ -2391,7 +2391,7 @@ struct ScenarioEditorToolbarWindow : Window {
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_TE_SPACER: {
@@ -2407,7 +2407,7 @@ struct ScenarioEditorToolbarWindow : Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_TE_SPACER:
@@ -2421,14 +2421,14 @@ struct ScenarioEditorToolbarWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (_game_mode == GM_MENU) return;
 		CallBackFunction cbf = _scen_toolbar_button_procs[widget](this);
 		if (cbf != CBF_NONE) _last_started_action = cbf;
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		CallBackFunction cbf = _scen_toolbar_dropdown_procs[widget](index);
 		if (cbf != CBF_NONE) _last_started_action = cbf;
@@ -2605,7 +2605,7 @@ static const NWidgetPart _nested_toolb_scen_inner_widgets[] = {
 	NWidget(WWT_IMGBTN, COLOUR_GREY, WID_TE_SWITCH_BAR), SetDataTip(SPR_IMG_SWITCH_TOOLBAR, STR_TOOLBAR_TOOLTIP_SWITCH_TOOLBAR),
 };
 
-static NWidgetBase *MakeScenarioToolbar(int *biggest_index)
+static NWidgetBase *MakeScenarioToolbar(WidgetIndex *biggest_index)
 {
 	return MakeNWidgets(_nested_toolb_scen_inner_widgets, lengthof(_nested_toolb_scen_inner_widgets), biggest_index, new NWidgetScenarioToolbarContainer());
 }

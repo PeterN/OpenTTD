@@ -48,13 +48,13 @@ struct QueryString {
 	}
 
 public:
-	void DrawEditBox(const Window *w, int wid) const;
-	void ClickEditBox(Window *w, Point pt, int wid, int click_count, bool focus_changed);
-	void HandleEditBox(Window *w, int wid);
+	void DrawEditBox(const Window *w, WidgetIndex wid) const;
+	void ClickEditBox(Window *w, Point pt, WidgetIndex wid, int click_count, bool focus_changed);
+	void HandleEditBox(Window *w, WidgetIndex wid);
 
-	Point GetCaretPosition(const Window *w, int wid) const;
-	Rect GetBoundingRect(const Window *w, int wid, const char *from, const char *to) const;
-	const char *GetCharAtPosition(const Window *w, int wid, const Point &pt) const;
+	Point GetCaretPosition(const Window *w, WidgetIndex wid) const;
+	Rect GetBoundingRect(const Window *w, WidgetIndex wid, const char *from, const char *to) const;
+	const char *GetCharAtPosition(const Window *w, WidgetIndex wid, const Point &pt) const;
 
 	/**
 	 * Get the current text.

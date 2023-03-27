@@ -177,7 +177,7 @@ public:
 		delete bridges;
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_BBS_DROPDOWN_ORDER: {
@@ -226,7 +226,7 @@ public:
 		return corner;
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_BBS_DROPDOWN_ORDER:
@@ -259,7 +259,7 @@ public:
 		return ES_NOT_HANDLED;
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			default: break;
@@ -283,7 +283,7 @@ public:
 		}
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		if (widget == WID_BBS_DROPDOWN_CRITERIA && this->bridges->SortType() != index) {
 			this->bridges->SetSortType(index);

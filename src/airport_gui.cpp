@@ -118,7 +118,7 @@ struct BuildAirToolbarWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_AT_AIRPORT:
@@ -295,7 +295,7 @@ public:
 		this->PickerWindowBase::Close();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_AP_CLASS_DROPDOWN:
@@ -320,7 +320,7 @@ public:
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_AP_CLASS_DROPDOWN: {
@@ -384,7 +384,7 @@ public:
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_AP_AIRPORT_LIST: {
@@ -495,7 +495,7 @@ public:
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_AP_CLASS_DROPDOWN:
@@ -569,7 +569,7 @@ public:
 		this->SelectOtherAirport(-1);
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		assert(widget == WID_AP_CLASS_DROPDOWN);
 		_selected_airport_class = (AirportClassID)index;

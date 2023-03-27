@@ -27,7 +27,7 @@ struct ScreenshotWindow : Window {
 		this->DrawWidgets();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget < 0) return;
 		ScreenshotType st;

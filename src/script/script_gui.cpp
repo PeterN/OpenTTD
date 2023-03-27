@@ -91,14 +91,14 @@ struct ScriptListWindow : public Window {
 		}
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget != WID_SCRL_CAPTION) return;
 
 		SetDParam(0, (this->slot == OWNER_DEITY) ? STR_AI_LIST_CAPTION_GAMESCRIPT : STR_AI_LIST_CAPTION_AI);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_SCRL_LIST) return;
 
@@ -109,7 +109,7 @@ struct ScriptListWindow : public Window {
 		size->height = 5 * this->line_height;
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_SCRL_LIST: {
@@ -177,7 +177,7 @@ struct ScriptListWindow : public Window {
 		InvalidateWindowClassesData(WC_TEXTFILE);
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_SCRL_LIST: { // Select one of the Scripts
@@ -329,14 +329,14 @@ struct ScriptSettingsWindow : public Window {
 		this->vscroll->SetCount((int)this->visible_settings.size());
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget != WID_SCRS_CAPTION) return;
 
 		SetDParam(0, (this->slot == OWNER_DEITY) ? STR_AI_SETTINGS_CAPTION_GAMESCRIPT : STR_AI_SETTINGS_CAPTION_AI);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_SCRS_BACKGROUND) return;
 
@@ -347,7 +347,7 @@ struct ScriptSettingsWindow : public Window {
 		size->height = 5 * this->line_height;
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_SCRS_BACKGROUND) return;
 
@@ -419,7 +419,7 @@ struct ScriptSettingsWindow : public Window {
 		this->DrawWidgets();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_SCRS_BACKGROUND: {
@@ -523,13 +523,13 @@ struct ScriptSettingsWindow : public Window {
 		SetValue(value);
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		assert(this->clicked_dropdown);
 		SetValue(index);
 	}
 
-	void OnDropdownClose(Point pt, int widget, int index, bool instant_close) override
+	void OnDropdownClose(Point pt, WidgetIndex widget, int index, bool instant_close) override
 	{
 		/* We cannot raise the dropdown button just yet. OnClick needs some hint, whether
 		 * the same dropdown button was clicked again, and then not open the dropdown again.
@@ -635,7 +635,7 @@ struct ScriptTextfileWindow : public TextfileWindow {
 		this->OnInvalidateData();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget == WID_TF_CAPTION) {
 			SetDParam(0, (slot == OWNER_DEITY) ? STR_CONTENT_TYPE_GAME_SCRIPT : STR_CONTENT_TYPE_AI);
@@ -791,7 +791,7 @@ struct ScriptDebugWindow : public Window {
 		this->InvalidateData(-1);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget == WID_SCRD_LOG_PANEL) {
 			resize->height = FONT_HEIGHT_NORMAL + WidgetDimensions::scaled.vsep_normal;
@@ -875,7 +875,7 @@ struct ScriptDebugWindow : public Window {
 		this->last_vscroll_pos = this->vscroll->GetPosition();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget != WID_SCRD_NAME_TEXT) return;
 
@@ -896,7 +896,7 @@ struct ScriptDebugWindow : public Window {
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (script_debug_company == INVALID_COMPANY) return;
 
@@ -953,7 +953,7 @@ struct ScriptDebugWindow : public Window {
 		this->last_vscroll_pos = this->vscroll->GetPosition();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		/* Also called for hotkeys, so check for disabledness */
 		if (this->IsWidgetDisabled(widget)) return;
@@ -1022,7 +1022,7 @@ struct ScriptDebugWindow : public Window {
 		}
 	}
 
-	void OnEditboxChanged(int wid) override
+	void OnEditboxChanged(WidgetIndex wid) override
 	{
 		if (wid != WID_SCRD_BREAK_STR_EDIT_BOX) return;
 
@@ -1110,7 +1110,7 @@ bool ScriptDebugWindow::case_sensitive_break_check = false;
 StringFilter ScriptDebugWindow::break_string_filter(&ScriptDebugWindow::case_sensitive_break_check);
 
 /** Make a number of rows with buttons for each company for the Script debug window. */
-NWidgetBase *MakeCompanyButtonRowsScriptDebug(int *biggest_index)
+NWidgetBase *MakeCompanyButtonRowsScriptDebug(WidgetIndex *biggest_index)
 {
 	return MakeCompanyButtonRows(biggest_index, WID_SCRD_COMPANY_BUTTON_START, WID_SCRD_COMPANY_BUTTON_END, COLOUR_GREY, 8, STR_AI_DEBUG_SELECT_AI_TOOLTIP);
 }

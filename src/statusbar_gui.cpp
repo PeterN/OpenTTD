@@ -108,7 +108,7 @@ struct StatusBarWindow : Window {
 		Window::FindWindowPlacementAndResize(_toolbar_width, def_height);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		Dimension d;
 		switch (widget) {
@@ -134,7 +134,7 @@ struct StatusBarWindow : Window {
 		*size = maxdim(d, *size);
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		Rect tr = r.Shrink(WidgetDimensions::scaled.framerect, RectPadding::zero);
 		tr.top = CenterBounds(r.top, r.bottom, FONT_HEIGHT_NORMAL);
@@ -215,7 +215,7 @@ struct StatusBarWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_S_MIDDLE: ShowLastNewsMessage(); break;

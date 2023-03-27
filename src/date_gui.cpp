@@ -65,7 +65,7 @@ struct SetDateWindow : Window {
 	 * Helper function to construct the dropdown.
 	 * @param widget the dropdown widget to create the dropdown for
 	 */
-	void ShowDateDropDown(int widget)
+	void ShowDateDropDown(WidgetIndex widget)
 	{
 		int selected;
 		DropDownList list;
@@ -100,7 +100,7 @@ struct SetDateWindow : Window {
 		ShowDropDownList(this, std::move(list), selected, widget);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		Dimension d = {0, 0};
 		switch (widget) {
@@ -129,7 +129,7 @@ struct SetDateWindow : Window {
 		*size = d;
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_SD_DAY:   SetDParam(0, this->date.day - 1 + STR_DAY_NUMBER_1ST); break;
@@ -138,7 +138,7 @@ struct SetDateWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_SD_DAY:
@@ -154,7 +154,7 @@ struct SetDateWindow : Window {
 		}
 	}
 
-	void OnDropdownSelect(int widget, int index) override
+	void OnDropdownSelect(WidgetIndex widget, int index) override
 	{
 		switch (widget) {
 			case WID_SD_DAY:

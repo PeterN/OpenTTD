@@ -175,7 +175,7 @@ struct TerraformToolbarWindow : Window {
 		show_object->SetDisplayedPlane(ObjectClass::GetUIClassCount() != 0 ? 0 : SZSP_NONE);
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget < WID_TT_BUTTONS_START) return;
 
@@ -558,7 +558,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_ETT_DOTS) return;
 
@@ -566,7 +566,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		size->height = std::max<uint>(size->height, ScaleGUITrad(31));
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_ETT_DOTS) return;
 
@@ -583,7 +583,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		} while (--n);
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget < WID_ETT_BUTTONS_START) return;
 
@@ -651,7 +651,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 
 	void OnTimeout() override
 	{
-		for (uint i = WID_ETT_START; i < this->nested_array_size; i++) {
+		for (WidgetIndex i = WID_ETT_START; i < this->nested_array_size; i++) {
 			if (i == WID_ETT_BUTTONS_START) i = WID_ETT_BUTTONS_END; // skip the buttons
 			if (this->IsWidgetLowered(i)) {
 				this->RaiseWidget(i);

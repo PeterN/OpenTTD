@@ -191,7 +191,7 @@ struct TimetableWindow : Window {
 		return (travelling && v->lateness_counter < 0);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_VT_ARRIVAL_DEPARTURE_PANEL:
@@ -343,7 +343,7 @@ struct TimetableWindow : Window {
 		this->DrawWidgets();
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_VT_CAPTION: SetDParam(0, this->vehicle->index); break;
@@ -351,7 +351,7 @@ struct TimetableWindow : Window {
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		const Vehicle *v = this->vehicle;
 		int selected = this->sel_index;
@@ -512,7 +512,7 @@ struct TimetableWindow : Window {
 		return { order_number, mtf };
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		const Vehicle *v = this->vehicle;
 

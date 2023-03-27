@@ -39,7 +39,7 @@ public:
 		this->DrawWidgets();
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_TT_SIGNS:
@@ -57,7 +57,7 @@ public:
 			}
 			case WID_TT_BUTTONS: {
 				const Rect fr = r.Shrink(WidgetDimensions::scaled.framerect);
-				for (uint i = WID_TT_BEGIN; i < WID_TT_END; i++) {
+				for (WidgetIndex i = WID_TT_BEGIN; i < WID_TT_END; i++) {
 					if (i == WID_TT_LOADING) continue; // Do not draw button for invisible loading indicators.
 
 					const Rect wr = this->GetWidget<NWidgetBase>(i)->GetCurrentRect().Shrink(WidgetDimensions::scaled.fullbevel);
@@ -69,7 +69,7 @@ public:
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget >= WID_TT_BEGIN && widget < WID_TT_END) {
 			if (_ctrl_pressed) {
@@ -119,7 +119,7 @@ public:
 	void OnInvalidateData(int data = 0, bool gui_scope = true) override
 	{
 		if (!gui_scope) return;
-		for (uint i = WID_TT_BEGIN; i < WID_TT_END; i++) {
+		for (WidgetIndex i = WID_TT_BEGIN; i < WID_TT_END; i++) {
 			this->SetWidgetLoweredState(i, IsTransparencySet((TransparencyOption)(i - WID_TT_BEGIN)));
 		}
 	}

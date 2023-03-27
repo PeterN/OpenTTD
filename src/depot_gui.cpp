@@ -259,7 +259,7 @@ struct DepotWindow : Window {
 	VehicleID vehicle_over; ///< Rail vehicle over which another one is dragged, \c INVALID_VEHICLE if none.
 	VehicleType type;
 	bool generate_list;
-	int hovered_widget; ///< Index of the widget being hovered during drag/drop. -1 if no drag is in progress.
+	WidgetIndex hovered_widget; ///< Index of the widget being hovered during drag/drop. WIDGET_INVALID if no drag is in progress.
 	VehicleList vehicle_list;
 	VehicleList wagon_list;
 	uint unitnumber_digits;
@@ -274,7 +274,7 @@ struct DepotWindow : Window {
 		this->sel = INVALID_VEHICLE;
 		this->vehicle_over = INVALID_VEHICLE;
 		this->generate_list = true;
-		this->hovered_widget = -1;
+		this->hovered_widget = WIDGET_INVALID;
 		this->type = type;
 		this->num_columns = 1; // for non-trains this gets set in FinishInitNested()
 		this->unitnumber_digits = 2;
@@ -364,7 +364,7 @@ struct DepotWindow : Window {
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget != WID_D_MATRIX) return;
 
@@ -422,7 +422,7 @@ struct DepotWindow : Window {
 		}
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget != WID_D_CAPTION) return;
 
@@ -654,7 +654,7 @@ struct DepotWindow : Window {
 		this->flag_size = maxdim(GetScaledSpriteSize(SPR_FLAG_VEH_STOPPED), GetScaledSpriteSize(SPR_FLAG_VEH_RUNNING));
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_D_MATRIX: {
@@ -759,7 +759,7 @@ struct DepotWindow : Window {
 		this->DrawWidgets();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_D_MATRIX: { // List
@@ -843,7 +843,7 @@ struct DepotWindow : Window {
 		Command<CMD_RENAME_DEPOT>::Post(STR_ERROR_CAN_T_RENAME_DEPOT, this->GetDepotIndex(), str);
 	}
 
-	bool OnRightClick(Point pt, int widget) override
+	bool OnRightClick(Point pt, WidgetIndex widget) override
 	{
 		if (widget != WID_D_MATRIX) return false;
 
@@ -973,14 +973,14 @@ struct DepotWindow : Window {
 		this->vehicle_over = INVALID_VEHICLE;
 		this->SetWidgetDirty(WID_D_MATRIX);
 
-		if (this->hovered_widget != -1) {
+		if (this->hovered_widget != WIDGET_INVALID) {
 			this->SetWidgetLoweredState(this->hovered_widget, false);
 			this->SetWidgetDirty(this->hovered_widget);
-			this->hovered_widget = -1;
+			this->hovered_widget = WIDGET_INVALID;
 		}
 	}
 
-	void OnMouseDrag(Point pt, int widget) override
+	void OnMouseDrag(Point pt, WidgetIndex widget) override
 	{
 		if (this->sel == INVALID_VEHICLE) return;
 		if (widget != this->hovered_widget) {
@@ -1032,7 +1032,7 @@ struct DepotWindow : Window {
 		this->SetWidgetDirty(widget);
 	}
 
-	void OnDragDrop(Point pt, int widget) override
+	void OnDragDrop(Point pt, WidgetIndex widget) override
 	{
 		switch (widget) {
 			case WID_D_MATRIX: {
@@ -1082,7 +1082,7 @@ struct DepotWindow : Window {
 				this->SetDirty();
 				break;
 		}
-		this->hovered_widget = -1;
+		this->hovered_widget = WIDGET_INVALID;
 		_cursor.vehchain = false;
 	}
 

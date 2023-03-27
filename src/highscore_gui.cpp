@@ -63,7 +63,7 @@ struct EndGameHighScoreBaseWindow : Window {
 		return pt;
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		this->Close();
 	}

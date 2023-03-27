@@ -359,14 +359,14 @@ struct NewGRFInspectWindow : Window {
 		this->OnInvalidateData(0, true);
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget != WID_NGRFI_CAPTION) return;
 
 		GetFeatureHelper(this->window_number)->SetStringParameters(this->GetFeatureIndex());
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_NGRFI_VEH_CHAIN: {
@@ -551,7 +551,7 @@ struct NewGRFInspectWindow : Window {
 		const_cast<NewGRFInspectWindow*>(this)->vscroll->SetCount(i);
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_NGRFI_VEH_CHAIN:
@@ -564,7 +564,7 @@ struct NewGRFInspectWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_NGRFI_PARENT: {
@@ -844,7 +844,7 @@ struct SpriteAlignerWindow : Window {
 		while (GetSpriteType(this->current_sprite) != ST_NORMAL) this->current_sprite++;
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		const Sprite *spr = GetSprite(this->current_sprite, ST_NORMAL);
 		switch (widget) {
@@ -878,7 +878,7 @@ struct SpriteAlignerWindow : Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_SA_SPRITE:
@@ -896,7 +896,7 @@ struct SpriteAlignerWindow : Window {
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_SA_SPRITE: {
@@ -943,7 +943,7 @@ struct SpriteAlignerWindow : Window {
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_SA_PREVIOUS:

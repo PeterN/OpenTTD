@@ -64,7 +64,7 @@ struct ContentTextfileWindow : public TextfileWindow {
 		}
 	}
 
-	void SetStringParameters(int widget) const override
+	void SetStringParameters(WidgetIndex widget) const override
 	{
 		if (widget == WID_TF_CAPTION) {
 			SetDParam(0, this->GetTypeString());
@@ -114,7 +114,7 @@ void BaseNetworkContentDownloadStatusWindow::Close()
 	this->Window::Close();
 }
 
-void BaseNetworkContentDownloadStatusWindow::UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+void BaseNetworkContentDownloadStatusWindow::UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 {
 	switch (widget) {
 		case WID_NCDS_PROGRESS_BAR:
@@ -133,7 +133,7 @@ void BaseNetworkContentDownloadStatusWindow::UpdateWidgetSize(int widget, Dimens
 	}
 }
 
-void BaseNetworkContentDownloadStatusWindow::DrawWidget(const Rect &r, int widget) const
+void BaseNetworkContentDownloadStatusWindow::DrawWidget(const Rect &r, WidgetIndex widget) const
 {
 	switch (widget) {
 		case WID_NCDS_PROGRESS_BAR: {
@@ -285,7 +285,7 @@ public:
 		this->BaseNetworkContentDownloadStatusWindow::Close();
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget == WID_NCDS_CANCELOK) {
 			if (this->downloaded_bytes != this->total_bytes) {
@@ -584,7 +584,7 @@ public:
 		this->checkbox_size = maxdim(maxdim(GetSpriteSize(SPR_BOX_EMPTY), GetSpriteSize(SPR_BOX_CHECKED)), GetSpriteSize(SPR_BLOT));
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_NCL_CHECKBOX:
@@ -608,7 +608,7 @@ public:
 	}
 
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		switch (widget) {
 			case WID_NCL_DETAILS:
@@ -791,7 +791,7 @@ public:
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		if (widget >= WID_NCL_TEXTFILE && widget < WID_NCL_TEXTFILE + TFT_END) {
 			if (this->selected == nullptr || this->selected->state != ContentInfo::ALREADY_HERE) return;
@@ -924,7 +924,7 @@ public:
 		return ES_HANDLED;
 	}
 
-	void OnEditboxChanged(int wid) override
+	void OnEditboxChanged(WidgetIndex wid) override
 	{
 		if (wid == WID_NCL_FILTER) {
 			this->filter_data.string_filter.SetFilterTerm(this->filter_editbox.text.buf);

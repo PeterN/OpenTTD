@@ -154,7 +154,7 @@ public:
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(WidgetIndex widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget >= WID_BT_TYPE_BUTTON_FIRST) {
 			/* Ensure tree type buttons are sized after the largest tree type */
@@ -164,7 +164,7 @@ public:
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const override
+	void DrawWidget(const Rect &r, WidgetIndex widget) const override
 	{
 		if (widget >= WID_BT_TYPE_BUTTON_FIRST) {
 			const int index = widget - WID_BT_TYPE_BUTTON_FIRST;
@@ -173,7 +173,7 @@ public:
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, WidgetIndex widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_BT_TYPE_RANDOM: // tree of random type.
@@ -258,7 +258,7 @@ public:
  * get producing the correct result than dynamically building the widgets is.
  * @see NWidgetFunctionType
  */
-static NWidgetBase *MakeTreeTypeButtons(int *biggest_index)
+static NWidgetBase *MakeTreeTypeButtons(WidgetIndex *biggest_index)
 {
 	const byte type_base = _tree_base_by_landscape[_settings_game.game_creation.landscape];
 	const byte type_count = _tree_count_by_landscape[_settings_game.game_creation.landscape];

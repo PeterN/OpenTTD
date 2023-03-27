@@ -1128,7 +1128,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 	BuildLandLegend();
 }
 
-/* virtual */ void SmallMapWindow::SetStringParameters(int widget) const
+/* virtual */ void SmallMapWindow::SetStringParameters(WidgetIndex widget) const
 {
 	switch (widget) {
 		case WID_SM_CAPTION:
@@ -1206,7 +1206,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 	this->DrawWidgets();
 }
 
-/* virtual */ void SmallMapWindow::DrawWidget(const Rect &r, int widget) const
+/* virtual */ void SmallMapWindow::DrawWidget(const Rect &r, WidgetIndex widget) const
 {
 	switch (widget) {
 		case WID_SM_MAP: {
@@ -1405,7 +1405,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 	return (column * number_of_rows) + line;
 }
 
-/* virtual */ void SmallMapWindow::OnMouseOver(Point pt, int widget)
+/* virtual */ void SmallMapWindow::OnMouseOver(Point pt, WidgetIndex widget)
 {
 	IndustryType new_highlight = INVALID_INDUSTRYTYPE;
 	if (widget == WID_SM_LEGEND && this->map_type == SMT_INDUSTRY) {
@@ -1422,7 +1422,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 	}
 }
 
-/* virtual */ void SmallMapWindow::OnClick(Point pt, int widget, int click_count)
+/* virtual */ void SmallMapWindow::OnClick(Point pt, WidgetIndex widget, int click_count)
 {
 	switch (widget) {
 		case WID_SM_MAP: { // Map window
@@ -1567,7 +1567,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 	this->SetDirty();
 }
 
-/* virtual */ bool SmallMapWindow::OnRightClick(Point pt, int widget)
+/* virtual */ bool SmallMapWindow::OnRightClick(Point pt, WidgetIndex widget)
 {
 	if (widget != WID_SM_MAP || _scrolling_viewport) return false;
 
@@ -1817,7 +1817,7 @@ static const NWidgetPart _nested_smallmap_bar[] = {
 	EndContainer(),
 };
 
-static NWidgetBase *SmallMapDisplay(int *biggest_index)
+static NWidgetBase *SmallMapDisplay(WidgetIndex *biggest_index)
 {
 	NWidgetContainer *map_display = new NWidgetSmallmapDisplay;
 
