@@ -174,6 +174,11 @@ public:
 	RoadTypes introduces_roadtypes;
 
 	/**
+	 * Bitmask of disabled roadsides.
+	 */
+	uint8 disabled_roadsides;
+
+	/**
 	 * The sorting order of this roadtype for the toolbar dropdown.
 	 */
 	byte sorting_order;

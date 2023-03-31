@@ -1999,18 +1999,27 @@ static void TileLoop_Road(TileIndex tile)
 
 		{
 			/* Adjust road ground type depending on 'grp' (grp is the distance to the center) */
-			const Roadside *new_rs = (_settings_game.game_creation.landscape == LT_TOYLAND) ? _town_road_types_2[grp] : _town_road_types[grp];
+			const Roadside *new_roadsides = (_settings_game.game_creation.landscape == LT_TOYLAND) ? _town_road_types_2[grp] : _town_road_types[grp];
 			Roadside cur_rs = GetRoadside(tile);
+			Roadside new_rs = cur_rs;
+
+			RoadType rt = GetRoadTypeRoad(tile);
+			if (rt == INVALID_ROADTYPE) rt = GetRoadTypeTram(tile);
+
+			uint8 disabled_roadsides = GetRoadTypeInfo(rt)->disabled_roadsides;
+			if (HasBit(disabled_roadsides, new_roadsides[0])) {
+				if (new_roadsides[0] == ROADSIDE_GRASS) cur_rs = 
+			}
 
 			/* We have our desired type, do nothing */
-			if (cur_rs == new_rs[0]) return;
+			if (cur_rs == new_roadsides[0]) return;
 
 			/* We have the pre-type of the desired type, switch to the desired type */
-			if (cur_rs == new_rs[1]) {
-				cur_rs = new_rs[0];
+			if (cur_rs == new_roadsides[1]) {
+				cur_rs = new_roadsides[0];
 			/* We have barren land, install the pre-type */
 			} else if (cur_rs == ROADSIDE_BARREN) {
-				cur_rs = new_rs[1];
+				cur_rs = new_roadsides[1];
 			/* We're totally off limits, remove any installation and make barren land */
 			} else {
 				cur_rs = ROADSIDE_BARREN;

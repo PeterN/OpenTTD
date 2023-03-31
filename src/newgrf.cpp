@@ -4536,6 +4536,10 @@ static ChangeInfoResult RoadTypeChangeInfo(uint id, int numinfo, int prop, ByteR
 				for (int j = buf->ReadByte(); j != 0; j--) buf->ReadDWord();
 				break;
 
+			case 0x1E: // Disabled roadsides
+				rti->disabled_roadsides = (uint8)buf->ReadDWord();
+				break;
+
 			default:
 				ret = CIR_UNKNOWN;
 				break;
@@ -4622,6 +4626,7 @@ static ChangeInfoResult RoadTypeReserveInfo(uint id, int numinfo, int prop, Byte
 				break;
 
 			case 0x17: // Introduction date
+			case 0x1E: // Disabled roadsides
 				buf->ReadDWord();
 				break;
 
