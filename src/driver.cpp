@@ -185,10 +185,11 @@ bool DriverFactoryBase::SelectDriverImpl(const std::string &name, Driver::Type t
  * @param last The last element in the buffer.
  * @return The end of the written buffer.
  */
-char *DriverFactoryBase::GetDriversInfo(char *p, const char *last)
+std::string DriverFactoryBase::GetDriversInfo()
 {
+	std::string p;
 	for (Driver::Type type = Driver::DT_BEGIN; type != Driver::DT_END; type++) {
-		p += seprintf(p, last, "List of %s drivers:\n", GetDriverTypeName(type));
+		p += fmt::format("List of {} drivers:\n", GetDriverTypeName(type));
 
 		for (int priority = 10; priority >= 0; priority--) {
 			Drivers::iterator it = GetDrivers().begin();
@@ -196,11 +197,11 @@ char *DriverFactoryBase::GetDriversInfo(char *p, const char *last)
 				DriverFactoryBase *d = (*it).second;
 				if (d->type != type) continue;
 				if (d->priority != priority) continue;
-				p += seprintf(p, last, "%18s: %s\n", d->name, d->GetDescription());
+				p += fmt::format("{:<18}: {}\n", d->name, d->GetDescription());
 			}
 		}
 
-		p += seprintf(p, last, "\n");
+		p += "\n";
 	}
 
 	return p;

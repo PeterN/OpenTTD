@@ -56,7 +56,7 @@ extern int _debug_console_level;
 extern int _debug_random_level;
 #endif
 
-char *DumpDebugFacilityNames(char *buf, char *last);
+std::string DumpDebugFacilityNames();
 void SetDebugString(const char *s, void (*error_func)(const char *));
 const char *GetDebugString();
 

@@ -252,24 +252,24 @@ template <class Tbase_set>
  * @return the last printed character
  */
 template <class Tbase_set>
-/* static */ char *BaseMedia<Tbase_set>::GetSetsList(char *p, const char *last)
+/* static */ std::string BaseMedia<Tbase_set>::GetSetsList()
 {
-	p += seprintf(p, last, "List of " SET_TYPE " sets:\n");
+	std::string p = "List of " SET_TYPE " sets:\n";
 	for (const Tbase_set *s = BaseMedia<Tbase_set>::available_sets; s != nullptr; s = s->next) {
-		p += seprintf(p, last, "%18s: %s", s->name.c_str(), s->GetDescription({}));
+		p += fmt::format("{:<18}: {}", s->name, s->GetDescription({}));
 		int invalid = s->GetNumInvalid();
 		if (invalid != 0) {
 			int missing = s->GetNumMissing();
 			if (missing == 0) {
-				p += seprintf(p, last, " (%i corrupt file%s)\n", invalid, invalid == 1 ? "" : "s");
+				p += fmt::format(" ({} corrupt file{})\n", invalid, invalid == 1 ? "" : "s");
 			} else {
-				p += seprintf(p, last, " (unusable: %i missing file%s)\n", missing, missing == 1 ? "" : "s");
+				p += fmt::format(" (unusable: {} missing file{})\n", missing, missing == 1 ? "" : "s");
 			}
 		} else {
-			p += seprintf(p, last, "\n");
+			p += "\n";
 		}
 	}
-	p += seprintf(p, last, "\n");
+	p += "\n";
 
 	return p;
 }
@@ -380,7 +380,7 @@ template <class Tbase_set>
 	template bool repl_type::AddFile(const std::string &filename, size_t pathlength, const std::string &tar_filename); \
 	template bool repl_type::HasSet(const struct ContentInfo *ci, bool md5sum); \
 	template bool repl_type::SetSet(const std::string &name); \
-	template char *repl_type::GetSetsList(char *p, const char *last); \
+	template std::string repl_type::GetSetsList(); \
 	template int repl_type::GetNumSets(); \
 	template int repl_type::GetIndexOfUsedSet(); \
 	template const set_type *repl_type::GetSet(int index); \

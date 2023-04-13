@@ -171,11 +171,10 @@ void CDECL ShowInfoF(const char *str, ...)
  */
 static void ShowHelp()
 {
-	char buf[8192];
-	char *p = buf;
+	std::string p;
 
-	p += seprintf(p, lastof(buf), "OpenTTD %s\n", _openttd_revision);
-	p = strecpy(p,
+	p += fmt::format("OpenTTD {}\n", _openttd_revision);
+	p += fmt::format(
 		"\n"
 		"\n"
 		"Command line options:\n"
@@ -207,46 +206,43 @@ static void ShowHelp()
 		"  -q savegame         = Write some information about the savegame and exit\n"
 		"  -Q                  = Don't scan for/load NewGRF files on startup\n"
 		"  -QQ                 = Disable NewGRF scanning/loading entirely\n"
-		"\n",
-		lastof(buf)
+		"\n"
 	);
 
 	/* List the graphics packs */
-	p = BaseGraphics::GetSetsList(p, lastof(buf));
+	p += BaseGraphics::GetSetsList();
 
 	/* List the sounds packs */
-	p = BaseSounds::GetSetsList(p, lastof(buf));
+	p += BaseSounds::GetSetsList();
 
 	/* List the music packs */
-	p = BaseMusic::GetSetsList(p, lastof(buf));
+	p += BaseMusic::GetSetsList();
 
 	/* List the drivers */
-	p = DriverFactoryBase::GetDriversInfo(p, lastof(buf));
+	p += DriverFactoryBase::GetDriversInfo();
 
 	/* List the blitters */
-	p = BlitterFactory::GetBlittersInfo(p, lastof(buf));
+	p += BlitterFactory::GetBlittersInfo();
 
 	/* List the debug facilities. */
-	p = DumpDebugFacilityNames(p, lastof(buf));
+	p += DumpDebugFacilityNames();
 
 	/* We need to initialize the AI, so it finds the AIs */
 	AI::Initialize();
-	const std::string ai_list = AI::GetConsoleList(true);
-	p = strecpy(p, ai_list.c_str(), lastof(buf));
+	p += AI::GetConsoleList(true);
 	AI::Uninitialize(true);
 
 	/* We need to initialize the GameScript, so it finds the GSs */
 	Game::Initialize();
-	const std::string game_list = Game::GetConsoleList(true);
-	p = strecpy(p, game_list.c_str(), lastof(buf));
+	p += Game::GetConsoleList(true);
 	Game::Uninitialize(true);
 
 	/* ShowInfo put output to stderr, but version information should go
 	 * to stdout; this is the only exception */
 #if !defined(_WIN32)
-	printf("%s\n", buf);
+	printf("%s\n", p.c_str());
 #else
-	ShowInfo(buf);
+	ShowInfo(p.c_str());
 #endif
 }
 

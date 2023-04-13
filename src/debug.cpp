@@ -90,23 +90,15 @@ struct DebugLevel {
  * @param last Last valid address for storing the output.
  * @return Next free position in the output.
  */
-char *DumpDebugFacilityNames(char *buf, char *last)
+std::string DumpDebugFacilityNames()
 {
-	size_t length = 0;
+	std::string p = "List of debug facility names:\n";;
 	for (const DebugLevel *i = debug_level; i != endof(debug_level); ++i) {
-		if (length == 0) {
-			buf = strecpy(buf, "List of debug facility names:\n", last);
-		} else {
-			buf = strecpy(buf, ", ", last);
-			length += 2;
-		}
-		buf = strecpy(buf, i->name, last);
-		length += strlen(i->name);
+		if (i != debug_level) p += ", ";
+		p += i->name;
 	}
-	if (length > 0) {
-		buf = strecpy(buf, "\n\n", last);
-	}
-	return buf;
+	p += "\n\n";
+	return p;
 }
 
 /**
