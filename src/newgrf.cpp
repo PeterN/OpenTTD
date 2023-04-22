@@ -1959,12 +1959,10 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					/* On error, bail out immediately. Temporary GRF data was already freed */
 					if (_cur.skip_sprites < 0) return CIR_DISABLED;
 
-					static std::vector<DrawTileSeqStruct> tmp_layout;
-					tmp_layout.clear();
+					std::vector<DrawTileSeqStruct> tmp_layout;
 					for (;;) {
 						/* no relative bounding box support */
 						DrawTileSeqStruct &dtss = tmp_layout.emplace_back();
-						MemSetT(&dtss, 0);
 
 						dtss.delta_x = buf->ReadByte();
 						if (dtss.IsTerminator()) break;
