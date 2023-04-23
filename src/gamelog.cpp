@@ -235,25 +235,25 @@ void GamelogPrint(std::function<void(const char*)> proc)
 				case GLCT_OLDVER:
 					/* The game was loaded from before 0.7.0-beta1. */
 					buf += seprintf(buf, lastof(buffer), "Conversion from ");
-					switch (lc->oldver.type) {
+					switch (static_cast<SavegameType>(lc->oldver.type)) {
 						default: NOT_REACHED();
-						case SGT_OTTD:
+						case SavegameType::OTTD:
 							buf += seprintf(buf, lastof(buffer), "OTTD savegame without gamelog: version %u, %u",
 								GB(lc->oldver.version, 8, 16), GB(lc->oldver.version, 0, 8));
 							break;
 
-						case SGT_TTO:
+						case SavegameType::TTO:
 							buf += seprintf(buf, lastof(buffer), "TTO savegame");
 							break;
 
-						case SGT_TTD:
+						case SavegameType::TTD:
 							buf += seprintf(buf, lastof(buffer), "TTD savegame");
 							break;
 
-						case SGT_TTDP1:
-						case SGT_TTDP2:
+						case SavegameType::TTDP1:
+						case SavegameType::TTDP2:
 							buf += seprintf(buf, lastof(buffer), "TTDP savegame, %s format",
-								lc->oldver.type == SGT_TTDP1 ? "old" : "new");
+								static_cast<SavegameType>(lc->oldver.type) == SavegameType::TTDP1 ? "old" : "new");
 							if (lc->oldver.version != 0) {
 								buf += seprintf(buf, lastof(buffer), ", TTDP version %u.%u.%u.%u",
 									GB(lc->oldver.version, 24, 8), GB(lc->oldver.version, 20, 4),
@@ -473,8 +473,8 @@ void GamelogOldver()
 	LoggedChange *lc = GamelogChange(GLCT_OLDVER);
 	if (lc == nullptr) return;
 
-	lc->oldver.type = _savegame_type;
-	lc->oldver.version = (_savegame_type == SGT_OTTD ? ((uint32)_sl_version << 8 | _sl_minor_version) : _ttdp_version);
+	lc->oldver.type = static_cast<uint32_t>(_savegame_type);
+	lc->oldver.version = (_savegame_type == SavegameType::OTTD ? ((uint32)_sl_version << 8 | _sl_minor_version) : _ttdp_version);
 }
 
 /**

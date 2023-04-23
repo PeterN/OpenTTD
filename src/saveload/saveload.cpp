@@ -3171,7 +3171,7 @@ static SaveOrLoadResult DoLoad(LoadFilter *reader, bool load_check)
 
 	ClearSaveLoadState();
 
-	_savegame_type = SGT_OTTD;
+	_savegame_type = SavegameType::OTTD;
 
 	if (load_check) {
 		/* The only part from AfterLoadGame() we need */

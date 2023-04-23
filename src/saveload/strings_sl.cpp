@@ -64,7 +64,7 @@ std::string CopyFromOldName(StringID id)
 	if (GetStringTab(id) != TEXT_TAB_OLD_CUSTOM) return std::string();
 
 	if (IsSavegameVersionBefore(SLV_37)) {
-		uint offs = _savegame_type == SGT_TTO ? LEN_OLD_STRINGS_TTO * GB(id, 0, 8) : LEN_OLD_STRINGS * GB(id, 0, 9);
+		uint offs = _savegame_type == SavegameType::TTO ? LEN_OLD_STRINGS_TTO * GB(id, 0, 8) : LEN_OLD_STRINGS * GB(id, 0, 9);
 		const char *strfrom = &_old_name_array[offs];
 
 		std::ostringstream tmp;

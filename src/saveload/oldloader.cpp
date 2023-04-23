@@ -109,8 +109,8 @@ byte ReadByte(LoadgameState *ls)
 bool LoadChunk(LoadgameState *ls, void *base, const OldChunks *chunks)
 {
 	for (const OldChunks *chunk = chunks; chunk->type != OC_END; chunk++) {
-		if (((chunk->type & OC_TTD) && _savegame_type == SGT_TTO) ||
-				((chunk->type & OC_TTO) && _savegame_type != SGT_TTO)) {
+		if (((chunk->type & OC_TTD) && _savegame_type == SavegameType::TTO) ||
+				((chunk->type & OC_TTO) && _savegame_type != SavegameType::TTO)) {
 			/* TTD(P)-only chunk, but TTO savegame || TTO-only chunk, but TTD/TTDP savegame */
 			continue;
 		}
@@ -244,21 +244,21 @@ static SavegameType DetermineOldSavegameType(FILE *f, char *title, const char *l
 	static_assert(TTD_HEADER_SIZE >= TTO_HEADER_SIZE);
 	char temp[TTD_HEADER_SIZE] = "Unknown";
 
-	SavegameType type = SGT_TTO;
+	SavegameType type = SavegameType::TTO;
 
 	/* Can't fseek to 0 as in tar files that is not correct */
 	long pos = ftell(f);
 	if (pos >= 0 && !CheckOldSavegameType(f, temp, lastof(temp), TTO_HEADER_SIZE)) {
-		type = SGT_TTD;
+		type = SavegameType::TTD;
 		if (fseek(f, pos, SEEK_SET) < 0 || !CheckOldSavegameType(f, temp, lastof(temp), TTD_HEADER_SIZE)) {
-			type = SGT_INVALID;
+			type = SavegameType::Invalid;
 		}
 	}
 
 	if (title != nullptr) {
 		switch (type) {
-			case SGT_TTO: title = strecpy(title, "(TTO) ", last);    break;
-			case SGT_TTD: title = strecpy(title, "(TTD) ", last);    break;
+			case SavegameType::TTO: title = strecpy(title, "(TTO) ", last);    break;
+			case SavegameType::TTD: title = strecpy(title, "(TTD) ", last);    break;
 			default:      title = strecpy(title, "(broken) ", last); break;
 		}
 		strecpy(title, temp, last);
@@ -290,8 +290,8 @@ bool LoadOldSaveGame(const std::string &file)
 	LoadOldMainProc *proc = nullptr;
 
 	switch (type) {
-		case SGT_TTO: proc = &LoadTTOMain; break;
-		case SGT_TTD: proc = &LoadTTDMain; break;
+		case SavegameType::TTO: proc = &LoadTTOMain; break;
+		case SavegameType::TTD: proc = &LoadTTDMain; break;
 		default: break;
 	}
 
