@@ -268,7 +268,7 @@ void DrawRoadStopTile(int x, int y, RoadType roadtype, const RoadStopSpec *spec,
 	const RoadTypeInfo *rti = GetRoadTypeInfo(roadtype);
 	RoadStopResolverObject object(spec, nullptr, INVALID_TILE, roadtype, type, view);
 	const SpriteGroup *group = object.Resolve();
-	if (group == nullptr || group->type != SGT_TILELAYOUT) return;
+	if (group == nullptr || group->type != SpriteGroupType::TileLayout) return;
 	const DrawTileSprites *dts = ((const TileLayoutSpriteGroup *)group)->ProcessRegisters(nullptr);
 
 	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);

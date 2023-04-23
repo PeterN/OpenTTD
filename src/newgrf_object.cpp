@@ -472,7 +472,7 @@ void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
 	ObjectResolverObject object(spec, o, ti->tile);
 
 	const SpriteGroup *group = object.Resolve();
-	if (group == nullptr || group->type != SGT_TILELAYOUT) return;
+	if (group == nullptr || group->type != SpriteGroupType::TileLayout) return;
 
 	DrawTileLayout(ti, (const TileLayoutSpriteGroup *)group, spec);
 }
@@ -488,7 +488,7 @@ void DrawNewObjectTileInGUI(int x, int y, const ObjectSpec *spec, uint8 view)
 {
 	ObjectResolverObject object(spec, nullptr, INVALID_TILE, view);
 	const SpriteGroup *group = object.Resolve();
-	if (group == nullptr || group->type != SGT_TILELAYOUT) return;
+	if (group == nullptr || group->type != SpriteGroupType::TileLayout) return;
 
 	const DrawTileSprites *dts = ((const TileLayoutSpriteGroup *)group)->ProcessRegisters(nullptr);
 

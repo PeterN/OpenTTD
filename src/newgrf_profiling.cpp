@@ -66,9 +66,9 @@ void NewGRFProfiler::EndResolve(const SpriteGroup *result)
 
 	if (result == nullptr) {
 		this->cur_call.result = 0;
-	} else if (result->type == SGT_CALLBACK) {
+	} else if (result->type == SpriteGroupType::Callback) {
 		this->cur_call.result = static_cast<const CallbackResultSpriteGroup *>(result)->result;
-	} else if (result->type == SGT_RESULT) {
+	} else if (result->type == SpriteGroupType::Result) {
 		this->cur_call.result = GetSpriteLocalID(static_cast<const ResultSpriteGroup *>(result)->sprite);
 	} else {
 		this->cur_call.result = result->nfo_line;

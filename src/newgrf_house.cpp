@@ -465,7 +465,7 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 	HouseResolverObject object(house_id, ti->tile, Town::GetByTile(ti->tile));
 
 	const SpriteGroup *group = object.Resolve();
-	if (group != nullptr && group->type == SGT_TILELAYOUT) {
+	if (group != nullptr && group->type == SpriteGroupType::TileLayout) {
 		/* Limit the building stage to the number of stages supplied. */
 		const TileLayoutSpriteGroup *tlgroup = (const TileLayoutSpriteGroup *)group;
 		byte stage = GetHouseBuildingStage(ti->tile);

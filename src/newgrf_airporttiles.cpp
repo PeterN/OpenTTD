@@ -268,7 +268,7 @@ bool DrawNewAirportTile(TileInfo *ti, Station *st, StationGfx gfx, const Airport
 
 	AirportTileResolverObject object(airts, ti->tile, st);
 	const SpriteGroup *group = object.Resolve();
-	if (group == nullptr || group->type != SGT_TILELAYOUT) {
+	if (group == nullptr || group->type != SpriteGroupType::TileLayout) {
 		return false;
 	}
 

@@ -3167,7 +3167,7 @@ draw_default_foundation:
 			st = BaseStation::GetByTile(ti->tile);
 			RoadStopResolverObject object(stopspec, st, ti->tile, INVALID_ROADTYPE, type, view);
 			const SpriteGroup *group = object.Resolve();
-			if (group != nullptr && group->type == SGT_TILELAYOUT) {
+			if (group != nullptr && group->type == SpriteGroupType::TileLayout) {
 				t = ((const TileLayoutSpriteGroup *)group)->ProcessRegisters(nullptr);
 			}
 		}

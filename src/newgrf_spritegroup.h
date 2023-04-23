@@ -33,14 +33,14 @@ static inline uint32 GetRegister(uint i)
 }
 
 /* List of different sprite group types */
-enum SpriteGroupType {
-	SGT_REAL,
-	SGT_DETERMINISTIC,
-	SGT_RANDOMIZED,
-	SGT_CALLBACK,
-	SGT_RESULT,
-	SGT_TILELAYOUT,
-	SGT_INDUSTRY_PRODUCTION,
+enum class SpriteGroupType {
+	Real,
+	Deterministic,
+	Randomized,
+	Callback,
+	Result,
+	TileLayout,
+	IndustryProduction,
 };
 
 struct SpriteGroup;
@@ -77,7 +77,7 @@ public:
 /* 'Real' sprite groups contain a list of other result or callback sprite
  * groups. */
 struct RealSpriteGroup : SpriteGroup {
-	RealSpriteGroup() : SpriteGroup(SGT_REAL) {}
+	RealSpriteGroup() : SpriteGroup(SpriteGroupType::Real) {}
 
 	/* Loaded = in motion, loading = not moving
 	 * Each group contains several spritesets, for various loading stages */
@@ -165,7 +165,7 @@ struct DeterministicSpriteGroupRange {
 
 
 struct DeterministicSpriteGroup : SpriteGroup {
-	DeterministicSpriteGroup() : SpriteGroup(SGT_DETERMINISTIC) {}
+	DeterministicSpriteGroup() : SpriteGroup(SpriteGroupType::Deterministic) {}
 
 	VarSpriteGroupScope var_scope;
 	DeterministicSpriteGroupSize size;
@@ -188,7 +188,7 @@ enum RandomizedSpriteGroupCompareMode {
 };
 
 struct RandomizedSpriteGroup : SpriteGroup {
-	RandomizedSpriteGroup() : SpriteGroup(SGT_RANDOMIZED) {}
+	RandomizedSpriteGroup() : SpriteGroup(SpriteGroupType::Randomized) {}
 
 	VarSpriteGroupScope var_scope;  ///< Take this object:
 
@@ -214,7 +214,7 @@ struct CallbackResultSpriteGroup : SpriteGroup {
 	 * @param grf_version8 True, if we are dealing with a new NewGRF which uses GRF version >= 8.
 	 */
 	CallbackResultSpriteGroup(uint16 value, bool grf_version8) :
-		SpriteGroup(SGT_CALLBACK),
+		SpriteGroup(SpriteGroupType::Callback),
 		result(value)
 	{
 		/* Old style callback results (only valid for version < 8) have the highest byte 0xFF so signify it is a callback result.
@@ -241,7 +241,7 @@ struct ResultSpriteGroup : SpriteGroup {
 	 * @return A spritegroup representing the sprite number result.
 	 */
 	ResultSpriteGroup(SpriteID sprite, byte num_sprites) :
-		SpriteGroup(SGT_RESULT),
+		SpriteGroup(SpriteGroupType::Result),
 		sprite(sprite),
 		num_sprites(num_sprites)
 	{
@@ -257,7 +257,7 @@ struct ResultSpriteGroup : SpriteGroup {
  * Action 2 sprite layout for houses, industry tiles, objects and airport tiles.
  */
 struct TileLayoutSpriteGroup : SpriteGroup {
-	TileLayoutSpriteGroup() : SpriteGroup(SGT_TILELAYOUT) {}
+	TileLayoutSpriteGroup() : SpriteGroup(SpriteGroupType::TileLayout) {}
 	~TileLayoutSpriteGroup() {}
 
 	NewGRFSpriteLayout dts;
@@ -266,7 +266,7 @@ struct TileLayoutSpriteGroup : SpriteGroup {
 };
 
 struct IndustryProductionSpriteGroup : SpriteGroup {
-	IndustryProductionSpriteGroup() : SpriteGroup(SGT_INDUSTRY_PRODUCTION) {}
+	IndustryProductionSpriteGroup() : SpriteGroup(SpriteGroupType::IndustryProduction) {}
 
 	uint8 version;                              ///< Production callback version used, or 0xFF if marked invalid
 	uint8 num_input;                            ///< How many subtract_input values are valid
