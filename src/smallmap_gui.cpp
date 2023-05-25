@@ -36,9 +36,6 @@ static int _smallmap_industry_count; ///< Number of used industries
 static int _smallmap_company_count;  ///< Number of entries in the owner legend.
 static int _smallmap_cargo_count;    ///< Number of cargos in the link stats legend.
 
-/** Link stat colours shown in legenda. */
-static uint8 _linkstat_colours_in_legenda[] = {0, 1, 3, 5, 7, 9, 11};
-
 static const int NUM_NO_COMPANY_ENTRIES = 4; ///< Number of entries in the owner legend that are not companies.
 
 /** Macro for ordinary entry of LegendAndColour */
@@ -146,7 +143,7 @@ static LegendAndColour _legend_land_owners[NUM_NO_COMPANY_ENTRIES + MAX_COMPANIE
 #undef MKEND
 
 /** Legend entries for the link stats view. */
-static LegendAndColour _legend_linkstats[NUM_CARGO + lengthof(_linkstat_colours_in_legenda) + 1];
+static LegendAndColour _legend_linkstats[NUM_CARGO + lengthof(LinkGraphOverlay::LINK_COLOURS[0]) + 1];
 /**
  * Allow room for all industries, plus a terminator entry
  * This is required in order to have the industry slots all filled up
@@ -214,9 +211,9 @@ void BuildLinkStatsLegend()
 	_legend_linkstats[i].col_break = true;
 	_smallmap_cargo_count = i;
 
-	for (; i < _smallmap_cargo_count + lengthof(_linkstat_colours_in_legenda); ++i) {
+	for (; i < _smallmap_cargo_count + lengthof(LinkGraphOverlay::LINK_COLOURS[0]); ++i) {
 		_legend_linkstats[i].legend = STR_EMPTY;
-		_legend_linkstats[i].colour = LinkGraphOverlay::LINK_COLOURS[_settings_client.gui.linkgraph_colours][_linkstat_colours_in_legenda[i - _smallmap_cargo_count]];
+		_legend_linkstats[i].colour = LinkGraphOverlay::LINK_COLOURS[_settings_client.gui.linkgraph_colours][i - _smallmap_cargo_count];
 		_legend_linkstats[i].show_on_map = true;
 	}
 
@@ -1140,7 +1137,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 {
 	uint min_width = 0;
 	this->min_number_of_columns = INDUSTRY_MIN_NUMBER_OF_COLUMNS;
-	this->min_number_of_fixed_rows = lengthof(_linkstat_colours_in_legenda);
+	this->min_number_of_fixed_rows = lengthof(LinkGraphOverlay::LINK_COLOURS[0]);
 	for (uint i = 0; i < lengthof(_legend_table); i++) {
 		uint height = 0;
 		uint num_columns = 1;
