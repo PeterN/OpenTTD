@@ -53,12 +53,15 @@
 #ifndef MD5_INCLUDED
 #define MD5_INCLUDED
 
+#include "../../core/span_type.hpp"
+
 /** The number of bytes in a MD5 hash. */
 static const size_t MD5_HASH_BYTES = 16;
 
 /** Container for storing a MD5 hash/checksum/digest. */
-struct MD5Hash : std::array<byte, MD5_HASH_BYTES> {
-	MD5Hash() : std::array<byte, MD5_HASH_BYTES>{} {}
+struct MD5Hash {
+	using data_type = std::array<byte, MD5_HASH_BYTES>;
+	data_type data_{};
 
 	/**
 	 * Exclusively-or the given hash into this hash.
@@ -67,9 +70,23 @@ struct MD5Hash : std::array<byte, MD5_HASH_BYTES> {
 	 */
 	MD5Hash &operator^=(const MD5Hash &other)
 	{
-		for (size_t i = 0; i < size(); i++) this->operator[](i) ^= other[i];
+		for (size_t i = 0; i < this->data_.size(); i++) this->data_[i] ^= other.data_[i];
 		return *this;
 	}
+
+	constexpr size_t size() const { return this->data_.size(); }
+
+	data_type::pointer data() { return this->data_.data(); }
+	data_type::const_pointer data() const { return this->data_.data(); }
+
+	byte &operator[](size_t n) { return this->data_[n]; }
+	const byte &operator[](size_t n) const { return this->data_[n]; }
+
+	bool operator==(const MD5Hash &other) const { return this->data_ == other.data_; }
+	bool operator!=(const MD5Hash &other) const { return this->data_ != other.data_; }
+	bool operator<(const MD5Hash &other) const { return this->data_ < other.data_; }
+
+	operator span<const byte>() const { return this->data_; }
 };
 
 struct Md5 {
