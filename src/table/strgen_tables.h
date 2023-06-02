@@ -17,8 +17,10 @@ enum CmdFlags {
 };
 DECLARE_ENUM_AS_BIT_SET(CmdFlags)
 
-struct Buffer;
-typedef void (*ParseCmdProc)(Buffer *buffer, char *buf, int value);
+/** Buffer for writing a single string. */
+using Buffer = std::vector<byte>;
+
+typedef void (*ParseCmdProc)(Buffer &buffer, char *buf, int value);
 
 struct CmdStruct {
 	const char *cmd;
@@ -29,9 +31,9 @@ struct CmdStruct {
 	CmdFlags flags;
 };
 
-extern void EmitSingleChar(Buffer *buffer, char *buf, int value);
-extern void EmitPlural(Buffer *buffer, char *buf, int value);
-extern void EmitGender(Buffer *buffer, char *buf, int value);
+extern void EmitSingleChar(Buffer &buffer, char *buf, int value);
+extern void EmitPlural(Buffer &buffer, char *buf, int value);
+extern void EmitGender(Buffer &buffer, char *buf, int value);
 
 static const CmdStruct _cmd_structs[] = {
 	/* Font size */
