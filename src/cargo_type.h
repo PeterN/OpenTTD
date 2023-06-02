@@ -78,28 +78,27 @@ typedef uint64 CargoTypes;
 
 static const CargoTypes ALL_CARGOTYPES = (CargoTypes)UINT64_MAX;
 
-/** Class for storing amounts of cargo */
-struct CargoArray : std::array<uint, NUM_CARGO> {
-	/**
-	 * Get the sum of all cargo amounts.
-	 * @return The sum.
-	 */
-	template <typename T>
-	inline const T GetSum() const
-	{
-		return std::reduce(this->begin(), this->end(), T{});
-	}
+/** Type for storing amounts of cargo */
+using CargoArray = std::array<uint, NUM_CARGO>;
 
-	/**
-	 * Get the amount of cargos that have an amount.
-	 * @return The amount.
-	 */
-	inline uint GetCount() const
-	{
-		return std::count_if(this->begin(), this->end(), [](uint amount) { return amount != 0; });
-	}
-};
+/**
+ * Get the sum of all cargo amounts.
+ * @return The sum.
+ */
+template <typename T>
+inline const T GetCargoArraySum(const CargoArray &ca)
+{
+	return std::reduce(std::begin(ca), std::end(ca), T{});
+}
 
+/**
+ * Get the amount of cargos that have an amount.
+ * @return The amount.
+ */
+inline uint GetCargoArrayCount(const CargoArray &ca)
+{
+	return std::count_if(std::begin(ca), std::end(ca), [](uint amount) { return amount != 0; });
+}
 
 /** Types of cargo source and destination */
 enum class SourceType : byte {

@@ -334,7 +334,7 @@ bool FindSubsidyTownCargoRoute()
 	/* Passenger subsidies are not handled here. */
 	town_cargo_produced[CT_PASSENGERS] = 0;
 
-	uint8 cargo_count = town_cargo_produced.GetCount();
+	uint8 cargo_count = GetCargoArrayCount(town_cargo_produced);
 
 	/* No cargo produced at all? */
 	if (cargo_count == 0) return false;

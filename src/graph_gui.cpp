@@ -730,7 +730,7 @@ struct DeliveredCargoGraphWindow : BaseGraphWindow {
 
 	OverflowSafeInt64 GetGraphData(const Company *c, int j) override
 	{
-		return c->old_economy[j].delivered_cargo.GetSum<OverflowSafeInt64>();
+		return GetCargoArraySum<OverflowSafeInt64>(c->old_economy[j].delivered_cargo);
 	}
 };
 

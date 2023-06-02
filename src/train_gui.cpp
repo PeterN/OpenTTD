@@ -327,7 +327,7 @@ int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab)
 			max_cargo[v->cargo_type] += v->cargo_cap;
 		}
 
-		num = max_cargo.GetCount();
+		num = GetCargoArrayCount(max_cargo);
 		num++; // needs one more because first line is description string
 	} else {
 		for (const Train *v = Train::Get(veh_id); v != nullptr; v = v->GetNextVehicle()) {

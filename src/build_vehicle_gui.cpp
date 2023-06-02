@@ -907,7 +907,7 @@ void TestedEngineDetails::FillDefaultCapacities(const Engine *e)
 		this->all_capacities[this->cargo] = this->capacity;
 		this->all_capacities[CT_MAIL] = this->mail_capacity;
 	}
-	if (this->all_capacities.GetCount() == 0) this->cargo = CT_INVALID;
+	if (GetCargoArrayCount(this->all_capacities) == 0) this->cargo = CT_INVALID;
 }
 
 /**

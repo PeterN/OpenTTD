@@ -225,7 +225,7 @@ int UpdateCompanyRatingAndValue(Company *c, bool update)
 			const CompanyEconomyEntry *cee = c->old_economy;
 			OverflowSafeInt64 total_delivered = 0;
 			do {
-				total_delivered += cee->delivered_cargo.GetSum<OverflowSafeInt64>();
+				total_delivered += GetCargoArraySum<OverflowSafeInt64>(cee->delivered_cargo);
 			} while (++cee, --numec);
 
 			_score_part[owner][SCORE_DELIVERED] = total_delivered;
@@ -234,7 +234,7 @@ int UpdateCompanyRatingAndValue(Company *c, bool update)
 
 	/* Generate score for variety of cargo */
 	{
-		_score_part[owner][SCORE_CARGO] = c->old_economy->delivered_cargo.GetCount();
+		_score_part[owner][SCORE_CARGO] = GetCargoArrayCount(c->old_economy->delivered_cargo);
 	}
 
 	/* Generate score for company's money */
