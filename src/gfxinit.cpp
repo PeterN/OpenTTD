@@ -189,6 +189,7 @@ static void LoadSpriteTables()
 	GRFConfig *master = new GRFConfig(master_filename);
 	master->palette |= GRFP_GRF_DOS;
 	FillGRFDetails(master, false, BASESET_DIR);
+	SetBit(master->flags, GCF_SYSTEM);
 	ClrBit(master->flags, GCF_INIT_ONLY);
 
 	/* Baseset extra graphics */
@@ -204,6 +205,7 @@ static void LoadSpriteTables()
 		default: break;
 	}
 	FillGRFDetails(extra, false, BASESET_DIR);
+	SetBit(extra->flags, GCF_SYSTEM);
 	ClrBit(extra->flags, GCF_INIT_ONLY);
 
 	extra->next = top;

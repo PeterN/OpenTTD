@@ -7479,7 +7479,7 @@ static void ParamSet(ByteReader *buf)
 					src1 = 0;
 				}
 			}
-		} else {
+		} else if (!HasBit(_cur.grfconfig->flags, GCF_SYSTEM)) {
 			/* Read another GRF File's parameter */
 			const GRFFile *file = GetFileByGRFID(data);
 			GRFConfig *c = GetGRFConfig(data);
