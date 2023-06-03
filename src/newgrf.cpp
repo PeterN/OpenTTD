@@ -636,7 +636,7 @@ static Engine *GetNewEngine(const GRFFile *file, VehicleType type, uint16 intern
 
 		/* Reserve the engine slot */
 		if (!static_access) {
-			EngineIDMapping *eid = _engine_mngr.data() + engine;
+			EngineIDMapping *eid = _engine_mngr.mappings.data() + engine;
 			eid->grfid           = scope_grfid; // Note: this is INVALID_GRFID if dynamic_engines is disabled, so no reservation
 		}
 
@@ -657,8 +657,8 @@ static Engine *GetNewEngine(const GRFFile *file, VehicleType type, uint16 intern
 	e->grf_prop.grffile = file;
 
 	/* Reserve the engine slot */
-	assert(_engine_mngr.size() == e->index);
-	_engine_mngr.push_back({
+	assert(_engine_mngr.mappings.size() == e->index);
+	_engine_mngr.mappings.push_back({
 			scope_grfid, // Note: this is INVALID_GRFID if dynamic_engines is disabled, so no reservation
 			internal_id,
 			type,
@@ -9117,7 +9117,7 @@ static void FinaliseEngineArray()
 {
 	for (Engine *e : Engine::Iterate()) {
 		if (e->GetGRF() == nullptr) {
-			const EngineIDMapping &eid = _engine_mngr[e->index];
+			const EngineIDMapping &eid = _engine_mngr.mappings[e->index];
 			if (eid.grfid != INVALID_GRFID || eid.internal_id != eid.substitute_id) {
 				e->info.string_id = STR_NEWGRF_INVALID_ENGINE;
 			}
