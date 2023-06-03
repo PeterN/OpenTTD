@@ -28,7 +28,7 @@ struct TextfileWindow : public Window, MissingGlyphSearcher {
 
 	TextfileWindow(TextfileType file_type);
 
-	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override;
+	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override;
 	void OnClick(Point pt, int widget, int click_count) override;
 	void DrawWidget(const Rect &r, int widget) const override;
 	void OnResize() override;
