@@ -830,7 +830,7 @@ public:
 				if (!gui_scope) break;
 
 				_fios_path_changed = true;
-				this->fios_items.BuildFileList(this->abstract_filetype, this->fop);
+				BuildFileList(this->fios_items, this->abstract_filetype, this->fop);
 				this->selected = nullptr;
 				_load_check_data.Clear();
 

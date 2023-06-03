@@ -54,9 +54,11 @@
 static uint _script_current_depth; ///< Depth of scripts running (used to abort execution when #ConReturn is encountered).
 
 /** File list storage for the console, for caching the last 'ls' command. */
-class ConsoleFileList : public FileList {
+class ConsoleFileList {
 public:
-	ConsoleFileList() : FileList()
+	FileList filelist{};
+
+	ConsoleFileList()
 	{
 		this->file_list_valid = false;
 	}
@@ -64,7 +66,7 @@ public:
 	/** Declare the file storage cache as being invalid, also clears all stored files. */
 	void InvalidateFileList()
 	{
-		this->clear();
+		this->filelist.clear();
 		this->file_list_valid = false;
 	}
 
@@ -75,7 +77,7 @@ public:
 	void ValidateFileList(bool force_reload = false)
 	{
 		if (force_reload || !this->file_list_valid) {
-			this->BuildFileList(FT_SAVEGAME, SLO_LOAD);
+			BuildFileList(this->filelist, FT_SAVEGAME, SLO_LOAD);
 			this->file_list_valid = true;
 		}
 	}
@@ -427,7 +429,7 @@ DEF_CONSOLE_CMD(ConLoad)
 
 	const char *file = argv[1];
 	_console_file_list.ValidateFileList();
-	const FiosItem *item = _console_file_list.FindItem(file);
+	const FiosItem *item = FindItem(_console_file_list.filelist, file);
 	if (item != nullptr) {
 		if (GetAbstractFileType(item->type) == FT_SAVEGAME) {
 			_switch_mode = SM_LOAD_GAME;
@@ -454,7 +456,7 @@ DEF_CONSOLE_CMD(ConRemove)
 
 	const char *file = argv[1];
 	_console_file_list.ValidateFileList();
-	const FiosItem *item = _console_file_list.FindItem(file);
+	const FiosItem *item = FindItem(_console_file_list.filelist, file);
 	if (item != nullptr) {
 		if (unlink(item->name.c_str()) != 0) {
 			IConsolePrint(CC_ERROR, "Failed to delete '{}'.", item->name);
@@ -477,8 +479,8 @@ DEF_CONSOLE_CMD(ConListFiles)
 	}
 
 	_console_file_list.ValidateFileList(true);
-	for (uint i = 0; i < _console_file_list.size(); i++) {
-		IConsolePrint(CC_DEFAULT, "{}) {}", i, _console_file_list[i].title);
+	for (uint i = 0; i < _console_file_list.filelist.size(); i++) {
+		IConsolePrint(CC_DEFAULT, "{}) {}", i, _console_file_list.filelist[i].title);
 	}
 
 	return true;
@@ -496,7 +498,7 @@ DEF_CONSOLE_CMD(ConChangeDirectory)
 
 	const char *file = argv[1];
 	_console_file_list.ValidateFileList(true);
-	const FiosItem *item = _console_file_list.FindItem(file);
+	const FiosItem *item = FindItem(_console_file_list.filelist, file);
 	if (item != nullptr) {
 		switch (item->type) {
 			case FIOS_TYPE_DIR: case FIOS_TYPE_DRIVE: case FIOS_TYPE_PARENT:

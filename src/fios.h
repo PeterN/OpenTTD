@@ -85,11 +85,10 @@ struct FiosItem {
 };
 
 /** List of file information. */
-class FileList : public std::vector<FiosItem> {
-public:
-	void BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperation fop);
-	const FiosItem *FindItem(const std::string_view file);
-};
+using FileList = std::vector<FiosItem>;
+
+void BuildFileList(FileList &filelist, AbstractFileType abstract_filetype, SaveLoadOperation fop);
+const FiosItem *FindItem(const FileList &filelist, const std::string_view file);
 
 enum SortingBits {
 	SORT_ASCENDING  = 0,

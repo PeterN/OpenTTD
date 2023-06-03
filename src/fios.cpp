@@ -66,9 +66,9 @@ bool FiosItem::operator< (const FiosItem &other) const
  * @param abstract_filetype Kind of files to collect.
  * @param fop Purpose of the collection, either #SLO_LOAD or #SLO_SAVE.
  */
-void FileList::BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperation fop)
+void BuildFileList(FileList &filelist, AbstractFileType abstract_filetype, SaveLoadOperation fop)
 {
-	this->clear();
+	filelist.clear();
 
 	assert(fop == SLO_LOAD || fop == SLO_SAVE);
 	switch (abstract_filetype) {
@@ -76,15 +76,15 @@ void FileList::BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperati
 			break;
 
 		case FT_SAVEGAME:
-			FiosGetSavegameList(fop, *this);
+			FiosGetSavegameList(fop, filelist);
 			break;
 
 		case FT_SCENARIO:
-			FiosGetScenarioList(fop, *this);
+			FiosGetScenarioList(fop, filelist);
 			break;
 
 		case FT_HEIGHTMAP:
-			FiosGetHeightmapList(fop, *this);
+			FiosGetHeightmapList(fop, filelist);
 			break;
 
 		default:
@@ -98,9 +98,9 @@ void FileList::BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperati
  *             or a numbered entry into the filename list.
  * @return The information on the file, or \c nullptr if the file is not available.
  */
-const FiosItem *FileList::FindItem(const std::string_view file)
+const FiosItem *FindItem(const FileList &filelist, const std::string_view file)
 {
-	for (const auto &it : *this) {
+	for (const auto &it : filelist) {
 		const FiosItem *item = &it;
 		if (file == item->name) return item;
 		if (file == item->title) return item;
@@ -111,13 +111,13 @@ const FiosItem *FileList::FindItem(const std::string_view file)
 	int i = std::strtol(file.data(), &endptr, 10);
 	if (file.data() == endptr || *endptr != '\0') i = -1;
 
-	if (IsInsideMM(i, 0, this->size())) return &this->at(i);
+	if (IsInsideMM(i, 0, filelist.size())) return &filelist.at(i);
 
 	/* As a last effort assume it is an OpenTTD savegame and
 	 * that the ".sav" part was not given. */
 	std::string long_file(file);
 	long_file += ".sav";
-	for (const auto &it : *this) {
+	for (const auto &it : filelist) {
 		const FiosItem *item = &it;
 		if (long_file == item->name) return item;
 		if (long_file == item->title) return item;
@@ -640,9 +640,11 @@ struct ScenarioIdentifier {
 /**
  * Scanner to find the unique IDs of scenarios
  */
-class ScenarioScanner : protected FileScanner, public std::vector<ScenarioIdentifier> {
+class ScenarioScanner : protected FileScanner {
 	bool scanned; ///< Whether we've already scanned
 public:
+	std::vector<ScenarioIdentifier> scenarios{};
+
 	/** Initialise */
 	ScenarioScanner() : scanned(false) {}
 
@@ -688,7 +690,7 @@ public:
 
 		FioFCloseFile(f);
 
-		include(*this, id);
+		include(this->scenarios, id);
 		return true;
 	}
 };
@@ -706,7 +708,7 @@ const char *FindScenario(const ContentInfo *ci, bool md5sum)
 {
 	_scanner.Scan(false);
 
-	for (ScenarioIdentifier &id : _scanner) {
+	for (ScenarioIdentifier &id : _scanner.scenarios) {
 		if (md5sum ? (id.md5sum == ci->md5sum)
 		           : (id.scenid == ci->unique_id)) {
 			return id.filename.c_str();
