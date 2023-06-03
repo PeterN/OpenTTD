@@ -67,10 +67,13 @@ public:
 
 	void Save(Industry::ProducedCargo *p) const override
 	{
-		SlSetStructListLength(p->history.size());
+		auto last = std::find_if(p->history.rbegin(), p->history.rend(), [](const auto &h) { return h.production != 0 || h.transported != 0; });
+		size_t max = std::distance(p->history.begin(), last.base());
 
-		for (auto &h : p->history) {
-			SlObject(&h, this->GetDescription());
+		SlSetStructListLength(max);
+
+		for (auto it = p->history.begin(), it != p->history.begin() + max; ++it) {
+			SlObject(&*it, this->GetDescription());
 		}
 	}
 
