@@ -179,7 +179,7 @@ Layouter::Layouter(std::string_view str, int maxw, TextColour colour, FontSize f
 		for (;;) {
 			auto l = line.layout->NextLine(maxw);
 			if (l == nullptr) break;
-			this->push_back(std::move(l));
+			this->lines.push_back(std::move(l));
 		}
 
 		/* Break out if this was the last line. */
@@ -199,7 +199,7 @@ Layouter::Layouter(std::string_view str, int maxw, TextColour colour, FontSize f
 Dimension Layouter::GetBounds()
 {
 	Dimension d = { 0, 0 };
-	for (const auto &l : *this) {
+	for (const auto &l : this->lines) {
 		d.width = std::max<uint>(d.width, l->GetWidth());
 		d.height += l->GetLeading();
 	}
@@ -214,7 +214,7 @@ Dimension Layouter::GetBounds()
  */
 Point Layouter::GetCharPosition(std::string_view::const_iterator ch) const
 {
-	const auto &line = this->front();
+	const auto &line = this->lines.front();
 
 	/* Pointer to the end-of-string marker? Return total line width. */
 	if (ch == this->string.end()) {
@@ -261,7 +261,7 @@ Point Layouter::GetCharPosition(std::string_view::const_iterator ch) const
  */
 ptrdiff_t Layouter::GetCharAtPosition(int x) const
 {
-	const auto &line = this->front();
+	const auto &line = this->lines.front();
 
 	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
 		const ParagraphLayouter::VisualRun &run = line->GetVisualRun(run_index);

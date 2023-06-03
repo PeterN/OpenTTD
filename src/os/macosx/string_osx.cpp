@@ -92,8 +92,10 @@ public:
 	};
 
 	/** A single line worth of VisualRuns. */
-	class CoreTextLine : public std::vector<CoreTextVisualRun>, public ParagraphLayouter::Line {
+	class CoreTextLine : public ParagraphLayouter::Line {
 	public:
+		std::vector<CoreTextVisualRun> visualruns{};
+
 		CoreTextLine(CFAutoRelease<CTLineRef> line, const FontMap &fontMapping, const CoreTextParagraphLayoutFactory::CharType *buff)
 		{
 			CFArrayRef runs = CTLineGetGlyphRuns(line.get());
@@ -104,14 +106,14 @@ public:
 				CFRange chars = CTRunGetStringRange(run);
 				auto map = fontMapping.upper_bound(chars.location);
 
-				this->emplace_back(run, map->second, buff);
+				this->visualruns.emplace_back(run, map->second, buff);
 			}
 		}
 
 		int GetLeading() const override;
 		int GetWidth() const override;
-		int CountRuns() const override { return this->size(); }
-		const VisualRun &GetVisualRun(int run) const override { return this->at(run);  }
+		int CountRuns() const override { return this->visualruns.size(); }
+		const VisualRun &GetVisualRun(int run) const override { return this->visualruns.at(run);  }
 
 		int GetInternalCharLength(WChar c) const override
 		{
@@ -263,7 +265,7 @@ CoreTextParagraphLayout::CoreTextVisualRun::CoreTextVisualRun(CTRunRef run, Font
 int CoreTextParagraphLayout::CoreTextLine::GetLeading() const
 {
 	int leading = 0;
-	for (const auto &run : *this) {
+	for (const auto &run : this->visualruns) {
 		leading = std::max(leading, run.GetLeading());
 	}
 
@@ -279,7 +281,7 @@ int CoreTextParagraphLayout::CoreTextLine::GetWidth() const
 	if (this->size() == 0) return 0;
 
 	int total_width = 0;
-	for (const auto &run : *this) {
+	for (const auto &run : this->visualruns) {
 		total_width += run.GetAdvance();
 	}
 

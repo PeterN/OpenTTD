@@ -103,12 +103,13 @@ public:
 	};
 
 	/** A single line worth of VisualRuns. */
-	class UniscribeLine : public std::vector<UniscribeVisualRun>, public ParagraphLayouter::Line {
+	class UniscribeLine : public ParagraphLayouter::Line {
 	public:
+		std::vector<UniscribeVisualRun> visualruns{};
 		int GetLeading() const override;
 		int GetWidth() const override;
-		int CountRuns() const override { return (uint)this->size();  }
-		const VisualRun &GetVisualRun(int run) const override { return this->at(run);  }
+		int CountRuns() const override { return (uint)this->visualruns.size();  }
+		const VisualRun &GetVisualRun(int run) const override { return this->visualruns.at(run);  }
 
 		int GetInternalCharLength(WChar c) const override
 		{
@@ -452,7 +453,7 @@ static std::vector<SCRIPT_ITEM> UniscribeItemizeString(UniscribeParagraphLayoutF
 int UniscribeParagraphLayout::UniscribeLine::GetLeading() const
 {
 	int leading = 0;
-	for (const auto &run : *this) {
+	for (const auto &run : this->visualruns) {
 		leading = std::max(leading, run.GetLeading());
 	}
 
@@ -466,7 +467,7 @@ int UniscribeParagraphLayout::UniscribeLine::GetLeading() const
 int UniscribeParagraphLayout::UniscribeLine::GetWidth() const
 {
 	int length = 0;
-	for (const auto &run : *this) {
+	for (const auto &run : this->visualruns) {
 		length += run.GetAdvance();
 	}
 

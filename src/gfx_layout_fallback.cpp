@@ -58,8 +58,9 @@ public:
 	};
 
 	/** A single line worth of VisualRuns. */
-	class FallbackLine : public std::vector<FallbackVisualRun>, public ParagraphLayouter::Line {
+	class FallbackLine : public ParagraphLayouter::Line {
 	public:
+		std::vector<FallbackVisualRun> visualruns{};
 		int GetLeading() const override;
 		int GetWidth() const override;
 		int CountRuns() const override;
@@ -216,7 +217,7 @@ int FallbackParagraphLayout::FallbackVisualRun::GetLeading() const
 int FallbackParagraphLayout::FallbackLine::GetLeading() const
 {
 	int leading = 0;
-	for (const auto &run : *this) {
+	for (const auto &run : this->visualruns) {
 		leading = std::max(leading, run.GetLeading());
 	}
 
@@ -229,7 +230,7 @@ int FallbackParagraphLayout::FallbackLine::GetLeading() const
  */
 int FallbackParagraphLayout::FallbackLine::GetWidth() const
 {
-	if (this->size() == 0) return 0;
+	if (this->visualruns.size() == 0) return 0;
 
 	/*
 	 * The last X position of a run contains is the end of that run.
@@ -246,7 +247,7 @@ int FallbackParagraphLayout::FallbackLine::GetWidth() const
  */
 int FallbackParagraphLayout::FallbackLine::CountRuns() const
 {
-	return (uint)this->size();
+	return (uint)this->visualruns.size();
 }
 
 /**
@@ -255,7 +256,7 @@ int FallbackParagraphLayout::FallbackLine::CountRuns() const
  */
 const ParagraphLayouter::VisualRun &FallbackParagraphLayout::FallbackLine::GetVisualRun(int run) const
 {
-	return this->at(run);
+	return this->visualruns.at(run);
 }
 
 /**
@@ -295,7 +296,7 @@ std::unique_ptr<const ParagraphLayouter::Line> FallbackParagraphLayout::NextLine
 	if (*this->buffer == '\0') {
 		/* Only a newline. */
 		this->buffer = nullptr;
-		l->emplace_back(this->runs.begin()->second, this->buffer, 0, 0);
+		l->visualruns.emplace_back(this->runs.begin()->second, this->buffer, 0, 0);
 		return l;
 	}
 
@@ -324,7 +325,7 @@ std::unique_ptr<const ParagraphLayouter::Line> FallbackParagraphLayout::NextLine
 
 		if (this->buffer == next_run) {
 			int w = l->GetWidth();
-			l->emplace_back(iter->second, begin, this->buffer - begin, w);
+			l->visualruns.emplace_back(iter->second, begin, this->buffer - begin, w);
 			++iter;
 			assert(iter != this->runs.end());
 
@@ -367,9 +368,9 @@ std::unique_ptr<const ParagraphLayouter::Line> FallbackParagraphLayout::NextLine
 		this->buffer++;
 	}
 
-	if (l->size() == 0 || last_char - begin > 0) {
+	if (l->visualruns.size() == 0 || last_char - begin > 0) {
 		int w = l->GetWidth();
-		l->emplace_back(iter->second, begin, last_char - begin, w);
+		l->visualruns.emplace_back(iter->second, begin, last_char - begin, w);
 	}
 	return l;
 }

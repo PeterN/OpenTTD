@@ -122,7 +122,11 @@ public:
  *
  * It also accounts for the memory allocations and frees.
  */
-class Layouter : public std::vector<std::unique_ptr<const ParagraphLayouter::Line>> {
+class Layouter {
+public:
+	std::vector<std::unique_ptr<const ParagraphLayouter::Line>> lines{};
+	
+private:
 	std::string_view string; ///< Pointer to the original string.
 
 	/** Key into the linecache */

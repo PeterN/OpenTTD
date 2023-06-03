@@ -658,9 +658,9 @@ int DrawString(int left, int right, int top, std::string_view str, TextColour co
 	}
 
 	Layouter layout(str, INT32_MAX, colour, fontsize);
-	if (layout.size() == 0) return 0;
+	if (layout.lines.size() == 0) return 0;
 
-	return DrawLayoutLine(*layout.front(), top, left, right, align, underline, true);
+	return DrawLayoutLine(*layout.lines.front(), top, left, right, align, underline, true);
 }
 
 /**
@@ -717,7 +717,7 @@ int GetStringHeight(StringID str, int maxw)
 int GetStringLineCount(StringID str, int maxw)
 {
 	Layouter layout(GetString(str), maxw);
-	return (uint)layout.size();
+	return (uint)layout.lines.size();
 }
 
 /**
@@ -791,7 +791,7 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, std::string_vi
 	int last_line = top;
 	int first_line = bottom;
 
-	for (const auto &line : layout) {
+	for (const auto &line : layout.lines) {
 
 		int line_height = line->GetLeading();
 		if (y >= top && y + line_height - 1 <= bottom) {

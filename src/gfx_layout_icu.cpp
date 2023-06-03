@@ -82,12 +82,14 @@ public:
 	};
 
 	/** A single line worth of VisualRuns. */
-	class ICULine : public std::vector<ICUVisualRun>, public ParagraphLayouter::Line {
+	class ICULine : public ParagraphLayouter::Line {
 	public:
+		std::vector<ICUVisualRun> visualruns{};
+
 		int GetLeading() const override;
 		int GetWidth() const override;
-		int CountRuns() const override { return (uint)this->size();  }
-		const VisualRun &GetVisualRun(int run) const override { return this->at(run); }
+		int CountRuns() const override { return (uint)this->visualruns.size();  }
+		const VisualRun &GetVisualRun(int run) const override { return this->visualruns.at(run); }
 
 		int GetInternalCharLength(WChar c) const override
 		{
@@ -229,7 +231,7 @@ void ICURun::Shape(UChar *buff, size_t buff_length) {
 int ICUParagraphLayout::ICULine::GetLeading() const
 {
 	int leading = 0;
-	for (const auto &run : *this) {
+	for (const auto &run : this->visualruns) {
 		leading = std::max(leading, run.GetLeading());
 	}
 
@@ -243,7 +245,7 @@ int ICUParagraphLayout::ICULine::GetLeading() const
 int ICUParagraphLayout::ICULine::GetWidth() const
 {
 	int length = 0;
-	for (const auto &run : *this) {
+	for (const auto &run : this->visualruns) {
 		length += run.GetAdvance();
 	}
 
@@ -507,7 +509,7 @@ std::unique_ptr<const ICUParagraphLayout::Line> ICUParagraphLayout::NextLine(int
 		}
 
 		auto total_advance = run.total_advance;
-		line->emplace_back(std::move(run), cur_pos);
+		line->visualruns.emplace_back(std::move(run), cur_pos);
 		cur_pos += total_advance;
 	}
 
