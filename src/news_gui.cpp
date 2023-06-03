@@ -338,7 +338,7 @@ struct NewsWindow : Window {
 		return pt;
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		StringID str = STR_NULL;
 		switch (widget) {
@@ -347,12 +347,12 @@ struct NewsWindow : Window {
 				 * thus it doesn't get the default sizing of a caption. */
 				Dimension d2 = GetStringBoundingBox(STR_NEWS_MESSAGE_CAPTION);
 				d2.height += WidgetDimensions::scaled.captiontext.Vertical();
-				*size = maxdim(*size, d2);
+				size = maxdim(size, d2);
 				return;
 			}
 
 			case WID_N_MGR_FACE:
-				*size = maxdim(*size, GetScaledSpriteSize(SPR_GRADIENT));
+				size = maxdim(size, GetScaledSpriteSize(SPR_GRADIENT));
 				break;
 
 			case WID_N_MGR_NAME:
@@ -386,15 +386,15 @@ struct NewsWindow : Window {
 					Dimension d2 = GetStringBoundingBox(this->GetWidget<NWidgetCore>(WID_N_SHOW_GROUP)->widget_data);
 					d2.height += WidgetDimensions::scaled.captiontext.Vertical();
 					d2.width += WidgetDimensions::scaled.captiontext.Horizontal();
-					*size = d2;
+					size = d2;
 				} else {
 					/* Hide 'Show group window' button if this news is not about a vehicle. */
-					size->width = 0;
-					size->height = 0;
-					resize->width = 0;
-					resize->height = 0;
-					fill->width = 0;
-					fill->height = 0;
+					size.width = 0;
+					size.height = 0;
+					resize.width = 0;
+					resize.height = 0;
+					fill.width = 0;
+					fill.height = 0;
 				}
 				return;
 
@@ -403,13 +403,13 @@ struct NewsWindow : Window {
 		}
 
 		/* Update minimal size with length of the multi-line string. */
-		Dimension d = *size;
+		Dimension d = size;
 		d.width = (d.width >= padding.width) ? d.width - padding.width : 0;
 		d.height = (d.height >= padding.height) ? d.height - padding.height : 0;
 		d = GetStringMultiLineBoundingBox(str, d);
 		d.width += padding.width;
 		d.height += padding.height;
-		*size = maxdim(*size, d);
+		size = maxdim(size, d);
 	}
 
 	void SetStringParameters(int widget) const override
@@ -1122,19 +1122,19 @@ struct MessageHistoryWindow : Window {
 		this->OnInvalidateData(0);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget == WID_MH_BACKGROUND) {
 			this->line_height = FONT_HEIGHT_NORMAL + WidgetDimensions::scaled.vsep_normal;
-			resize->height = this->line_height;
+			resize.height = this->line_height;
 
 			/* Months are off-by-one, so it's actually 8. Not using
 			 * month 12 because the 1 is usually less wide. */
 			SetDParam(0, TimerGameCalendar::ConvertYMDToDate(ORIGINAL_MAX_YEAR, 7, 30));
 			this->date_width = GetStringBoundingBox(STR_JUST_DATE_TINY).width + WidgetDimensions::scaled.hsep_wide;
 
-			size->height = 4 * resize->height + WidgetDimensions::scaled.framerect.Vertical(); // At least 4 lines are visible.
-			size->width = std::max(200u, size->width); // At least 200 pixels wide.
+			size.height = 4 * resize.height + WidgetDimensions::scaled.framerect.Vertical(); // At least 4 lines are visible.
+			size.width = std::max(200u, size.width); // At least 200 pixels wide.
 		}
 	}
 

@@ -296,7 +296,7 @@ struct SelectGameWindow : public Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		StringID str = 0;
 		switch (widget) {
@@ -312,15 +312,15 @@ struct SelectGameWindow : public Window {
 		}
 
 		if (str != 0) {
-			int height = GetStringHeight(str, size->width);
+			int height = GetStringHeight(str, size.width);
 			if (height > 3 * FONT_HEIGHT_NORMAL) {
 				/* Don't let the window become too high. */
 				Dimension textdim = GetStringBoundingBox(str);
 				textdim.height *= 3;
 				textdim.width -= textdim.width / 2;
-				*size = maxdim(*size, textdim);
+				size = maxdim(size, textdim);
 			} else {
-				size->height = height + padding.height;
+				size.height = height + padding.height;
 			}
 		}
 	}

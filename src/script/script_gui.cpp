@@ -102,15 +102,15 @@ struct ScriptListWindow : public Window {
 		SetDParam(0, (this->slot == OWNER_DEITY) ? STR_AI_LIST_CAPTION_GAMESCRIPT : STR_AI_LIST_CAPTION_AI);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget != WID_SCRL_LIST) return;
 
 		this->line_height = FONT_HEIGHT_NORMAL + padding.height;
 
-		resize->width = 1;
-		resize->height = this->line_height;
-		size->height = 5 * this->line_height;
+		resize.width = 1;
+		resize.height = this->line_height;
+		size.height = 5 * this->line_height;
 	}
 
 	void DrawWidget(const Rect &r, int widget) const override
@@ -342,15 +342,15 @@ struct ScriptSettingsWindow : public Window {
 		SetDParam(0, (this->slot == OWNER_DEITY) ? STR_AI_SETTINGS_CAPTION_GAMESCRIPT : STR_AI_SETTINGS_CAPTION_AI);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget != WID_SCRS_BACKGROUND) return;
 
 		this->line_height = std::max(SETTING_BUTTON_HEIGHT, FONT_HEIGHT_NORMAL) + padding.height;
 
-		resize->width = 1;
-		resize->height = this->line_height;
-		size->height = 5 * this->line_height;
+		resize.width = 1;
+		resize.height = this->line_height;
+		size.height = 5 * this->line_height;
 	}
 
 	void DrawWidget(const Rect &r, int widget) const override
@@ -788,11 +788,11 @@ struct ScriptDebugWindow : public Window {
 		this->InvalidateData(-1);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget == WID_SCRD_LOG_PANEL) {
-			resize->height = FONT_HEIGHT_NORMAL + WidgetDimensions::scaled.vsep_normal;
-			size->height = 14 * resize->height + WidgetDimensions::scaled.framerect.Vertical();
+			resize.height = FONT_HEIGHT_NORMAL + WidgetDimensions::scaled.vsep_normal;
+			size.height = 14 * resize.height + WidgetDimensions::scaled.framerect.Vertical();
 		}
 	}
 

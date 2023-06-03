@@ -206,16 +206,16 @@ public:
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_EM_MESSAGE: {
 				CopyInDParam(0, this->decode_params, lengthof(this->decode_params));
 				if (this->textref_stack_size > 0) StartTextRefStackUsage(this->textref_stack_grffile, this->textref_stack_size, this->textref_stack);
 
-				this->height_summary = GetStringHeight(this->summary_msg, size->width);
-				this->height_detailed = (this->detailed_msg == INVALID_STRING_ID) ? 0 : GetStringHeight(this->detailed_msg, size->width);
-				this->height_extra = (this->extra_msg == INVALID_STRING_ID) ? 0 : GetStringHeight(this->extra_msg, size->width);
+				this->height_summary = GetStringHeight(this->summary_msg, size.width);
+				this->height_detailed = (this->detailed_msg == INVALID_STRING_ID) ? 0 : GetStringHeight(this->detailed_msg, size.width);
+				this->height_extra = (this->extra_msg == INVALID_STRING_ID) ? 0 : GetStringHeight(this->extra_msg, size.width);
 
 				if (this->textref_stack_size > 0) StopTextRefStackUsage();
 
@@ -223,13 +223,13 @@ public:
 				if (this->detailed_msg != INVALID_STRING_ID) panel_height += this->height_detailed + WidgetDimensions::scaled.vsep_wide;
 				if (this->extra_msg != INVALID_STRING_ID) panel_height += this->height_extra + WidgetDimensions::scaled.vsep_wide;
 
-				size->height = std::max(size->height, panel_height);
+				size.height = std::max(size.height, panel_height);
 				break;
 			}
 			case WID_EM_FACE: {
 				Dimension face_size = GetScaledSpriteSize(SPR_GRADIENT);
-				size->width = std::max(size->width, face_size.width);
-				size->height = std::max(size->height, face_size.height);
+				size.width = std::max(size.width, face_size.width);
+				size.height = std::max(size.height, face_size.height);
 				break;
 			}
 		}

@@ -322,7 +322,7 @@ public:
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_AP_CLASS_DROPDOWN: {
@@ -332,7 +332,7 @@ public:
 				}
 				d.width += padding.width;
 				d.height += padding.height;
-				*size = maxdim(*size, d);
+				size = maxdim(size, d);
 				break;
 			}
 
@@ -341,11 +341,11 @@ public:
 					const AirportSpec *as = AirportSpec::Get(i);
 					if (!as->enabled) continue;
 
-					size->width = std::max(size->width, GetStringBoundingBox(as->name).width + padding.width);
+					size.width = std::max(size.width, GetStringBoundingBox(as->name).width + padding.width);
 				}
 
 				this->line_height = FONT_HEIGHT_NORMAL + padding.height;
-				size->height = 5 * this->line_height;
+				size.height = 5 * this->line_height;
 				break;
 			}
 
@@ -359,7 +359,7 @@ public:
 							Dimension d = GetSpriteSize(sprite);
 							d.width += WidgetDimensions::scaled.framerect.Horizontal();
 							d.height += WidgetDimensions::scaled.framerect.Vertical();
-							*size = maxdim(d, *size);
+							size = maxdim(d, size);
 						}
 					}
 				}
@@ -373,8 +373,8 @@ public:
 						StringID string = GetAirportTextCallback(as, layout, CBID_AIRPORT_ADDITIONAL_TEXT);
 						if (string == STR_UNDEFINED) continue;
 
-						Dimension d = GetStringMultiLineBoundingBox(string, *size);
-						*size = maxdim(d, *size);
+						Dimension d = GetStringMultiLineBoundingBox(string, size);
+						size = maxdim(d, size);
 					}
 				}
 				break;

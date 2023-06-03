@@ -1027,12 +1027,12 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 		this->FinishInitNested(TRANSPORT_ROAD);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
 
-		size->width  = ScaleGUITrad(64) + WidgetDimensions::scaled.fullbevel.Horizontal();
-		size->height = ScaleGUITrad(48) + WidgetDimensions::scaled.fullbevel.Vertical();
+		size.width  = ScaleGUITrad(64) + WidgetDimensions::scaled.fullbevel.Horizontal();
+		size.height = ScaleGUITrad(48) + WidgetDimensions::scaled.fullbevel.Vertical();
 	}
 
 	void DrawWidget(const Rect &r, int widget) const override
@@ -1353,7 +1353,7 @@ public:
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_BROS_NEWST_LIST: {
@@ -1361,10 +1361,10 @@ public:
 				for (auto rs_class : this->roadstop_classes) {
 					d = maxdim(d, GetStringBoundingBox(RoadStopClass::Get(rs_class)->name));
 				}
-				size->width = std::max(size->width, d.width + padding.width);
+				size.width = std::max(size.width, d.width + padding.width);
 				this->line_height = FONT_HEIGHT_NORMAL + WidgetDimensions::scaled.matrix.Vertical();
-				size->height = 5 * this->line_height;
-				resize->height = this->line_height;
+				size.height = 5 * this->line_height;
+				resize.height = this->line_height;
 				break;
 			}
 
@@ -1379,7 +1379,7 @@ public:
 						d = maxdim(d, GetStringBoundingBox(str));
 					}
 				}
-				size->width = std::max(size->width, d.width + padding.width);
+				size.width = std::max(size.width, d.width + padding.width);
 				break;
 			}
 
@@ -1390,17 +1390,17 @@ public:
 			case WID_BROS_STATION_X:
 			case WID_BROS_STATION_Y:
 			case WID_BROS_IMAGE:
-				size->width  = ScaleGUITrad(64) + WidgetDimensions::scaled.fullbevel.Horizontal();
-				size->height = ScaleGUITrad(48) + WidgetDimensions::scaled.fullbevel.Vertical();
+				size.width  = ScaleGUITrad(64) + WidgetDimensions::scaled.fullbevel.Horizontal();
+				size.height = ScaleGUITrad(48) + WidgetDimensions::scaled.fullbevel.Vertical();
 				break;
 
 			case WID_BROS_MATRIX:
-				fill->height = 1;
-				resize->height = 1;
+				fill.height = 1;
+				resize.height = 1;
 				break;
 
 			case WID_BROS_ACCEPTANCE:
-				size->height = this->coverage_height;
+				size.height = this->coverage_height;
 				break;
 		}
 	}

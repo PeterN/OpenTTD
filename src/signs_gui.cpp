@@ -263,23 +263,23 @@ struct SignListWindow : Window, SignList {
 		this->vscroll->SetCapacityFromWidget(this, WID_SIL_LIST, WidgetDimensions::scaled.framerect.Vertical());
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_SIL_LIST: {
 				Dimension spr_dim = GetSpriteSize(SPR_COMPANY_ICON);
 				this->text_offset = WidgetDimensions::scaled.frametext.left + spr_dim.width + 2; // 2 pixels space between icon and the sign text.
-				resize->height = std::max<uint>(FONT_HEIGHT_NORMAL, spr_dim.height + 2);
-				Dimension d = {(uint)(this->text_offset + WidgetDimensions::scaled.frametext.right), padding.height + 5 * resize->height};
-				*size = maxdim(*size, d);
+				resize.height = std::max<uint>(FONT_HEIGHT_NORMAL, spr_dim.height + 2);
+				Dimension d = {(uint)(this->text_offset + WidgetDimensions::scaled.frametext.right), padding.height + 5 * resize.height};
+				size = maxdim(size, d);
 				break;
 			}
 
 			case WID_SIL_CAPTION:
 				SetDParamMaxValue(0, Sign::GetPoolSize(), 3);
-				*size = GetStringBoundingBox(STR_SIGN_LIST_CAPTION);
-				size->height += padding.height;
-				size->width  += padding.width;
+				size = GetStringBoundingBox(STR_SIGN_LIST_CAPTION);
+				size.height += padding.height;
+				size.width  += padding.width;
 				break;
 		}
 	}

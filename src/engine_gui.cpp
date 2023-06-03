@@ -77,7 +77,7 @@ struct EnginePreviewWindow : Window {
 		this->flags |= WF_STICKY;
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget != WID_EP_QUESTION) return;
 
@@ -97,11 +97,11 @@ struct EnginePreviewWindow : Window {
 		}
 		this->vehicle_space = std::max<int>(ScaleSpriteTrad(40), y - y_offs);
 
-		size->width = std::max(size->width, x - x_offs);
+		size.width = std::max(size.width, x - x_offs);
 		SetDParam(0, GetEngineCategoryName(engine));
-		size->height = GetStringHeight(STR_ENGINE_PREVIEW_MESSAGE, size->width) + WidgetDimensions::scaled.vsep_wide + FONT_HEIGHT_NORMAL + this->vehicle_space;
+		size.height = GetStringHeight(STR_ENGINE_PREVIEW_MESSAGE, size.width) + WidgetDimensions::scaled.vsep_wide + FONT_HEIGHT_NORMAL + this->vehicle_space;
 		SetDParam(0, engine);
-		size->height += GetStringHeight(GetEngineInfoString(engine), size->width);
+		size.height += GetStringHeight(GetEngineInfoString(engine), size.width);
 	}
 
 	void DrawWidget(const Rect &r, int widget) const override

@@ -101,14 +101,14 @@ uint TextfileWindow::GetContentHeight()
 	return this->lines.back().bottom;
 }
 
-/* virtual */ void TextfileWindow::UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+/* virtual */ void TextfileWindow::UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize)
 {
 	switch (widget) {
 		case WID_TF_BACKGROUND:
-			resize->height = FONT_HEIGHT_MONO;
+			resize.height = FONT_HEIGHT_MONO;
 
-			size->height = 4 * resize->height + WidgetDimensions::scaled.frametext.Vertical(); // At least 4 lines are visible.
-			size->width = std::max(200u, size->width); // At least 200 pixels wide.
+			size.height = 4 * resize.height + WidgetDimensions::scaled.frametext.Vertical(); // At least 4 lines are visible.
+			size.width = std::max(200u, size.width); // At least 200 pixels wide.
 			break;
 	}
 }
