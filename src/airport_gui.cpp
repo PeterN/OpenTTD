@@ -330,8 +330,6 @@ public:
 				for (uint i = 0; i < AirportClass::GetClassCount(); i++) {
 					d = maxdim(d, GetStringBoundingBox(AirportClass::Get((AirportClassID)i)->name));
 				}
-				d.width += padding.width;
-				d.height += padding.height;
 				size = maxdim(size, d);
 				break;
 			}

@@ -296,7 +296,7 @@ struct SelectGameWindow : public Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		StringID str = 0;
 		switch (widget) {

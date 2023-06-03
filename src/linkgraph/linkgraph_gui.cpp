@@ -580,7 +580,7 @@ void LinkGraphLegendWindow::SetOverlay(std::shared_ptr<LinkGraphOverlay> overlay
 	}
 }
 
-void LinkGraphLegendWindow::UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize)
+void LinkGraphLegendWindow::UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize)
 {
 	if (IsInsideMM(widget, WID_LGL_SATURATION_FIRST, WID_LGL_SATURATION_LAST + 1)) {
 		StringID str = STR_NULL;

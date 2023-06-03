@@ -515,7 +515,7 @@ public:
 		this->flag_offset = this->blot_offset + ScaleGUITrad(2) + GetSpriteSize(SPR_BLOT).width;
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_NG_MATRIX:
@@ -1058,7 +1058,7 @@ struct NetworkStartServerWindow : public Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_NSS_CONNTYPE_BTN:
@@ -1732,7 +1732,7 @@ public:
 		this->SetWidgetDisabledState(WID_CL_SERVER_NAME_EDIT, !_network_server);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_CL_SERVER_VISIBILITY:
@@ -2209,7 +2209,7 @@ struct NetworkJoinStatusWindow : Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_NJS_PROGRESS_BAR:
@@ -2324,7 +2324,7 @@ struct NetworkCompanyPasswordWindow : public Window {
 		this->ReInit();
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget == WID_NCP_WARNING) {
 			size = this->warning_size;
@@ -2424,7 +2424,7 @@ struct NetworkAskRelayWindow : public Window {
 		this->InitNested(0);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget == WID_NAR_TEXT) {
 			size = GetStringBoundingBox(STR_NETWORK_ASK_RELAY_TEXT);
@@ -2527,7 +2527,7 @@ struct NetworkAskSurveyWindow : public Window {
 		this->InitNested(0);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget == WID_NAS_TEXT) {
 			size = GetStringBoundingBox(STR_NETWORK_ASK_SURVEY_TEXT);

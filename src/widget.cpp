@@ -1340,8 +1340,8 @@ void NWidgetStacked::SetupSmallestSize(Window *w, bool init_array)
 		/* Here we're primarily interested in the value of resize */
 		if (this->index >= 0) w->UpdateWidgetSize(this->index, size, padding, fill, resize);
 
-		this->smallest_x = size.width;
-		this->smallest_y = size.height;
+		this->smallest_x = size.width + padding.width;
+		this->smallest_y = size.height + padding.height;
 		this->fill_x = fill.width;
 		this->fill_y = fill.height;
 		this->resize_x = resize.width;
@@ -1945,14 +1945,14 @@ void NWidgetMatrix::SetupSmallestSize(Window *w, bool init_array)
 	this->head->SetupSmallestSize(w, init_array);
 
 	Dimension padding = { (uint)this->pip_pre + this->pip_post, (uint)this->pip_pre + this->pip_post};
-	Dimension size    = {this->head->smallest_x + padding.width, this->head->smallest_y + padding.height};
+	Dimension size    = {this->head->smallest_x, this->head->smallest_y};
 	Dimension fill    = {0, 0};
 	Dimension resize  = {this->pip_inter + this->head->smallest_x, this->pip_inter + this->head->smallest_y};
 
 	if (this->index >= 0) w->UpdateWidgetSize(this->index, size, padding, fill, resize);
 
-	this->smallest_x = size.width;
-	this->smallest_y = size.height;
+	this->smallest_x = size.width + padding.width;
+	this->smallest_y = size.height + padding.height;
 	this->fill_x = fill.width;
 	this->fill_y = fill.height;
 	this->resize_x = resize.width;
@@ -2193,6 +2193,7 @@ void NWidgetBackground::SetupSmallestSize(Window *w, bool init_array)
 		}
 	} else {
 		Dimension d = {this->min_x, this->min_y};
+		Dimension padding = {0, 0};
 		Dimension fill = {this->fill_x, this->fill_y};
 		Dimension resize  = {this->resize_x, this->resize_y};
 		if (w != nullptr) { // A non-nullptr window pointer acts as switch to turn dynamic widget size on.
@@ -2203,7 +2204,6 @@ void NWidgetBackground::SetupSmallestSize(Window *w, bool init_array)
 				d = maxdim(d, background);
 			}
 			if (this->index >= 0) {
-				Dimension padding;
 				switch (this->type) {
 					default: NOT_REACHED();
 					case WWT_PANEL: padding = {WidgetDimensions::scaled.framerect.Horizontal(), WidgetDimensions::scaled.framerect.Vertical()}; break;
@@ -2213,8 +2213,8 @@ void NWidgetBackground::SetupSmallestSize(Window *w, bool init_array)
 				w->UpdateWidgetSize(this->index, d, padding, fill, resize);
 			}
 		}
-		this->smallest_x = d.width;
-		this->smallest_y = d.height;
+		this->smallest_x = d.width + padding.width;
+		this->smallest_y = d.height + padding.height;
 		this->fill_x = fill.width;
 		this->fill_y = fill.height;
 		this->resize_x = resize.width;
@@ -2701,8 +2701,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.shadebox.Horizontal(), WidgetDimensions::scaled.shadebox.Vertical()};
 			if (NWidgetLeaf::shadebox_dimension.width == 0) {
 				NWidgetLeaf::shadebox_dimension = maxdim(GetScaledSpriteSize(SPR_WINDOW_SHADE), GetScaledSpriteSize(SPR_WINDOW_UNSHADE));
-				NWidgetLeaf::shadebox_dimension.width += padding.width;
-				NWidgetLeaf::shadebox_dimension.height += padding.height;
 			}
 			size = maxdim(size, NWidgetLeaf::shadebox_dimension);
 			break;
@@ -2712,8 +2710,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 				padding = {WidgetDimensions::scaled.debugbox.Horizontal(), WidgetDimensions::scaled.debugbox.Vertical()};
 				if (NWidgetLeaf::debugbox_dimension.width == 0) {
 					NWidgetLeaf::debugbox_dimension = GetScaledSpriteSize(SPR_WINDOW_DEBUG);
-					NWidgetLeaf::debugbox_dimension.width += padding.width;
-					NWidgetLeaf::debugbox_dimension.height += padding.height;
 				}
 				size = maxdim(size, NWidgetLeaf::debugbox_dimension);
 			} else {
@@ -2728,8 +2724,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.stickybox.Horizontal(), WidgetDimensions::scaled.stickybox.Vertical()};
 			if (NWidgetLeaf::stickybox_dimension.width == 0) {
 				NWidgetLeaf::stickybox_dimension = maxdim(GetScaledSpriteSize(SPR_PIN_UP), GetScaledSpriteSize(SPR_PIN_DOWN));
-				NWidgetLeaf::stickybox_dimension.width += padding.width;
-				NWidgetLeaf::stickybox_dimension.height += padding.height;
 			}
 			size = maxdim(size, NWidgetLeaf::stickybox_dimension);
 			break;
@@ -2739,8 +2733,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.defsizebox.Horizontal(), WidgetDimensions::scaled.defsizebox.Vertical()};
 			if (NWidgetLeaf::defsizebox_dimension.width == 0) {
 				NWidgetLeaf::defsizebox_dimension = GetScaledSpriteSize(SPR_WINDOW_DEFSIZE);
-				NWidgetLeaf::defsizebox_dimension.width += padding.width;
-				NWidgetLeaf::defsizebox_dimension.height += padding.height;
 			}
 			size = maxdim(size, NWidgetLeaf::defsizebox_dimension);
 			break;
@@ -2750,8 +2742,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.resizebox.Horizontal(), WidgetDimensions::scaled.resizebox.Vertical()};
 			if (NWidgetLeaf::resizebox_dimension.width == 0) {
 				NWidgetLeaf::resizebox_dimension = maxdim(GetScaledSpriteSize(SPR_WINDOW_RESIZE_LEFT), GetScaledSpriteSize(SPR_WINDOW_RESIZE_RIGHT));
-				NWidgetLeaf::resizebox_dimension.width += padding.width;
-				NWidgetLeaf::resizebox_dimension.height += padding.height;
 			}
 			size = maxdim(size, NWidgetLeaf::resizebox_dimension);
 			break;
@@ -2772,8 +2762,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.imgbtn.Horizontal(), WidgetDimensions::scaled.imgbtn.Vertical()};
 			Dimension d2 = GetScaledSpriteSize(this->widget_data);
 			if (this->type == WWT_IMGBTN_2) d2 = maxdim(d2, GetScaledSpriteSize(this->widget_data + 1));
-			d2.width += padding.width;
-			d2.height += padding.height;
 			size = maxdim(size, d2);
 			break;
 		}
@@ -2781,8 +2769,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 		case WWT_PUSHARROWBTN: {
 			padding = {WidgetDimensions::scaled.imgbtn.Horizontal(), WidgetDimensions::scaled.imgbtn.Vertical()};
 			Dimension d2 = maxdim(GetScaledSpriteSize(SPR_ARROW_LEFT), GetScaledSpriteSize(SPR_ARROW_RIGHT));
-			d2.width += padding.width;
-			d2.height += padding.height;
 			size = maxdim(size, d2);
 			break;
 		}
@@ -2791,8 +2777,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.closebox.Horizontal(), WidgetDimensions::scaled.closebox.Vertical()};
 			if (NWidgetLeaf::closebox_dimension.width == 0) {
 				NWidgetLeaf::closebox_dimension = GetScaledSpriteSize(SPR_CLOSEBOX);
-				NWidgetLeaf::closebox_dimension.width += padding.width;
-				NWidgetLeaf::closebox_dimension.height += padding.height;
 			}
 			size = maxdim(size, NWidgetLeaf::closebox_dimension);
 			break;
@@ -2803,8 +2787,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.framerect.Horizontal(), WidgetDimensions::scaled.framerect.Vertical()};
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			Dimension d2 = GetStringBoundingBox(this->widget_data, this->text_size);
-			d2.width += padding.width;
-			d2.height += padding.height;
 			size = maxdim(size, d2);
 			break;
 		}
@@ -2818,8 +2800,6 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.captiontext.Horizontal(), WidgetDimensions::scaled.captiontext.Vertical()};
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			Dimension d2 = GetStringBoundingBox(this->widget_data, this->text_size);
-			d2.width += padding.width;
-			d2.height += padding.height;
 			size = maxdim(size, d2);
 			break;
 		}
@@ -2834,8 +2814,7 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 			padding = {WidgetDimensions::scaled.dropdowntext.Horizontal() + NWidgetLeaf::dropdown_dimension.width + WidgetDimensions::scaled.fullbevel.Horizontal(), WidgetDimensions::scaled.dropdowntext.Vertical()};
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			Dimension d2 = GetStringBoundingBox(this->widget_data, this->text_size);
-			d2.width += padding.width;
-			d2.height = std::max(d2.height + padding.height, NWidgetLeaf::dropdown_dimension.height);
+			d2.height = std::max(d2.height, NWidgetLeaf::dropdown_dimension.height);
 			size = maxdim(size, d2);
 			break;
 		}
@@ -2845,8 +2824,8 @@ void NWidgetLeaf::SetupSmallestSize(Window *w, bool init_array)
 
 	if (this->index >= 0) w->UpdateWidgetSize(this->index, size, padding, fill, resize);
 
-	this->smallest_x = size.width;
-	this->smallest_y = size.height;
+	this->smallest_x = size.width + padding.width;
+	this->smallest_y = size.height + padding.height;
 	this->fill_x = fill.width;
 	this->fill_y = fill.height;
 	this->resize_x = resize.width;

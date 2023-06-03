@@ -300,13 +300,12 @@ public:
 		this->sel_group = id_g;
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_RV_SORT_ASCENDING_DESCENDING: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
-				d.height += padding.height;
+				d.width += Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
 				size = maxdim(size, d);
 				break;
 			}
@@ -328,8 +327,6 @@ public:
 				Dimension d = GetStringBoundingBox(str);
 				SetDParam(0, STR_CONFIG_SETTING_OFF);
 				d = maxdim(d, GetStringBoundingBox(str));
-				d.width += padding.width;
-				d.height += padding.height;
 				size = maxdim(size, d);
 				break;
 			}
@@ -337,8 +334,6 @@ public:
 			case WID_RV_TRAIN_ENGINEWAGON_DROPDOWN: {
 				Dimension d = GetStringBoundingBox(STR_REPLACE_ENGINES);
 				d = maxdim(d, GetStringBoundingBox(STR_REPLACE_WAGONS));
-				d.width += padding.width;
-				d.height += padding.height;
 				size = maxdim(size, d);
 				break;
 			}
@@ -346,8 +341,6 @@ public:
 			case WID_RV_INFO_TAB: {
 				Dimension d = GetStringBoundingBox(STR_REPLACE_NOT_REPLACING);
 				d = maxdim(d, GetStringBoundingBox(STR_REPLACE_NOT_REPLACING_VEHICLE_SELECTED));
-				d.width += padding.width;
-				d.height += padding.height;
 				size = maxdim(size, d);
 				break;
 			}
@@ -375,8 +368,6 @@ public:
 
 					default: NOT_REACHED();
 				}
-				d.width += padding.width;
-				d.height += padding.height;
 				size = maxdim(size, d);
 				break;
 			}
@@ -386,8 +377,6 @@ public:
 				for (int i = 0; _start_replace_dropdown[i] != INVALID_STRING_ID; i++) {
 					d = maxdim(d, GetStringBoundingBox(_start_replace_dropdown[i]));
 				}
-				d.width += padding.width;
-				d.height += padding.height;
 				size = maxdim(size, d);
 				break;
 			}

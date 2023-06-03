@@ -562,22 +562,21 @@ public:
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_SL_BACKGROUND:
-				size.height = 2 * FONT_HEIGHT_NORMAL + padding.height;
+				size.height = 2 * FONT_HEIGHT_NORMAL;
 				break;
 
 			case WID_SL_DRIVES_DIRECTORIES_LIST:
 				resize.height = FONT_HEIGHT_NORMAL;
-				size.height = resize.height * 10 + padding.height;
+				size.height = resize.height * 10;
 				break;
 			case WID_SL_SORT_BYNAME:
 			case WID_SL_SORT_BYDATE: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
-				d.height += padding.height;
+				d.width += Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
 				size = maxdim(size, d);
 				break;
 			}

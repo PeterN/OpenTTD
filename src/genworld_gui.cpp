@@ -589,7 +589,7 @@ struct GenerateLandscapeWindow : public Window {
 
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		Dimension d{0, (uint)FONT_HEIGHT_NORMAL};
 		const StringID *strs = nullptr;
@@ -1139,7 +1139,7 @@ struct CreateScenarioWindow : public Window
 		this->DrawWidgets();
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		StringID str = STR_JUST_INT;
 		switch (widget) {
@@ -1416,7 +1416,7 @@ struct GenerateProgressWindow : public Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_GP_PROGRESS_BAR: {

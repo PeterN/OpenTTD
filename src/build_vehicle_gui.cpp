@@ -1723,7 +1723,7 @@ struct BuildVehicleWindow : Window {
 		}
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_BV_LIST:
@@ -1738,8 +1738,7 @@ struct BuildVehicleWindow : Window {
 
 			case WID_BV_SORT_ASCENDING_DESCENDING: {
 				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
-				d.width += padding.width + Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
-				d.height += padding.height;
+				d.width += Window::SortButtonWidth() * 2; // Doubled since the string is centred and it also looks better.
 				size = maxdim(size, d);
 				break;
 			}
@@ -1747,15 +1746,11 @@ struct BuildVehicleWindow : Window {
 			case WID_BV_BUILD:
 				size = GetStringBoundingBox(STR_BUY_VEHICLE_TRAIN_BUY_VEHICLE_BUTTON + this->vehicle_type);
 				size = maxdim(size, GetStringBoundingBox(STR_BUY_VEHICLE_TRAIN_BUY_REFIT_VEHICLE_BUTTON + this->vehicle_type));
-				size.width += padding.width;
-				size.height += padding.height;
 				break;
 
 			case WID_BV_SHOW_HIDE:
 				size = GetStringBoundingBox(STR_BUY_VEHICLE_TRAIN_HIDE_TOGGLE_BUTTON + this->vehicle_type);
 				size = maxdim(size, GetStringBoundingBox(STR_BUY_VEHICLE_TRAIN_SHOW_TOGGLE_BUTTON + this->vehicle_type));
-				size.width += padding.width;
-				size.height += padding.height;
 				break;
 		}
 	}

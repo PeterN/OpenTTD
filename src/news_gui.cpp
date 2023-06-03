@@ -338,7 +338,7 @@ struct NewsWindow : Window {
 		return pt;
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		StringID str = STR_NULL;
 		switch (widget) {
@@ -1122,7 +1122,7 @@ struct MessageHistoryWindow : Window {
 		this->OnInvalidateData(0);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize) override
 	{
 		if (widget == WID_MH_BACKGROUND) {
 			this->line_height = FONT_HEIGHT_NORMAL + WidgetDimensions::scaled.vsep_normal;

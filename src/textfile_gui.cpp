@@ -101,7 +101,7 @@ uint TextfileWindow::GetContentHeight()
 	return this->lines.back().bottom;
 }
 
-/* virtual */ void TextfileWindow::UpdateWidgetSize(int widget, Dimension &size, Dimension &padding, Dimension &fill, Dimension &resize)
+/* virtual */ void TextfileWindow::UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &fill, Dimension &resize)
 {
 	switch (widget) {
 		case WID_TF_BACKGROUND:
