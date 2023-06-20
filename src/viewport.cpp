@@ -1015,14 +1015,14 @@ static TileHighlightType GetTileHighlightType(TileIndex t)
 			if (GetTownIndex(t) == _viewport_highlight_town->index) {
 				TileHighlightType type = THT_RED;
 				for (const Station *st : _viewport_highlight_town->stations_near) {
-					if (st->owner != _current_company) continue;
+					if (st->owner != _local_company) continue;
 					if (st->TileIsInCatchment(t)) return THT_BLUE;
 				}
 				return type;
 			}
 		} else if (IsTileType(t, MP_STATION)) {
 			for (const Station *st : _viewport_highlight_town->stations_near) {
-				if (st->owner != _current_company) continue;
+				if (st->owner != _local_company) continue;
 				if (GetStationIndex(t) == st->index) return THT_WHITE;
 			}
 		}
