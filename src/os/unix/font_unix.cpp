@@ -179,3 +179,56 @@ bool SetFallbackFont(FontCacheSettings *settings, const std::string &language_is
 	FcConfigDestroy(fc_instance);
 	return ret;
 }
+
+std::vector<FontFamily> ListFonts(const std::string &language_isocode, int winlangid)
+{
+	std::vector<FontFamily> fonts;
+
+	if (!FcInit()) return fonts;
+
+	auto fc_instance = FcConfigReference(nullptr);
+	assert(fc_instance != nullptr);
+
+	/* Fontconfig doesn't handle full language isocodes, only the part
+	 * before the _ of e.g. en_GB is used, so "remove" everything after
+	 * the _. */
+	std::string lang = fmt::format(":lang={}", language_isocode.substr(0, language_isocode.find('_')));
+
+	/* First create a pattern to match the wanted language. */
+	FcPattern *pat = FcNameParse((const FcChar8 *)lang.c_str());
+	/* We only want to know these attributes. */
+	FcObjectSet *os = FcObjectSetBuild(FC_FAMILY, FC_STYLE, FC_SLANT, FC_WEIGHT, nullptr);
+	/* Get the list of filenames matching the wanted language. */
+	FcFontSet *fs = FcFontList(nullptr, pat, os);
+
+	/* We don't need these anymore. */
+	FcObjectSetDestroy(os);
+	FcPatternDestroy(pat);
+
+	if (fs != nullptr) {
+		fonts.reserve(fs->nfont);
+		for (FcPattern **it = fs->fonts; it != fs->fonts + fs->nfont; ++it) {
+			FcPattern *font = *it;
+
+			FcChar8 *family;
+			FcChar8 *style;
+			int32_t slant;
+			int32_t weight;
+
+			if (FcPatternGetString(font, FC_FAMILY, 0, &family) == FcResultMatch &&
+				FcPatternGetString(font, FC_STYLE, 0, &style) == FcResultMatch &&
+				FcPatternGetInteger(font, FC_SLANT, 0, &slant) == FcResultMatch &&
+				FcPatternGetInteger(font, FC_WEIGHT, 0, &weight) == FcResultMatch
+				) {
+
+				fonts.push_back({(const char *)family, (const char *)style, slant, weight});
+			}
+		}
+
+		/* Clean up the list of filenames. */
+		FcFontSetDestroy(fs);
+	}
+
+	FcConfigDestroy(fc_instance);
+	return fonts;
+}

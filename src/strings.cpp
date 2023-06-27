@@ -2339,3 +2339,8 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 	}
 #endif /* !(WITH_ICU_I18N && WITH_HARFBUZZ) && !WITH_UNISCRIBE && !WITH_COCOA */
 }
+
+std::vector<FontFamily> ListFonts()
+{
+	return ListFonts(_langpack.langpack->isocode, _langpack.langpack->winlangid);
+}
