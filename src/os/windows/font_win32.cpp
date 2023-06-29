@@ -114,6 +114,51 @@ bool SetFallbackFont(FontCacheSettings *settings, const std::string &, int winla
 	return ret == 0;
 }
 
+static int CALLBACK ListStylesFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXTMETRICEX *metric, DWORD type, LPARAM lParam)
+{
+}
+
+static int CALLBACK ListFamiliesFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXTMETRICEX *metric, DWORD type, LPARAM lParam)
+{
+	EFCParam *info = (EFCParam *)lParam;
+
+	/* Only use TrueType fonts */
+	if (!(type & TRUETYPE_FONTTYPE)) return 1;
+
+	LOGFONT font;
+	/* Enumerate all fonts. */
+	font.lfCharSet = DEFAULT_CHARSET;
+	strecpy(font.lfFaceName, logfont->lfFaceName, lastof(font.lfFaceName));
+	font.lfPitchAndFamily = 0;
+
+	HDC dc = GetDC(nullptr);
+	int ret = EnumFontFamiliesEx(dc, &font, (FONTENUMPROC)&ListStylesFontCallback, (LPARAM)&langInfo, 0);
+	ReleaseDC(nullptr, dc);
+}
+
+std::vector<FontFamily> ListFonts(const std::string &language_isocode, int winlangid)
+{
+	std::vector<FontFamily> fonts;
+
+	EFCParam langInfo;
+	if (GetLocaleInfo(MAKELCID(winlangid, SORT_DEFAULT), LOCALE_FONTSIGNATURE, (LPTSTR)&langInfo.locale, sizeof(langInfo.locale) / sizeof(wchar_t)) == 0) {
+		/* Invalid langid or some other mysterious error, can't determine fallback font. */
+		Debug(fontcache, 1, "Can't get locale info for fallback font (langid=0x{:x})", winlangid);
+		return fonts;
+	}
+
+	LOGFONT font;
+	/* Enumerate all fonts. */
+	font.lfCharSet = DEFAULT_CHARSET;
+	font.lfFaceName[0] = '\0';
+	font.lfPitchAndFamily = 0;
+
+	HDC dc = GetDC(nullptr);
+	int ret = EnumFontFamiliesEx(dc, &font, (FONTENUMPROC)&ListFamiliesFontCallback, (LPARAM)&langInfo, 0);
+	ReleaseDC(nullptr, dc);
+	return fonts;
+}
+
 
 /**
  * Create a new Win32FontCache.
