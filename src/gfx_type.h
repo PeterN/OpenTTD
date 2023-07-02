@@ -210,6 +210,7 @@ enum FontSize {
 	FS_SMALL,  ///< Index of the small font in the font tables.
 	FS_LARGE,  ///< Index of the large font in the font tables.
 	FS_MONO,   ///< Index of the monospaced font in the font tables.
+	FS_PREVIEW, ///< Index of the preview font in the font tables.
 	FS_END,
 
 	FS_BEGIN = FS_NORMAL, ///< First font.
@@ -218,7 +219,7 @@ DECLARE_POSTFIX_INCREMENT(FontSize)
 
 inline const char *FontSizeToName(FontSize fs)
 {
-	static const char *SIZE_TO_NAME[] = { "medium", "small", "large", "mono" };
+	static const char *SIZE_TO_NAME[FS_END] = { "medium", "small", "large", "mono", "preview" };
 	assert(fs < FS_END);
 	return SIZE_TO_NAME[fs];
 }

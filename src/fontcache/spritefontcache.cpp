@@ -35,11 +35,13 @@ static int ScaleFontTrad(int value)
  * Create a new sprite font cache.
  * @param fs The font size to create the cache for.
  */
-SpriteFontCache::SpriteFontCache(FontSize fs) : FontCache(fs), glyph_to_spriteid_map(nullptr)
+SpriteFontCache::SpriteFontCache(FontSize fs, FontSize size) : FontCache(fs), glyph_to_spriteid_map(nullptr)
 {
+	this->size = size;
+	this->name = fmt::format("sprite, {}", FontSizeToName(size));
 	this->InitializeUnicodeGlyphMap();
-	this->height = ScaleGUITrad(FontCache::GetDefaultFontHeight(this->fs));
-	this->ascender = (this->height - ScaleFontTrad(FontCache::GetDefaultFontHeight(this->fs))) / 2;
+	this->height = ScaleGUITrad(FontCache::GetDefaultFontHeight(this->size));
+	this->ascender = (this->height - ScaleFontTrad(FontCache::GetDefaultFontHeight(this->size))) / 2;
 }
 
 /**
@@ -69,7 +71,7 @@ void SpriteFontCache::InitializeUnicodeGlyphMap()
 	this->ClearGlyphToSpriteMap();
 
 	SpriteID base;
-	switch (this->fs) {
+	switch (this->size) {
 		default: NOT_REACHED();
 		case FS_MONO:   // Use normal as default for mono spaced font
 		case FS_NORMAL: base = SPR_ASCII_SPACE;       break;
@@ -114,9 +116,9 @@ void SpriteFontCache::ClearGlyphToSpriteMap()
 
 void SpriteFontCache::ClearFontCache()
 {
-	Layouter::ResetFontCache(this->fs);
-	this->height = ScaleGUITrad(FontCache::GetDefaultFontHeight(this->fs));
-	this->ascender = (this->height - ScaleFontTrad(FontCache::GetDefaultFontHeight(this->fs))) / 2;
+	if (this->fs != FS_END) Layouter::ResetFontCache(this->fs);
+	this->height = ScaleGUITrad(FontCache::GetDefaultFontHeight(this->size));
+	this->ascender = (this->height - ScaleFontTrad(FontCache::GetDefaultFontHeight(this->size))) / 2;
 }
 
 const Sprite *SpriteFontCache::GetGlyph(GlyphID key)
@@ -130,7 +132,7 @@ uint SpriteFontCache::GetGlyphWidth(GlyphID key)
 {
 	SpriteID sprite = this->GetUnicodeGlyph(key);
 	if (sprite == 0) sprite = this->GetUnicodeGlyph('?');
-	return SpriteExists(sprite) ? GetSprite(sprite, SpriteType::Font)->width + ScaleFontTrad(this->fs != FS_NORMAL ? 1 : 0) : 0;
+	return SpriteExists(sprite) ? GetSprite(sprite, SpriteType::Font)->width + ScaleFontTrad(this->size != FS_NORMAL ? 1 : 0) : 0;
 }
 
 bool SpriteFontCache::GetDrawGlyphShadow()

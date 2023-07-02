@@ -86,7 +86,7 @@ int GetCharacterHeight(FontSize size)
 /* static */ void FontCache::InitializeFontCaches()
 {
 	for (FontSize fs = FS_BEGIN; fs != FS_END; fs++) {
-		if (FontCache::caches[fs] == nullptr) new SpriteFontCache(fs); /* FontCache inserts itself into to the cache. */
+		if (FontCache::caches[fs] == nullptr) new SpriteFontCache(fs, fs == FS_PREVIEW ? FS_NORMAL : fs); /* FontCache inserts itself into to the cache. */
 	}
 }
 
@@ -116,19 +116,7 @@ void SetFont(FontSize fontsize, const std::string &font, uint size)
 
 	if (!changed) return;
 
-	if (fontsize != FS_MONO) {
-		/* Try to reload only the modified font. */
-		FontCacheSettings backup = _fcsettings;
-		for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {
-			if (fs == fontsize) continue;
-			FontCache *fc = FontCache::Get(fs);
-			GetFontCacheSubSetting(fs)->font = fc->HasParent() ? fc->GetFontName() : "";
-		}
-		CheckForMissingGlyphs();
-		_fcsettings = backup;
-	} else {
-		InitFontCache(true);
-	}
+	InitFontCache(fontsize);
 
 	LoadStringWidthTable();
 	UpdateAllVirtCoords();
@@ -185,6 +173,27 @@ static void TryLoadDefaultTrueTypeFont([[maybe_unused]] FontSize fs)
 #endif /* defined(WITH_FREETYPE) || defined(_WIN32) || defined(WITH_COCOA) */
 }
 
+void InitFontCache(FontSize fs)
+{
+	FontCache *fc = FontCache::Get(fs);
+	if (fc->HasParent()) delete fc;
+
+	/* Get again as deleting a fontcache can clear the cache pointer. */
+	if (FontCache::Get(fs) == nullptr) new SpriteFontCache(fs, fs == FS_PREVIEW ? FS_NORMAL : fs);
+
+	if (!_fcsettings.prefer_sprite && GetFontCacheSubSetting(fs)->font.empty()) {
+		TryLoadDefaultTrueTypeFont(fs);
+	} else {
+#ifdef WITH_FREETYPE
+		LoadFreeTypeFont(fs);
+#elif defined(_WIN32)
+		LoadWin32Font(fs);
+#elif defined(WITH_COCOA)
+		LoadCoreTextFont(fs);
+#endif
+	}
+}
+
 /**
  * (Re)initialize the font cache related things, i.e. load the non-sprite fonts.
  * @param monospace Whether to initialise the monospace or regular fonts.
@@ -196,20 +205,7 @@ void InitFontCache(bool monospace)
 	for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {
 		if (monospace != (fs == FS_MONO)) continue;
 
-		FontCache *fc = FontCache::Get(fs);
-		if (fc->HasParent()) delete fc;
-
-		if (!_fcsettings.prefer_sprite && GetFontCacheSubSetting(fs)->font.empty()) {
-			TryLoadDefaultTrueTypeFont(fs);
-		} else {
-#ifdef WITH_FREETYPE
-			LoadFreeTypeFont(fs);
-#elif defined(_WIN32)
-			LoadWin32Font(fs);
-#elif defined(WITH_COCOA)
-			LoadCoreTextFont(fs);
-#endif
-		}
+		InitFontCache(fs);
 	}
 }
 
