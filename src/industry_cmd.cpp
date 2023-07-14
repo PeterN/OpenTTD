@@ -525,6 +525,7 @@ static bool TransportIndustryGoods(TileIndex tile)
 	bool moved_cargo = false;
 
 	for (auto &p : i->produced) {
+		if (!IsValidCargoID(p.cargo)) continue;
 		uint cw = ClampTo<uint8_t>(p.waiting);
 		if (cw > indspec->minimal_cargo && IsValidCargoID(p.cargo)) {
 			p.waiting -= cw;
@@ -1141,7 +1142,7 @@ static void ProduceIndustryGoods(Industry *i)
 	if ((i->counter & 0x3F) == 0) {
 		uint32 r;
 		if (Chance16R(1, 14, r) && indsp->number_of_sounds != 0 && _settings_client.sound.ambient) {
-			if (std::any_of(std::begin(i->produced), std::end(i->produced), [](const auto &p) { return p.history[LAST_MONTH].production > 0; })) {
+			if (std::any_of(std::begin(i->produced), std::end(i->produced), [](const auto &p) { return IsValidCargoID(p.cargo) && p.history[LAST_MONTH].production > 0; })) {
 				/* Play sound since last month had production */
 				SndPlayTileFx(
 					(SoundFx)(indsp->random_sounds[((r >> 16) * indsp->number_of_sounds) >> 16]),
@@ -1816,12 +1817,14 @@ static void DoCreateNewIndustry(Industry *i, TileIndex tile, IndustryType type, 
 		if (HasBit(indspec->callback_mask, CBM_IND_PRODUCTION_256_TICKS)) {
 			IndustryProductionCallback(i, 1);
 			for (auto &p : i->produced) {
+				if (!IsValidCargoID(p.cargo)) continue;
 				p.history[LAST_MONTH].production = p.waiting * 8;
 				p.waiting = 0;
 			}
 		}
 
 		for (auto &p : i->produced) {
+			if (!IsValidCargoID(p.cargo)) continue;
 			p.history[LAST_MONTH].production += p.rate * 8;
 		}
 	}
@@ -2755,7 +2758,7 @@ static void ChangeIndustryProduction(Industry *i, bool monthly)
 		if (original_economy) {
 			if (only_decrease || Chance16(1, 3)) {
 				/* If more than 60% transported, 66% chance of increase, else 33% chance of increase */
-				if (!only_decrease && (i->produced[0].history[LAST_MONTH].PctTransported() > PERCENT_TRANSPORTED_60) != Chance16(1, 3)) {
+				if (!only_decrease && IsValidCargoID(i->produced[0].cargo) && (i->produced[0].history[LAST_MONTH].PctTransported() > PERCENT_TRANSPORTED_60) != Chance16(1, 3)) {
 					mul = 1; // Increase production
 				} else {
 					div = 1; // Decrease production
