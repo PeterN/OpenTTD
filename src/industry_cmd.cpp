@@ -1759,6 +1759,7 @@ static void DoCreateNewIndustry(Industry *i, TileIndex tile, IndustryType type, 
 		size_t index = it - std::begin(i->produced);
 		it->cargo = indspec->produced_cargo[index];
 		it->rate = indspec->production_rate[index];
+		if (IsValidCargoID(it->cargo)) it->history.resize(Industry::ProducedHistory::MIN_LENGTH);
 	}
 
 	for (auto it = std::begin(i->accepted); it != std::end(i->accepted); ++it) {
@@ -2407,7 +2408,10 @@ static void UpdateIndustryStatistics(Industry *i)
 {
 	for (auto &p : i->produced) {
 		if (IsValidCargoID(p.cargo)) {
-			if (p.history[THIS_MONTH].production != 0) i->last_prod_year = TimerGameCalendar::year;
+			if (p.history.size() > THIS_MONTH && p.history[THIS_MONTH].production != 0) i->last_prod_year = TimerGameCalendar::year;
+
+			/* Add more history slots as needed. */
+			if (p.history.size() < Industry::ProducedHistory::MAX_LENGTH) p.history.emplace_back();
 
 			/* Move history from this month to last month. */
 			std::rotate(std::rbegin(p.history), std::rbegin(p.history) + 1, std::rend(p.history));

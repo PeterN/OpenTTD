@@ -82,11 +82,12 @@ public:
 
 	void Load(Industry::ProducedCargo *p) const override
 	{
-		size_t len = SlGetStructListLength(p->history.size());
+		size_t len = SlGetStructListLength(UINT32_MAX);
 
-		for (auto &h : p->history) {
-			if (--len > p->history.size()) break; // unsigned so wraps after hitting zero.
-			SlObject(&h, this->GetDescription());
+		p->history.reserve(len);
+		for (size_t i = 0; i < len; i++) {
+			Industry::ProducedHistory &h = p->history.emplace_back();
+			SlObject(&h, this->GetLoadDescription());
 		}
 	}
 };
@@ -213,6 +214,7 @@ struct INDYChunkHandler : ChunkHandler {
 		for (uint j = 0; j != INDUSTRY_NUM_INPUTS; ++j) {
 			auto &a = i->accepted[j];
 			a.cargo = SlIndustryAccepted::old_cargo[j];
+			if (!IsValidCargoID(a.cargo)) continue;
 			a.waiting = SlIndustryAccepted::old_waiting[j];
 			a.last_accepted = SlIndustryAccepted::old_last_accepted[j];
 		}
@@ -220,8 +222,10 @@ struct INDYChunkHandler : ChunkHandler {
 		for (uint j = 0; j != INDUSTRY_NUM_OUTPUTS; ++j) {
 			auto &p = i->produced[j];
 			p.cargo = SlIndustryProduced::old_cargo[j];
+			if (!IsValidCargoID(p.cargo)) continue;
 			p.waiting = SlIndustryProduced::old_waiting[j];
 			p.rate = SlIndustryProduced::old_rate[j];
+			p.history.resize(Industry::ProducedHistory::MIN_LENGTH);
 			p.history[THIS_MONTH].production = SlIndustryProduced::old_this_month_production[j];
 			p.history[THIS_MONTH].transported = SlIndustryProduced::old_this_month_transported[j];
 			p.history[LAST_MONTH].production = SlIndustryProduced::old_last_month_production[j];

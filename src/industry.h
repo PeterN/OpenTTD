@@ -67,6 +67,9 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 		uint16_t production; ///< Total produced
 		uint16_t transported; ///< Total transported
 
+		static constexpr int MIN_LENGTH = LAST_MONTH + 1; ///< Minimum number of history entries, must be enough to hold stats for the last month.
+		static constexpr int MAX_LENGTH = MIN_LENGTH; ///< Maximum number of history entries to keep.
+
 		uint8_t PctTransported() const
 		{
 			if (this->production == 0) return 0;
@@ -78,7 +81,7 @@ struct Industry : IndustryPool::PoolItem<&_industry_pool> {
 		CargoID cargo; ///< Cargo type
 		uint16_t waiting; ///< Amount of cargo produced
 		uint8_t rate; ///< Production rate
-		std::array<ProducedHistory, 2> history; ///< History of cargo produced and transported
+		std::vector<ProducedHistory> history; ///< History of cargo produced and transported
 	};
 
 	struct AcceptedCargo {
