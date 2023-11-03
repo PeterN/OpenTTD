@@ -106,7 +106,7 @@ static inline ZoomLevel UnScaleZoomGUI(ZoomLevel value)
  */
 static inline int ScaleSpriteTrad(int value)
 {
-	return UnScaleGUI(value * ZOOM_LVL_BASE);
+	return UnScaleGUI(value * (int)ZOOM_LVL_BASE);
 }
 
 /**

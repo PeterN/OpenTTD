@@ -404,7 +404,7 @@ static inline TileIndexDiff TileDiffXY(int x, int y)
 	 * 0 << shift isn't optimized to 0 properly.
 	 * Typically x and y are constants, and then this doesn't result
 	 * in any actual multiplication in the assembly code.. */
-	return (y * Map::SizeX()) + x;
+	return (y * (int)Map::SizeX()) + x;
 }
 
 /**
