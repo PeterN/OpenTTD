@@ -81,7 +81,7 @@ struct IniLoadFile {
 	 * @param buffer Part of the file with the error.
 	 * @param post   Suffix text of the \a buffer part.
 	 */
-	virtual void ReportFileError(const char * const pre, const char * const buffer, const char * const post) = 0;
+	virtual void ReportFileError(const std::string_view pre, const std::string_view buffer, const std::string_view post) = 0;
 };
 
 /** Ini file that supports both loading and saving. */
@@ -91,7 +91,7 @@ struct IniFile : IniLoadFile {
 	bool SaveToDisk(const std::string &filename);
 
 	FILE *OpenFile(const std::string &filename, Subdirectory subdir, size_t *size) override;
-	void ReportFileError(const char * const pre, const char * const buffer, const char * const post) override;
+	void ReportFileError(const std::string_view pre, const std::string_view buffer, const std::string_view post) override;
 };
 
 #endif /* INI_TYPE_H */

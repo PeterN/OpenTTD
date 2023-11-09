@@ -15,21 +15,21 @@
 
 struct IniFile;
 
-void IConsoleSetSetting(const char *name, const char *value, bool force_newgame = false);
-void IConsoleSetSetting(const char *name, int32_t value);
-void IConsoleGetSetting(const char *name, bool force_newgame = false);
-void IConsoleListSettings(const char *prefilter);
+void IConsoleSetSetting(const std::string_view name, const char *value, bool force_newgame = false);
+void IConsoleSetSetting(const std::string_view name, int32_t value);
+void IConsoleGetSetting(const std::string_view name, bool force_newgame = false);
+void IConsoleListSettings(const std::string_view prefilter);
 
 void LoadFromConfig(bool minimal = false);
 void SaveToConfig();
 
-void IniLoadWindowSettings(IniFile &ini, const char *grpname, void *desc);
-void IniSaveWindowSettings(IniFile &ini, const char *grpname, void *desc);
+void IniLoadWindowSettings(IniFile &ini, const std::string_view grpname, void *desc);
+void IniSaveWindowSettings(IniFile &ini, const std::string_view grpname, void *desc);
 
 StringList GetGRFPresetList();
-struct GRFConfig *LoadGRFPresetFromConfig(const char *config_name);
-void SaveGRFPresetToConfig(const char *config_name, struct GRFConfig *config);
-void DeleteGRFPresetFromConfig(const char *config_name);
+struct GRFConfig *LoadGRFPresetFromConfig(const std::string_view config_name);
+void SaveGRFPresetToConfig(const std::string_view config_name, struct GRFConfig *config);
+void DeleteGRFPresetFromConfig(const std::string_view config_name);
 
 void SetDefaultCompanySettings(CompanyID cid);
 

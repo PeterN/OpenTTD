@@ -173,7 +173,7 @@ struct SettingsIniFile : IniLoadFile {
 		return in;
 	}
 
-	void ReportFileError(const char * const pre, const char * const buffer, const char * const post) override
+	void ReportFileError(const std::string_view pre, const std::string_view buffer, const std::string_view post) override
 	{
 		FatalError("{}{}{}", pre, buffer, post);
 	}

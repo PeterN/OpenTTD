@@ -978,7 +978,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			case WID_NS_PRESET_DELETE:
 				if (this->preset == -1) return;
 
-				DeleteGRFPresetFromConfig(this->grf_presets[this->preset].c_str());
+				DeleteGRFPresetFromConfig(this->grf_presets[this->preset]);
 				this->grf_presets = GetGRFPresetList();
 				this->preset = -1;
 				this->InvalidateData();
@@ -1183,7 +1183,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 		this->preset = index;
 
 		if (index != -1) {
-			this->actives = LoadGRFPresetFromConfig(this->grf_presets[index].c_str());
+			this->actives = LoadGRFPresetFromConfig(this->grf_presets[index]);
 		}
 		this->avails.ForceRebuild();
 
