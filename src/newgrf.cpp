@@ -7866,6 +7866,7 @@ static void LoadGRFSound(size_t offs, SoundEntry *sound)
 		/* Sound is present in the NewGRF. */
 		sound->file = _cur.file;
 		sound->file_offset = offs;
+		sound->source = SoundSource::NewGRF;
 		sound->grf_container_ver = _cur.file->GetContainerVersion();
 	}
 }
