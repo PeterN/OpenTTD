@@ -5,7 +5,7 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file soundloader_type.h Types related to sound loaders. */
+/** @file soundloader_type.h Types related to sound loaders and resamplers. */
 
 #ifndef SOUNDLOADER_TYPE_H
 #define SOUNDLOADER_TYPE_H
@@ -28,6 +28,22 @@ public:
 	}
 
 	virtual bool Load(SoundEntry &sound, bool new_format, std::vector<uint8_t> &data) = 0;
+};
+
+/** Base interface for a SoundResampler implementation. */
+class SoundResampler : public PriorityBaseProvider<SoundResampler> {
+public:
+	SoundResampler(std::string_view name, std::string_view description, int priority) : PriorityBaseProvider<SoundResampler>(name, description, priority)
+	{
+		ProviderManager<SoundResampler>::Register(*this);
+	}
+
+	virtual ~SoundResampler()
+	{
+		ProviderManager<SoundResampler>::Unregister(*this);
+	}
+
+	virtual bool Resample(SoundEntry &sound, uint32_t play_rate) = 0;
 };
 
 /**
