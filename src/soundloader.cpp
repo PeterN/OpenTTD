@@ -14,8 +14,14 @@
 #include "sound_type.h"
 #include "soundloader_type.h"
 #include "soundloader_func.h"
+#include "mixer.h"
 #include "newgrf_sound.h"
 #include "random_access_file_type.h"
+
+#ifdef WITH_SOXR
+#include <soxr.h>
+#include <thread>
+#endif /* WITH_SOXR */
 
 #include "safeguards.h"
 
@@ -90,6 +96,52 @@ SoundLoader::~SoundLoader()
 	}
 }
 
+#ifdef WITH_SOXR
+
+static void ConvertSampleRate(SoundEntry &sound, uint32_t play_rate)
+{
+	/* As we always convert with the same configuration, these are static so they only need to be set up once.
+	 * Always 16 bit input and 16 bit output.
+	 * Highest quality.
+	 * Multi-threaded. */
+	static const soxr_io_spec_t io = soxr_io_spec(SOXR_INT16_I, SOXR_INT16_I);
+	static const soxr_quality_spec_t quality = soxr_quality_spec(SOXR_VHQ, 0);
+	static const soxr_runtime_spec_t runtime = soxr_runtime_spec(std::thread::hardware_concurrency());
+
+	std::vector<uint8_t> tmp;
+	if (sound.bits_per_sample == 16) {
+		/* Move from sound data to temporary buffer. */
+		sound.data->swap(tmp);
+	} else {
+		/* SoxR cannot resample 8-bit audio, so convert from 8-bit to 16-bit into temporary buffer. */
+		tmp.resize(sound.data->size() * sizeof(int16_t));
+		auto out = ReinterpretSpan<int16_t>(std::span(tmp)).begin();
+		for (auto in = sound.data->begin(); in != sound.data->end(); ++in, ++out) {
+			*out = *in * 256;
+		}
+		sound.bits_per_sample = 16;
+	}
+
+	/* Resize buffer ensuring it is correctly aligned. */
+	uint align = sound.channels * sound.bits_per_sample / 8;
+	sound.data->resize(Align(tmp.size() * play_rate / sound.rate, align));
+
+	soxr_error_t error = soxr_oneshot(sound.rate, play_rate, sound.channels,
+		tmp.data(), tmp.size() / align, nullptr,
+		sound.data->data(), sound.data->size() / align, nullptr,
+		&io, &quality, &runtime);
+
+	if (error != nullptr) {
+		/* Could not resample, try using the original data as-is instead. */
+		Debug(misc, 0, "Failed to resample: {}", soxr_strerror(error));
+		sound.data->swap(tmp);
+	} else {
+		sound.rate = play_rate;
+	}
+}
+
+#endif /* WITH_SOXR */
+
 bool LoadSoundData(SoundEntry &sound, bool new_format, SoundID sound_id, const std::string &name)
 {
 	/* Check for valid sound size. */
@@ -112,6 +164,14 @@ bool LoadSoundData(SoundEntry &sound, bool new_format, SoundID sound_id, const s
 	assert(sound.rate != 0);
 
 	Debug(grf, 2, "LoadSound [{}]: channels {}, sample rate {}, bits per sample {}, length {}", sound.file->GetSimplifiedFilename(), sound.channels, sound.rate, sound.bits_per_sample, sound.file_size);
+
+#ifdef WITH_SOXR
+
+	/* Convert sample rate? */
+	uint32_t play_rate = MxGetRate();
+	if (play_rate != sound.rate) ConvertSampleRate(sound, play_rate);
+
+#endif /* WITH_SOXR */
 
 	/* Mixer always requires an extra sample at the end for the built-in linear resampler. */
 	sound.data->resize(sound.data->size() + sound.channels * sound.bits_per_sample / 8);

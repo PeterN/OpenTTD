@@ -55,6 +55,7 @@ jobs:
           liblzma-dev \
           liblzo2-dev \
           libsdl2-dev \
+          libsoxr-dev \
           zlib1g-dev \
           # EOF
 
