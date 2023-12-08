@@ -2514,6 +2514,15 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		}
 	}
 
+	for (TileIndex tile_cur : st->airport) {
+		if (!st->TileBelongsToAirport(tile_cur)) continue;
+
+		CommandCost ret = EnsureNoVehicleOnGround(tile_cur);
+		if (ret.Failed()) return ret;
+
+		cost.AddCost(_price[PR_CLEAR_STATION_AIRPORT]);
+	}
+
 	if (flags & DC_EXEC) {
 		for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
 			TileIndex tile_cur = st->airport.GetHangarTile(i);
@@ -2533,24 +2542,15 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		if (_settings_game.economy.station_noise_level) {
 			SetWindowDirty(WC_TOWN_VIEW, nearest->index);
 		}
-	}
 
-	for (TileIndex tile_cur : st->airport) {
-		if (!st->TileBelongsToAirport(tile_cur)) continue;
+		for (TileIndex tile_cur : st->airport) {
+			if (!st->TileBelongsToAirport(tile_cur)) continue;
 
-		CommandCost ret = EnsureNoVehicleOnGround(tile_cur);
-		if (ret.Failed()) return ret;
-
-		cost.AddCost(_price[PR_CLEAR_STATION_AIRPORT]);
-
-		if (flags & DC_EXEC) {
 			DeleteAnimatedTile(tile_cur);
 			DoClearSquare(tile_cur);
 			DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur.base());
 		}
-	}
 
-	if (flags & DC_EXEC) {
 		/* Clear the persistent storage. */
 		delete st->airport.psa;
 
