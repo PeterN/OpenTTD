@@ -58,6 +58,18 @@ uint GetNumSounds()
 	return (uint)_sounds.size();
 }
 
+/**
+ * Get size of memory allocated to sound effects.
+ * @return Approximate memory allocated by loaded sound effects.
+ */
+size_t GetSoundPoolAllocatedMemory()
+{
+	size_t bytes = 0;
+	for (SoundEntry &sound : _sounds) {
+		if (sound.data != nullptr) bytes += sound.data->capacity() * sizeof(sound.data->front());
+	}
+	return bytes;
+}
 
 /**
  * Extract meta data from a NewGRF sound.
