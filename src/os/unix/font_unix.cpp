@@ -15,6 +15,7 @@
 
 #include <fontconfig/fontconfig.h>
 
+#include "fileio_func.h"
 #include "safeguards.h"
 
 #include <ft2build.h>
@@ -39,6 +40,12 @@ std::tuple<std::string, std::string> SplitFontFamilyAndStyle(std::string_view fo
 	return { std::string(font_name.substr(0, separator)), std::string(font_name.substr(begin)) };
 }
 
+static void AddOpenTTDFont(FcConfig *config)
+{
+	std::string openttdfont = GetOpenTTDFont();
+	if (!openttdfont.empty()) FcConfigAppFontAddFile(config, (FcChar8 *)openttdfont.data());
+}
+
 FT_Error GetFontByFaceName(const char *font_name, FT_Face *face)
 {
 	FT_Error err = FT_Err_Cannot_Open_Resource;
@@ -50,6 +57,8 @@ FT_Error GetFontByFaceName(const char *font_name, FT_Face *face)
 
 	auto fc_instance = FcConfigReference(nullptr);
 	assert(fc_instance != nullptr);
+
+	AddOpenTTDFont(fc_instance);
 
 	/* Split & strip the font's style */
 	auto [font_family, font_style] = SplitFontFamilyAndStyle(font_name);
@@ -105,6 +114,8 @@ bool SetFallbackFont(FontCacheSettings *settings, const std::string &language_is
 
 	auto fc_instance = FcConfigReference(nullptr);
 	assert(fc_instance != nullptr);
+
+	AddOpenTTDFont(fc_instance);
 
 	/* Fontconfig doesn't handle full language isocodes, only the part
 	 * before the _ of e.g. en_GB is used, so "remove" everything after

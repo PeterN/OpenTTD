@@ -247,5 +247,6 @@ void UninitFontCache();
 
 bool GetFontAAState();
 void SetFont(FontSize fontsize, const std::string &font, uint size);
+std::string GetOpenTTDFont();
 
 #endif /* FONTCACHE_H */

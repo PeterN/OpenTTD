@@ -8,6 +8,7 @@
 /** @file fontcache.cpp Cache for characters from fonts. */
 
 #include "stdafx.h"
+#include "fileio_func.h"
 #include "fontcache.h"
 #include "fontdetection.h"
 #include "blitter/factory.hpp"
@@ -222,6 +223,12 @@ void UninitFontCache()
 #ifdef WITH_FREETYPE
 	UninitFreeType();
 #endif /* WITH_FREETYPE */
+}
+
+std::string GetOpenTTDFont()
+{
+	static const char *OPENTTD_NORMAL_FONT = "OpenTTD-Sans.ttf";
+	return FioFindFullPath(BASE_DIR, OPENTTD_NORMAL_FONT);
 }
 
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(WITH_FONTCONFIG) && !defined(WITH_COCOA)
