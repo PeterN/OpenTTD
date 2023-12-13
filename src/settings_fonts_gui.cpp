@@ -7,6 +7,7 @@
 
 /** @file settings_fonts_gui.cpp GUI for font settings. */
 
+#include "gfx_func.h"
 #include "stdafx.h"
 #include "settings_gui.h"
 #include "textbuf_gui.h"
@@ -209,14 +210,14 @@ public:
 		this->ChangeFont(FS_PREVIEW);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *, Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_FFW_FAMILIES:
 				size->width = 0;
 				for (const auto &ff : this->fonts) *size = maxdim(*size, GetStringBoundingBox(ff.family));
 				size->width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
-				resize->height = FONT_HEIGHT_NORMAL + padding.height;
+				resize->height = GetCharacterHeight(FS_NORMAL) + padding.height;
 				size->height = this->FONT_ROWS * resize->height;
 				break;
 
@@ -224,7 +225,7 @@ public:
 				size->width = 0;
 				for (const auto &ff : this->fonts) *size = maxdim(*size, GetStringBoundingBox(ff.style));
 				size->width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
-				resize->height = FONT_HEIGHT_NORMAL + padding.height;
+				resize->height = GetCharacterHeight(FS_NORMAL) + padding.height;
 				size->height = this->FONT_ROWS * resize->height;
 				break;
 
@@ -232,7 +233,7 @@ public:
 				SetDParamMaxDigits(0, 3);
 				*size = GetStringBoundingBox(STR_JUST_COMMA);
 				size->width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
-				resize->height = FONT_HEIGHT_NORMAL + padding.height;
+				resize->height = GetCharacterHeight(FS_NORMAL) + padding.height;
 				size->height = this->FONT_ROWS * resize->height;
 				break;
 		}
@@ -295,7 +296,7 @@ public:
 		}
 	}
 
-	void OnClick(Point pt, int widget, int click_count) override
+	void OnClick(Point pt, int widget, int) override
 	{
 		switch (widget) {
 			case WID_FFW_FAMILIES: {
@@ -388,7 +389,7 @@ public:
 		}
 	}
 
-	EventState OnKeyPress(char32_t key, uint16_t keycode) override
+	EventState OnKeyPress(char32_t, uint16_t keycode) override
 	{
 		if (keycode == WKC_RETURN) {
 			this->ChangeFont(FS_PREVIEW);
@@ -405,7 +406,7 @@ static const NWidgetPart _nested_font_family_widgets[] = {
 		NWidget(WWT_CAPTION, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 	EndContainer(),
 	NWidget(WWT_PANEL, COLOUR_GREY),
-		NWidget(NWID_VERTICAL), SetPadding(WidgetDimensions::unscaled.frametext), SetPIP(0, WidgetDimensions::unscaled.vsep_wide, 0),
+		NWidget(NWID_VERTICAL), SetPadding(WidgetDimensions::unscaled.sparse), SetPIP(0, WidgetDimensions::unscaled.vsep_sparse, 0),
 			NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
 				NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
 					NWidget(WWT_EDITBOX, COLOUR_GREY, WID_FFW_FAMILY_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
@@ -436,21 +437,19 @@ static const NWidgetPart _nested_font_family_widgets[] = {
 			NWidget(WWT_INSET, COLOUR_GREY, WID_FFW_PREVIEW), SetFill(1, 0), SetMinimalSize(100, 50),
 			EndContainer(),
 			NWidget(NWID_HORIZONTAL, NC_EQUALSIZE), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
-				NWidget(NWID_SPACER), SetFill(1, 0), SetResize(1, 0),
-				NWidget(NWID_HORIZONTAL, NC_EQUALSIZE), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
-					NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_CANCEL), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_CANCEL, STR_NULL),
-					NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_OK), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_OK, STR_NULL),
-				EndContainer(),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_CANCEL), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_CANCEL, STR_NULL),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_DEFAULT), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_DEFAULT, STR_NULL),
+				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_OK), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_OK, STR_NULL),
 			EndContainer(),
 		EndContainer(),
 	EndContainer(),
 };
 
-static WindowDesc _font_family_desc(
+static WindowDesc _font_family_desc(__FILE__, __LINE__,
 	WDP_AUTO, nullptr, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
-	_nested_font_family_widgets, lengthof(_nested_font_family_widgets)
+	std::begin(_nested_font_family_widgets), std::end(_nested_font_family_widgets)
 );
 
 void ShowFontFamilyWindow(Window *parent, int button, FontSize fs)

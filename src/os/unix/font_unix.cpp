@@ -191,7 +191,7 @@ bool SetFallbackFont(FontCacheSettings *settings, const std::string &language_is
 	return ret;
 }
 
-std::vector<FontFamily> ListFonts(const std::string &language_isocode, int winlangid)
+std::vector<FontFamily> ListFonts(const std::string &language_isocode, int)
 {
 	std::vector<FontFamily> fonts;
 
@@ -199,6 +199,8 @@ std::vector<FontFamily> ListFonts(const std::string &language_isocode, int winla
 
 	auto fc_instance = FcConfigReference(nullptr);
 	assert(fc_instance != nullptr);
+
+	AddOpenTTDFont(fc_instance);
 
 	/* Fontconfig doesn't handle full language isocodes, only the part
 	 * before the _ of e.g. en_GB is used, so "remove" everything after
