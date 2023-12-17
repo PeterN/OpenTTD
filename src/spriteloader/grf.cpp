@@ -57,7 +57,7 @@ static bool WarnCorruptSprite(const SpriteFile &file, size_t file_pos, int line)
  * @param container_format Container format of the GRF this sprite is in.
  * @return True if the sprite was successfully loaded.
  */
-bool DecodeSingleSprite(SpriteLoader::Sprite *sprite, SpriteFile &file, size_t file_pos, SpriteType sprite_type, int64_t num, byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
+bool DecodeSingleBitmapSprite(SpriteLoader::Sprite *sprite, SpriteFile &file, size_t file_pos, SpriteType sprite_type, int64_t num, byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
 {
 	/*
 	 * Original sprite height was max 255 pixels, with 4x extra zoom => 1020 pixels.
@@ -247,7 +247,7 @@ uint8_t LoadSpriteV1(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, s
 	 * In case it is uncompressed, the size is 'num' - 8 (header-size). */
 	num = (type & 0x02) ? sprite[zoom_lvl].width * sprite[zoom_lvl].height : num - 8;
 
-	if (DecodeSingleSprite(&sprite[zoom_lvl], file, file_pos, sprite_type, num, type, zoom_lvl, SCC_PAL, 1)) return 1 << zoom_lvl;
+	if (DecodeSingleBitmapSprite(&sprite[zoom_lvl], file, file_pos, sprite_type, num, type, zoom_lvl, SCC_PAL, 1)) return 1 << zoom_lvl;
 
 	return 0;
 }
@@ -333,7 +333,7 @@ uint8_t LoadSpriteV2(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, s
 			 * otherwise we can calculate it from the image dimensions. */
 			uint decomp_size = (type & 0x08) ? file.ReadDword() : sprite[zoom_lvl].width * sprite[zoom_lvl].height * bpp;
 
-			bool valid = DecodeSingleSprite(&sprite[zoom_lvl], file, file_pos, sprite_type, decomp_size, type, zoom_lvl, colour, 2);
+			bool valid = DecodeSingleBitmapSprite(&sprite[zoom_lvl], file, file_pos, sprite_type, decomp_size, type, zoom_lvl, colour, 2);
 			if (file.GetPos() != start_pos + num) {
 				WarnCorruptSprite(file, file_pos, __LINE__);
 				return 0;
