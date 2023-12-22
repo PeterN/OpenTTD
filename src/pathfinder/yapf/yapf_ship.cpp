@@ -12,6 +12,7 @@
 #include "../../industry.h"
 #include "../../vehicle_func.h"
 
+#include "map_func.h"
 #include "yapf.hpp"
 #include "yapf_node_ship.hpp"
 
@@ -285,6 +286,41 @@ public:
 	}
 
 	/**
+	 * Test if tile-based direction cost should be added. This separates ships travelling in opposite direction.
+	 * @param tile Tile of current node.
+	 * @param td Trackdir of current node.
+	 * @returns true iff a tile-based direction cost should be added.
+	 */
+	inline bool AddDirectionCost(TileIndex tile, Trackdir td)
+	{
+		bool x = TileX(tile) & 1;
+		bool y = TileY(tile) & 1;
+		if (HasBit(TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_NE, td)) return (x && y); // North
+		if (HasBit(TRACKDIR_BIT_X_SW | TRACKDIR_BIT_Y_SE, td)) return (!x && !y); // South
+		if (HasBit(TRACKDIR_BIT_UPPER_E | TRACKDIR_BIT_RIGHT_S | TRACKDIR_BIT_LOWER_W | TRACKDIR_BIT_LEFT_N, td)) return (x ^ y); // Clockwise
+		// TRACKDIR_BIT_UPPER_W | TRACKDIR_BIT_RIGHT_N | TRACKDIR_BIT_LOWER_E | TRACKDIR_BIT_LEFT_S // Anti-clockwise
+		return !(x ^ y); // Anti-clockwise
+	}
+
+	static bool FindCoast(TileIndex tile, void *) {
+		return IsCoastTile(tile) || (!IsWaterTile(tile) && !IsBuoyTile(tile));
+	}
+
+	inline int DistanceFromCoast(TileIndex tile) {
+		const int MAX_DISTANCE = 2;
+		// const int COAST_COST = YAPF_TILE_LENGTH * 2;
+		for (int d = 1; d <= MAX_DISTANCE; ++d) {
+			if (IsCoastTile(TILE_ADDXY(tile, -d, -d))) return (1 + MAX_DISTANCE - d) * YAPF_TILE_LENGTH * 2;
+			if (IsCoastTile(TILE_ADDXY(tile, -d, d))) return (1 + MAX_DISTANCE - d) * YAPF_TILE_LENGTH * 2;
+			if (IsCoastTile(TILE_ADDXY(tile, d, d))) return (1 + MAX_DISTANCE - d) * YAPF_TILE_LENGTH * 2;
+			if (IsCoastTile(TILE_ADDXY(tile, d, -d))) return (1 + MAX_DISTANCE - d) * YAPF_TILE_LENGTH * 2;
+		}
+
+		// if (CircularTileSearch(&t, MAX_DISTANCE, FindCoast, nullptr)) return YAPF_TILE_LENGTH * MAX_DISTANCE;
+		return 0;
+	}
+
+	/**
 	 * Called by YAPF to calculate the cost from the origin to the given node.
 	 *  Calculates only the cost of given node, adds it to the parent node cost
 	 *  and stores the result into Node::m_cost member
@@ -305,6 +341,10 @@ public:
 
 		/* Skipped tile cost for aqueducts. */
 		c += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
+
+		// c += AddDirectionCost(n.GetTile(), n.GetTrackdir()) ? YAPF_TILE_LENGTH : 0;
+
+		c += DistanceFromCoast(n.GetTile());
 
 		/* Ocean/canal speed penalty. */
 		const ShipVehicleInfo *svi = ShipVehInfo(Yapf().GetVehicle()->engine_type);
