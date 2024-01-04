@@ -15,9 +15,12 @@
 
 /** The data required to format and validate a single parameter of a string. */
 struct StringParameter {
-	uint64_t data; ///< The data of the parameter.
-	const char *string_view; ///< The string value, if it has any.
-	std::unique_ptr<std::string> string; ///< Copied string value, if it has any.
+	/* Data types held by StringParameter. */
+	using Integer = uint64_t;
+	using StringPtr = const char *;
+	using String = std::string;
+
+	std::variant<Integer, StringPtr, String> data; ///< The data of the parameter, non-owning string value, or owned string value.
 	char32_t type; ///< The #StringControlCode to interpret this data with when it's the first parameter, otherwise '\0'.
 };
 
@@ -33,7 +36,7 @@ protected:
 		parameters(parameters)
 	{}
 
-	StringParameter *GetNextParameterPointer();
+	const StringParameter &GetNextParameterPointer();
 
 public:
 	/**
@@ -94,7 +97,8 @@ public:
 	T GetNextParameter()
 	{
 		auto ptr = GetNextParameterPointer();
-		return static_cast<T>(ptr->data);
+		if (std::holds_alternative<StringParameter::Integer>(ptr.data)) return T(std::get<StringParameter::Integer>(ptr.data));
+		throw std::runtime_error("Trying to read string parameter as integer");
 	}
 
 	/**
@@ -106,7 +110,9 @@ public:
 	const char *GetNextParameterString()
 	{
 		auto ptr = GetNextParameterPointer();
-		return ptr->string != nullptr ? ptr->string->c_str() : ptr->string_view;
+		if (std::holds_alternative<StringParameter::StringPtr>(ptr->data)) return std::get<StringParameter::StringPtr>(ptr->data);
+		if (std::holds_alternative<StringParameter::String>(ptr.data)) return std::get<StringParameter::String>(ptr.data).c_str();
+		throw std::runtime_error("Trying to read integer parameter as string");
 	}
 
 	/**
@@ -151,8 +157,6 @@ public:
 	{
 		assert(n < this->parameters.size());
 		this->parameters[n].data = v;
-		this->parameters[n].string.reset();
-		this->parameters[n].string_view = nullptr;
 	}
 
 	template <typename T, std::enable_if_t<std::is_base_of<StrongTypedefBase, T>::value, int> = 0>
@@ -164,26 +168,27 @@ public:
 	void SetParam(size_t n, const char *str)
 	{
 		assert(n < this->parameters.size());
-		this->parameters[n].data = 0;
-		this->parameters[n].string.reset();
-		this->parameters[n].string_view = str;
+		this->parameters[n].data = str;
 	}
 
-	void SetParam(size_t n, const std::string &str) { this->SetParam(n, str.c_str()); }
+	void SetParam(size_t n, const std::string &str)
+	{
+		assert(n < this->parameters.size());
+		this->parameters[n].data = str;
+	}
 
 	void SetParam(size_t n, std::string &&str)
 	{
 		assert(n < this->parameters.size());
-		this->parameters[n].data = 0;
-		this->parameters[n].string = std::make_unique<std::string>(std::move(str));
-		this->parameters[n].string_view = nullptr;
+		this->parameters[n].data = std::move(str);
 	}
 
 	uint64_t GetParam(size_t n) const
 	{
 		assert(n < this->parameters.size());
-		assert(this->parameters[n].string_view == nullptr && this->parameters[n].string == nullptr);
-		return this->parameters[n].data;
+		const auto &param = this->parameters[n].data;
+		if (std::holds_alternative<StringParameter::Integer>(param)) return std::get<StringParameter::Integer>(param);
+		throw std::runtime_error("Trying to read string parameter as integer");
 	}
 
 	/**
@@ -194,8 +199,10 @@ public:
 	const char *GetParamStr(size_t n) const
 	{
 		assert(n < this->parameters.size());
-		auto &param = this->parameters[n];
-		return param.string != nullptr ? param.string->c_str() : param.string_view;
+		const auto &param = this->parameters[n].data;
+		if (std::holds_alternative<StringParameter::StringView>(param)) return std::get<StringParameter::StringView>(param);
+		if (std::holds_alternative<StringParameter::String>(param)) return std::get<StringParameter::String>(param).c_str();
+		throw std::runtime_error("Trying to read integer parameter as string");
 	}
 };
 

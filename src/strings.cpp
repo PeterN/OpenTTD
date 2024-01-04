@@ -78,7 +78,7 @@ void StringParameters::PrepareForNextRun()
  * will be read.
  * @return The pointer to the next parameter.
  */
-StringParameter *StringParameters::GetNextParameterPointer()
+const StringParameter &StringParameters::GetNextParameterPointer()
 {
 	assert(this->next_type == 0 || (SCC_CONTROL_START <= this->next_type && this->next_type <= SCC_CONTROL_END));
 	if (this->offset >= this->parameters.size()) {
@@ -92,7 +92,7 @@ StringParameter *StringParameters::GetNextParameterPointer()
 	}
 	param.type = this->next_type;
 	this->next_type = 0;
-	return &param;
+	return param;
 }
 
 
@@ -271,14 +271,24 @@ void GetStringWithArgs(StringBuilder &builder, StringID string, StringParameters
 	switch (tab) {
 		case TEXT_TAB_TOWN:
 			if (index >= 0xC0 && !game_script) {
-				GetSpecialTownNameString(builder, index - 0xC0, args.GetNextParameter<uint32_t>());
+				try {
+					GetSpecialTownNameString(builder, index - 0xC0, args.GetNextParameter<uint32_t>());
+				} catch (std::runtime_error &e) {
+					Debug(misc, 0, "GetStringWithArgs: {}", e.what());
+					builder += "(invalid string parameter)";
+				}
 				return;
 			}
 			break;
 
 		case TEXT_TAB_SPECIAL:
 			if (index >= 0xE4 && !game_script) {
-				GetSpecialNameString(builder, index - 0xE4, args);
+				try {
+					GetSpecialNameString(builder, index - 0xE4, args);
+				} catch (std::runtime_error &e) {
+					Debug(misc, 0, "GetStringWithArgs: {}", e.what());
+					builder += "(invalid string parameter)";
+				}
 				return;
 			}
 			break;
