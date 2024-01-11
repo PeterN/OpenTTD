@@ -135,6 +135,7 @@ struct Company : CompanyProperties, CompanyPool::PoolItem<&_company_pool> {
 
 	std::array<GroupStatistics, VEH_COMPANY_END> group_all{}; ///< NOSAVE: Statistics for the ALL_GROUP group.
 	std::array<GroupStatistics, VEH_COMPANY_END> group_default{};  ///< NOSAVE: Statistics for the DEFAULT_GROUP group.
+	std::array<std::array<uint16_t, 2>, 2> num_road_veh{}; ///< NOSAVE: Number of road vehicles split by RoadTramType and Passenger/Freight.
 
 	CompanyInfrastructure infrastructure{}; ///< NOSAVE: Counts of company owned infrastructure.
 

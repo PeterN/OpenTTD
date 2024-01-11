@@ -19,6 +19,7 @@
 #include "core/pool_func.hpp"
 #include "order_backup.h"
 #include "group_cmd.h"
+#include "roadveh.h"
 
 #include "table/strings.h"
 
@@ -106,6 +107,10 @@ uint16_t GroupStatistics::GetNumEngines(EngineID engine) const
 			c->group_all[type].Clear();
 			c->group_default[type].Clear();
 		}
+		c->num_road_veh[RTT_ROAD][0] = 0;
+		c->num_road_veh[RTT_ROAD][1] = 0;
+		c->num_road_veh[RTT_TRAM][0] = 0;
+		c->num_road_veh[RTT_TRAM][1] = 0;
 	}
 
 	/* Recalculate */
@@ -141,6 +146,11 @@ uint16_t GroupStatistics::GetNumEngines(EngineID engine) const
 	stats_all.profit_last_year += v->GetDisplayProfitLastYear() * delta;
 	stats.num_vehicle += delta;
 	stats.profit_last_year += v->GetDisplayProfitLastYear() * delta;
+
+	if (v->type == VEH_ROAD) {
+		Company *c = Company::Get(v->owner);
+		c->num_road_veh[GetRoadTramType(RoadVehicle::From(v)->roadtype)][RoadVehicle::From(v)->IsBus()] += delta;
+	}
 
 	if (v->economy_age > VEHICLE_PROFIT_MIN_AGE) {
 		stats_all.num_vehicle_min_age += delta;
