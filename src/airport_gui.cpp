@@ -107,7 +107,7 @@ struct BuildAirToolbarWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		bool can_build = CanBuildVehicleInfrastructure(VEH_AIRCRAFT);
+		bool can_build = CanBuildVehicleInfrastructure(_local_company, VEH_AIRCRAFT);
 		this->SetWidgetDisabledState(WID_AT_AIRPORT, !can_build);
 		if (!can_build) {
 			CloseWindowById(WC_BUILD_STATION, TRANSPORT_AIR);

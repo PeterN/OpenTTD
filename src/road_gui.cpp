@@ -385,7 +385,7 @@ struct BuildRoadToolbarWindow : Window {
 
 		RoadTramType rtt = GetRoadTramType(this->roadtype);
 
-		bool can_build = CanBuildVehicleInfrastructure(VEH_ROAD, rtt);
+		bool can_build = CanBuildVehicleInfrastructure(_local_company, VEH_ROAD, rtt);
 		this->SetWidgetsDisabledState(!can_build,
 			WID_ROT_DEPOT,
 			WID_ROT_BUILD_WAYPOINT,

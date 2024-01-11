@@ -473,7 +473,7 @@ struct BuildRailToolbarWindow : Window {
 			return;
 		}
 
-		bool can_build = CanBuildVehicleInfrastructure(VEH_TRAIN);
+		bool can_build = CanBuildVehicleInfrastructure(_local_company, VEH_TRAIN);
 		for (const WidgetID widget : can_build_widgets) this->SetWidgetDisabledState(widget, !can_build);
 		if (!can_build) {
 			CloseWindowById(WC_BUILD_SIGNAL, TRANSPORT_RAIL);
@@ -486,7 +486,7 @@ struct BuildRailToolbarWindow : Window {
 
 	bool OnTooltip([[maybe_unused]] Point pt, WidgetID widget, TooltipCloseCondition close_cond) override
 	{
-		bool can_build = CanBuildVehicleInfrastructure(VEH_TRAIN);
+		bool can_build = CanBuildVehicleInfrastructure(_local_company, VEH_TRAIN);
 		if (can_build) return false;
 
 		if (std::ranges::find(can_build_widgets, widget) == std::end(can_build_widgets)) return false;
