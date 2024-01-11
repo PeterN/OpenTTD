@@ -1345,6 +1345,9 @@ CommandCost CmdBuildRailStation(DoCommandFlags flags, TileIndex tile_org, RailTy
 
 	if (!ValParamRailType(rt) || !IsValidAxis(axis)) return CMD_ERROR;
 
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_TRAIN);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	/* Check if the given station class is valid */
 	if (static_cast<uint>(spec_class) >= StationClass::GetClassCount()) return CMD_ERROR;
 	const StationClass *cls = StationClass::Get(spec_class);
@@ -1965,6 +1968,9 @@ CommandCost CmdBuildRoadStop(DoCommandFlags flags, TileIndex tile, uint8_t width
 	if (!reuse) station_to_join = StationID::Invalid();
 	bool distant_join = (station_to_join != StationID::Invalid());
 
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_ROAD, GetRoadTramType(rt));
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	/* Check if the given station class is valid */
 	if (static_cast<uint>(spec_class) >= RoadStopClass::GetClassCount()) return CMD_ERROR;
 	const RoadStopClass *cls = RoadStopClass::Get(spec_class);
@@ -2524,6 +2530,9 @@ CommandCost CmdBuildAirport(DoCommandFlags flags, TileIndex tile, uint8_t airpor
 	if (!reuse) station_to_join = StationID::Invalid();
 	bool distant_join = (station_to_join != StationID::Invalid());
 
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_AIRCRAFT);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 
 	if (airport_type >= NUM_AIRPORTS) return CMD_ERROR;
@@ -2788,6 +2797,9 @@ CommandCost CmdBuildDock(DoCommandFlags flags, TileIndex tile, StationID station
 	bool reuse = (station_to_join != NEW_STATION);
 	if (!reuse) station_to_join = StationID::Invalid();
 	bool distant_join = (station_to_join != StationID::Invalid());
+
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_SHIP);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
 
 	if (distant_join && (!_settings_game.station.distant_join_stations || !Station::IsValidID(station_to_join))) return CMD_ERROR;
 

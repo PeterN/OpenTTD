@@ -429,6 +429,9 @@ CommandCost CmdBuildSingleRail(DoCommandFlags flags, TileIndex tile, RailType ra
 
 	if (!ValParamRailType(railtype) || !ValParamTrackOrientation(track)) return CMD_ERROR;
 
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_TRAIN);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	Slope tileh = GetTileSlope(tile);
 	TrackBits trackbit = TrackToTrackBits(track);
 
@@ -965,6 +968,9 @@ CommandCost CmdBuildTrainDepot(DoCommandFlags flags, TileIndex tile, RailType ra
 	/* check railtype and valid direction for depot (0 through 3), 4 in total */
 	if (!ValParamRailType(railtype) || !IsValidDiagDirection(dir)) return CMD_ERROR;
 
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_TRAIN);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	Slope tileh = GetTileSlope(tile);
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
@@ -1060,6 +1066,10 @@ CommandCost CmdBuildSingleSignal(DoCommandFlags flags, TileIndex tile, Track tra
 			!HasTrack(tile, track)) {
 		return CommandCost(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
+
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_TRAIN);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	/* Protect against invalid signal copying */
 	if (signals_copy != 0 && (signals_copy & SignalOnTrack(track)) == 0) return CMD_ERROR;
 

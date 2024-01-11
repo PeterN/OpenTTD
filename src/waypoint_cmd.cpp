@@ -202,6 +202,10 @@ extern CommandCost RemoveRoadWaypointStop(TileIndex tile, DoCommandFlags flags, 
 CommandCost CmdBuildRailWaypoint(DoCommandFlags flags, TileIndex start_tile, Axis axis, uint8_t width, uint8_t height, StationClassID spec_class, uint16_t spec_index, StationID station_to_join, bool adjacent)
 {
 	if (!IsValidAxis(axis)) return CMD_ERROR;
+
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_TRAIN);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	/* Check if the given station class is valid */
 	if (static_cast<uint>(spec_class) >= StationClass::GetClassCount()) return CMD_ERROR;
 	const StationClass *cls = StationClass::Get(spec_class);
@@ -334,6 +338,10 @@ CommandCost CmdBuildRailWaypoint(DoCommandFlags flags, TileIndex start_tile, Axi
 CommandCost CmdBuildRoadWaypoint(DoCommandFlags flags, TileIndex start_tile, Axis axis, uint8_t width, uint8_t height, RoadStopClassID spec_class, uint16_t spec_index, StationID station_to_join, bool adjacent)
 {
 	if (!IsValidAxis(axis)) return CMD_ERROR;
+
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_ROAD, RoadTramType::RTT_ROAD) || CanBuildVehicleInfrastructure(_current_company, VEH_ROAD, RoadTramType::RTT_TRAM);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	/* Check if the given station class is valid */
 	if (static_cast<uint>(spec_class) >= RoadStopClass::GetClassCount()) return CMD_ERROR;
 	const RoadStopClass *cls = RoadStopClass::Get(spec_class);
@@ -466,6 +474,9 @@ CommandCost CmdBuildRoadWaypoint(DoCommandFlags flags, TileIndex start_tile, Axi
  */
 CommandCost CmdBuildBuoy(DoCommandFlags flags, TileIndex tile)
 {
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_SHIP);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	if (tile == 0 || !HasTileWaterGround(tile)) return CommandCost(STR_ERROR_SITE_UNSUITABLE);
 	if (IsBridgeAbove(tile)) return CommandCost(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 

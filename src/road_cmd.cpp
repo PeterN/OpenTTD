@@ -635,6 +635,11 @@ CommandCost CmdBuildRoad(DoCommandFlags flags, TileIndex tile, RoadBits pieces, 
 	if (pieces == ROAD_NONE || !IsValidRoadBits(pieces) || !IsValidDisallowedRoadDirections(toggle_drd)) return CMD_ERROR;
 	if (!ValParamRoadType(rt)) return CMD_ERROR;
 
+	if (Company::IsValidID(company)) {
+		bool can_build = CanBuildVehicleInfrastructure(company, VEH_ROAD, GetRoadTramType(rt));
+		if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+	}
+
 	Slope tileh = GetTileSlope(tile);
 	RoadTramType rtt = GetRoadTramType(rt);
 
@@ -981,6 +986,9 @@ CommandCost CmdBuildLongRoad(DoCommandFlags flags, TileIndex end_tile, TileIndex
 
 	if (!ValParamRoadType(rt) || !IsValidAxis(axis) || !IsValidDisallowedRoadDirections(drd)) return CMD_ERROR;
 
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_ROAD, GetRoadTramType(rt));
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	/* Only drag in X or Y direction dictated by the direction variable */
 	if (axis == AXIS_X && TileY(start_tile) != TileY(end_tile)) return CMD_ERROR; // x-axis
 	if (axis == AXIS_Y && TileX(start_tile) != TileX(end_tile)) return CMD_ERROR; // y-axis
@@ -1148,6 +1156,9 @@ std::tuple<CommandCost, Money> CmdRemoveLongRoad(DoCommandFlags flags, TileIndex
 CommandCost CmdBuildRoadDepot(DoCommandFlags flags, TileIndex tile, RoadType rt, DiagDirection dir)
 {
 	if (!ValParamRoadType(rt) || !IsValidDiagDirection(dir)) return CMD_ERROR;
+
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_ROAD, GetRoadTramType(rt));
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 

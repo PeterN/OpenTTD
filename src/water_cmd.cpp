@@ -114,6 +114,9 @@ CommandCost CmdBuildShipDepot(DoCommandFlags flags, TileIndex tile, Axis axis)
 	if (!IsValidAxis(axis)) return CMD_ERROR;
 	TileIndex tile2 = tile + TileOffsByAxis(axis);
 
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_SHIP);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	if (!HasTileWaterGround(tile) || !HasTileWaterGround(tile2)) {
 		return CommandCost(STR_ERROR_MUST_BE_BUILT_ON_WATER);
 	}
@@ -436,6 +439,9 @@ CommandCost CmdBuildLock(DoCommandFlags flags, TileIndex tile)
 	DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
 	if (dir == INVALID_DIAGDIR) return CommandCost(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 
+	bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_SHIP);
+	if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+
 	return DoBuildLock(tile, dir, flags);
 }
 
@@ -474,6 +480,11 @@ CommandCost CmdBuildCanal(DoCommandFlags flags, TileIndex tile, TileIndex start_
 
 	/* Outside of the editor you can only build canals, not oceans */
 	if (wc != WATER_CLASS_CANAL && _game_mode != GM_EDITOR) return CMD_ERROR;
+
+	if (wc == WATER_CLASS_CANAL && _game_mode != GM_EDITOR) {
+		bool can_build = CanBuildVehicleInfrastructure(_current_company, VEH_SHIP);
+		if (!can_build) return CommandCost(STR_TOOLBAR_DISABLED_NO_VEHICLE_AVAILABLE);
+	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 
