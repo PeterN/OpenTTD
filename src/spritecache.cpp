@@ -192,25 +192,25 @@ uint GetMaxSpriteID()
 	return (uint)_spritecache.size();
 }
 
-static bool ResizeSpriteIn(SpriteLoader::SpriteCollection &sprite, ZoomLevel src, ZoomLevel tgt)
+static bool ResizeSpriteIn(SpriteLoader::SpriteCollection &spritecollection, ZoomLevel src, ZoomLevel tgt)
 {
 	uint8_t scaled_1 = ScaleByZoom(1, (ZoomLevel)(src - tgt));
 
 	/* Check for possible memory overflow. */
-	if (sprite[src].width * scaled_1 > UINT16_MAX || sprite[src].height * scaled_1 > UINT16_MAX) return false;
+	if (spritecollection[src].width * scaled_1 > UINT16_MAX || spritecollection[src].height * scaled_1 > UINT16_MAX) return false;
 
-	sprite[tgt].width  = sprite[src].width  * scaled_1;
-	sprite[tgt].height = sprite[src].height * scaled_1;
-	sprite[tgt].x_offs = sprite[src].x_offs * scaled_1;
-	sprite[tgt].y_offs = sprite[src].y_offs * scaled_1;
-	sprite[tgt].colours = sprite[src].colours;
+	spritecollection[tgt].width  = spritecollection[src].width  * scaled_1;
+	spritecollection[tgt].height = spritecollection[src].height * scaled_1;
+	spritecollection[tgt].x_offs = spritecollection[src].x_offs * scaled_1;
+	spritecollection[tgt].y_offs = spritecollection[src].y_offs * scaled_1;
+	spritecollection[tgt].colours = spritecollection[src].colours;
 
-	sprite[tgt].AllocateData(tgt, static_cast<size_t>(sprite[tgt].width) * sprite[tgt].height);
+	spritecollection[tgt].AllocateData(tgt, static_cast<size_t>(spritecollection[tgt].width) * spritecollection[tgt].height);
 
-	SpriteLoader::CommonPixel *dst = sprite[tgt].data;
-	for (int y = 0; y < sprite[tgt].height; y++) {
-		const SpriteLoader::CommonPixel *src_ln = &sprite[src].data[y / scaled_1 * sprite[src].width];
-		for (int x = 0; x < sprite[tgt].width; x++) {
+	SpriteLoader::CommonPixel *dst = spritecollection[tgt].data;
+	for (int y = 0; y < spritecollection[tgt].height; y++) {
+		const SpriteLoader::CommonPixel *src_ln = &spritecollection[src].data[y / scaled_1 * spritecollection[src].width];
+		for (int x = 0; x < spritecollection[tgt].width; x++) {
 			*dst = src_ln[x / scaled_1];
 			dst++;
 		}
@@ -219,25 +219,25 @@ static bool ResizeSpriteIn(SpriteLoader::SpriteCollection &sprite, ZoomLevel src
 	return true;
 }
 
-static void ResizeSpriteOut(SpriteLoader::SpriteCollection &sprite, ZoomLevel zoom)
+static void ResizeSpriteOut(SpriteLoader::SpriteCollection &spritecollection, ZoomLevel zoom)
 {
 	/* Algorithm based on 32bpp_Optimized::ResizeSprite() */
-	sprite[zoom].width  = UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].width,  zoom);
-	sprite[zoom].height = UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].height, zoom);
-	sprite[zoom].x_offs = UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].x_offs, zoom);
-	sprite[zoom].y_offs = UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].y_offs, zoom);
-	sprite[zoom].colours = sprite[ZOOM_LVL_NORMAL].colours;
+	spritecollection[zoom].width  = UnScaleByZoom(spritecollection[ZOOM_LVL_NORMAL].width,  zoom);
+	spritecollection[zoom].height = UnScaleByZoom(spritecollection[ZOOM_LVL_NORMAL].height, zoom);
+	spritecollection[zoom].x_offs = UnScaleByZoom(spritecollection[ZOOM_LVL_NORMAL].x_offs, zoom);
+	spritecollection[zoom].y_offs = UnScaleByZoom(spritecollection[ZOOM_LVL_NORMAL].y_offs, zoom);
+	spritecollection[zoom].colours = spritecollection[ZOOM_LVL_NORMAL].colours;
 
-	sprite[zoom].AllocateData(zoom, static_cast<size_t>(sprite[zoom].height) * sprite[zoom].width);
+	spritecollection[zoom].AllocateData(zoom, static_cast<size_t>(spritecollection[zoom].height) * spritecollection[zoom].width);
 
-	SpriteLoader::CommonPixel *dst = sprite[zoom].data;
-	const SpriteLoader::CommonPixel *src = sprite[zoom - 1].data;
-	[[maybe_unused]] const SpriteLoader::CommonPixel *src_end = src + sprite[zoom - 1].height * sprite[zoom - 1].width;
+	SpriteLoader::CommonPixel *dst = spritecollection[zoom].data;
+	const SpriteLoader::CommonPixel *src = spritecollection[zoom - 1].data;
+	[[maybe_unused]] const SpriteLoader::CommonPixel *src_end = src + spritecollection[zoom - 1].height * spritecollection[zoom - 1].width;
 
-	for (uint y = 0; y < sprite[zoom].height; y++) {
-		const SpriteLoader::CommonPixel *src_ln = src + sprite[zoom - 1].width;
+	for (uint y = 0; y < spritecollection[zoom].height; y++) {
+		const SpriteLoader::CommonPixel *src_ln = src + spritecollection[zoom - 1].width;
 		assert(src_ln <= src_end);
-		for (uint x = 0; x < sprite[zoom].width; x++) {
+		for (uint x = 0; x < spritecollection[zoom].width; x++) {
 			assert(src < src_ln);
 			if (src + 1 != src_ln && (src + 1)->a != 0) {
 				*dst = *(src + 1);
@@ -247,7 +247,7 @@ static void ResizeSpriteOut(SpriteLoader::SpriteCollection &sprite, ZoomLevel zo
 			dst++;
 			src += 2;
 		}
-		src = src_ln + sprite[zoom - 1].width;
+		src = src_ln + spritecollection[zoom - 1].width;
 	}
 }
 
@@ -302,15 +302,15 @@ static bool PadSingleSprite(SpriteLoader::Sprite *sprite, ZoomLevel zoom, uint p
 	return true;
 }
 
-static bool PadSprites(SpriteLoader::SpriteCollection &sprite, uint8_t sprite_avail, SpriteEncoder *encoder)
+static bool PadSprites(SpriteLoader::SpriteCollection &spritecollection, uint8_t sprite_avail, SpriteEncoder *encoder)
 {
 	/* Get minimum top left corner coordinates. */
 	int min_xoffs = INT32_MAX;
 	int min_yoffs = INT32_MAX;
 	for (ZoomLevel zoom = ZOOM_LVL_BEGIN; zoom != ZOOM_LVL_END; zoom++) {
 		if (HasBit(sprite_avail, zoom)) {
-			min_xoffs = std::min(min_xoffs, ScaleByZoom(sprite[zoom].x_offs, zoom));
-			min_yoffs = std::min(min_yoffs, ScaleByZoom(sprite[zoom].y_offs, zoom));
+			min_xoffs = std::min(min_xoffs, ScaleByZoom(spritecollection[zoom].x_offs, zoom));
+			min_yoffs = std::min(min_yoffs, ScaleByZoom(spritecollection[zoom].y_offs, zoom));
 		}
 	}
 
@@ -319,8 +319,8 @@ static bool PadSprites(SpriteLoader::SpriteCollection &sprite, uint8_t sprite_av
 	int max_height = INT32_MIN;
 	for (ZoomLevel zoom = ZOOM_LVL_BEGIN; zoom != ZOOM_LVL_END; zoom++) {
 		if (HasBit(sprite_avail, zoom)) {
-			max_width  = std::max(max_width, ScaleByZoom(sprite[zoom].width + sprite[zoom].x_offs - UnScaleByZoom(min_xoffs, zoom), zoom));
-			max_height = std::max(max_height, ScaleByZoom(sprite[zoom].height + sprite[zoom].y_offs - UnScaleByZoom(min_yoffs, zoom), zoom));
+			max_width  = std::max(max_width, ScaleByZoom(spritecollection[zoom].width + spritecollection[zoom].x_offs - UnScaleByZoom(min_xoffs, zoom), zoom));
+			max_height = std::max(max_height, ScaleByZoom(spritecollection[zoom].height + spritecollection[zoom].y_offs - UnScaleByZoom(min_yoffs, zoom), zoom));
 		}
 	}
 
@@ -336,13 +336,13 @@ static bool PadSprites(SpriteLoader::SpriteCollection &sprite, uint8_t sprite_av
 		if (HasBit(sprite_avail, zoom)) {
 			/* Scaling the sprite dimensions in the blitter is done with rounding up,
 			 * so a negative padding here is not an error. */
-			int pad_left   = std::max(0, sprite[zoom].x_offs - UnScaleByZoom(min_xoffs, zoom));
-			int pad_top    = std::max(0, sprite[zoom].y_offs - UnScaleByZoom(min_yoffs, zoom));
-			int pad_right  = std::max(0, UnScaleByZoom(max_width, zoom) - sprite[zoom].width - pad_left);
-			int pad_bottom = std::max(0, UnScaleByZoom(max_height, zoom) - sprite[zoom].height - pad_top);
+			int pad_left   = std::max(0, spritecollection[zoom].x_offs - UnScaleByZoom(min_xoffs, zoom));
+			int pad_top    = std::max(0, spritecollection[zoom].y_offs - UnScaleByZoom(min_yoffs, zoom));
+			int pad_right  = std::max(0, UnScaleByZoom(max_width, zoom) - spritecollection[zoom].width - pad_left);
+			int pad_bottom = std::max(0, UnScaleByZoom(max_height, zoom) - spritecollection[zoom].height - pad_top);
 
 			if (pad_left > 0 || pad_right > 0 || pad_top > 0 || pad_bottom > 0) {
-				if (!PadSingleSprite(&sprite[zoom], zoom, pad_left, pad_top, pad_right, pad_bottom)) return false;
+				if (!PadSingleSprite(&spritecollection[zoom], zoom, pad_left, pad_top, pad_right, pad_bottom)) return false;
 			}
 		}
 	}
@@ -350,36 +350,36 @@ static bool PadSprites(SpriteLoader::SpriteCollection &sprite, uint8_t sprite_av
 	return true;
 }
 
-static bool ResizeSprites(SpriteLoader::SpriteCollection &sprite, uint8_t sprite_avail, SpriteEncoder *encoder)
+static bool ResizeSprites(SpriteLoader::SpriteCollection &spritecollection, uint8_t sprite_avail, SpriteEncoder *encoder)
 {
 	/* Create a fully zoomed image if it does not exist */
 	ZoomLevel first_avail = static_cast<ZoomLevel>(FindFirstBit(sprite_avail));
 	if (first_avail != ZOOM_LVL_NORMAL) {
-		if (!ResizeSpriteIn(sprite, first_avail, ZOOM_LVL_NORMAL)) return false;
+		if (!ResizeSpriteIn(spritecollection, first_avail, ZOOM_LVL_NORMAL)) return false;
 		SetBit(sprite_avail, ZOOM_LVL_NORMAL);
 	}
 
 	/* Pad sprites to make sizes match. */
-	if (!PadSprites(sprite, sprite_avail, encoder)) return false;
+	if (!PadSprites(spritecollection, sprite_avail, encoder)) return false;
 
 	/* Create other missing zoom levels */
 	for (ZoomLevel zoom = ZOOM_LVL_OUT_2X; zoom != ZOOM_LVL_END; zoom++) {
 		if (HasBit(sprite_avail, zoom)) {
 			/* Check that size and offsets match the fully zoomed image. */
-			assert(sprite[zoom].width  == UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].width,  zoom));
-			assert(sprite[zoom].height == UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].height, zoom));
-			assert(sprite[zoom].x_offs == UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].x_offs, zoom));
-			assert(sprite[zoom].y_offs == UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].y_offs, zoom));
+			assert(spritecollection[zoom].width  == UnScaleByZoom(spritecollection[ZOOM_LVL_NORMAL].width,  zoom));
+			assert(spritecollection[zoom].height == UnScaleByZoom(spritecollection[ZOOM_LVL_NORMAL].height, zoom));
+			assert(spritecollection[zoom].x_offs == UnScaleByZoom(spritecollection[ZOOM_LVL_NORMAL].x_offs, zoom));
+			assert(spritecollection[zoom].y_offs == UnScaleByZoom(spritecollection[ZOOM_LVL_NORMAL].y_offs, zoom));
 		}
 
 		/* Zoom level is not available, or unusable, so create it */
-		if (!HasBit(sprite_avail, zoom)) ResizeSpriteOut(sprite, zoom);
+		if (!HasBit(sprite_avail, zoom)) ResizeSpriteOut(spritecollection, zoom);
 	}
 
 	/* Upscale to desired sprite_min_zoom if provided sprite only had zoomed in versions. */
 	if (first_avail < _settings_client.gui.sprite_zoom_min) {
-		if (_settings_client.gui.sprite_zoom_min >= ZOOM_LVL_OUT_4X) ResizeSpriteIn(sprite, ZOOM_LVL_OUT_4X, ZOOM_LVL_OUT_2X);
-		if (_settings_client.gui.sprite_zoom_min >= ZOOM_LVL_OUT_2X) ResizeSpriteIn(sprite, ZOOM_LVL_OUT_2X, ZOOM_LVL_NORMAL);
+		if (_settings_client.gui.sprite_zoom_min >= ZOOM_LVL_OUT_4X) ResizeSpriteIn(spritecollection, ZOOM_LVL_OUT_4X, ZOOM_LVL_OUT_2X);
+		if (_settings_client.gui.sprite_zoom_min >= ZOOM_LVL_OUT_2X) ResizeSpriteIn(spritecollection, ZOOM_LVL_OUT_2X, ZOOM_LVL_NORMAL);
 	}
 
 	return  true;

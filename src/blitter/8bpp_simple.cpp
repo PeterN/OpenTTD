@@ -61,19 +61,19 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 	}
 }
 
-Sprite *Blitter_8bppSimple::Encode(const SpriteLoader::SpriteCollection &sprite, SpriteAllocator &allocator)
+Sprite *Blitter_8bppSimple::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
 	Sprite *dest_sprite;
-	dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + (size_t)sprite[ZOOM_LVL_NORMAL].height * (size_t)sprite[ZOOM_LVL_NORMAL].width);
+	dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + (size_t)spritecollection[ZOOM_LVL_NORMAL].height * (size_t)spritecollection[ZOOM_LVL_NORMAL].width);
 
-	dest_sprite->height = sprite[ZOOM_LVL_NORMAL].height;
-	dest_sprite->width  = sprite[ZOOM_LVL_NORMAL].width;
-	dest_sprite->x_offs = sprite[ZOOM_LVL_NORMAL].x_offs;
-	dest_sprite->y_offs = sprite[ZOOM_LVL_NORMAL].y_offs;
+	dest_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
+	dest_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
+	dest_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
+	dest_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
 
 	/* Copy over only the 'remap' channel, as that is what we care about in 8bpp */
-	for (int i = 0; i < sprite[ZOOM_LVL_NORMAL].height * sprite[ZOOM_LVL_NORMAL].width; i++) {
-		dest_sprite->data[i] = sprite[ZOOM_LVL_NORMAL].data[i].m;
+	for (int i = 0; i < spritecollection[ZOOM_LVL_NORMAL].height * spritecollection[ZOOM_LVL_NORMAL].width; i++) {
+		dest_sprite->data[i] = spritecollection[ZOOM_LVL_NORMAL].data[i].m;
 	}
 
 	return dest_sprite;

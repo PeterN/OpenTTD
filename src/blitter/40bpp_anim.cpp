@@ -397,9 +397,9 @@ void Blitter_40bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 	}
 }
 
-Sprite *Blitter_40bppAnim::Encode(const SpriteLoader::SpriteCollection &sprite, SpriteAllocator &allocator)
+Sprite *Blitter_40bppAnim::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
-	return this->EncodeInternal<false>(sprite, allocator);
+	return this->EncodeInternal<false>(spritecollection, allocator);
 }
 
 

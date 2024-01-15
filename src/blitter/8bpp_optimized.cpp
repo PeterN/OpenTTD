@@ -120,7 +120,7 @@ void Blitter_8bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Z
 	}
 }
 
-Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &sprite, SpriteAllocator &allocator)
+Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
 	/* Make memory for all zoom-levels */
 	uint memory = sizeof(SpriteData);
@@ -128,7 +128,7 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 	ZoomLevel zoom_min;
 	ZoomLevel zoom_max;
 
-	if (sprite[ZOOM_LVL_NORMAL].type == SpriteType::Font) {
+	if (spritecollection[ZOOM_LVL_NORMAL].type == SpriteType::Font) {
 		zoom_min = ZOOM_LVL_NORMAL;
 		zoom_max = ZOOM_LVL_NORMAL;
 	} else {
@@ -138,7 +138,7 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 	}
 
 	for (ZoomLevel i = zoom_min; i <= zoom_max; i++) {
-		memory += sprite[i].width * sprite[i].height;
+		memory += spritecollection[i].width * spritecollection[i].height;
 	}
 
 	/* We have no idea how much memory we really need, so just guess something */
@@ -159,8 +159,8 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 		temp_dst->offset[i] = offset;
 
 		/* cache values, because compiler can't cache it */
-		int scaled_height = sprite[i].height;
-		int scaled_width  = sprite[i].width;
+		int scaled_height = spritecollection[i].height;
+		int scaled_width  = spritecollection[i].width;
 
 		for (int y = 0; y < scaled_height; y++) {
 			uint trans = 0;
@@ -169,7 +169,7 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 			byte *count_dst = nullptr;
 
 			/* Store the scaled image */
-			const SpriteLoader::CommonPixel *src = &sprite[i].data[y * sprite[i].width];
+			const SpriteLoader::CommonPixel *src = &spritecollection[i].data[y * spritecollection[i].width];
 
 			for (int x = 0; x < scaled_width; x++) {
 				uint colour = src++->m;
@@ -221,10 +221,10 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 	/* Allocate the exact amount of memory we need */
 	Sprite *dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + size);
 
-	dest_sprite->height = sprite[ZOOM_LVL_NORMAL].height;
-	dest_sprite->width  = sprite[ZOOM_LVL_NORMAL].width;
-	dest_sprite->x_offs = sprite[ZOOM_LVL_NORMAL].x_offs;
-	dest_sprite->y_offs = sprite[ZOOM_LVL_NORMAL].y_offs;
+	dest_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
+	dest_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
+	dest_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
+	dest_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
 	memcpy(dest_sprite->data, temp_dst, size);
 
 	return dest_sprite;

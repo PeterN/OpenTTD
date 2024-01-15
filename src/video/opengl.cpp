@@ -1265,23 +1265,23 @@ void OpenGLBackend::ReleaseAnimBuffer(const Rect &update_rect)
 	}
 }
 
-/* virtual */ Sprite *OpenGLBackend::Encode(const SpriteLoader::SpriteCollection &sprite, SpriteAllocator &allocator)
+/* virtual */ Sprite *OpenGLBackend::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
 	/* Allocate and construct sprite data. */
 	Sprite *dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + sizeof(OpenGLSprite));
 
 	OpenGLSprite *gl_sprite = (OpenGLSprite *)dest_sprite->data;
-	new (gl_sprite) OpenGLSprite(sprite[ZOOM_LVL_NORMAL].width, sprite[ZOOM_LVL_NORMAL].height, sprite[ZOOM_LVL_NORMAL].type == SpriteType::Font ? 1 : ZOOM_LVL_END, sprite[ZOOM_LVL_NORMAL].colours);
+	new (gl_sprite) OpenGLSprite(spritecollection[ZOOM_LVL_NORMAL].width, spritecollection[ZOOM_LVL_NORMAL].height, spritecollection[ZOOM_LVL_NORMAL].type == SpriteType::Font ? 1 : ZOOM_LVL_END, spritecollection[ZOOM_LVL_NORMAL].colours);
 
 	/* Upload texture data. */
-	for (int i = 0; i < (sprite[ZOOM_LVL_NORMAL].type == SpriteType::Font ? 1 : ZOOM_LVL_END); i++) {
-		gl_sprite->Update(sprite[i].width, sprite[i].height, i, sprite[i].data);
+	for (int i = 0; i < (spritecollection[ZOOM_LVL_NORMAL].type == SpriteType::Font ? 1 : ZOOM_LVL_END); i++) {
+		gl_sprite->Update(spritecollection[i].width, spritecollection[i].height, i, spritecollection[i].data);
 	}
 
-	dest_sprite->height = sprite[ZOOM_LVL_NORMAL].height;
-	dest_sprite->width  = sprite[ZOOM_LVL_NORMAL].width;
-	dest_sprite->x_offs = sprite[ZOOM_LVL_NORMAL].x_offs;
-	dest_sprite->y_offs = sprite[ZOOM_LVL_NORMAL].y_offs;
+	dest_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
+	dest_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
+	dest_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
+	dest_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
 
 	return dest_sprite;
 }

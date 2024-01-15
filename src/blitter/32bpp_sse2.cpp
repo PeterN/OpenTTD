@@ -20,7 +20,7 @@
 /** Instantiation of the SSE2 32bpp blitter factory. */
 static FBlitter_32bppSSE2 iFBlitter_32bppSSE2;
 
-Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &sprite, SpriteAllocator &allocator)
+Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
 	/* First uint32_t of a line = the number of transparent pixels from the left.
 	 * Second uint32_t of a line = the number of transparent pixels from the right.
@@ -28,7 +28,7 @@ Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &spri
 	 */
 	ZoomLevel zoom_min = ZOOM_LVL_NORMAL;
 	ZoomLevel zoom_max = ZOOM_LVL_NORMAL;
-	if (sprite[ZOOM_LVL_NORMAL].type != SpriteType::Font) {
+	if (spritecollection[ZOOM_LVL_NORMAL].type != SpriteType::Font) {
 		zoom_min = _settings_client.gui.zoom_min;
 		zoom_max = _settings_client.gui.zoom_max;
 		if (zoom_max == zoom_min) zoom_max = ZOOM_LVL_MAX;
@@ -39,7 +39,7 @@ Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &spri
 	memset(&sd, 0, sizeof(sd));
 	uint all_sprites_size = 0;
 	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
-		const SpriteLoader::Sprite *src_sprite = &sprite[z];
+		const SpriteLoader::Sprite *src_sprite = &spritecollection[z];
 		sd.infos[z].sprite_width = src_sprite->width;
 		sd.infos[z].sprite_offset = all_sprites_size;
 		sd.infos[z].sprite_line_size = sizeof(Colour) * src_sprite->width + sizeof(uint32_t) * META_LENGTH;
@@ -52,10 +52,10 @@ Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &spri
 	}
 
 	Sprite *dst_sprite = (Sprite *)allocator.Allocate(sizeof(Sprite) + sizeof(SpriteData) + all_sprites_size);
-	dst_sprite->height = sprite[ZOOM_LVL_NORMAL].height;
-	dst_sprite->width  = sprite[ZOOM_LVL_NORMAL].width;
-	dst_sprite->x_offs = sprite[ZOOM_LVL_NORMAL].x_offs;
-	dst_sprite->y_offs = sprite[ZOOM_LVL_NORMAL].y_offs;
+	dst_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
+	dst_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
+	dst_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
+	dst_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
 	memcpy(dst_sprite->data, &sd, sizeof(SpriteData));
 
 	/* Copy colours and determine flags. */
@@ -63,7 +63,7 @@ Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &spri
 	bool has_anim = false;
 	bool has_translucency = false;
 	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
-		const SpriteLoader::Sprite *src_sprite = &sprite[z];
+		const SpriteLoader::Sprite *src_sprite = &spritecollection[z];
 		const SpriteLoader::CommonPixel *src = (const SpriteLoader::CommonPixel *) src_sprite->data;
 		Colour *dst_rgba_line = (Colour *) &dst_sprite->data[sizeof(SpriteData) + sd.infos[z].sprite_offset];
 		MapValue *dst_mv = (MapValue *) &dst_sprite->data[sizeof(SpriteData) + sd.infos[z].mv_offset];
