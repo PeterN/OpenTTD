@@ -1492,17 +1492,13 @@ NetworkCompanyStatsArray NetworkGetCompanyStats()
 	NetworkCompanyStatsArray stats = {};
 
 	/* Go through all vehicles and count the type of vehicles */
-	for (const Vehicle *v : Vehicle::Iterate()) {
-		if (!Company::IsValidID(v->owner) || !v->IsPrimaryVehicle()) continue;
-		uint8_t type = 0;
-		switch (v->type) {
-			case VEH_TRAIN: type = NETWORK_VEH_TRAIN; break;
-			case VEH_ROAD: type = RoadVehicle::From(v)->IsBus() ? NETWORK_VEH_BUS : NETWORK_VEH_LORRY; break;
-			case VEH_AIRCRAFT: type = NETWORK_VEH_PLANE; break;
-			case VEH_SHIP: type = NETWORK_VEH_SHIP; break;
-			default: continue;
-		}
-		stats[v->owner].num_vehicle[type]++;
+	for (const Company *c : Company::Iterate()) {
+		NetworkCompanyStats &npi = stats[c->index];
+		npi.num_vehicle[NETWORK_VEH_TRAIN] = c->group_all[VEH_TRAIN].num_vehicle;
+		npi.num_vehicle[NETWORK_VEH_BUS] = c->num_road_veh[RTT_ROAD][1] + c->num_road_veh[RTT_TRAM][1];
+		npi.num_vehicle[NETWORK_VEH_LORRY] = c->num_road_veh[RTT_ROAD][0] + c->num_road_veh[RTT_TRAM][0];
+		npi.num_vehicle[NETWORK_VEH_PLANE] = c->group_all[VEH_AIRCRAFT].num_vehicle;
+		npi.num_vehicle[NETWORK_VEH_SHIP] = c->group_all[VEH_SHIP].num_vehicle;
 	}
 
 	/* Go through all stations and count the types of stations */
