@@ -48,7 +48,7 @@ static bool WarnCorruptSprite(const SpriteFile &file, size_t file_pos, int line)
 	return false;
 }
 
-bool DecodeSvgSprite(SpriteLoader::Sprite *sprite, SpriteFile &file, size_t file_pos, SpriteType sprite_type, int64_t num)
+bool DecodeSvgSprite(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, size_t file_pos, SpriteType sprite_type, int64_t num)
 {
 	if (num < 0 || num > 64 * 1024 * 1024) return WarnCorruptSprite(file, file_pos, __LINE__);
 
@@ -72,10 +72,10 @@ bool DecodeSvgSprite(SpriteLoader::Sprite *sprite, SpriteFile &file, size_t file
 
 		nsvgRasterize(rast, image, sprite[zoom_lvl].width, sprite[zoom_lvl].height, (float)sprite[zoom_lvl].width / (float)sprite[0].width, img.get(), w, h, w * 4);
 
-		sprite->AllocateData(zoom_lvl, static_cast<size_t>(w) * h);
+		sprite[zoom_lvl].AllocateData(zoom_lvl, static_cast<size_t>(w) * h);
 
 		/* Copy from 32bpp to CommonPixel. */
-		SpriteLoader::CommonPixel *dst = sprite->data;
+		SpriteLoader::CommonPixel *dst = sprite[zoom_lvl].data;
 		byte *src = img.get();
 		byte *src_end = img.get() + (static_cast<size_t>(w) * h * 4);
 		while (src < src_end) {
