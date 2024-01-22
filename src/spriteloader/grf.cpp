@@ -70,14 +70,14 @@ bool DecodeSvgSprite(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, s
 		const int w = sprite[zoom_lvl].width;
 		const int h = sprite[zoom_lvl].height;
 
-		nsvgRasterize(rast, image, sprite[zoom_lvl].width, sprite[zoom_lvl].height, (float)sprite[zoom_lvl].width / (float)sprite[0].width, img.get(), w, h, w * 4);
+		nsvgRasterize(rast, image, 0, 0, (float)sprite[zoom_lvl].width / (float)sprite[0].width * ZOOM_LVL_BASE, img.get(), w, h, w * 4);
 
 		sprite[zoom_lvl].AllocateData(zoom_lvl, static_cast<size_t>(w) * h);
 
 		/* Copy from 32bpp to CommonPixel. */
 		SpriteLoader::CommonPixel *dst = sprite[zoom_lvl].data;
-		byte *src = img.get();
-		byte *src_end = img.get() + (static_cast<size_t>(w) * h * 4);
+		const byte *src = img.get();
+		const byte *src_end = img.get() + (static_cast<size_t>(w) * h * 4);
 		while (src < src_end) {
 			dst->r = *src++;
 			dst->g = *src++;
@@ -325,10 +325,10 @@ uint8_t LoadSpriteV2(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, s
 
 		if (type == 0xFE) {
 			file.ReadByte(); // Zoom is not needed
-			sprite[0].height = file.ReadWord();
-			sprite[0].width  = file.ReadWord();
-			sprite[0].x_offs = file.ReadWord();
-			sprite[0].y_offs = file.ReadWord();
+			sprite[0].height = file.ReadWord() * ZOOM_LVL_BASE;
+			sprite[0].width  = file.ReadWord() * ZOOM_LVL_BASE;
+			sprite[0].x_offs = file.ReadWord() * ZOOM_LVL_BASE;
+			sprite[0].y_offs = file.ReadWord() * ZOOM_LVL_BASE;
 
 			bool valid = DecodeSvgSprite(sprite, file, file_pos, sprite_type, file.ReadDword());
 			if (valid) loaded_sprites = (1U << ZOOM_LVL_END) - 1;
