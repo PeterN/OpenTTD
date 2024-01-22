@@ -48,7 +48,7 @@ static bool WarnCorruptSprite(const SpriteFile &file, size_t file_pos, int line)
 	return false;
 }
 
-bool DecodeSvgSprite(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, size_t file_pos, SpriteType sprite_type, int64_t num)
+uint8_t DecodeSvgSprite(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, size_t file_pos, SpriteType sprite_type, int64_t num)
 {
 	if (num < 0 || num > 64 * 1024 * 1024) return WarnCorruptSprite(file, file_pos, __LINE__);
 
@@ -61,7 +61,7 @@ bool DecodeSvgSprite(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, s
 
 	std::unique_ptr<byte[]> img(new byte[static_cast<size_t>(sprite[0].width) * sprite[0].height * 4]);
 
-	for (ZoomLevel zoom_lvl = ZOOM_LVL_NORMAL; zoom_lvl != ZOOM_LVL_END; zoom_lvl++) {
+	for (ZoomLevel zoom_lvl = ZOOM_LVL_NORMAL; zoom_lvl != ZOOM_LVL_OUT_4X; zoom_lvl++) {
 		sprite[zoom_lvl].width = UnScaleByZoom(sprite[0].width, zoom_lvl);
 		sprite[zoom_lvl].height = UnScaleByZoom(sprite[0].height, zoom_lvl);
 		sprite[zoom_lvl].x_offs = UnScaleByZoom(sprite[0].x_offs, zoom_lvl);
@@ -83,15 +83,19 @@ bool DecodeSvgSprite(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, s
 			dst->g = *src++;
 			dst->b = *src++;
 			dst->a = *src++;
+			fmt::print("{:02X}{:02X}{:02X}{:02X} ", dst->r, dst->g, dst->b, dst->a);
 			if (sprite_type == SpriteType::Font) dst->m = std::max(dst->r + dst->g + dst->b, 1);
 			dst++;
+			if ((sprite[zoom_lvl].data - dst) % w == 0) {
+				fmt::println("");
+			}
 		}
 	}
 
 	nsvgDeleteRasterizer(rast);
 	nsvgDelete(image);
 
-	return true;
+	return (1U << ZOOM_LVL_NORMAL) | (1U << ZOOM_LVL_OUT_2X) | (1U << ZOOM_LVL_OUT_4X);
 }
 
 /**
@@ -330,8 +334,7 @@ uint8_t LoadSpriteV2(SpriteLoader::SpriteCollection &sprite, SpriteFile &file, s
 			sprite[0].x_offs = file.ReadWord() * ZOOM_LVL_BASE;
 			sprite[0].y_offs = file.ReadWord() * ZOOM_LVL_BASE;
 
-			bool valid = DecodeSvgSprite(sprite, file, file_pos, sprite_type, file.ReadDword());
-			if (valid) loaded_sprites = (1U << ZOOM_LVL_END) - 1;
+			loaded_sprites |= DecodeSvgSprite(sprite, file, file_pos, sprite_type, file.ReadDword());
 
 			continue;
 		}
