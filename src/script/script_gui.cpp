@@ -915,7 +915,7 @@ struct ScriptDebugWindow : public Window {
 	{
 		if (this->IsWidgetDisabled(widget)) return;
 		CompanyID cid = (CompanyID)(widget - start);
-		Dimension sprite_size = GetSpriteSize(SPR_COMPANY_ICON);
+		Dimension sprite_size = GetScaledSpriteSize(SPR_COMPANY_ICON);
 		DrawCompanyIcon(cid, CenterBounds(r.left, r.right, sprite_size.width), CenterBounds(r.top, r.bottom, sprite_size.height));
 	}
 

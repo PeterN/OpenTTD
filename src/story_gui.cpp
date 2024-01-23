@@ -330,7 +330,7 @@ protected:
 
 			case SPET_GOAL:
 			case SPET_LOCATION: {
-				Dimension sprite_dim = GetSpriteSize(GetPageElementSprite(pe));
+				Dimension sprite_dim = GetScaledSpriteSize(GetPageElementSprite(pe));
 				return sprite_dim.height;
 			}
 
@@ -518,7 +518,7 @@ protected:
 	 */
 	void DrawActionElement(int &y_offset, int width, int line_height, SpriteID action_sprite, StringID string_id = STR_JUST_RAW_STRING) const
 	{
-		Dimension sprite_dim = GetSpriteSize(action_sprite);
+		Dimension sprite_dim = GetScaledSpriteSize(action_sprite);
 		uint element_height = std::max(sprite_dim.height, (uint)line_height);
 
 		uint sprite_top = y_offset + (element_height - sprite_dim.height) / 2;

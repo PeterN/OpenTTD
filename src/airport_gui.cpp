@@ -350,7 +350,7 @@ public:
 					for (byte layout = 0; layout < as->num_table; layout++) {
 						SpriteID sprite = GetCustomAirportSprite(as, layout);
 						if (sprite != 0) {
-							Dimension d = GetSpriteSize(sprite);
+							Dimension d = GetScaledSpriteSize(sprite);
 							d.width += WidgetDimensions::scaled.framerect.Horizontal();
 							d.height += WidgetDimensions::scaled.framerect.Vertical();
 							*size = maxdim(d, *size);
@@ -398,7 +398,7 @@ public:
 
 			case WID_AP_AIRPORT_SPRITE:
 				if (this->preview_sprite != 0) {
-					Dimension d = GetSpriteSize(this->preview_sprite);
+					Dimension d = GetScaledSpriteSize(this->preview_sprite);
 					DrawSprite(this->preview_sprite, COMPANY_SPRITE_COLOUR(_local_company), CenterBounds(r.left, r.right, d.width), CenterBounds(r.top, r.bottom, d.height));
 				}
 				break;

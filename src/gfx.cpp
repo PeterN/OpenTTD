@@ -1659,12 +1659,12 @@ void UpdateCursorSize()
 	static_assert(lengthof(_cursor.sprite_seq) == lengthof(_cursor.sprite_pos));
 	assert(_cursor.sprite_count <= lengthof(_cursor.sprite_seq));
 	for (uint i = 0; i < _cursor.sprite_count; ++i) {
-		const Sprite *p = GetSprite(GB(_cursor.sprite_seq[i].sprite, 0, SPRITE_WIDTH), SpriteType::Normal);
 		Point offs, size;
-		offs.x = UnScaleGUI(p->x_offs) + _cursor.sprite_pos[i].x;
-		offs.y = UnScaleGUI(p->y_offs) + _cursor.sprite_pos[i].y;
-		size.x = UnScaleGUI(p->width);
-		size.y = UnScaleGUI(p->height);
+		Dimension d = GetScaledSpriteSize(GB(_cursor.sprite_seq[i].sprite, 0, SPRITE_WIDTH), &offs);
+		offs.x += _cursor.sprite_pos[i].x;
+		offs.y += _cursor.sprite_pos[i].y;
+		size.x = d.width;
+		size.y = d.height;
 
 		if (i == 0) {
 			_cursor.total_offs = offs;
@@ -1859,6 +1859,7 @@ bool AdjustGUIZoom(bool automatic)
 	if (old_font_zoom != _font_zoom) {
 		GfxClearFontSpriteCache();
 	}
+
 	ClearFontCache();
 	LoadStringWidthTable();
 

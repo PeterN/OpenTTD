@@ -146,14 +146,14 @@ public:
 	template <typename... Args>
 	explicit DropDownIcon(SpriteID sprite, PaletteID palette, Args&&... args) : TBase(std::forward<Args>(args)...), sprite(sprite), palette(palette)
 	{
-		this->dsprite = GetSpriteSize(this->sprite);
+		this->dsprite = GetScaledSpriteSizeWithOffset(this->sprite);
 		this->dbounds = this->dsprite;
 	}
 
 	template <typename... Args>
 	explicit DropDownIcon(const Dimension &dim, SpriteID sprite, PaletteID palette, Args&&... args) : TBase(std::forward<Args>(args)...), sprite(sprite), palette(palette), dbounds(dim)
 	{
-		this->dsprite = GetSpriteSize(this->sprite);
+		this->dsprite = GetScaledSpriteSizeWithOffset(this->sprite);
 	}
 
 	uint Height() const override { return std::max(this->dbounds.height, this->TBase::Height()); }

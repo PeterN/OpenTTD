@@ -294,10 +294,7 @@ void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, Fra
 void DrawSpriteIgnorePadding(SpriteID img, PaletteID pal, const Rect &r, StringAlignment align)
 {
 	Point offset;
-	Dimension d = GetSpriteSize(img, &offset);
-	d.width  -= offset.x;
-	d.height -= offset.y;
-
+	Dimension d = GetScaledSpriteSize(img, &offset);
 	Point p = GetAlignedPosition(r, d, align);
 	DrawSprite(img, pal, p.x - offset.x, p.y - offset.y);
 }
@@ -636,9 +633,7 @@ static inline void DrawCloseBox(const Rect &r, Colours colour)
 {
 	if (colour != COLOUR_WHITE) DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, FR_NONE);
 	Point offset;
-	Dimension d = GetSpriteSize(SPR_CLOSEBOX, &offset);
-	d.width  -= offset.x;
-	d.height -= offset.y;
+	Dimension d = GetScaledSpriteSize(SPR_CLOSEBOX, &offset);
 	int s = ScaleSpriteTrad(1); /* Offset to account for shadow of SPR_CLOSEBOX */
 	DrawSprite(SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1U << PALETTE_TEXT_RECOLOUR), CenterBounds(r.left, r.right, d.width - s) - offset.x, CenterBounds(r.top, r.bottom, d.height - s) - offset.y);
 }

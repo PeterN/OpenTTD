@@ -859,8 +859,8 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 				Rect tr = r.Shrink(WidgetDimensions::scaled.framerect);
 				uint step_height = this->GetWidget<NWidgetBase>(WID_NS_FILE_LIST)->resize_y;
-				Dimension square = GetSpriteSize(SPR_SQUARE);
-				Dimension warning = GetSpriteSize(SPR_WARNING_SIGN);
+				Dimension square = GetScaledSpriteSize(SPR_SQUARE);
+				Dimension warning = GetScaledSpriteSize(SPR_WARNING_SIGN);
 				int square_offset_y = (step_height - square.height) / 2;
 				int warning_offset_y = (step_height - warning.height) / 2;
 				int offset_y = (step_height - GetCharacterHeight(FS_NORMAL)) / 2;

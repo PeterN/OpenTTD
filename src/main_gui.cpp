@@ -7,6 +7,7 @@
 
 /** @file main_gui.cpp Handling of the main viewport. */
 
+#include "gfx_func.h"
 #include "stdafx.h"
 #include "currency.h"
 #include "spritecache.h"
@@ -261,13 +262,13 @@ struct MainWindow : Window
 			int name_width = (lengthof(title_sprites) - 1) * letter_spacing;
 
 			for (uint i = 0; i < lengthof(title_sprites); i++) {
-				name_width += GetSpriteSize(title_sprites[i]).width;
+				name_width += GetScaledSpriteSizeWithOffset(title_sprites[i]).width;
 			}
 			int off_x = (this->width - name_width) / 2;
 
 			for (uint i = 0; i < lengthof(title_sprites); i++) {
 				DrawSprite(title_sprites[i], PAL_NONE, off_x, ScaleGUITrad(50));
-				off_x += GetSpriteSize(title_sprites[i]).width + letter_spacing;
+				off_x += GetScaledSpriteSizeWithOffset(title_sprites[i]).width + letter_spacing;
 			}
 		}
 	}

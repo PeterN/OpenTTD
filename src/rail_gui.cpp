@@ -1300,8 +1300,8 @@ public:
 				Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 				if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 					AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-					int x = (ir.Width()  - ScaleSpriteTrad(64)) / 2 + ScaleSpriteTrad(31);
-					int y = (ir.Height() + ScaleSpriteTrad(58)) / 2 - ScaleSpriteTrad(31);
+					int x = (ir.Width()  - ScaleGUITrad(64)) / 2 + ScaleGUITrad(31);
+					int y = (ir.Height() + ScaleGUITrad(58)) / 2 - ScaleGUITrad(31);
 					if (!DrawStationTile(x, y, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
 						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 2);
 					}
@@ -1314,8 +1314,8 @@ public:
 				Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 				if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 					AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-					int x = (ir.Width()  - ScaleSpriteTrad(64)) / 2 + ScaleSpriteTrad(31);
-					int y = (ir.Height() + ScaleSpriteTrad(58)) / 2 - ScaleSpriteTrad(31);
+					int x = (ir.Width()  - ScaleGUITrad(64)) / 2 + ScaleGUITrad(31);
+					int y = (ir.Height() + ScaleGUITrad(58)) / 2 - ScaleGUITrad(31);
 					if (!DrawStationTile(x, y, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
 						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 3);
 					}
@@ -1348,8 +1348,8 @@ public:
 				Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 				if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 					AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-					int x = (ir.Width()  - ScaleSpriteTrad(64)) / 2 + ScaleSpriteTrad(31);
-					int y = (ir.Height() + ScaleSpriteTrad(58)) / 2 - ScaleSpriteTrad(31);
+					int x = (ir.Width()  - ScaleGUITrad(64)) / 2 + ScaleGUITrad(31);
+					int y = (ir.Height() + ScaleGUITrad(58)) / 2 - ScaleGUITrad(31);
 					if (!DrawStationTile(x, y, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
 						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 2 + _railstation.orientation);
 					}
@@ -1698,7 +1698,7 @@ private:
 	void DrawSignalSprite(const Rect &r, SpriteID image) const
 	{
 		Point offset;
-		Dimension sprite_size = GetSpriteSize(image, &offset);
+		Dimension sprite_size = GetScaledSpriteSizeWithOffset(image, &offset);
 		Rect ir = r.Shrink(WidgetDimensions::scaled.imgbtn);
 		int x = CenterBounds(ir.left, ir.right, sprite_size.width - offset.x) - offset.x; // centered
 		int y = ir.top - sig_sprite_bottom_offset +
@@ -1742,7 +1742,7 @@ public:
 			for (uint variant = SIG_ELECTRIC; variant <= SIG_SEMAPHORE; variant++) {
 				for (uint lowered = 0; lowered < 2; lowered++) {
 					Point offset;
-					Dimension sprite_size = GetSpriteSize(rti->gui_sprites.signals[type][variant][lowered], &offset);
+					Dimension sprite_size = GetScaledSpriteSizeWithOffset(rti->gui_sprites.signals[type][variant][lowered], &offset);
 					this->sig_sprite_bottom_offset = std::max<int>(this->sig_sprite_bottom_offset, sprite_size.height);
 					this->sig_sprite_size.width = std::max<int>(this->sig_sprite_size.width, sprite_size.width - offset.x);
 					this->sig_sprite_size.height = std::max<int>(this->sig_sprite_size.height, sprite_size.height - offset.y);
@@ -1969,8 +1969,8 @@ struct BuildRailDepotWindow : public PickerWindowBase {
 		Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 		if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 			AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-			int x = (ir.Width()  - ScaleSpriteTrad(64)) / 2 + ScaleSpriteTrad(31);
-			int y = (ir.Height() + ScaleSpriteTrad(48)) / 2 - ScaleSpriteTrad(31);
+			int x = (ir.Width()  - ScaleGUITrad(64)) / 2 + ScaleGUITrad(31);
+			int y = (ir.Height() + ScaleGUITrad(48)) / 2 - ScaleGUITrad(31);
 			DrawTrainDepotSprite(x, y, widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
 		}
 	}
@@ -2160,8 +2160,8 @@ struct BuildRailWaypointWindow : PickerWindowBase {
 				Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 				if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 					AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-					int x = (ir.Width()  - ScaleSpriteTrad(64)) / 2 + ScaleSpriteTrad(31);
-					int y = (ir.Height() + ScaleSpriteTrad(58)) / 2 - ScaleSpriteTrad(31);
+					int x = (ir.Width()  - ScaleGUITrad(64)) / 2 + ScaleGUITrad(31);
+					int y = (ir.Height() + ScaleGUITrad(58)) / 2 - ScaleGUITrad(31);
 					DrawWaypointSprite(x, y, type, _cur_railtype);
 				}
 
@@ -2397,7 +2397,7 @@ DropDownList GetRailTypeDropDownList(bool for_replacement, bool all_option)
 		for (const auto &rt : _sorted_railtypes) {
 			if (!HasBit(used_railtypes, rt)) continue;
 			const RailTypeInfo *rti = GetRailTypeInfo(rt);
-			d = maxdim(d, GetSpriteSize(rti->gui_sprites.build_x_rail));
+			d = maxdim(d, GetScaledSpriteSizeWithOffset(rti->gui_sprites.build_x_rail));
 		}
 	}
 

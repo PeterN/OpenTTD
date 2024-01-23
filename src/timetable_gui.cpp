@@ -425,7 +425,7 @@ struct TimetableWindow : Window {
 
 		bool rtl = _current_text_dir == TD_RTL;
 		SetDParamMaxValue(0, v->GetNumOrders(), 2);
-		int index_column_width = GetStringBoundingBox(STR_ORDER_INDEX).width + 2 * GetSpriteSize(rtl ? SPR_ARROW_RIGHT : SPR_ARROW_LEFT).width + WidgetDimensions::scaled.hsep_normal;
+		int index_column_width = GetStringBoundingBox(STR_ORDER_INDEX).width + 2 * GetScaledSpriteSize(rtl ? SPR_ARROW_RIGHT : SPR_ARROW_LEFT).width + WidgetDimensions::scaled.hsep_normal;
 		int middle = rtl ? tr.right - index_column_width : tr.left + index_column_width;
 
 		const Order *order = v->GetOrder(order_id);

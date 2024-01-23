@@ -164,7 +164,7 @@ struct StatusBarWindow : Window {
 				}
 
 				if (!this->reminder_timeout.HasFired()) {
-					Dimension icon_size = GetSpriteSize(SPR_UNREAD_NEWS);
+					Dimension icon_size = GetScaledSpriteSize(SPR_UNREAD_NEWS);
 					DrawSprite(SPR_UNREAD_NEWS, PAL_NONE, tr.right - icon_size.width, CenterBounds(r.top, r.bottom, icon_size.height));
 				}
 				break;

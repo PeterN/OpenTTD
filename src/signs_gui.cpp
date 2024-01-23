@@ -204,7 +204,7 @@ struct SignListWindow : Window, SignList {
 					return;
 				}
 
-				Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
+				Dimension d = GetScaledSpriteSize(SPR_COMPANY_ICON);
 				bool rtl = _current_text_dir == TD_RTL;
 				int sprite_offset_y = (this->resize.step_height - d.height + 1) / 2;
 				uint icon_left = rtl ? tr.right - this->text_offset : tr.left;
@@ -267,7 +267,7 @@ struct SignListWindow : Window, SignList {
 	{
 		switch (widget) {
 			case WID_SIL_LIST: {
-				Dimension spr_dim = GetSpriteSize(SPR_COMPANY_ICON);
+				Dimension spr_dim = GetScaledSpriteSize(SPR_COMPANY_ICON);
 				this->text_offset = WidgetDimensions::scaled.frametext.left + spr_dim.width + 2; // 2 pixels space between icon and the sign text.
 				resize->height = std::max<uint>(GetCharacterHeight(FS_NORMAL), spr_dim.height + 2);
 				Dimension d = {(uint)(this->text_offset + WidgetDimensions::scaled.frametext.right), padding.height + 5 * resize->height};

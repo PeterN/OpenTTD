@@ -1023,7 +1023,7 @@ void DrawEngineList(VehicleType type, const Rect &r, const GUIEngineList &eng_li
 	Dimension replace_icon = {0, 0};
 	int count_width = 0;
 	if (show_count) {
-		replace_icon = GetSpriteSize(SPR_GROUP_REPLACE_ACTIVE);
+		replace_icon = GetScaledSpriteSize(SPR_GROUP_REPLACE_ACTIVE);
 
 		uint biggest_num_engines = 0;
 		for (auto it = first; it != last; ++it) {

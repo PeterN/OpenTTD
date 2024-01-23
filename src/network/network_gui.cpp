@@ -366,8 +366,8 @@ protected:
 
 		/* offsets to vertically centre text and icons */
 		int text_y_offset = (this->resize.step_height - GetCharacterHeight(FS_NORMAL)) / 2 + 1;
-		int icon_y_offset = (this->resize.step_height - GetSpriteSize(SPR_BLOT).height) / 2;
-		int lock_y_offset = (this->resize.step_height - GetSpriteSize(SPR_LOCK).height) / 2;
+		int icon_y_offset = (this->resize.step_height - GetScaledSpriteSize(SPR_BLOT).height) / 2;
+		int lock_y_offset = (this->resize.step_height - GetScaledSpriteSize(SPR_LOCK).height) / 2;
 
 		name = name.Shrink(WidgetDimensions::scaled.framerect);
 		DrawString(name.left, name.right, y + text_y_offset, cur_item->info.server_name, TC_BLACK);
@@ -471,21 +471,21 @@ public:
 	void OnInit() override
 	{
 		this->lock_offset = ScaleGUITrad(5);
-		this->blot_offset = this->lock_offset + ScaleGUITrad(3) + GetSpriteSize(SPR_LOCK).width;
-		this->flag_offset = this->blot_offset + ScaleGUITrad(2) + GetSpriteSize(SPR_BLOT).width;
+		this->blot_offset = this->lock_offset + ScaleGUITrad(3) + GetScaledSpriteSize(SPR_LOCK).width;
+		this->flag_offset = this->blot_offset + ScaleGUITrad(2) + GetScaledSpriteSize(SPR_BLOT).width;
 	}
 
 	void UpdateWidgetSize(WidgetID widget, Dimension *size, [[maybe_unused]] const Dimension &padding, [[maybe_unused]] Dimension *fill, [[maybe_unused]] Dimension *resize) override
 	{
 		switch (widget) {
 			case WID_NG_MATRIX:
-				resize->height = std::max(GetSpriteSize(SPR_BLOT).height, (uint)GetCharacterHeight(FS_NORMAL)) + padding.height;
+				resize->height = std::max(GetScaledSpriteSize(SPR_BLOT).height, (uint)GetCharacterHeight(FS_NORMAL)) + padding.height;
 				fill->height = resize->height;
 				size->height = 12 * resize->height;
 				break;
 
 			case WID_NG_LASTJOINED:
-				size->height = std::max(GetSpriteSize(SPR_BLOT).height, (uint)GetCharacterHeight(FS_NORMAL)) + WidgetDimensions::scaled.matrix.Vertical();
+				size->height = std::max(GetScaledSpriteSize(SPR_BLOT).height, (uint)GetCharacterHeight(FS_NORMAL)) + WidgetDimensions::scaled.matrix.Vertical();
 				break;
 
 			case WID_NG_LASTJOINED_SPACER:
@@ -1380,7 +1380,7 @@ public:
 		colour(colour),
 		disabled(disabled)
 	{
-		Dimension d = GetSpriteSize(sprite);
+		Dimension d = GetScaledSpriteSize(sprite);
 		this->height = d.height + WidgetDimensions::scaled.framerect.Vertical();
 		this->width = d.width + WidgetDimensions::scaled.framerect.Horizontal();
 	}
@@ -1695,7 +1695,7 @@ public:
 				break;
 
 			case WID_CL_MATRIX: {
-				uint height = std::max({GetSpriteSize(SPR_COMPANY_ICON).height, GetSpriteSize(SPR_JOIN).height, GetSpriteSize(SPR_ADMIN).height, GetSpriteSize(SPR_CHAT).height});
+				uint height = std::max({GetScaledSpriteSize(SPR_COMPANY_ICON).height, GetScaledSpriteSize(SPR_JOIN).height, GetScaledSpriteSize(SPR_ADMIN).height, GetScaledSpriteSize(SPR_CHAT).height});
 				height += WidgetDimensions::scaled.framerect.Vertical();
 				this->line_height = std::max(height, (uint)GetCharacterHeight(FS_NORMAL)) + padding.height;
 
@@ -1791,11 +1791,11 @@ public:
 				bool rtl = _current_text_dir == TD_RTL;
 				Rect matrix = this->GetWidget<NWidgetBase>(WID_CL_MATRIX)->GetCurrentRect().Shrink(WidgetDimensions::scaled.framerect);
 
-				Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
+				Dimension d = GetScaledSpriteSize(SPR_COMPANY_ICON);
 				uint text_left  = matrix.left  + (rtl ? 0 : d.width + WidgetDimensions::scaled.hsep_wide);
 				uint text_right = matrix.right - (rtl ? d.width + WidgetDimensions::scaled.hsep_wide : 0);
 
-				Dimension d2 = GetSpriteSize(SPR_PLAYER_SELF);
+				Dimension d2 = GetScaledSpriteSize(SPR_PLAYER_SELF);
 				uint offset_x = WidgetDimensions::scaled.hsep_indent - d2.width - ScaleGUITrad(3);
 
 				uint player_icon_x = rtl ? text_right - offset_x - d2.width : text_left + offset_x;
@@ -1964,7 +1964,7 @@ public:
 		bool rtl = _current_text_dir == TD_RTL;
 		int text_y_offset = CenterBounds(0, this->line_height, GetCharacterHeight(FS_NORMAL));
 
-		Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
+		Dimension d = GetScaledSpriteSize(SPR_COMPANY_ICON);
 		int offset = CenterBounds(0, this->line_height, d.height);
 
 		uint line_start = this->vscroll->GetPosition();
@@ -2024,7 +2024,7 @@ public:
 				}
 
 				if (player_icon != 0) {
-					Dimension d2 = GetSpriteSize(player_icon);
+					Dimension d2 = GetScaledSpriteSize(player_icon);
 					int offset_y = CenterBounds(0, this->line_height, d2.height);
 					DrawSprite(player_icon, PALETTE_TO_GREY, rtl ? tr.right - d2.width : tr.left, y + offset_y);
 					tr = tr.Indent(d2.width + WidgetDimensions::scaled.hsep_normal, rtl);

@@ -149,7 +149,7 @@ public:
 			}
 		}
 
-		this->icon = GetSpriteSize(SPR_COMPANY_ICON);
+		this->icon = GetScaledSpriteSize(SPR_COMPANY_ICON);
 		this->line_height = std::max<int>(this->icon.height + WidgetDimensions::scaled.vsep_normal, GetCharacterHeight(FS_NORMAL));
 
 		for (const Company *c : Company::Iterate()) {
@@ -365,7 +365,7 @@ public:
 		auto lt = LeagueTable::GetIfValid(this->table);
 		if (lt == nullptr) return;
 
-		this->icon_size = GetSpriteSize(SPR_COMPANY_ICON);
+		this->icon_size = GetScaledSpriteSize(SPR_COMPANY_ICON);
 		this->line_height = std::max<int>(this->icon_size.height + WidgetDimensions::scaled.fullbevel.Vertical(), GetCharacterHeight(FS_NORMAL));
 
 		/* Calculate maximum width of every column */

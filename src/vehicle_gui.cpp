@@ -622,8 +622,8 @@ static void DrawVehicleRefitWindow(const RefitOptions &refits, const RefitOption
 	uint current = 0;
 
 	bool rtl = _current_text_dir == TD_RTL;
-	uint iconwidth = std::max(GetSpriteSize(SPR_CIRCLE_FOLDED).width, GetSpriteSize(SPR_CIRCLE_UNFOLDED).width);
-	uint iconheight = GetSpriteSize(SPR_CIRCLE_FOLDED).height;
+	uint iconwidth = std::max(GetScaledSpriteSize(SPR_CIRCLE_FOLDED).width, GetScaledSpriteSize(SPR_CIRCLE_UNFOLDED).width);
+	uint iconheight = GetScaledSpriteSize(SPR_CIRCLE_FOLDED).height;
 	int linecolour = GetColourGradient(COLOUR_ORANGE, SHADE_NORMAL);
 
 	int iconleft   = rtl ? ir.right - iconwidth     : ir.left;
@@ -1692,7 +1692,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 	Rect ir = r.WithHeight(line_height).Shrink(WidgetDimensions::scaled.matrix, RectPadding::zero);
 	bool rtl = _current_text_dir == TD_RTL;
 
-	Dimension profit = GetSpriteSize(SPR_PROFIT_LOT);
+	Dimension profit = GetScaledSpriteSize(SPR_PROFIT_LOT);
 	int text_offset = std::max<int>(profit.width, GetDigitWidth() * this->unitnumber_digits) + WidgetDimensions::scaled.hsep_normal;
 	Rect tr = ir.Indent(text_offset, rtl);
 

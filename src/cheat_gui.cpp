@@ -237,7 +237,7 @@ struct CheatWindow : Window {
 
 	void OnInit() override
 	{
-		this->icon = GetSpriteSize(SPR_COMPANY_ICON);
+		this->icon = GetScaledSpriteSize(SPR_COMPANY_ICON);
 	}
 
 	void DrawWidget(const Rect &r, WidgetID widget) const override

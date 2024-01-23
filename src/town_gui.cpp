@@ -138,8 +138,8 @@ public:
 
 	void OnInit() override
 	{
-		this->icon_size      = GetSpriteSize(SPR_COMPANY_ICON);
-		this->exclusive_size = GetSpriteSize(SPR_EXCLUSIVE_TRANSPORT);
+		this->icon_size      = GetScaledSpriteSize(SPR_COMPANY_ICON);
+		this->exclusive_size = GetScaledSpriteSize(SPR_EXCLUSIVE_TRANSPORT);
 	}
 
 	void OnPaint() override
@@ -848,7 +848,7 @@ public:
 
 				/* At least one town available. */
 				bool rtl = _current_text_dir == TD_RTL;
-				Dimension icon_size = GetSpriteSize(SPR_TOWN_RATING_GOOD);
+				Dimension icon_size = GetScaledSpriteSize(SPR_TOWN_RATING_GOOD);
 				int icon_x = tr.WithWidth(icon_size.width, rtl).left;
 				tr = tr.Indent(icon_size.width + WidgetDimensions::scaled.hsep_normal, rtl);
 
@@ -909,7 +909,7 @@ public:
 					SetDParamMaxDigits(1, 8);
 					d = maxdim(d, GetStringBoundingBox(GetTownString(t)));
 				}
-				Dimension icon_size = GetSpriteSize(SPR_TOWN_RATING_GOOD);
+				Dimension icon_size = GetScaledSpriteSize(SPR_TOWN_RATING_GOOD);
 				d.width += icon_size.width + 2;
 				d.height = std::max(d.height, icon_size.height);
 				resize->height = d.height;

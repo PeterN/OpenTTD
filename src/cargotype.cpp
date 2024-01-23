@@ -125,7 +125,7 @@ Dimension GetLargestCargoIconSize()
 {
 	Dimension size = {0, 0};
 	for (const CargoSpec *cs : _sorted_cargo_specs) {
-		size = maxdim(size, GetSpriteSize(cs->GetCargoIcon()));
+		size = maxdim(size, GetScaledSpriteSize(cs->GetCargoIcon()));
 	}
 	return size;
 }

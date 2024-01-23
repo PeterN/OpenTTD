@@ -1034,8 +1034,8 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 		Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 		if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 			AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-			int x = (ir.Width()  - ScaleSpriteTrad(64)) / 2 + ScaleSpriteTrad(31);
-			int y = (ir.Height() + ScaleSpriteTrad(48)) / 2 - ScaleSpriteTrad(31);
+			int x = (ir.Width()  - ScaleGUITrad(64)) / 2 + ScaleGUITrad(31);
+			int y = (ir.Height() + ScaleGUITrad(48)) / 2 - ScaleGUITrad(31);
 			DrawRoadDepotSprite(x, y, (DiagDirection)(widget - WID_BROD_DEPOT_NE + DIAGDIR_NE), _cur_roadtype);
 		}
 	}
@@ -1431,8 +1431,8 @@ public:
 				Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 				if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 					AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-					int x = (ir.Width()  - ScaleSpriteTrad(64)) / 2 + ScaleSpriteTrad(31);
-					int y = (ir.Height() + ScaleSpriteTrad(48)) / 2 - ScaleSpriteTrad(31);
+					int x = (ir.Width()  - ScaleGUITrad(64)) / 2 + ScaleGUITrad(31);
+					int y = (ir.Height() + ScaleGUITrad(48)) / 2 - ScaleGUITrad(31);
 					if (spec == nullptr) {
 						StationPickerDrawSprite(x, y, st, INVALID_RAILTYPE, _cur_roadtype, widget - WID_BROS_STATION_NE);
 					} else {
@@ -1469,8 +1469,8 @@ public:
 				Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 				if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 					AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-					int x = (ir.Width()  - ScaleSpriteTrad(64)) / 2 + ScaleSpriteTrad(31);
-					int y = (ir.Height() + ScaleSpriteTrad(48)) / 2 - ScaleSpriteTrad(31);
+					int x = (ir.Width()  - ScaleGUITrad(64)) / 2 + ScaleGUITrad(31);
+					int y = (ir.Height() + ScaleGUITrad(48)) / 2 - ScaleGUITrad(31);
 					if (spec == nullptr) {
 						StationPickerDrawSprite(x, y, st, INVALID_RAILTYPE, _cur_roadtype, _roadstop_gui_settings.orientation);
 					} else {
@@ -1839,7 +1839,7 @@ DropDownList GetRoadTypeDropDownList(RoadTramTypes rtts, bool for_replacement, b
 		for (const auto &rt : _sorted_roadtypes) {
 			if (!HasBit(used_roadtypes, rt)) continue;
 			const RoadTypeInfo *rti = GetRoadTypeInfo(rt);
-			d = maxdim(d, GetSpriteSize(rti->gui_sprites.build_x_road));
+			d = maxdim(d, GetScaledSpriteSizeWithOffset(rti->gui_sprites.build_x_road));
 		}
 	}
 
@@ -1884,7 +1884,7 @@ DropDownList GetScenRoadTypeDropDownList(RoadTramTypes rtts)
 	for (const auto &rt : _sorted_roadtypes) {
 		if (!HasBit(used_roadtypes, rt)) continue;
 		const RoadTypeInfo *rti = GetRoadTypeInfo(rt);
-		d = maxdim(d, GetSpriteSize(rti->gui_sprites.build_x_road));
+		d = maxdim(d, GetScaledSpriteSizeWithOffset(rti->gui_sprites.build_x_road));
 	}
 	for (const auto &rt : _sorted_roadtypes) {
 		if (!HasBit(used_roadtypes, rt)) continue;

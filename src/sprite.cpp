@@ -116,12 +116,13 @@ void DrawCommonTileSeqInGUI(int x, int y, const DrawTileSprites *dts, int32_t or
 		pal = SpriteLayoutPaletteTransform(image, pal, default_palette);
 
 		if (dtss->IsParentSprite()) {
-			Point pt = RemapCoords(dtss->delta_x, dtss->delta_y, dtss->delta_z);
-			DrawSprite(image, pal, x + UnScaleGUI(pt.x), y + UnScaleGUI(pt.y));
+			Point pt = {ScaleGUITrad((dtss->delta_y - dtss->delta_x) * 2), ScaleGUITrad(dtss->delta_y + dtss->delta_x - dtss->delta_z)};
 
-			const Sprite *spr = GetSprite(image & SPRITE_MASK, SpriteType::Normal);
-			child_offset.x = UnScaleGUI(pt.x + spr->x_offs);
-			child_offset.y = UnScaleGUI(pt.y + spr->y_offs);
+			DrawSprite(image, pal, x + pt.x, y + pt.y);
+
+			const Sprite *spr = GetSprite(image & SPRITE_MASK, SpriteType::Normal, InterfaceScaleToFraction());
+			child_offset.x = pt.x + spr->x_offs;
+			child_offset.y = pt.y + spr->y_offs;
 		} else {
 			int offs_x = child_offset_is_unsigned ? (uint8_t)dtss->delta_x : dtss->delta_x;
 			int offs_y = child_offset_is_unsigned ? (uint8_t)dtss->delta_y : dtss->delta_y;

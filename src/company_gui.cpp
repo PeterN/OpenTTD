@@ -805,7 +805,7 @@ public:
 
 			case WID_SCL_MATRIX: {
 				/* 11 items in the default rail class */
-				this->square = GetSpriteSize(SPR_SQUARE);
+				this->square = GetScaledSpriteSize(SPR_SQUARE);
 				this->line_height = std::max(this->square.height, (uint)GetCharacterHeight(FS_NORMAL)) + padding.height;
 
 				size->height = 5 * this->line_height;
@@ -822,7 +822,7 @@ public:
 				[[fallthrough]];
 
 			case WID_SCL_PRI_COL_DROPDOWN: {
-				this->square = GetSpriteSize(SPR_SQUARE);
+				this->square = GetScaledSpriteSize(SPR_SQUARE);
 				int string_padding = this->square.width + WidgetDimensions::scaled.hsep_normal + padding.width;
 				for (const StringID *id = _colour_dropdown; id != endof(_colour_dropdown); id++) {
 					size->width = std::max(size->width, GetStringBoundingBox(*id).width + string_padding);
@@ -1167,7 +1167,7 @@ void DrawCompanyManagerFace(CompanyManagerFace cmf, Colours colour, const Rect &
 	GenderEthnicity ge = (GenderEthnicity)GetCompanyManagerFaceBits(cmf, CMFV_GEN_ETHN, GE_WM);
 
 	/* Determine offset from centre of drawing rect. */
-	Dimension d = GetSpriteSize(SPR_GRADIENT);
+	Dimension d = GetScaledSpriteSize(SPR_GRADIENT);
 	int x = CenterBounds(r.left, r.right, d.width);
 	int y = CenterBounds(r.top, r.bottom, d.height);
 
@@ -1454,7 +1454,7 @@ public:
 			SetDParam(0, val);
 			number_dim = maxdim(number_dim, GetStringBoundingBox(STR_JUST_INT));
 		}
-		uint arrows_width = GetSpriteSize(SPR_ARROW_LEFT).width + GetSpriteSize(SPR_ARROW_RIGHT).width + 2 * (WidgetDimensions::scaled.imgbtn.Horizontal());
+		uint arrows_width = GetScaledSpriteSize(SPR_ARROW_LEFT).width + GetScaledSpriteSize(SPR_ARROW_RIGHT).width + 2 * (WidgetDimensions::scaled.imgbtn.Horizontal());
 		number_dim.width += WidgetDimensions::scaled.framerect.Horizontal() + arrows_width;
 		number_dim.height += WidgetDimensions::scaled.framerect.Vertical();
 		/* Compute width of both buttons. */
@@ -2318,7 +2318,7 @@ struct CompanyWindow : Window
 
 			case WID_C_DESC_COLOUR_SCHEME_EXAMPLE: {
 				Point offset;
-				Dimension d = GetSpriteSize(SPR_VEH_BUS_SW_VIEW, &offset);
+				Dimension d = GetScaledSpriteSize(SPR_VEH_BUS_SW_VIEW, &offset);
 				d.width -= offset.x;
 				d.height -= offset.y;
 				*size = maxdim(*size, d);
@@ -2368,7 +2368,7 @@ struct CompanyWindow : Window
 				break;
 
 			case WID_C_HAS_PASSWORD:
-				if (_networking) *size = maxdim(*size, GetSpriteSize(SPR_LOCK));
+				if (_networking) *size = maxdim(*size, GetScaledSpriteSize(SPR_LOCK));
 				break;
 		}
 	}
@@ -2452,9 +2452,8 @@ struct CompanyWindow : Window
 
 			case WID_C_DESC_COLOUR_SCHEME_EXAMPLE: {
 				Point offset;
-				Dimension d = GetSpriteSize(SPR_VEH_BUS_SW_VIEW, &offset);
-				d.height -= offset.y;
-				DrawSprite(SPR_VEH_BUS_SW_VIEW, COMPANY_SPRITE_COLOUR(c->index), r.left - offset.x, CenterBounds(r.top, r.bottom, d.height) - offset.y);
+				Dimension d = GetScaledSpriteSize(SPR_VEH_BUS_SW_VIEW);
+				DrawSpriteIgnorePadding(SPR_VEH_BUS_SW_VIEW, COMPANY_SPRITE_COLOUR(c->index), r, SA_CENTER);
 				break;
 			}
 

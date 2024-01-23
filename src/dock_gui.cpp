@@ -552,12 +552,12 @@ public:
 				Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 				if (FillDrawPixelInfo(&tmp_dpi, ir)) {
 					AutoRestoreBackup dpi_backup(_cur_dpi, &tmp_dpi);
-					int x = (ir.Width()  - ScaleSpriteTrad(96)) / 2;
-					int y = (ir.Height() - ScaleSpriteTrad(64)) / 2;
-					int x1 = ScaleSpriteTrad(63);
-					int x2 = ScaleSpriteTrad(31);
-					DrawShipDepotSprite(x + (axis == AXIS_X ? x1 : x2), y + ScaleSpriteTrad(17), axis, DEPOT_PART_NORTH);
-					DrawShipDepotSprite(x + (axis == AXIS_X ? x2 : x1), y + ScaleSpriteTrad(33), axis, DEPOT_PART_SOUTH);
+					int x = (ir.Width()  - ScaleGUITrad(96)) / 2;
+					int y = (ir.Height() - ScaleGUITrad(64)) / 2;
+					int x1 = ScaleGUITrad(63);
+					int x2 = ScaleGUITrad(31);
+					DrawShipDepotSprite(x + (axis == AXIS_X ? x1 : x2), y + ScaleGUITrad(17), axis, DEPOT_PART_NORTH);
+					DrawShipDepotSprite(x + (axis == AXIS_X ? x2 : x1), y + ScaleGUITrad(33), axis, DEPOT_PART_SOUTH);
 				}
 				break;
 			}
