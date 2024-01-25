@@ -211,11 +211,15 @@ static bool ResizeSpriteIn(SpriteLoader::SpriteCollection &spritecollection, flo
 
 	target.AllocateData(tgt, static_cast<size_t>(target.width) * target.height);
 
-	SpriteLoader::CommonPixel *dst = target.data;
+	auto *dst = target.data;
+	[[maybe_unused]] const auto *src_end = source.data + source.height * source.width;
 	for (int y = 0; y < target.height; y++) {
-		const SpriteLoader::CommonPixel *src_ln = &source.data[static_cast<int>(y * src / tgt) * source.width];
+		const auto *src_ln = source.data + static_cast<int>(((y + target.y_offs) * src / tgt) - source.y_offs) * source.width;
+		if (src_ln >= src_end) src_ln -= source.width;
 		for (int x = 0; x < target.width; x++) {
-			*dst = src_ln[static_cast<int>(x * src / tgt)];
+			auto *src_px = src_ln + static_cast<int>(((x + target.x_offs) * src / tgt) - source.x_offs);
+			if (src_px >= src_ln + source.width) --src_px;
+			*dst = *src_px;
 			dst++;
 		}
 	}
