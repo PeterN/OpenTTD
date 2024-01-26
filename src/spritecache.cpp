@@ -529,6 +529,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 		return (void*)GetRawSprite(SPR_IMG_QUERY, SpriteType::Normal, {}, &allocator, encoder);
 	}
 
+	assert(!spritecollection.empty());
 	return encoder->Encode(spritecollection, allocator);
 }
 
