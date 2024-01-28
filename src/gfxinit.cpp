@@ -240,6 +240,7 @@ static void RealChangeBlitter(const char *repl_blitter)
 	VideoDriver::GetInstance()->ClearSystemSprites();
 	ClearFontCache();
 	GfxClearSpriteCache();
+	GfxClearFractionalSpriteCache();
 	ReInitAllWindows(false);
 }
 
@@ -322,6 +323,7 @@ void CheckBlitter()
 
 	ClearFontCache();
 	GfxClearSpriteCache();
+	GfxClearFractionalSpriteCache();
 	ReInitAllWindows(false);
 }
 

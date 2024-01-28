@@ -13,6 +13,7 @@
 #include "../blitter/factory.hpp"
 #include "../core/bitmath_func.hpp"
 #include "../gfx_layout.h"
+#include "../zoom_func.h"
 #include "truetypefontcache.h"
 
 #include "../safeguards.h"
@@ -136,7 +137,7 @@ const Sprite *TrueTypeFontCache::GetGlyph(GlyphID key)
 			};
 #undef CPSET
 #undef CP___
-			static const SpriteLoader::SpriteCollection builtin_questionmark = {{ {
+			static const SpriteLoader::SpriteCollection builtin_questionmark = {{ ZoomLevelToFraction(ZOOM_LVL_OUT_4X), {
 				10, // height
 				8,  // width
 				0,  // x_offs

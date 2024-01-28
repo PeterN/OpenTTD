@@ -119,4 +119,34 @@ inline int ScaleGUITrad(int value)
 	return value * _gui_scale / 100;
 }
 
+/**
+ * Convert a zoom level to a fractional scale value.
+ * @param zoom Zoom level to convert.
+ * @returns Fractional scale value of zoom level.
+ */
+constexpr float ZoomLevelToFraction(ZoomLevel zoom)
+{
+	return ZOOM_LVL_BASE * 1.0 / (1U << zoom);
+}
+
+/**
+ * Convert an interface scale percentage to a fractional scalea value.
+ * @param gui_scale Interface scale to convert.
+ * @returns Fractional scale value of interface scale.
+ */
+constexpr float InterfaceScaleToFraction(int gui_scale = _gui_scale)
+{
+	return gui_scale / 100.0;
+}
+
+constexpr int UnScaleFraction(float scale, int x)
+{
+	return ceil(x * scale / ZOOM_LVL_BASE);
+}
+
+constexpr int ScaleFraction(float scale, int x)
+{
+	return x / scale * ZOOM_LVL_BASE;
+}
+
 #endif /* ZOOM_FUNC_H */

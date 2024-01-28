@@ -38,29 +38,6 @@ static inline RectPadding ScaleGUITrad(const RectPadding &r)
 }
 
 /**
- * Scale a Dimension to GUI zoom level.
- * @param d Dimension at ZOOM_LVL_BASE (traditional "normal" interface size).
- * @return Dimension at #ZOOM_LVL_GUI (current interface size).
- */
-static inline Dimension ScaleGUITrad(const Dimension &dim)
-{
-	return {(uint)ScaleGUITrad(dim.width), (uint)ScaleGUITrad(dim.height)};
-}
-
-/**
- * Scale sprite size for GUI.
- * Offset is ignored.
- */
-Dimension GetScaledSpriteSize(SpriteID sprid)
-{
-	Point offset;
-	Dimension d = GetSpriteSize(sprid, &offset, ZOOM_LVL_OUT_4X);
-	d.width  -= offset.x;
-	d.height -= offset.y;
-	return ScaleGUITrad(d);
-}
-
-/**
  * Set up pre-scaled versions of Widget Dimensions.
  */
 void SetupWidgetDimensions()

@@ -15,6 +15,7 @@
 #include "8bpp_optimized.hpp"
 
 #include "../safeguards.h"
+#include "spriteloader/spriteloader.hpp"
 
 /** Instantiation of the 8bpp optimised blitter factory. */
 static FBlitter_8bppOptimized iFBlitter_8bppOptimized;
@@ -122,23 +123,14 @@ void Blitter_8bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Z
 
 Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
+	assert(spritecollection.size() <= ZOOM_LVL_END);
+	const auto &metadata = GetCollectionMetadata(spritecollection);
+
 	/* Make memory for all zoom-levels */
 	uint memory = sizeof(SpriteData);
 
-	ZoomLevel zoom_min;
-	ZoomLevel zoom_max;
-
-	if (spritecollection[ZOOM_LVL_NORMAL].type == SpriteType::Font) {
-		zoom_min = ZOOM_LVL_NORMAL;
-		zoom_max = ZOOM_LVL_NORMAL;
-	} else {
-		zoom_min = _settings_client.gui.zoom_min;
-		zoom_max = _settings_client.gui.zoom_max;
-		if (zoom_max == zoom_min) zoom_max = ZOOM_LVL_MAX;
-	}
-
-	for (ZoomLevel i = zoom_min; i <= zoom_max; i++) {
-		memory += spritecollection[i].width * spritecollection[i].height;
+	for (const auto &pair : spritecollection) {
+		memory += pair.second.width * pair.second.height;
 	}
 
 	/* We have no idea how much memory we really need, so just guess something */
@@ -149,18 +141,19 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 	 * and the memory usage is quite low. */
 	static ReusableBuffer<byte> temp_buffer;
 	SpriteData *temp_dst = (SpriteData *)temp_buffer.Allocate(memory);
-	memset(temp_dst, 0, sizeof(*temp_dst));
+	memset(temp_dst, 0, memory);
 	byte *dst = temp_dst->data;
 
 	/* Make the sprites per zoom-level */
-	for (ZoomLevel i = zoom_min; i <= zoom_max; i++) {
+	int slot = 0;
+	for (const auto &pair : spritecollection) {
 		/* Store the index table */
 		uint offset = dst - temp_dst->data;
-		temp_dst->offset[i] = offset;
+		temp_dst->offset[slot] = offset;
 
 		/* cache values, because compiler can't cache it */
-		int scaled_height = spritecollection[i].height;
-		int scaled_width  = spritecollection[i].width;
+		int scaled_height = pair.second.height;
+		int scaled_width  = pair.second.width;
 
 		for (int y = 0; y < scaled_height; y++) {
 			uint trans = 0;
@@ -169,7 +162,7 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 			byte *count_dst = nullptr;
 
 			/* Store the scaled image */
-			const SpriteLoader::CommonPixel *src = &spritecollection[i].data[y * spritecollection[i].width];
+			const SpriteLoader::CommonPixel *src = &pair.second.data[y * pair.second.width];
 
 			for (int x = 0; x < scaled_width; x++) {
 				uint colour = src++->m;
@@ -211,6 +204,8 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 			*dst = 0; dst++;
 			*dst = 0; dst++;
 		}
+
+		slot++;
 	}
 
 	uint size = dst - (byte *)temp_dst;
@@ -221,10 +216,10 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::SpriteCollection &spri
 	/* Allocate the exact amount of memory we need */
 	Sprite *dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + size);
 
-	dest_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
-	dest_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
-	dest_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
-	dest_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
+	dest_sprite->height = metadata.height;
+	dest_sprite->width  = metadata.width;
+	dest_sprite->x_offs = metadata.x_offs;
+	dest_sprite->y_offs = metadata.y_offs;
 	memcpy(dest_sprite->data, temp_dst, size);
 
 	return dest_sprite;

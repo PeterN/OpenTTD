@@ -55,19 +55,19 @@ public:
 
 		/**
 		 * Allocate the sprite data of this sprite.
-		 * @param zoom Zoom level to allocate the data for.
+		 * @param scale Scale to allocate the data for.
 		 * @param size the minimum size of the data field.
 		 */
-		void AllocateData(ZoomLevel zoom, size_t size) { this->data = Sprite::buffer[zoom].ZeroAllocate(size); }
+		void AllocateData(float scale, size_t size) { this->data = Sprite::buffer[scale].ZeroAllocate(size); }
 	private:
 		/** Allocated memory to pass sprite data around */
-		static ReusableBuffer<SpriteLoader::CommonPixel> buffer[ZOOM_LVL_END];
+		static std::map<float, ReusableBuffer<SpriteLoader::CommonPixel>, std::greater<float>> buffer;
 	};
 
 	/**
 	 * Type defining a collection of sprites, one for each zoom level.
 	 */
-	using SpriteCollection = std::array<Sprite, ZOOM_LVL_END>;
+	using SpriteCollection = std::map<float, Sprite, std::greater<float>>;
 
 	/**
 	 * Load a sprite from the disk and return a sprite struct which is the same for all loaders.
@@ -79,10 +79,15 @@ public:
 	 * @param control_flags Control flags, see SpriteCacheCtrlFlags.
 	 * @return Bit mask of the zoom levels successfully loaded or 0 if no sprite could be loaded.
 	 */
-	virtual uint8_t LoadSprite(SpriteLoader::SpriteCollection &spritecollection, SpriteFile &file, size_t file_pos, SpriteType sprite_type, bool load_32bpp, byte control_flags) = 0;
+	virtual bool LoadSprite(SpriteLoader::SpriteCollection &spritecollection, SpriteFile &file, size_t file_pos, SpriteType sprite_type, bool load_32bpp, byte control_flags) = 0;
 
 	virtual ~SpriteLoader() = default;
 };
+
+static inline const SpriteLoader::Sprite &GetCollectionMetadata(const SpriteLoader::SpriteCollection &spritecollection)
+{
+	return spritecollection.begin()->second;
+}
 
 /** Interface for something that can allocate memory for a sprite. */
 class SpriteAllocator {
@@ -121,4 +126,5 @@ public:
 		return 0;
 	}
 };
+
 #endif /* SPRITELOADER_HPP */

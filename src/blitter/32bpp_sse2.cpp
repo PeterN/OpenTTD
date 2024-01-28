@@ -22,54 +22,55 @@ static FBlitter_32bppSSE2 iFBlitter_32bppSSE2;
 
 Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
+	assert(spritecollection.size() == 1 || spritecollection.size() == ZOOM_LVL_END);
+	const auto &metadata = GetCollectionMetadata(spritecollection);
+
 	/* First uint32_t of a line = the number of transparent pixels from the left.
 	 * Second uint32_t of a line = the number of transparent pixels from the right.
 	 * Then all RGBA then all MV.
 	 */
-	ZoomLevel zoom_min = ZOOM_LVL_NORMAL;
-	ZoomLevel zoom_max = ZOOM_LVL_NORMAL;
-	if (spritecollection[ZOOM_LVL_NORMAL].type != SpriteType::Font) {
-		zoom_min = _settings_client.gui.zoom_min;
-		zoom_max = _settings_client.gui.zoom_max;
-		if (zoom_max == zoom_min) zoom_max = ZOOM_LVL_MAX;
-	}
 
 	/* Calculate sizes and allocate. */
 	SpriteData sd;
 	memset(&sd, 0, sizeof(sd));
 	uint all_sprites_size = 0;
-	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
-		const SpriteLoader::Sprite *src_sprite = &spritecollection[z];
-		sd.infos[z].sprite_width = src_sprite->width;
-		sd.infos[z].sprite_offset = all_sprites_size;
-		sd.infos[z].sprite_line_size = sizeof(Colour) * src_sprite->width + sizeof(uint32_t) * META_LENGTH;
+	uint z = 0;
+	for (const auto &pair : spritecollection) {
+		const auto &src_sprite = pair.second;
 
-		const uint rgba_size = sd.infos[z].sprite_line_size * src_sprite->height;
+		sd.infos[z].sprite_width = src_sprite.width;
+		sd.infos[z].sprite_offset = all_sprites_size;
+		sd.infos[z].sprite_line_size = sizeof(Colour) * src_sprite.width + sizeof(uint32_t) * META_LENGTH;
+
+		const uint rgba_size = sd.infos[z].sprite_line_size * src_sprite.height;
 		sd.infos[z].mv_offset = all_sprites_size + rgba_size;
 
-		const uint mv_size = sizeof(MapValue) * src_sprite->width * src_sprite->height;
+		const uint mv_size = sizeof(MapValue) * src_sprite.width * src_sprite.height;
 		all_sprites_size += rgba_size + mv_size;
+
+		z++;
 	}
 
 	Sprite *dst_sprite = (Sprite *)allocator.Allocate(sizeof(Sprite) + sizeof(SpriteData) + all_sprites_size);
-	dst_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
-	dst_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
-	dst_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
-	dst_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
+	dst_sprite->height = metadata.height;
+	dst_sprite->width  = metadata.width;
+	dst_sprite->x_offs = metadata.x_offs;
+	dst_sprite->y_offs = metadata.y_offs;
 	memcpy(dst_sprite->data, &sd, sizeof(SpriteData));
 
 	/* Copy colours and determine flags. */
 	bool has_remap = false;
 	bool has_anim = false;
 	bool has_translucency = false;
-	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
-		const SpriteLoader::Sprite *src_sprite = &spritecollection[z];
-		const SpriteLoader::CommonPixel *src = (const SpriteLoader::CommonPixel *) src_sprite->data;
+	z = 0;
+	for (auto &pair : spritecollection) {
+		const auto &src_sprite = pair.second;
+		const SpriteLoader::CommonPixel *src = (const SpriteLoader::CommonPixel *) src_sprite.data;
 		Colour *dst_rgba_line = (Colour *) &dst_sprite->data[sizeof(SpriteData) + sd.infos[z].sprite_offset];
 		MapValue *dst_mv = (MapValue *) &dst_sprite->data[sizeof(SpriteData) + sd.infos[z].mv_offset];
-		for (uint y = src_sprite->height; y != 0; y--) {
+		for (uint y = src_sprite.height; y != 0; y--) {
 			Colour *dst_rgba = dst_rgba_line + META_LENGTH;
-			for (uint x = src_sprite->width; x != 0; x--) {
+			for (uint x = src_sprite.width; x != 0; x--) {
 				if (src->a != 0) {
 					dst_rgba->a = src->a;
 					if (src->a != 0 && src->a != 255) has_translucency = true;
@@ -106,7 +107,7 @@ Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &spri
 			/* Count the number of transparent pixels from the left. */
 			dst_rgba = dst_rgba_line + META_LENGTH;
 			uint32_t nb_pix_transp = 0;
-			for (uint x = src_sprite->width; x != 0; x--) {
+			for (uint x = src_sprite.width; x != 0; x--) {
 				if (dst_rgba->a == 0) nb_pix_transp++;
 				else break;
 				dst_rgba++;
@@ -119,13 +120,15 @@ Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::SpriteCollection &spri
 			/* Count the number of transparent pixels from the right. */
 			dst_rgba = dst_rgba_line - 1;
 			nb_pix_transp = 0;
-			for (uint x = src_sprite->width; x != 0; x--) {
+			for (uint x = src_sprite.width; x != 0; x--) {
 				if (dst_rgba->a == 0) nb_pix_transp++;
 				else break;
 				dst_rgba--;
 			}
 			(*nb_right).data = nb_pix_transp;
 		}
+
+		z++;
 	}
 
 	/* Store sprite flags. */

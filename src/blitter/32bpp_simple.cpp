@@ -117,18 +117,21 @@ void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height
 
 Sprite *Blitter_32bppSimple::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
-	Blitter_32bppSimple::Pixel *dst;
-	Sprite *dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + (size_t)spritecollection[ZOOM_LVL_NORMAL].height * (size_t)spritecollection[ZOOM_LVL_NORMAL].width * sizeof(*dst));
+	/* 32bppSimple only uses the first available zoom level. */
+	const auto &sprite = spritecollection.begin()->second;
 
-	dest_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
-	dest_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
-	dest_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
-	dest_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
+	Blitter_32bppSimple::Pixel *dst;
+	Sprite *dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + (size_t)sprite.height * (size_t)sprite.width * sizeof(*dst));
+
+	dest_sprite->height = sprite.height;
+	dest_sprite->width  = sprite.width;
+	dest_sprite->x_offs = sprite.x_offs;
+	dest_sprite->y_offs = sprite.y_offs;
 
 	dst = (Blitter_32bppSimple::Pixel *)dest_sprite->data;
-	SpriteLoader::CommonPixel *src = (SpriteLoader::CommonPixel *)spritecollection[ZOOM_LVL_NORMAL].data;
+	SpriteLoader::CommonPixel *src = (SpriteLoader::CommonPixel *)sprite.data;
 
-	for (int i = 0; i < spritecollection[ZOOM_LVL_NORMAL].height * spritecollection[ZOOM_LVL_NORMAL].width; i++) {
+	for (int i = 0; i < sprite.height * sprite.width; i++) {
 		if (src->m == 0) {
 			dst[i].r = src->r;
 			dst[i].g = src->g;

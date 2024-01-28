@@ -950,6 +950,38 @@ Dimension GetSpriteSize(SpriteID sprid, Point *offset, ZoomLevel zoom)
 }
 
 /**
+ * Scale sprite size for GUI.
+ * Offset is ignored.
+ */
+Dimension GetScaledSpriteSize(SpriteID sprid, Point *offset)
+{
+	const Sprite *sprite = GetSprite(sprid, SpriteType::Normal, InterfaceScaleToFraction());
+
+	if (offset != nullptr) {
+		offset->x = sprite->x_offs;
+		offset->y = sprite->y_offs;
+	}
+
+	return Dimension(sprite->width, sprite->height);
+}
+
+/**
+ * Scale sprite size for GUI.
+ * Offset is ignored.
+ */
+Dimension GetScaledSpriteSizeWithOffset(SpriteID sprid, Point *offset)
+{
+	const Sprite *sprite = GetSprite(sprid, SpriteType::Normal, InterfaceScaleToFraction());
+
+	if (offset != nullptr) {
+		offset->x = sprite->x_offs;
+		offset->y = sprite->y_offs;
+	}
+
+	return Dimension(sprite->x_offs + sprite->width, sprite->y_offs + sprite->height);
+}
+
+/**
  * Helper function to get the blitter mode for different types of palettes.
  * @param pal The palette to get the blitter mode for.
  * @return The blitter mode associated with the palette.
@@ -1000,22 +1032,27 @@ void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSpri
  * @param sub  If available, draw only specified part of the sprite
  * @param zoom Zoom level of sprite
  */
-void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub, ZoomLevel zoom)
+void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub, std::optional<ZoomLevel> zoom)
 {
+	std::optional<float> scale{};
+	if (!zoom.has_value()) {
+		scale = InterfaceScaleToFraction();
+		zoom = ZOOM_LVL_NORMAL;
+	}
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
 	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
 		pal = GB(pal, 0, PALETTE_WIDTH);
 		_colour_remap_ptr = GetNonSprite(pal, SpriteType::Recolour) + 1;
-		GfxMainBlitter(GetSprite(real_sprite, SpriteType::Normal), x, y, pal == PALETTE_TO_TRANSPARENT ? BM_TRANSPARENT : BM_TRANSPARENT_REMAP, sub, real_sprite, zoom);
+		GfxMainBlitter(GetSprite(real_sprite, SpriteType::Normal, scale), x, y, pal == PALETTE_TO_TRANSPARENT ? BM_TRANSPARENT : BM_TRANSPARENT_REMAP, sub, real_sprite, *zoom);
 	} else if (pal != PAL_NONE) {
 		if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
 			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
 		} else {
 			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), SpriteType::Recolour) + 1;
 		}
-		GfxMainBlitter(GetSprite(real_sprite, SpriteType::Normal), x, y, GetBlitterMode(pal), sub, real_sprite, zoom);
+		GfxMainBlitter(GetSprite(real_sprite, SpriteType::Normal, scale), x, y, GetBlitterMode(pal), sub, real_sprite, *zoom);
 	} else {
-		GfxMainBlitter(GetSprite(real_sprite, SpriteType::Normal), x, y, BM_NORMAL, sub, real_sprite, zoom);
+		GfxMainBlitter(GetSprite(real_sprite, SpriteType::Normal, scale), x, y, BM_NORMAL, sub, real_sprite, *zoom);
 	}
 }
 
@@ -1816,10 +1853,9 @@ bool AdjustGUIZoom(bool automatic)
 	if (old_scale == _gui_scale && old_gui_zoom == _gui_zoom) return false;
 
 	/* Update cursors if sprite zoom level has changed. */
-	if (old_gui_zoom != _gui_zoom) {
-		VideoDriver::GetInstance()->ClearSystemSprites();
-		UpdateCursorSize();
-	}
+	GfxClearFractionalSpriteCache();
+	VideoDriver::GetInstance()->ClearSystemSprites();
+	UpdateCursorSize();
 	if (old_font_zoom != _font_zoom) {
 		GfxClearFontSpriteCache();
 	}

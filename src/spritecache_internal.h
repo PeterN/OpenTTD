@@ -22,6 +22,7 @@
 
 struct SpriteCache {
 	std::vector<byte> data;
+	std::vector<byte> fractional_data;
 	size_t file_pos = 0;
 	SpriteFile *file = nullptr; ///< The file the sprite in this entry can be found in.
 	uint32_t id = 0;
@@ -31,6 +32,7 @@ struct SpriteCache {
 	byte control_flags = 0; ///< Control flags, see SpriteCacheCtrlFlags
 
 	void ClearSpriteData();
+	void ClearSpriteFractionalData();
 };
 
 class CacheSpriteAllocator : public SpriteAllocator {

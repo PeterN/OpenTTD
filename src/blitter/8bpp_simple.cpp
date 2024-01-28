@@ -63,17 +63,20 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 
 Sprite *Blitter_8bppSimple::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
-	Sprite *dest_sprite;
-	dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + (size_t)spritecollection[ZOOM_LVL_NORMAL].height * (size_t)spritecollection[ZOOM_LVL_NORMAL].width);
+	/* 8bppSimple only uses the first available zoom level. */
+	const auto &sprite = spritecollection.begin()->second;
 
-	dest_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
-	dest_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
-	dest_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
-	dest_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
+	Sprite *dest_sprite;
+	dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite) + (size_t)sprite.height * (size_t)sprite.width);
+
+	dest_sprite->height = sprite.height;
+	dest_sprite->width  = sprite.width;
+	dest_sprite->x_offs = sprite.x_offs;
+	dest_sprite->y_offs = sprite.y_offs;
 
 	/* Copy over only the 'remap' channel, as that is what we care about in 8bpp */
-	for (int i = 0; i < spritecollection[ZOOM_LVL_NORMAL].height * spritecollection[ZOOM_LVL_NORMAL].width; i++) {
-		dest_sprite->data[i] = spritecollection[ZOOM_LVL_NORMAL].data[i].m;
+	for (int i = 0; i < sprite.height * sprite.width; i++) {
+		dest_sprite->data[i] = sprite.data[i].m;
 	}
 
 	return dest_sprite;

@@ -17,13 +17,15 @@ static FBlitter_Null iFBlitter_Null;
 
 Sprite *Blitter_Null::Encode(const SpriteLoader::SpriteCollection &spritecollection, SpriteAllocator &allocator)
 {
+	const auto &metadata = GetCollectionMetadata(spritecollection);
+
 	Sprite *dest_sprite;
 	dest_sprite = (Sprite *)allocator.Allocate(sizeof(*dest_sprite));
 
-	dest_sprite->height = spritecollection[ZOOM_LVL_NORMAL].height;
-	dest_sprite->width  = spritecollection[ZOOM_LVL_NORMAL].width;
-	dest_sprite->x_offs = spritecollection[ZOOM_LVL_NORMAL].x_offs;
-	dest_sprite->y_offs = spritecollection[ZOOM_LVL_NORMAL].y_offs;
+	dest_sprite->height = metadata.height;
+	dest_sprite->width  = metadata.width;
+	dest_sprite->x_offs = metadata.x_offs;
+	dest_sprite->y_offs = metadata.y_offs;
 
 	return dest_sprite;
 }

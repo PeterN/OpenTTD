@@ -36,7 +36,7 @@ public:
 	void *Allocate(size_t size) override;
 };
 
-void *GetRawSprite(SpriteID sprite, SpriteType type, SpriteAllocator *allocator = nullptr, SpriteEncoder *encoder = nullptr);
+void *GetRawSprite(SpriteID sprite, SpriteType type, std::optional<float> scale, SpriteAllocator *allocator = nullptr, SpriteEncoder *encoder = nullptr);
 bool SpriteExists(SpriteID sprite);
 
 SpriteType GetSpriteType(SpriteID sprite);
@@ -46,20 +46,21 @@ uint GetSpriteCountForFile(const std::string &filename, SpriteID begin, SpriteID
 uint GetMaxSpriteID();
 
 
-inline const Sprite *GetSprite(SpriteID sprite, SpriteType type)
+inline const Sprite *GetSprite(SpriteID sprite, SpriteType type, std::optional<float> scale = {})
 {
 	assert(type != SpriteType::Recolour);
-	return (Sprite*)GetRawSprite(sprite, type);
+	return (Sprite*)GetRawSprite(sprite, type, scale);
 }
 
 inline const byte *GetNonSprite(SpriteID sprite, SpriteType type)
 {
 	assert(type == SpriteType::Recolour);
-	return (byte*)GetRawSprite(sprite, type);
+	return (byte*)GetRawSprite(sprite, type, {});
 }
 
 void GfxInitSpriteMem();
 void GfxClearSpriteCache();
+void GfxClearFractionalSpriteCache();
 void GfxClearFontSpriteCache();
 void GfxShrinkToFitSpriteCacheIndex();
 void IncreaseSpriteLRU();
