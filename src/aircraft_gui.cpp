@@ -86,11 +86,11 @@ void DrawAircraftImage(const Vehicle *v, const Rect &r, VehicleID selection, Eng
 	Rect rect;
 	seq.GetBounds(&rect);
 
-	int width = UnScaleGUI(rect.Width());
-	int x_offs = UnScaleGUI(rect.left);
+	int width = rect.Width();
+	int x_offs = rect.left;
 	int x = rtl ? r.right - width - x_offs : r.left - x_offs;
 	/* This magic -1 offset is related to the sprite_y_offsets in build_vehicle_gui.cpp */
-	int y = ScaleSpriteTrad(-1) + CenterBounds(r.top, r.bottom, 0);
+	int y = ScaleGUITrad(-1) + CenterBounds(r.top, r.bottom, 0);
 	bool helicopter = v->subtype == AIR_HELICOPTER;
 
 	int heli_offs = 0;
@@ -102,13 +102,13 @@ void DrawAircraftImage(const Vehicle *v, const Rect &r, VehicleID selection, Eng
 		VehicleSpriteSeq rotor_seq;
 		GetCustomRotorSprite(a, image_type, &rotor_seq);
 		if (!rotor_seq.IsValid()) rotor_seq.Set(SPR_ROTOR_STOPPED);
-		heli_offs = ScaleSpriteTrad(5);
+		heli_offs = ScaleGUITrad(5);
 		rotor_seq.Draw(x, y - heli_offs, PAL_NONE, false);
 	}
 	if (v->index == selection) {
 		x += x_offs;
-		y += UnScaleGUI(rect.top) - heli_offs;
-		Rect hr = {x, y, x + width - 1, y + UnScaleGUI(rect.Height()) + heli_offs - 1};
+		y += rect.top - heli_offs;
+		Rect hr = {x, y, x + width - 1, y + rect.Height() + heli_offs - 1};
 		DrawFrameRect(hr.Expand(WidgetDimensions::scaled.bevel), COLOUR_WHITE, FR_BORDERONLY);
 	}
 }

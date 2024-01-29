@@ -192,17 +192,17 @@ static void InitBlocksizeForVehicles(VehicleType type, EngineImageType image_typ
 		if ((int)x + x_offs > max_extend_right) max_extend_right = x + x_offs;
 	}
 
-	int min_extend = ScaleSpriteTrad(16);
-	int max_extend = ScaleSpriteTrad(98);
+	int min_extend = ScaleGUITrad(16);
+	int max_extend = ScaleGUITrad(98);
 
 	switch (image_type) {
 		case EIT_IN_DEPOT:
-			_base_block_sizes_depot[type].height       = std::max<uint>(ScaleSpriteTrad(GetVehicleHeight(type)), max_height);
+			_base_block_sizes_depot[type].height       = std::max<uint>(ScaleGUITrad(GetVehicleHeight(type)), max_height);
 			_base_block_sizes_depot[type].extend_left  = Clamp(max_extend_left, min_extend, max_extend);
 			_base_block_sizes_depot[type].extend_right = Clamp(max_extend_right, min_extend, max_extend);
 			break;
 		case EIT_PURCHASE:
-			_base_block_sizes_purchase[type].height       = std::max<uint>(ScaleSpriteTrad(GetVehicleHeight(type)), max_height);
+			_base_block_sizes_purchase[type].height       = std::max<uint>(ScaleGUITrad(GetVehicleHeight(type)), max_height);
 			_base_block_sizes_purchase[type].extend_left  = Clamp(max_extend_left, min_extend, max_extend);
 			_base_block_sizes_purchase[type].extend_right = Clamp(max_extend_right, min_extend, max_extend);
 			break;

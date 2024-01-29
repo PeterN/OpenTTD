@@ -224,8 +224,8 @@ void DrawAircraftEngine(int left, int right, int preferred_x, int y, EngineID en
 	Rect rect;
 	seq.GetBounds(&rect);
 	preferred_x = Clamp(preferred_x,
-			left - UnScaleGUI(rect.left),
-			right - UnScaleGUI(rect.right));
+			left - rect.left,
+			right - rect.right);
 
 	seq.Draw(preferred_x, y, pal, pal == PALETTE_CRASH);
 
@@ -233,7 +233,7 @@ void DrawAircraftEngine(int left, int right, int preferred_x, int y, EngineID en
 		VehicleSpriteSeq rotor_seq;
 		GetCustomRotorIcon(engine, image_type, &rotor_seq);
 		if (!rotor_seq.IsValid()) rotor_seq.Set(SPR_ROTOR_STOPPED);
-		rotor_seq.Draw(preferred_x, y - ScaleSpriteTrad(5), PAL_NONE, false);
+		rotor_seq.Draw(preferred_x, y - ScaleGUITrad(5), PAL_NONE, false);
 	}
 }
 
@@ -254,10 +254,10 @@ void GetAircraftSpriteSize(EngineID engine, uint &width, uint &height, int &xoff
 	Rect rect;
 	seq.GetBounds(&rect);
 
-	width  = UnScaleGUI(rect.Width());
-	height = UnScaleGUI(rect.Height());
-	xoffs  = UnScaleGUI(rect.left);
-	yoffs  = UnScaleGUI(rect.top);
+	width  = rect.Width();
+	height = rect.Height();
+	xoffs  = rect.left;
+	yoffs  = rect.top;
 }
 
 /**

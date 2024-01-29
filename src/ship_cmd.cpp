@@ -103,8 +103,8 @@ void DrawShipEngine(int left, int right, int preferred_x, int y, EngineID engine
 	Rect rect;
 	seq.GetBounds(&rect);
 	preferred_x = Clamp(preferred_x,
-			left - UnScaleGUI(rect.left),
-			right - UnScaleGUI(rect.right));
+			left - rect.left,
+			right - rect.right);
 
 	seq.Draw(preferred_x, y, pal, pal == PALETTE_CRASH);
 }
@@ -126,10 +126,10 @@ void GetShipSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, i
 	Rect rect;
 	seq.GetBounds(&rect);
 
-	width  = UnScaleGUI(rect.Width());
-	height = UnScaleGUI(rect.Height());
-	xoffs  = UnScaleGUI(rect.left);
-	yoffs  = UnScaleGUI(rect.top);
+	width  = rect.Width();
+	height = rect.Height();
+	xoffs  = rect.left;
+	yoffs  = rect.top;
 }
 
 void Ship::GetImage(Direction direction, EngineImageType image_type, VehicleSpriteSeq *result) const

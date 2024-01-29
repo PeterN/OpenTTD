@@ -470,13 +470,13 @@ int Train::GetDisplayImageWidth(Point *offset) const
 
 	if (offset != nullptr) {
 		if (HasBit(this->flags, VRF_REVERSE_DIRECTION) && !HasBit(EngInfo(this->engine_type)->misc_flags, EF_RAIL_FLIPS)) {
-			offset->x = ScaleSpriteTrad(((int)this->gcache.cached_veh_length - (int)VEHICLE_LENGTH / 2) * reference_width / (int)VEHICLE_LENGTH);
+			offset->x = ScaleGUITrad(((int)this->gcache.cached_veh_length - (int)VEHICLE_LENGTH / 2) * reference_width / (int)VEHICLE_LENGTH);
 		} else {
-			offset->x = ScaleSpriteTrad(reference_width) / 2;
+			offset->x = ScaleGUITrad(reference_width) / 2;
 		}
-		offset->y = ScaleSpriteTrad(vehicle_pitch);
+		offset->y = ScaleGUITrad(vehicle_pitch);
 	}
-	return ScaleSpriteTrad(this->gcache.cached_veh_length * reference_width / VEHICLE_LENGTH);
+	return ScaleGUITrad(this->gcache.cached_veh_length * reference_width / VEHICLE_LENGTH);
 }
 
 static SpriteID GetDefaultTrainSprite(uint8_t spritenum, Direction direction)
@@ -522,7 +522,7 @@ static void GetRailIcon(EngineID engine, bool rear_head, int &y, EngineImageType
 		GetCustomVehicleIcon(engine, dir, image_type, result);
 		if (result->IsValid()) {
 			if (e->GetGRF() != nullptr) {
-				y += ScaleSpriteTrad(e->GetGRF()->traininfo_vehicle_pitch);
+				y += ScaleGUITrad(e->GetGRF()->traininfo_vehicle_pitch);
 			}
 			return;
 		}
@@ -550,11 +550,11 @@ void DrawTrainEngine(int left, int right, int preferred_x, int y, EngineID engin
 		seqr.GetBounds(&rectr);
 
 		preferred_x = Clamp(preferred_x,
-				left - UnScaleGUI(rectf.left) + ScaleSpriteTrad(14),
-				right - UnScaleGUI(rectr.right) - ScaleSpriteTrad(15));
+				left - rectf.left + ScaleGUITrad(14),
+				right - rectr.right - ScaleGUITrad(15));
 
-		seqf.Draw(preferred_x - ScaleSpriteTrad(14), yf, pal, pal == PALETTE_CRASH);
-		seqr.Draw(preferred_x + ScaleSpriteTrad(15), yr, pal, pal == PALETTE_CRASH);
+		seqf.Draw(preferred_x - ScaleGUITrad(14), yf, pal, pal == PALETTE_CRASH);
+		seqr.Draw(preferred_x + ScaleGUITrad(15), yr, pal, pal == PALETTE_CRASH);
 	} else {
 		VehicleSpriteSeq seq;
 		GetRailIcon(engine, false, y, image_type, &seq);
@@ -562,8 +562,8 @@ void DrawTrainEngine(int left, int right, int preferred_x, int y, EngineID engin
 		Rect rect;
 		seq.GetBounds(&rect);
 		preferred_x = Clamp(preferred_x,
-				left - UnScaleGUI(rect.left),
-				right - UnScaleGUI(rect.right));
+				left - rect.left,
+				right - rect.right);
 
 		seq.Draw(preferred_x, y, pal, pal == PALETTE_CRASH);
 	}
@@ -588,20 +588,20 @@ void GetTrainSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, 
 	Rect rect;
 	seq.GetBounds(&rect);
 
-	width  = UnScaleGUI(rect.Width());
-	height = UnScaleGUI(rect.Height());
-	xoffs  = UnScaleGUI(rect.left);
-	yoffs  = UnScaleGUI(rect.top);
+	width  = rect.Width();
+	height = rect.Height();
+	xoffs  = rect.left;
+	yoffs  = rect.top;
 
 	if (RailVehInfo(engine)->railveh_type == RAILVEH_MULTIHEAD) {
 		GetRailIcon(engine, true, y, image_type, &seq);
 		seq.GetBounds(&rect);
 
 		/* Calculate values relative to an imaginary center between the two sprites. */
-		width = ScaleSpriteTrad(TRAININFO_DEFAULT_VEHICLE_WIDTH) + UnScaleGUI(rect.right) - xoffs;
-		height = std::max<uint>(height, UnScaleGUI(rect.Height()));
-		xoffs  = xoffs - ScaleSpriteTrad(TRAININFO_DEFAULT_VEHICLE_WIDTH) / 2;
-		yoffs  = std::min(yoffs, UnScaleGUI(rect.top));
+		width = ScaleGUITrad(TRAININFO_DEFAULT_VEHICLE_WIDTH) + rect.right - xoffs;
+		height = std::max<uint>(height, rect.Height());
+		xoffs  = xoffs - ScaleGUITrad(TRAININFO_DEFAULT_VEHICLE_WIDTH) / 2;
+		yoffs  = std::min(yoffs, rect.top);
 	}
 }
 

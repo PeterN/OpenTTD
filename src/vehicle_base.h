@@ -180,7 +180,7 @@ struct VehicleSpriteSeq {
 		}
 	}
 
-	void GetBounds(Rect *bounds) const;
+	void GetBounds(Rect *bounds, bool viewport = false) const;
 	void Draw(int x, int y, PaletteID default_pal, bool force_pal) const;
 };
 

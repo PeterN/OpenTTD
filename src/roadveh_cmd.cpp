@@ -96,10 +96,10 @@ int RoadVehicle::GetDisplayImageWidth(Point *offset) const
 	int reference_width = ROADVEHINFO_DEFAULT_VEHICLE_WIDTH;
 
 	if (offset != nullptr) {
-		offset->x = ScaleSpriteTrad(reference_width) / 2;
+		offset->x = ScaleGUITrad(reference_width) / 2;
 		offset->y = 0;
 	}
-	return ScaleSpriteTrad(this->gcache.cached_veh_length * reference_width / VEHICLE_LENGTH);
+	return ScaleGUITrad(this->gcache.cached_veh_length * reference_width / VEHICLE_LENGTH);
 }
 
 static void GetRoadVehIcon(EngineID engine, EngineImageType image_type, VehicleSpriteSeq *result)
@@ -154,8 +154,8 @@ void DrawRoadVehEngine(int left, int right, int preferred_x, int y, EngineID eng
 	Rect rect;
 	seq.GetBounds(&rect);
 	preferred_x = Clamp(preferred_x,
-			left - UnScaleGUI(rect.left),
-			right - UnScaleGUI(rect.right));
+			left - rect.left,
+			right - rect.right);
 
 	seq.Draw(preferred_x, y, pal, pal == PALETTE_CRASH);
 }
@@ -177,10 +177,10 @@ void GetRoadVehSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs
 	Rect rect;
 	seq.GetBounds(&rect);
 
-	width  = UnScaleGUI(rect.Width());
-	height = UnScaleGUI(rect.Height());
-	xoffs  = UnScaleGUI(rect.left);
-	yoffs  = UnScaleGUI(rect.top);
+	width  = rect.Width();
+	height = rect.Height();
+	xoffs  = rect.left;
+	yoffs  = rect.top;
 }
 
 /**

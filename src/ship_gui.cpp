@@ -37,18 +37,18 @@ void DrawShipImage(const Vehicle *v, const Rect &r, VehicleID selection, EngineI
 	Rect rect;
 	seq.GetBounds(&rect);
 
-	int width = UnScaleGUI(rect.Width());
-	int x_offs = UnScaleGUI(rect.left);
+	int width = rect.Width();
+	int x_offs = rect.left;
 	int x = rtl ? r.right - width - x_offs : r.left - x_offs;
 	/* This magic -1 offset is related to the sprite_y_offsets in build_vehicle_gui.cpp */
-	int y = ScaleSpriteTrad(-1) + CenterBounds(r.top, r.bottom, 0);
+	int y = ScaleGUITrad(-1) + CenterBounds(r.top, r.bottom, 0);
 
 	seq.Draw(x, y, GetVehiclePalette(v), false);
 
 	if (v->index == selection) {
 		x += x_offs;
-		y += UnScaleGUI(rect.top);
-		Rect hr = {x, y, x + width - 1, y + UnScaleGUI(rect.Height()) - 1};
+		y += rect.top;
+		Rect hr = {x, y, x + width - 1, y + rect.Height() - 1};
 		DrawFrameRect(hr.Expand(WidgetDimensions::scaled.bevel), COLOUR_WHITE, FR_BORDERONLY);
 	}
 }

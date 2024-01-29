@@ -100,11 +100,14 @@ INSTANTIATE_POOL_METHODS(Vehicle)
  * Determine shared bounds of all sprites.
  * @param[out] bounds Shared bounds.
  */
-void VehicleSpriteSeq::GetBounds(Rect *bounds) const
+void VehicleSpriteSeq::GetBounds(Rect *bounds, bool viewport) const
 {
+	std::optional<float> scale;
+	if (!viewport) scale = InterfaceScaleToFraction();
+
 	bounds->left = bounds->top = bounds->right = bounds->bottom = 0;
 	for (uint i = 0; i < this->count; ++i) {
-		const Sprite *spr = GetSprite(this->seq[i].sprite, SpriteType::Normal);
+		const Sprite *spr = GetSprite(this->seq[i].sprite, SpriteType::Normal, scale);
 		if (i == 0) {
 			bounds->left = spr->x_offs;
 			bounds->top  = spr->y_offs;
@@ -1679,7 +1682,7 @@ void Vehicle::UpdatePosition()
 void Vehicle::UpdateBoundingBoxCoordinates(bool update_cache) const
 {
 	Rect new_coord;
-	this->sprite_cache.sprite_seq.GetBounds(&new_coord);
+	this->sprite_cache.sprite_seq.GetBounds(&new_coord, true);
 
 	Point pt = RemapCoords(this->x_pos + this->x_offs, this->y_pos + this->y_offs, this->z_pos);
 	new_coord.left   += pt.x;
