@@ -197,10 +197,11 @@ static bool ResizeSpriteIn(SpriteLoader::SpriteCollection &spritecollection, flo
 	const auto &source = spritecollection[src];
 	auto &target = spritecollection[tgt];
 
-	target.width = ceil(source.width * tgt / src);
-	target.height = ceil(source.height * tgt / src);
-	target.x_offs = ceil(source.x_offs * tgt / src);
-	target.y_offs = ceil(source.y_offs * tgt / src);
+	double ratio = tgt / src;
+	target.width = ceil(source.width * ratio);
+	target.height = ceil(source.height * ratio);
+	target.x_offs = ceil(source.x_offs * ratio);
+	target.y_offs = ceil(source.y_offs * ratio);
 	target.colours = source.colours;
 
 	/* Check for possible memory overflow. */
@@ -214,10 +215,10 @@ static bool ResizeSpriteIn(SpriteLoader::SpriteCollection &spritecollection, flo
 	auto *dst = target.data;
 	[[maybe_unused]] const auto *src_end = source.data + source.height * source.width;
 	for (int y = 0; y < target.height; y++) {
-		const auto *src_ln = source.data + static_cast<int>(((y + target.y_offs) * src / tgt) - source.y_offs) * source.width;
+		const auto *src_ln = source.data + static_cast<int>(((y + target.y_offs) / ratio) - source.y_offs) * source.width;
 		if (src_ln >= src_end) src_ln -= source.width;
 		for (int x = 0; x < target.width; x++) {
-			auto *src_px = src_ln + static_cast<int>(((x + target.x_offs) * src / tgt) - source.x_offs);
+			auto *src_px = src_ln + static_cast<int>(((x + target.x_offs) / ratio) - source.x_offs);
 			if (src_px >= src_ln + source.width) --src_px;
 			*dst = *src_px;
 			dst++;
