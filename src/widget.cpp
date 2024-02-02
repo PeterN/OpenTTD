@@ -2985,7 +2985,7 @@ static const NWidgetPart *MakeNWidget(const NWidgetPart *nwid_begin, const NWidg
 			case WPT_ALIGNMENT: {
 				NWidgetCore *nwc = dynamic_cast<NWidgetCore *>(dest.get());
 				if (nwc == nullptr) [[unlikely]] throw std::runtime_error("WPT_ALIGNMENT requires NWidgetCore");
-				nwc->SetAlignment(nwid_begin->u.align.align);
+				nwc->SetAlignment(nwid_begin->u.align);
 				break;
 			}
 

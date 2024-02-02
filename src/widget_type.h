@@ -984,13 +984,6 @@ struct NWidgetPartWidget {
 };
 
 /**
- * Widget part for storing padding.
- * @ingroup NestedWidgetParts
- */
-struct NWidgetPartPaddings : RectPadding {
-};
-
-/**
  * Widget part for storing pre/inter/post spaces.
  * @ingroup NestedWidgetParts
  */
@@ -1018,14 +1011,6 @@ struct NWidgetPartTextStyle {
 };
 
 /**
- * Widget part for setting text/image alignment within a widget.
- * @ingroup NestedWidgetParts
- */
-struct NWidgetPartAlignment {
-	StringAlignment align; ///< Alignment of text/image.
-};
-
-/**
  * Pointer to function returning a nested widget.
  * @return Nested widget (tree).
  */
@@ -1041,11 +1026,11 @@ struct NWidgetPart {
 		Point xy;                        ///< Part with an x/y size.
 		NWidgetPartDataTip data_tip;     ///< Part with a data/tooltip.
 		NWidgetPartWidget widget;        ///< Part with a start of a widget.
-		NWidgetPartPaddings padding;     ///< Part with paddings.
+		RectPadding padding; ///< Part with padding.
 		NWidgetPartPIP pip;              ///< Part with pre/inter/post spaces.
 		NWidgetPartTextLines text_lines; ///< Part with text line data.
 		NWidgetPartTextStyle text_style; ///< Part with text style data.
-		NWidgetPartAlignment align;      ///< Part with internal alignment.
+		StringAlignment align; ///< Part with alignment.
 		NWidgetFunctionType *func_ptr;   ///< Part with a function call.
 		NWidContainerFlags cont_flags;   ///< Part with container flags.
 
@@ -1054,11 +1039,11 @@ struct NWidgetPart {
 		constexpr NWidgetPartUnion(Point xy) : xy(xy) {}
 		constexpr NWidgetPartUnion(NWidgetPartDataTip data_tip) : data_tip(data_tip) {}
 		constexpr NWidgetPartUnion(NWidgetPartWidget widget) : widget(widget) {}
-		constexpr NWidgetPartUnion(NWidgetPartPaddings padding) : padding(padding) {}
+		constexpr NWidgetPartUnion(RectPadding padding) : padding(padding) {}
 		constexpr NWidgetPartUnion(NWidgetPartPIP pip) : pip(pip) {}
 		constexpr NWidgetPartUnion(NWidgetPartTextLines text_lines) : text_lines(text_lines) {}
 		constexpr NWidgetPartUnion(NWidgetPartTextStyle text_style) : text_style(text_style) {}
-		constexpr NWidgetPartUnion(NWidgetPartAlignment align) : align(align) {}
+		constexpr NWidgetPartUnion(StringAlignment align) : align(align) {}
 		constexpr NWidgetPartUnion(NWidgetFunctionType *func_ptr) : func_ptr(func_ptr) {}
 		constexpr NWidgetPartUnion(NWidContainerFlags cont_flags) : cont_flags(cont_flags) {}
 	} u;
@@ -1068,11 +1053,11 @@ struct NWidgetPart {
 	constexpr NWidgetPart(WidgetType type, Point xy) : type(type), u(xy) {}
 	constexpr NWidgetPart(WidgetType type, NWidgetPartDataTip data_tip) : type(type), u(data_tip) {}
 	constexpr NWidgetPart(WidgetType type, NWidgetPartWidget widget) : type(type), u(widget) {}
-	constexpr NWidgetPart(WidgetType type, NWidgetPartPaddings padding) : type(type), u(padding) {}
+	constexpr NWidgetPart(WidgetType type, RectPadding padding) : type(type), u(padding) {}
 	constexpr NWidgetPart(WidgetType type, NWidgetPartPIP pip) : type(type), u(pip) {}
 	constexpr NWidgetPart(WidgetType type, NWidgetPartTextLines text_lines) : type(type), u(text_lines) {}
 	constexpr NWidgetPart(WidgetType type, NWidgetPartTextStyle text_style) : type(type), u(text_style) {}
-	constexpr NWidgetPart(WidgetType type, NWidgetPartAlignment align) : type(type), u(align) {}
+	constexpr NWidgetPart(WidgetType type, StringAlignment align) : type(type), u(align) {}
 	constexpr NWidgetPart(WidgetType type, NWidgetFunctionType *func_ptr) : type(type), u(func_ptr) {}
 	constexpr NWidgetPart(WidgetType type, NWidContainerFlags cont_flags) : type(type), u(cont_flags) {}
 };
@@ -1129,7 +1114,7 @@ constexpr NWidgetPart SetTextStyle(TextColour colour, FontSize size = FS_NORMAL)
  */
 constexpr NWidgetPart SetAlignment(StringAlignment align)
 {
-	return NWidgetPart{WPT_ALIGNMENT, NWidgetPartAlignment{align}};
+	return NWidgetPart{WPT_ALIGNMENT, align};
 }
 
 /**
@@ -1187,7 +1172,7 @@ constexpr NWidgetPart SetMatrixDataTip(uint8_t cols, uint8_t rows, StringID tip)
  */
 constexpr NWidgetPart SetPadding(uint8_t top, uint8_t right, uint8_t bottom, uint8_t left)
 {
-	return NWidgetPart{WPT_PADDING, NWidgetPartPaddings{left, top, right, bottom}};
+	return NWidgetPart{WPT_PADDING, RectPadding{left, top, right, bottom}};
 }
 
 /**
@@ -1197,7 +1182,7 @@ constexpr NWidgetPart SetPadding(uint8_t top, uint8_t right, uint8_t bottom, uin
  */
 constexpr NWidgetPart SetPadding(const RectPadding &padding)
 {
-	return NWidgetPart{WPT_PADDING, NWidgetPartPaddings{padding}};
+	return NWidgetPart{WPT_PADDING, padding};
 }
 
 /**
