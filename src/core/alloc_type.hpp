@@ -76,6 +76,15 @@ public:
 	{
 		return this->buffer;
 	}
+
+	/**
+	 * Get the currently allocated buffer.
+	 * @return the buffer
+	 */
+	inline T *GetBuffer()
+	{
+		return this->buffer;
+	}
 };
 
 /**

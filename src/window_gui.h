@@ -290,6 +290,8 @@ public:
 	 */
 	inline void *operator new[](size_t size) = delete;
 
+	ReusableBuffer<uint8_t> surface;
+
 	WindowDesc *window_desc;    ///< Window description
 	WindowFlags flags;          ///< Window flags
 	WindowClass window_class;   ///< Window class

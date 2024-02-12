@@ -898,15 +898,22 @@ static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bo
 	}
 
 	/* Setup blitter, and dispatch a repaint event to window *wz */
-	DrawPixelInfo *dp = _cur_dpi;
-	dp->width = right - left;
-	dp->height = bottom - top;
-	dp->left = left - w->left;
-	dp->top = top - w->top;
-	dp->pitch = _screen.pitch;
-	dp->dst_ptr = BlitterFactory::GetCurrentBlitter()->MoveTo(_screen.dst_ptr, left, top);
-	dp->zoom = ZOOM_LVL_NORMAL;
-	w->OnPaint();
+	// DrawPixelInfo *dp = _cur_dpi;
+	// dp->width = right - left;
+	// dp->height = bottom - top;
+	// dp->left = left - w->left;
+	// dp->top = top - w->top;
+	// dp->pitch = _screen.pitch;
+	// dp->dst_ptr = BlitterFactory::GetCurrentBlitter()->MoveTo(_screen.dst_ptr, left, top);
+	// dp->zoom = ZOOM_LVL_NORMAL;
+	// w->OnPaint();
+
+	_cur_dpi->pitch = w->width;
+	const void *src_ptr = BlitterFactory::GetCurrentBlitter()->MoveTo(w->surface.GetBuffer(), left - w->left, top - w->top);
+	_cur_dpi->pitch = _screen.pitch;
+	void *dst_ptr = BlitterFactory::GetCurrentBlitter()->MoveTo(_screen.dst_ptr, left, top);
+
+	BlitterFactory::GetCurrentBlitter()->CopyFromBuffer(dst_ptr, src_ptr, right - left, bottom - top, w->width);
 }
 
 /**
@@ -929,6 +936,21 @@ void DrawOverlappedWindowForAll(int left, int top, int right, int bottom)
 				left < w->left + w->width &&
 				top < w->top + w->height) {
 			/* Window w intersects with the rectangle => needs repaint */
+
+			{
+				DrawPixelInfo x;
+				AutoRestoreBackup dpi_backup(_cur_dpi, &x);
+				DrawPixelInfo *dp = _cur_dpi;
+				dp->width = w->width;
+				dp->height = w->height;
+				dp->left = 0;
+				dp->top = 0;
+				dp->pitch = w->width;
+				dp->dst_ptr = BlitterFactory::GetCurrentBlitter()->MoveTo(static_cast<byte *>(w->surface.GetBuffer()), 0, 0);
+				dp->zoom = ZOOM_LVL_NORMAL;
+				w->OnPaint();
+			}
+
 			DrawOverlappedWindow(w, std::max(left, w->left), std::max(top, w->top), std::min(right, w->left + w->width), std::min(bottom, w->top + w->height));
 		}
 	}
@@ -1738,6 +1760,10 @@ void Window::FinishInitNested(WindowNumber window_number)
 	Point pt = this->OnInitialPosition(this->nested_root->smallest_x, this->nested_root->smallest_y, window_number);
 	this->InitializePositionSize(pt.x, pt.y, this->nested_root->smallest_x, this->nested_root->smallest_y);
 	this->FindWindowPlacementAndResize(this->window_desc->GetDefaultWidth(), this->window_desc->GetDefaultHeight());
+
+	/* Allocate backing surface. */
+	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+	this->surface.Allocate(blitter->BufferSize(this->width, this->height));
 }
 
 /**
@@ -2049,6 +2075,10 @@ void ResizeWindow(Window *w, int delta_x, int delta_y, bool clamp_to_screen)
 	}
 
 	EnsureVisibleCaption(w, w->left, w->top);
+
+	/* Allocate backing surface. */
+	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+	w->surface.Allocate(blitter->BufferSize(w->width, w->height));
 
 	/* Schedule OnResize to make sure everything is initialised correctly if it needs to be. */
 	w->ScheduleResize();
@@ -3031,6 +3061,8 @@ static IntervalTimer<TimerWindow> white_border_interval(std::chrono::millisecond
 	}
 });
 
+uint _window_ticks = 0;
+
 /**
  * Update the continuously changing contents of the windows, such as the viewports
  */
@@ -3041,6 +3073,8 @@ void UpdateWindows()
 	auto delta_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time);
 
 	if (delta_ms.count() == 0) return;
+
+	_window_ticks++;
 
 	last_time = now;
 

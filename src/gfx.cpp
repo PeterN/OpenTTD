@@ -1363,10 +1363,10 @@ void DrawMouseCursor()
 	uint8_t *buffer = _cursor_backup.Allocate(blitter->BufferSize(_cursor.draw_size.x, _cursor.draw_size.y));
 
 	/* Make backup of stuff below cursor */
+	_cur_dpi = &_screen;
 	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), buffer, _cursor.draw_size.x, _cursor.draw_size.y, _cursor.draw_size.x);
 
 	/* Draw cursor on screen */
-	_cur_dpi = &_screen;
 	for (uint i = 0; i < _cursor.sprite_count; ++i) {
 		DrawSprite(_cursor.sprite_seq[i].sprite, _cursor.sprite_seq[i].pal, _cursor.pos.x + _cursor.sprite_pos[i].x, _cursor.pos.y + _cursor.sprite_pos[i].y);
 	}

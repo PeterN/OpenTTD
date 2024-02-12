@@ -839,6 +839,13 @@ public:
 		if (this->IsShaded()) return; // Don't draw anything when the window is shaded.
 
 		const Rect r = this->GetWidget<NWidgetBase>(WID_IV_INFO)->GetCurrentRect();
+		extern uint _window_ticks;
+		fmt::println("Drawing at {} ({},{},{},{}) ({},{},{},{})", _window_ticks, r.left, r.top, r.right, r.bottom,
+			_cur_dpi->left,
+			_cur_dpi->top,
+			_cur_dpi->left + _cur_dpi->width - 1,
+			_cur_dpi->top + _cur_dpi->height - 1);
+
 		int expected = this->DrawInfo(r);
 		if (expected != r.bottom) {
 			this->info_height = expected - r.top + 1;
