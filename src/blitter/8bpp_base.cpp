@@ -49,19 +49,19 @@ void Blitter_8bppBase::DrawRect(void *video, int width, int height, uint8_t colo
 	} while (--height);
 }
 
-void Blitter_8bppBase::CopyFromBuffer(void *video, const void *src, int width, int height)
+void Blitter_8bppBase::CopyFromBuffer(void *video, const void *src, int width, int height, int src_pitch)
 {
 	uint8_t *dst = (uint8_t *)video;
 	const uint8_t *usrc = (const uint8_t *)src;
 
 	for (; height > 0; height--) {
 		memcpy(dst, usrc, width * sizeof(uint8_t));
-		usrc += width;
+		usrc += src_pitch;
 		dst += _screen.pitch;
 	}
 }
 
-void Blitter_8bppBase::CopyToBuffer(const void *video, void *dst, int width, int height)
+void Blitter_8bppBase::CopyToBuffer(const void *video, void *dst, int width, int height, int dst_pitch)
 {
 	uint8_t *udst = (uint8_t *)dst;
 	const uint8_t *src = (const uint8_t *)video;
@@ -69,7 +69,7 @@ void Blitter_8bppBase::CopyToBuffer(const void *video, void *dst, int width, int
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint8_t));
 		src += _screen.pitch;
-		udst += width;
+		udst += dst_pitch;
 	}
 }
 

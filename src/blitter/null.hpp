@@ -23,8 +23,8 @@ public:
 	void SetPixel(void *, int, int, uint8_t) override {};
 	void DrawRect(void *, int, int, uint8_t) override {};
 	void DrawLine(void *, int, int, int, int, int, int, uint8_t, int, int) override {};
-	void CopyFromBuffer(void *, const void *, int, int) override {};
-	void CopyToBuffer(const void *, void *, int, int) override {};
+	void CopyFromBuffer(void *, const void *, int, int, int) override {};
+	void CopyToBuffer(const void *, void *, int, int, int) override {};
 	void CopyImageToBuffer(const void *, void *, int, int, int) override {};
 	void ScrollBuffer(void *, int &, int &, int &, int &, int, int) override {};
 	size_t BufferSize(uint, uint) override { return 0; };

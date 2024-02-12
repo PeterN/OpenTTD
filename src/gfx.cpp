@@ -1308,7 +1308,7 @@ void UndrawMouseCursor()
 	if (_cursor.visible) {
 		Blitter *blitter = BlitterFactory::GetCurrentBlitter();
 		_cursor.visible = false;
-		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), _cursor_backup.GetBuffer(), _cursor.draw_size.x, _cursor.draw_size.y);
+		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), _cursor_backup.GetBuffer(), _cursor.draw_size.x, _cursor.draw_size.y, _cursor.draw_size.x);
 		VideoDriver::GetInstance()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 	}
 }
@@ -1363,7 +1363,7 @@ void DrawMouseCursor()
 	uint8_t *buffer = _cursor_backup.Allocate(blitter->BufferSize(_cursor.draw_size.x, _cursor.draw_size.y));
 
 	/* Make backup of stuff below cursor */
-	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), buffer, _cursor.draw_size.x, _cursor.draw_size.y);
+	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), buffer, _cursor.draw_size.x, _cursor.draw_size.y, _cursor.draw_size.x);
 
 	/* Draw cursor on screen */
 	_cur_dpi = &_screen;

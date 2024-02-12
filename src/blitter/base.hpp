@@ -131,7 +131,7 @@ public:
 	 * @param height The height of the buffer.
 	 * @note You can not do anything with the content of the buffer, as the blitter can store non-pixel data in it too!
 	 */
-	virtual void CopyFromBuffer(void *video, const void *src, int width, int height) = 0;
+	virtual void CopyFromBuffer(void *video, const void *src, int width, int height, int src_pitch) = 0;
 
 	/**
 	 * Copy from the screen to a buffer.
@@ -141,7 +141,7 @@ public:
 	 * @param height The height of the buffer.
 	 * @note You can not do anything with the content of the buffer, as the blitter can store non-pixel data in it too!
 	 */
-	virtual void CopyToBuffer(const void *video, void *dst, int width, int height) = 0;
+	virtual void CopyToBuffer(const void *video, void *dst, int width, int height, int dst_pitch) = 0;
 
 	/**
 	 * Copy from the screen to a buffer in a palette format for 8bpp and RGBA format for 32bpp.

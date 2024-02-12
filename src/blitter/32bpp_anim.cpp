@@ -381,7 +381,7 @@ void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8_t col
 	} while (--height);
 }
 
-void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, int height)
+void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, int height, int src_pitch)
 {
 	assert(!_screen_disable_anim);
 	assert(video >= _screen.dst_ptr && video <= (uint32_t *)_screen.dst_ptr + _screen.width + _screen.height * _screen.pitch);
@@ -395,11 +395,11 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 		uint16_t *anim_pal = anim_line;
 
 		memcpy(static_cast<void *>(dst), usrc, width * sizeof(uint32_t));
-		usrc += width;
+		usrc += src_pitch;
 		dst += _screen.pitch;
 		/* Copy back the anim-buffer */
 		memcpy(anim_line, usrc, width * sizeof(uint16_t));
-		usrc = (const uint32_t *)&((const uint16_t *)usrc)[width];
+		usrc = (const uint32_t *)&((const uint16_t *)usrc)[src_pitch];
 		anim_line += this->anim_buf_pitch;
 
 		/* Okay, it is *very* likely that the image we stored is using
@@ -421,7 +421,7 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 	}
 }
 
-void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, int height)
+void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, int height, int dst_pitch)
 {
 	assert(!_screen_disable_anim);
 	assert(video >= _screen.dst_ptr && video <= (uint32_t *)_screen.dst_ptr + _screen.width + _screen.height * _screen.pitch);
@@ -435,10 +435,10 @@ void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, in
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint32_t));
 		src += _screen.pitch;
-		udst += width;
+		udst += dst_pitch;
 		/* Copy the anim-buffer */
 		memcpy(udst, anim_line, width * sizeof(uint16_t));
-		udst = (uint32_t *)&((uint16_t *)udst)[width];
+		udst = (uint32_t *)&((uint16_t *)udst)[dst_pitch];
 		anim_line += this->anim_buf_pitch;
 	}
 }

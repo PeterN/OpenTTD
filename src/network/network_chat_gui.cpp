@@ -155,7 +155,7 @@ void NetworkUndrawChatMessage()
 
 		_chatmessage_visible = false;
 		/* Put our 'shot' back to the screen */
-		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, x, y), _chatmessage_backup.GetBuffer(), width, height);
+		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, x, y), _chatmessage_backup.GetBuffer(), width, height, width);
 		/* And make sure it is updated next time */
 		VideoDriver::GetInstance()->MakeDirty(x, y, width, height);
 
@@ -209,7 +209,7 @@ void NetworkDrawChatMessage()
 
 	/* Make a copy of the screen as it is before painting (for undraw) */
 	uint8_t *buffer = _chatmessage_backup.Allocate(BlitterFactory::GetCurrentBlitter()->BufferSize(width, height));
-	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, x, y), buffer, width, height);
+	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, x, y), buffer, width, height, width);
 
 	_cur_dpi = &_screen; // switch to _screen painting
 
