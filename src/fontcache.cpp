@@ -155,6 +155,9 @@ static void TryLoadDefaultTrueTypeFont([[maybe_unused]] FontSize fs)
 		case FS_MONO:
 			font_name = "OpenTTD-Mono.ttf";
 			break;
+		case FS_PREVIEW:
+			/* There is no default font. */
+			return;
 
 		default: NOT_REACHED();
 	}
