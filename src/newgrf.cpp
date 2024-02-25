@@ -81,7 +81,7 @@ static uint32_t _ttdpatch_flags[8];
 /** Indicates which are the newgrf features currently loaded ingame */
 GRFLoadedFeatures _loaded_newgrf_features;
 
-static const uint MAX_SPRITEGROUP = UINT8_MAX; ///< Maximum GRF-local ID for a spritegroup.
+static const uint MAX_SPRITEGROUP = UINT16_MAX; ///< Maximum GRF-local ID for a spritegroup.
 
 /** Temporary data during loading of GRFs */
 struct GrfProcessingState {
@@ -110,7 +110,7 @@ public:
 	int skip_sprites;         ///< Number of pseudo sprites to skip before processing the next one. (-1 to skip to end of file)
 
 	/* Currently referenceable spritegroups */
-	const SpriteGroup *spritegroups[MAX_SPRITEGROUP + 1];
+	std::map<uint16_t, const SpriteGroup *> spritegroups;
 
 	/** Clear temporary data before processing the next file in the current loading stage */
 	void ClearDataForNextFile()
@@ -122,7 +122,7 @@ public:
 			this->spritesets[i].clear();
 		}
 
-		memset(this->spritegroups, 0, sizeof(this->spritegroups));
+		this->spritegroups.clear();
 	}
 
 	/**
@@ -5148,7 +5148,7 @@ static const SpriteGroup *GetGroupFromGroupID(byte setid, byte type, uint16_t gr
 		return new CallbackResultSpriteGroup(groupid, _cur.grffile->grf_version >= 8);
 	}
 
-	if (groupid > MAX_SPRITEGROUP || _cur.spritegroups[groupid] == nullptr) {
+	if (groupid > MAX_SPRITEGROUP || _cur.spritegroups.count(groupid) == 0) {
 		GrfMsg(1, "GetGroupFromGroupID(0x{:02X}:0x{:02X}): Groupid 0x{:04X} does not exist, leaving empty", setid, type, groupid);
 		return nullptr;
 	}
@@ -5207,8 +5207,8 @@ static void NewSpriteGroup(ByteReader *buf)
 		return;
 	}
 
-	uint8_t setid   = buf->ReadByte();
-	uint8_t type    = buf->ReadByte();
+	uint16_t setid = _cur.grffile->grf_version >= 9 ? buf->ReadExtendedByte() : buf->ReadByte();
+	uint8_t type = buf->ReadByte();
 
 	/* Sprite Groups are created here but they are allocated from a pool, so
 	 * we do not need to delete anything if there is an exception from the
@@ -5249,7 +5249,7 @@ static void NewSpriteGroup(ByteReader *buf)
 				adjust.variable  = buf->ReadByte();
 				if (adjust.variable == 0x7E) {
 					/* Link subroutine group */
-					adjust.subroutine = GetGroupFromGroupID(setid, type, buf->ReadByte());
+					adjust.subroutine = GetGroupFromGroupID(setid, type, _cur.grffile->grf_version >= 9 ? buf->ReadWord() : buf->ReadByte(););
 				} else {
 					adjust.parameter = IsInsideMM(adjust.variable, 0x60, 0x80) ? buf->ReadByte() : 0;
 				}
@@ -5271,7 +5271,7 @@ static void NewSpriteGroup(ByteReader *buf)
 			} while (HasBit(varadjust, 5));
 
 			std::vector<DeterministicSpriteGroupRange> ranges;
-			ranges.resize(buf->ReadByte());
+			ranges.resize(_cur.grffile->grf_version >= 9 ? buf->ReadExtendedByte() : buf->ReadByte(););
 			for (uint i = 0; i < ranges.size(); i++) {
 				ranges[i].group = GetGroupFromGroupID(setid, type, buf->ReadWord());
 				ranges[i].low   = buf->ReadVarSize(varsize);
@@ -5594,7 +5594,7 @@ static CargoID TranslateCargo(uint8_t feature, uint8_t ctype)
 
 static bool IsValidGroupID(uint16_t groupid, const char *function)
 {
-	if (groupid > MAX_SPRITEGROUP || _cur.spritegroups[groupid] == nullptr) {
+	if (groupid > MAX_SPRITEGROUP || _cur.spritegroups.count(groupid) == 0) {
 		GrfMsg(1, "{}: Spritegroup 0x{:04X} out of range or empty, skipping.", function, groupid);
 		return false;
 	}
