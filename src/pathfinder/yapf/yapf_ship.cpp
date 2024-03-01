@@ -173,11 +173,10 @@ public:
 	}
 
 	/** Returns a random trackdir that can be reached from the current tile/trackdir, or INVALID_TRACK if none is available. */
-	static Trackdir GetRandomFollowUpTrackdir(const Ship *v, TileIndex tile, Trackdir dir, bool include_90_degree_turns)
+	static Trackdir GetRandomFollowUpTrackdir(const Ship *v, Trackdir dir, bool include_90_degree_turns)
 	{
 		TrackFollower follower(v);
-		if (follower.Follow(tile, dir)) {
-			tile = follower.m_new_tile;
+		if (follower.Follow(v->tile, dir)) {
 			TrackdirBits dirs = follower.m_new_td_bits;
 			if (!include_90_degree_turns) dirs &= ~TrackdirCrossesTrackdirs(dir);
 			const int strip_amount = _random.Next(CountBits(dirs));
@@ -188,10 +187,10 @@ public:
 	}
 
 	/** Creates a random path, avoids 90 degree turns. */
-	static Trackdir CreateRandomPath(const Ship *v, TileIndex tile, Trackdir dir, ShipPathCache &path_cache, int path_length)
+	static Trackdir CreateRandomPath(const Ship *v, Trackdir dir, ShipPathCache &path_cache, int path_length)
 	{
 		for (int i = 0; i < path_length; ++i) {
-			const Trackdir random_dir = GetRandomFollowUpTrackdir(v, tile, dir, false);
+			const Trackdir random_dir = GetRandomFollowUpTrackdir(v, dir, false);
 			if (random_dir == INVALID_TRACKDIR) break;
 			path_cache.push_back(random_dir);
 		}
@@ -203,10 +202,8 @@ public:
 		return result;
 	}
 
-	static Trackdir ChooseShipTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, bool &path_found, ShipPathCache &path_cache)
+	static Trackdir ChooseShipTrack(const Ship *v, TileIndex tile, bool &path_found, ShipPathCache &path_cache)
 	{
-		/* Move back to the old tile/trackdir (where ship is coming from). */
-		const TileIndex src_tile = TileAddByDiagDir(tile, ReverseDiagDir(enterdir));
 		const Trackdir trackdir = v->GetVehicleTrackdir();
 		assert(IsValidTrackdir(trackdir));
 
@@ -217,7 +214,7 @@ public:
 		if (high_level_path.empty()) {
 			path_found = false;
 			/* Make the ship move around aimlessly. This prevents repeated pathfinder calls and clearly indicates that the ship is lost. */
-			return CreateRandomPath(v, src_tile, trackdir, path_cache, SHIP_LOST_PATH_LENGTH);
+			return CreateRandomPath(v, trackdir, path_cache, SHIP_LOST_PATH_LENGTH);
 		}
 
 		/* Try one time without restricting the search area, which generally results in better and more natural looking paths.
@@ -227,7 +224,7 @@ public:
 			Tpf pf(MAX_SHIP_PF_NODES);
 
 			/* Set origin and destination nodes */
-			pf.SetOrigin(src_tile, trackdirs);
+			pf.SetOrigin(v->tile, trackdirs);
 			pf.SetDestination(v);
 			const bool is_intermediate_destination = static_cast<int>(high_level_path.size()) >= NUMBER_OR_WATER_REGIONS_LOOKAHEAD + 1;
 			if (is_intermediate_destination) pf.SetIntermediateDestination(high_level_path.back());
@@ -240,7 +237,7 @@ public:
 			path_found = pf.FindPath(v);
 			Node *node = pf.GetBestNode();
 			if (attempt == 0 && !path_found) continue; // Try again with restricted search area.
-			if (!path_found || node == nullptr) return GetRandomFollowUpTrackdir(v, src_tile, trackdir, true);
+			if (!path_found || node == nullptr) return GetRandomFollowUpTrackdir(v, trackdir, true);
 
 			/* Return only the path within the current water region if an intermediate destination was returned. If not, cache the entire path
 			 * to the final destination tile. The low-level pathfinder might actually prefer a different docking tile in a nearby region. Without
@@ -424,9 +421,9 @@ struct CYapfShip : CYapfT<CYapfShip_TypesT<CYapfShip, CFollowTrackWater, CShipNo
 };
 
 /** Ship controller helper - path finder invoker. */
-Track YapfShipChooseTrack(const Ship *v, TileIndex tile, DiagDirection enterdir, bool &path_found, ShipPathCache &path_cache)
+Track YapfShipChooseTrack(const Ship *v, TileIndex tile, bool &path_found, ShipPathCache &path_cache)
 {
-	Trackdir td_ret = CYapfShip::ChooseShipTrack(v, tile, enterdir, path_found, path_cache);
+	Trackdir td_ret = CYapfShip::ChooseShipTrack(v, tile, path_found, path_cache);
 	return (td_ret != INVALID_TRACKDIR) ? TrackdirToTrack(td_ret) : INVALID_TRACK;
 }
 
