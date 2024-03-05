@@ -40,6 +40,11 @@ add_files(
 )
 
 add_files(
+    soundloader_opus.cpp
+    CONDITION OPUS_FOUND AND OPUSFILE_FOUND
+)
+
+add_files(
     soundresampler_soxr.cpp
     CONDITION SOXR_FOUND
 )

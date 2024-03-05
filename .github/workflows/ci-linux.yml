@@ -60,6 +60,7 @@ jobs:
           libicu-dev \
           liblzma-dev \
           liblzo2-dev \
+          libopusfile-dev \
           libsoxr-dev \
           ${{ inputs.libraries }} \
           zlib1g-dev \
