@@ -40,6 +40,11 @@ add_files(
 )
 
 add_files(
+    soundloader_opus.cpp
+    CONDITION OPUS_FOUND AND OPUSFILE_FOUND
+)
+
+add_files(
     aircraft.h
     aircraft_cmd.cpp
     aircraft_cmd.h
