@@ -114,24 +114,15 @@ inline DIR *ttd_opendir(const char *path)
 }
 
 
-/** Auto-close a file upon scope exit. */
-class FileCloser {
-	FILE *f;
-
-public:
-	FileCloser(FILE *_f) : f(_f) {}
-	~FileCloser()
-	{
-		fclose(f);
-	}
-};
-
 /** Helper to manage a FILE with a \c std::unique_ptr. */
 struct FileDeleter {
 	void operator()(FILE *f)
 	{
-		if (f) fclose(f);
+		if (f != nullptr) fclose(f);
 	}
 };
+
+/** Auto-close a file upon scope exit. */
+using FileCloser = std::unique_ptr<FILE, FileDeleter>;
 
 #endif /* FILEIO_FUNC_H */
