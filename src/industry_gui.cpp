@@ -153,30 +153,30 @@ enum CargoSuffixInOut {
  * @param ind_type the industry type
  * @param indspec the industry spec
  * @param cargoes array with cargotypes. for INVALID_CARGO no suffix will be determined
- * @param suffixes is filled with the suffixes
+ * @param[out] suffixes array to be filled with the suffixes.
  */
-template <typename TC, typename TS>
-static inline void GetAllCargoSuffixes(CargoSuffixInOut use_input, CargoSuffixType cst, const Industry *ind, IndustryType ind_type, const IndustrySpec *indspec, const TC &cargoes, TS &suffixes)
+static void GetAllCargoSuffixes(CargoSuffixInOut use_input, CargoSuffixType cst, const Industry *ind, IndustryType ind_type, const IndustrySpec *indspec, std::span<const CargoID> cargoes, std::span<CargoSuffix> suffixes)
 {
-	static_assert(lengthof(cargoes) <= lengthof(suffixes));
+	assert(std::size(cargoes) <= std::size(suffixes));
 
 	if (indspec->behaviour & INDUSTRYBEH_CARGOTYPES_UNLIMITED) {
 		/* Reworked behaviour with new many-in-many-out scheme */
-		for (uint j = 0; j < lengthof(suffixes); j++) {
-			if (IsValidCargoID(cargoes[j])) {
-				uint8_t local_id = indspec->grf_prop.grffile->cargo_map[cargoes[j]]; // should we check the value for valid?
+		auto suffix_it = std::begin(suffixes);
+		for (auto cargo_it = std::begin(cargoes); cargo_it != std::end(cargoes); ++cargo_it, ++suffix_it) {
+			if (IsValidCargoID(*cargo_it)) {
+				uint8_t local_id = indspec->grf_prop.grffile->cargo_map[*cargo_it]; // should we check the value for valid?
 				uint cargotype = local_id << 16 | use_input;
-				GetCargoSuffix(cargotype, cst, ind, ind_type, indspec, suffixes[j]);
+				GetCargoSuffix(cargotype, cst, ind, ind_type, indspec, *suffix_it);
 			} else {
-				suffixes[j].text.clear();
-				suffixes[j].display = CSD_CARGO;
+				suffix_it->text.clear();
+				suffix_it->display = CSD_CARGO;
 			}
 		}
 	} else {
 		/* Compatible behaviour with old 3-in-2-out scheme */
-		for (uint j = 0; j < lengthof(suffixes); j++) {
-			suffixes[j].text.clear();
-			suffixes[j].display = CSD_CARGO;
+		for (auto &suffix : suffixes) {
+			suffix.text.clear();
+			suffix.display = CSD_CARGO;
 		}
 		switch (use_input) {
 			case CARGOSUFFIX_OUT:
