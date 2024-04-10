@@ -77,6 +77,9 @@ struct CargoSuffix {
 	std::string text;           ///< Cargo suffix text.
 };
 
+/** Array of CargoSuffix large enough to hold IndustrySpec's accepted or produced cargo. */
+using CargoSuffixArray = std::array<CargoSuffix, std::max(std::extent_v<decltype(IndustrySpec::accepts_cargo)>, std::extent_v<decltype(IndustrySpec::produced_cargo)>)>;
+
 extern void GenerateIndustries();
 static void ShowIndustryCargoesWindow(IndustryType id);
 
@@ -448,9 +451,9 @@ public:
 				uint extra_lines_newgrf = 0;
 				uint max_minwidth = GetCharacterHeight(FS_NORMAL) * MAX_MINWIDTH_LINEHEIGHTS;
 				Dimension d = {0, 0};
+				CargoSuffixArray cargo_suffix;
 				for (const auto &indtype : this->list) {
 					const IndustrySpec *indsp = GetIndustrySpec(indtype);
-					CargoSuffix cargo_suffix[lengthof(indsp->accepts_cargo)];
 
 					/* Measure the accepted cargoes, if any. */
 					GetAllCargoSuffixes(CARGOSUFFIX_IN, CST_FUND, nullptr, indtype, indsp, indsp->accepts_cargo, cargo_suffix);
@@ -566,7 +569,7 @@ public:
 					ir.top += GetCharacterHeight(FS_NORMAL);
 				}
 
-				CargoSuffix cargo_suffix[lengthof(indsp->accepts_cargo)];
+				CargoSuffixArray cargo_suffix;
 
 				/* Draw the accepted cargoes, if any. Otherwise, will print "Nothing". */
 				GetAllCargoSuffixes(CARGOSUFFIX_IN, CST_FUND, nullptr, this->selected_type, indsp, indsp->accepts_cargo, cargo_suffix);
