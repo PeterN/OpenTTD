@@ -187,6 +187,9 @@ struct GRFConfig : ZeroedMemoryAllocator {
 	void FinalizeParameterInfo();
 };
 
+/** GRFConfigList is a linked-list, pointing at the first element of the list. */
+using GRFConfigList = GRFConfig *;
+
 /** Method to find GRFs using FindGRFConfig */
 enum FindGRFConfigMode {
 	FGCM_EXACT,       ///< Only find Grfs matching md5sum
@@ -196,10 +199,10 @@ enum FindGRFConfigMode {
 	FGCM_ANY,         ///< Use first found
 };
 
-extern GRFConfig *_all_grfs;          ///< First item in list of all scanned NewGRFs
-extern GRFConfig *_grfconfig;         ///< First item in list of current GRF set up
-extern GRFConfig *_grfconfig_newgame; ///< First item in list of default GRF set up
-extern GRFConfig *_grfconfig_static;  ///< First item in list of static GRF set up
+extern GRFConfigList _all_grfs;          ///< First item in list of all scanned NewGRFs
+extern GRFConfigList _grfconfig;         ///< First item in list of current GRF set up
+extern GRFConfigList _grfconfig_newgame; ///< First item in list of default GRF set up
+extern GRFConfigList _grfconfig_static;  ///< First item in list of static GRF set up
 extern uint _missing_extra_graphics;  ///< Number of sprites provided by the fallback extra GRF, i.e. missing in the baseset.
 
 /** Callback for NewGRF scanning. */
@@ -215,17 +218,17 @@ size_t GRFGetSizeOfDataSection(FILE *f);
 void ScanNewGRFFiles(NewGRFScanCallback *callback);
 const GRFConfig *FindGRFConfig(uint32_t grfid, FindGRFConfigMode mode, const MD5Hash *md5sum = nullptr, uint32_t desired_version = 0);
 GRFConfig *GetGRFConfig(uint32_t grfid, uint32_t mask = 0xFFFFFFFF);
-GRFConfig **CopyGRFConfigList(GRFConfig **dst, const GRFConfig *src, bool init_only);
-void AppendStaticGRFConfigs(GRFConfig **dst);
-void AppendToGRFConfigList(GRFConfig **dst, GRFConfig *el);
-void ClearGRFConfigList(GRFConfig **config);
+void CopyGRFConfigList(GRFConfigList &dst, const GRFConfigList &src, bool init_only);
+void AppendStaticGRFConfigs(GRFConfigList &dst);
+void AppendToGRFConfigList(GRFConfigList &dst, GRFConfig *el);
+void ClearGRFConfigList(GRFConfigList &list);
 void ResetGRFConfig(bool defaults);
-GRFListCompatibility IsGoodGRFConfigList(GRFConfig *grfconfig);
+GRFListCompatibility IsGoodGRFConfigList(GRFConfigList &grfconfig);
 bool FillGRFDetails(GRFConfig *config, bool is_static, Subdirectory subdir = NEWGRF_DIR);
 std::string GRFBuildParamList(const GRFConfig *c);
 
 /* In newgrf_gui.cpp */
-void ShowNewGRFSettings(bool editable, bool show_params, bool exec_changes, GRFConfig **config);
+void ShowNewGRFSettings(bool editable, bool show_params, bool exec_changes, GRFConfigList &config);
 void OpenGRFParameterWindow(bool is_baseset, GRFConfig *c, bool editable);
 
 void UpdateNewGRFScanStatus(uint num, const char *name);

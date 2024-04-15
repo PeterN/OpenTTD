@@ -160,10 +160,10 @@ void GRFConfig::FinalizeParameterInfo()
 	}
 }
 
-GRFConfig *_all_grfs;
-GRFConfig *_grfconfig;
-GRFConfig *_grfconfig_newgame;
-GRFConfig *_grfconfig_static;
+GRFConfigList _all_grfs;
+GRFConfigList _grfconfig;
+GRFConfigList _grfconfig_newgame;
+GRFConfigList _grfconfig_static;
 uint _missing_extra_graphics = 0;
 
 /**
@@ -350,42 +350,40 @@ bool FillGRFDetails(GRFConfig *config, bool is_static, Subdirectory subdir)
 
 /**
  * Clear a GRF Config list, freeing all nodes.
- * @param config Start of the list.
+ * @param list GRFConfig list to clear.
  * @post \a config is set to \c nullptr.
  */
-void ClearGRFConfigList(GRFConfig **config)
+void ClearGRFConfigList(GRFConfigList &list)
 {
 	GRFConfig *c, *next;
-	for (c = *config; c != nullptr; c = next) {
+	for (c = list; c != nullptr; c = next) {
 		next = c->next;
 		delete c;
 	}
-	*config = nullptr;
+	list = nullptr;
 }
 
 
 /**
  * Copy a GRF Config list
- * @param dst pointer to destination list
- * @param src pointer to source list values
+ * @param dst Destination GRFConfig list.
+ * @param src Source GRFConfig list.
  * @param init_only the copied GRF will be processed up to GLS_INIT
- * @return pointer to the last value added to the destination list
  */
-GRFConfig **CopyGRFConfigList(GRFConfig **dst, const GRFConfig *src, bool init_only)
+void CopyGRFConfigList(GRFConfigList &dst, const GRFConfigList &src, bool init_only)
 {
 	/* Clear destination as it will be overwritten */
 	ClearGRFConfigList(dst);
-	for (; src != nullptr; src = src->next) {
-		GRFConfig *c = new GRFConfig(*src);
+	GRFConfig **tail = &dst;
+	for (GRFConfig *s = src; s != nullptr; s = s->next) {
+		GRFConfig *c = new GRFConfig(*s);
 
 		ClrBit(c->flags, GCF_INIT_ONLY);
 		if (init_only) SetBit(c->flags, GCF_INIT_ONLY);
 
-		*dst = c;
-		dst = &c->next;
+		*tail = c;
+		tail = &c->next;
 	}
-
-	return dst;
 }
 
 /**
@@ -401,7 +399,7 @@ GRFConfig **CopyGRFConfigList(GRFConfig **dst, const GRFConfig *src, bool init_o
  *
  * @param list the list to remove the duplicates from
  */
-static void RemoveDuplicatesFromGRFConfigList(GRFConfig *list)
+static void RemoveDuplicatesFromGRFConfigList(GRFConfigList &list)
 {
 	GRFConfig *prev;
 	GRFConfig *cur;
@@ -421,37 +419,37 @@ static void RemoveDuplicatesFromGRFConfigList(GRFConfig *list)
 
 /**
  * Appends the static GRFs to a list of GRFs
- * @param dst the head of the list to add to
+ * @param dst The GRFConfig list to add to.
  */
-void AppendStaticGRFConfigs(GRFConfig **dst)
+void AppendStaticGRFConfigs(GRFConfigList &dst)
 {
-	GRFConfig **tail = dst;
+	GRFConfig **tail = &dst;
 	while (*tail != nullptr) tail = &(*tail)->next;
 
-	CopyGRFConfigList(tail, _grfconfig_static, false);
-	RemoveDuplicatesFromGRFConfigList(*dst);
+	CopyGRFConfigList(*tail, _grfconfig_static, false);
+	RemoveDuplicatesFromGRFConfigList(dst);
 }
 
 /**
  * Appends an element to a list of GRFs
- * @param dst the head of the list to add to
- * @param el the new tail to be
+ * @param dst The GRFConfig list to add to.
+ * @param el The GRFConfig element to add to the list.
  */
-void AppendToGRFConfigList(GRFConfig **dst, GRFConfig *el)
+void AppendToGRFConfigList(GRFConfigList &dst, GRFConfig *el)
 {
-	GRFConfig **tail = dst;
+	GRFConfig **tail = &dst;
 	while (*tail != nullptr) tail = &(*tail)->next;
 	*tail = el;
 
-	RemoveDuplicatesFromGRFConfigList(*dst);
+	RemoveDuplicatesFromGRFConfigList(dst);
 }
 
 
 /** Reset the current GRF Config to either blank or newgame settings. */
 void ResetGRFConfig(bool defaults)
 {
-	CopyGRFConfigList(&_grfconfig, _grfconfig_newgame, !defaults);
-	AppendStaticGRFConfigs(&_grfconfig);
+	CopyGRFConfigList(_grfconfig, _grfconfig_newgame, !defaults);
+	AppendStaticGRFConfigs(_grfconfig);
 }
 
 
@@ -466,7 +464,7 @@ void ResetGRFConfig(bool defaults)
  * <li> GLC_NOT_FOUND: For one or more GRF's no match was found at all
  * </ul>
  */
-GRFListCompatibility IsGoodGRFConfigList(GRFConfig *grfconfig)
+GRFListCompatibility IsGoodGRFConfigList(GRFConfigList &grfconfig)
 {
 	GRFListCompatibility res = GLC_ALL_GOOD;
 
@@ -624,7 +622,7 @@ static bool GRFSorter(GRFConfig * const &c1, GRFConfig * const &c2)
  */
 void DoScanNewGRFFiles(NewGRFScanCallback *callback)
 {
-	ClearGRFConfigList(&_all_grfs);
+	ClearGRFConfigList(_all_grfs);
 	TarScanner::DoScan(TarScanner::NEWGRF);
 
 	Debug(grf, 1, "Scanning for NewGRFs");
