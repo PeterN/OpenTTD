@@ -40,10 +40,12 @@ std::tuple<std::string, std::string> SplitFontFamilyAndStyle(std::string_view fo
 	return { std::string(font_name.substr(0, separator)), std::string(font_name.substr(begin)) };
 }
 
-static void AddOpenTTDFont(FcConfig *config)
+static void AddOpenTTDFonts(FcConfig *config)
 {
-	std::string openttdfont = GetOpenTTDFont();
-	if (!openttdfont.empty()) FcConfigAppFontAddFile(config, (FcChar8 *)openttdfont.data());
+	for (FontSize fs = FS_BEGIN; fs != FS_END; fs++) {
+		std::string openttdfont = GetDefaultTrueTypeFont(fs);
+		if (!openttdfont.empty()) FcConfigAppFontAddFile(config, reinterpret_cast<const FcChar8 *>(openttdfont.c_str()));
+	}
 }
 
 FT_Error GetFontByFaceName(const char *font_name, FT_Face *face)
@@ -58,7 +60,7 @@ FT_Error GetFontByFaceName(const char *font_name, FT_Face *face)
 	auto fc_instance = FcConfigReference(nullptr);
 	assert(fc_instance != nullptr);
 
-	AddOpenTTDFont(fc_instance);
+	AddOpenTTDFonts(fc_instance);
 
 	/* Split & strip the font's style */
 	auto [font_family, font_style] = SplitFontFamilyAndStyle(font_name);
@@ -115,7 +117,7 @@ bool SetFallbackFont(FontCacheSettings *settings, const std::string &language_is
 	auto fc_instance = FcConfigReference(nullptr);
 	assert(fc_instance != nullptr);
 
-	AddOpenTTDFont(fc_instance);
+	AddOpenTTDFonts(fc_instance);
 
 	/* Fontconfig doesn't handle full language isocodes, only the part
 	 * before the _ of e.g. en_GB is used, so "remove" everything after
@@ -200,7 +202,7 @@ std::vector<FontFamily> ListFonts(const std::string &language_isocode, int)
 	auto fc_instance = FcConfigReference(nullptr);
 	assert(fc_instance != nullptr);
 
-	AddOpenTTDFont(fc_instance);
+	AddOpenTTDFonts(fc_instance);
 
 	/* Fontconfig doesn't handle full language isocodes, only the part
 	 * before the _ of e.g. en_GB is used, so "remove" everything after
@@ -231,10 +233,8 @@ std::vector<FontFamily> ListFonts(const std::string &language_isocode, int)
 			if (FcPatternGetString(font, FC_FAMILY, 0, &family) == FcResultMatch &&
 				FcPatternGetString(font, FC_STYLE, 0, &style) == FcResultMatch &&
 				FcPatternGetInteger(font, FC_SLANT, 0, &slant) == FcResultMatch &&
-				FcPatternGetInteger(font, FC_WEIGHT, 0, &weight) == FcResultMatch
-				) {
-
-				fonts.push_back({(const char *)family, (const char *)style, slant, weight});
+				FcPatternGetInteger(font, FC_WEIGHT, 0, &weight) == FcResultMatch) {
+				fonts.emplace_back((const char *)family, (const char *)style, slant, weight);
 			}
 		}
 

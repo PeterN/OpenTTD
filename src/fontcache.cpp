@@ -138,32 +138,23 @@ extern void LoadCoreTextFont(FontSize fs);
 extern void LoadCoreTextFont(FontSize fs, const std::string &file_name, uint size);
 #endif
 
+std::string GetDefaultTrueTypeFont(FontSize fs)
+{
+	switch (fs) {
+		case FS_NORMAL: return FioFindFullPath(BASESET_DIR, "OpenTTD-Sans.ttf");
+		case FS_SMALL: return FioFindFullPath(BASESET_DIR, "OpenTTD-Small.ttf");
+		case FS_LARGE: return FioFindFullPath(BASESET_DIR, "OpenTTD-Serif.ttf");
+		case FS_MONO: return FioFindFullPath(BASESET_DIR, "OpenTTD-Mono.ttf");
+		case FS_PREVIEW: return {}; /* There is no preview font. */
+		default: NOT_REACHED();
+	}
+}
+
 static void TryLoadDefaultTrueTypeFont([[maybe_unused]] FontSize fs)
 {
 #if defined(WITH_FREETYPE) || defined(_WIN32) || defined(WITH_COCOA)
-	std::string font_name{};
-	switch (fs) {
-		case FS_NORMAL:
-			font_name = "OpenTTD-Sans.ttf";
-			break;
-		case FS_SMALL:
-			font_name = "OpenTTD-Small.ttf";
-			break;
-		case FS_LARGE:
-			font_name = "OpenTTD-Serif.ttf";
-			break;
-		case FS_MONO:
-			font_name = "OpenTTD-Mono.ttf";
-			break;
-		case FS_PREVIEW:
-			/* There is no default font. */
-			return;
-
-		default: NOT_REACHED();
-	}
-
 	/* Find font file. */
-	std::string full_font = FioFindFullPath(BASESET_DIR, font_name);
+	std::string full_font = GetDefaultTrueTypeFont(fs);
 	if (!full_font.empty()) {
 		int size = FontCache::GetDefaultFontHeight(fs);
 #ifdef WITH_FREETYPE
@@ -226,12 +217,6 @@ void UninitFontCache()
 #ifdef WITH_FREETYPE
 	UninitFreeType();
 #endif /* WITH_FREETYPE */
-}
-
-std::string GetOpenTTDFont()
-{
-	static const char *OPENTTD_NORMAL_FONT = "OpenTTD-Sans.ttf";
-	return FioFindFullPath(BASE_DIR, OPENTTD_NORMAL_FONT);
 }
 
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(WITH_FONTCONFIG) && !defined(WITH_COCOA)

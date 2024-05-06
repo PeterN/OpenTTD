@@ -602,8 +602,8 @@ struct GameOptionsWindow : Window {
 		int pane;
 		switch (widget) {
 			case WID_GO_TAB_GENERAL: pane = 0; break;
-			case WID_GO_TAB_FONTS: pane = 1; break;
-			case WID_GO_TAB_GRAPHICS: pane = 2; break;
+			case WID_GO_TAB_GRAPHICS: pane = 1; break;
+			case WID_GO_TAB_FONTS: pane = 2; break;
 			case WID_GO_TAB_SOUND: pane = 3; break;
 			case WID_GO_TAB_SOCIAL: pane = 4; break;
 			default: NOT_REACHED();
@@ -1038,8 +1038,10 @@ static constexpr NWidgetPart _nested_game_options_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY),
 		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE), SetPadding(WidgetDimensions::unscaled.sparse),
 			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_GENERAL),  SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_GENERAL, STR_GAME_OPTIONS_TAB_GENERAL_TT), SetFill(1, 0),
-			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_FONTS),    SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_FONTS, STR_GAME_OPTIONS_TAB_FONTS_TT), SetFill(1, 0),
 			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_GRAPHICS), SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_GRAPHICS, STR_GAME_OPTIONS_TAB_GRAPHICS_TT), SetFill(1, 0),
+#ifdef HAS_TRUETYPE_FONT
+			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_FONTS),    SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_FONTS, STR_GAME_OPTIONS_TAB_FONTS_TT), SetFill(1, 0),
+#endif /* HAS_TRUETYPE_FONT */
 			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_SOUND),    SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_SOUND, STR_GAME_OPTIONS_TAB_SOUND_TT), SetFill(1, 0),
 			NWidget(WWT_TEXTBTN, COLOUR_YELLOW, WID_GO_TAB_SOCIAL),   SetMinimalTextLines(2, 0), SetDataTip(STR_GAME_OPTIONS_TAB_SOCIAL, STR_GAME_OPTIONS_TAB_SOCIAL_TT), SetFill(1, 0),
 		EndContainer(),
@@ -1074,30 +1076,6 @@ static constexpr NWidgetPart _nested_game_options_widgets[] = {
 				EndContainer(),
 			EndContainer(),
 
-			/* Fonts tab */
-			NWidget(NWID_VERTICAL), SetPadding(10), SetPIP(0, WidgetDimensions::unscaled.vsep_wide, 0),
-				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_TAB_FONTS, STR_NULL),
-					NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
-						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
-							NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_NORMAL, STR_NULL), SetFill(1, 1),
-							NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GO_FONT_NORMAL_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP),
-						EndContainer(),
-						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
-							NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_SMALL, STR_NULL), SetFill(1, 1),
-							NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GO_FONT_SMALL_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP),
-						EndContainer(),
-						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
-							NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_LARGE, STR_NULL), SetFill(1, 1),
-							NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GO_FONT_LARGE_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP),
-						EndContainer(),
-						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
-							NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_MONO, STR_NULL), SetFill(1, 1),
-							NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_GO_FONT_MONO_BUTTON),  SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP),
-						EndContainer(),
-					EndContainer(),
-				EndContainer(),
-			EndContainer(),
-
 			/* Graphics tab */
 			NWidget(NWID_VERTICAL), SetPadding(WidgetDimensions::unscaled.sparse), SetPIP(0, WidgetDimensions::unscaled.vsep_wide, 0),
 				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_GUI_SCALE_FRAME, STR_NULL),
@@ -1111,16 +1089,6 @@ static constexpr NWidgetPart _nested_game_options_widgets[] = {
 							NWidget(WWT_TEXT, COLOUR_GREY), SetMinimalSize(0, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_GUI_SCALE_BEVELS, STR_NULL),
 							NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_GUI_SCALE_BEVEL_BUTTON), SetAspect(WidgetDimensions::ASPECT_SETTINGS_BUTTON), SetDataTip(STR_EMPTY, STR_GAME_OPTIONS_GUI_SCALE_BEVELS_TOOLTIP),
 						EndContainer(),
-#ifdef HAS_TRUETYPE_FONT
-						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
-							NWidget(WWT_TEXT, COLOUR_GREY), SetMinimalSize(0, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_GUI_FONT_SPRITE, STR_NULL),
-							NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_GUI_FONT_SPRITE), SetAspect(WidgetDimensions::ASPECT_SETTINGS_BUTTON), SetDataTip(STR_EMPTY, STR_GAME_OPTIONS_GUI_FONT_SPRITE_TOOLTIP),
-						EndContainer(),
-						NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
-							NWidget(WWT_TEXT, COLOUR_GREY), SetMinimalSize(0, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_GUI_FONT_AA, STR_NULL),
-							NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_GUI_FONT_AA), SetAspect(WidgetDimensions::ASPECT_SETTINGS_BUTTON), SetDataTip(STR_EMPTY, STR_GAME_OPTIONS_GUI_FONT_AA_TOOLTIP),
-						EndContainer(),
-#endif /* HAS_TRUETYPE_FONT */
 					EndContainer(),
 				EndContainer(),
 
@@ -1172,6 +1140,34 @@ static constexpr NWidgetPart _nested_game_options_widgets[] = {
 						EndContainer(),
 					EndContainer(),
 				EndContainer(),
+			EndContainer(),
+
+			/* Fonts tab */
+			NWidget(NWID_VERTICAL), SetPadding(WidgetDimensions::unscaled.sparse), SetPIP(0, WidgetDimensions::unscaled.vsep_wide, 0),
+#ifdef HAS_TRUETYPE_FONT
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_TAB_FONTS, STR_NULL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
+						NWidget(WWT_TEXT, COLOUR_GREY), SetMinimalSize(0, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_GUI_FONT_SPRITE, STR_NULL),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_GUI_FONT_SPRITE), SetAspect(WidgetDimensions::ASPECT_SETTINGS_BUTTON), SetDataTip(STR_EMPTY, STR_GAME_OPTIONS_GUI_FONT_SPRITE_TOOLTIP),
+					EndContainer(),
+					NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
+						NWidget(WWT_TEXT, COLOUR_GREY), SetMinimalSize(0, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_GUI_FONT_AA, STR_NULL),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_GUI_FONT_AA), SetAspect(WidgetDimensions::ASPECT_SETTINGS_BUTTON), SetDataTip(STR_EMPTY, STR_GAME_OPTIONS_GUI_FONT_AA_TOOLTIP),
+					EndContainer(),
+				EndContainer(),
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_NORMAL, STR_NULL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_FONT_NORMAL_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP), SetTextStyle(TC_BLACK, FS_NORMAL),
+				EndContainer(),
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_SMALL, STR_NULL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_FONT_SMALL_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP), SetTextStyle(TC_BLACK, FS_SMALL),
+				EndContainer(),
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_LARGE, STR_NULL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_FONT_LARGE_BUTTON), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP), SetTextStyle(TC_BLACK, FS_LARGE),
+				EndContainer(),
+				NWidget(WWT_FRAME, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_FONT_MONO, STR_NULL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
+					NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_GO_FONT_MONO_BUTTON),  SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_SETTING, STR_GAME_OPTIONS_GUI_SCALE_TOOLTIP), SetTextStyle(TC_BLACK, FS_MONO),
+				EndContainer(),
+#endif /* HAS_TRUETYPE_FONT */
 			EndContainer(),
 
 			/* Sound/Music tab */

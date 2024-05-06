@@ -39,12 +39,13 @@ FT_Error GetFontByFaceName(const char *font_name, FT_Face *face);
  */
 bool SetFallbackFont(struct FontCacheSettings *settings, const std::string &language_isocode, int winlangid, class MissingGlyphSearcher *callback);
 
-struct FontFamily
-{
+struct FontFamily {
 	std::string family;
 	std::string style;
 	int32_t slant;
 	int32_t weight;
+
+	FontFamily(std::string family, std::string style, int32_t slant, int32_t weight) : family(family), style(style), slant(slant), weight(weight) {}
 };
 
 /**

@@ -29,16 +29,13 @@ class FontFamilyWindow : public Window {
 	int parent_button;
 
 	std::vector<FontFamily> fonts;
-	std::vector<std::string> families;
-	std::vector<std::string> styles;
+	std::vector<std::string_view> families;
+	std::vector<std::string_view> styles;
 	std::vector<uint> sizes;
 
 	std::string selected_family;
 	std::string selected_style;
 	uint selected_size;
-	bool selected_aa;
-
-	std::string sprite_font;
 
 	static inline const uint MIN_FONT_SIZE = 4;
 	static inline const uint MAX_FONT_SIZE = 24;
@@ -57,15 +54,19 @@ class FontFamilyWindow : public Window {
 
 	void FillFonts()
 	{
+		/* `families` and `styles` hold std::string_view to strings owned by `fonts`. */
+		this->families.clear();
+		this->styles.clear();
+
 		extern std::vector<FontFamily> ListFonts();
 		this->fonts = ListFonts();
 
 		// Presort the font list by family and weight.
-		std::sort(std::begin(this->fonts), std::end(this->fonts), [](const FontFamily &first, const FontFamily &second) {
-			int r = StrNaturalCompare(first.family, second.family);
-			if (r == 0) r = (first.weight - second.weight);
-			if (r == 0) r = (first.slant - second.slant);
-			if (r == 0) r = StrNaturalCompare(first.style, second.style);
+		std::sort(std::begin(this->fonts), std::end(this->fonts), [](const FontFamily &a, const FontFamily &b) {
+			int r = StrNaturalCompare(a.family, b.family);
+			if (r == 0) r = (a.weight - b.weight);
+			if (r == 0) r = (a.slant - b.slant);
+			if (r == 0) r = StrNaturalCompare(a.style, b.style);
 			return r < 0;
 		});
 	}
@@ -82,7 +83,6 @@ class FontFamilyWindow : public Window {
 	{
 		int position = -1;
 		this->families.clear();
-		if (FilterByText(this->sprite_font)) this->families.emplace_back(this->sprite_font);
 		for (auto it = std::begin(this->fonts); it != std::end(this->fonts); ++it) {
 			if (!FilterByText(it->family)) continue;
 			if (std::find(std::begin(this->families), std::end(this->families), it->family) != std::end(this->families)) continue;
@@ -106,12 +106,7 @@ class FontFamilyWindow : public Window {
 	{
 		int position = -1;
 		this->styles.clear();
-		if (family == this->sprite_font) {
-			this->styles.emplace_back(FontSizeToName(FS_NORMAL));
-			this->styles.emplace_back(FontSizeToName(FS_SMALL));
-			this->styles.emplace_back(FontSizeToName(FS_LARGE));
-			this->styles.emplace_back(FontSizeToName(FS_MONO));
-		} else if (!family.empty()) {
+		if (!family.empty()) {
 			for (auto it = std::begin(this->fonts); it != std::end(this->fonts); ++it) {
 				if (it->family != family) continue;
 				if (std::find(std::begin(this->styles), std::end(this->styles), it->style) != std::end(this->styles)) continue;
@@ -136,12 +131,8 @@ class FontFamilyWindow : public Window {
 	{
 		this->sizes.clear();
 
-		if (this->selected_family == this->sprite_font) {
-			this->sizes.push_back(FontCache::GetDefaultFontHeight(this->fs));
-		} else {
-			for (uint i = this->MIN_FONT_SIZE; i <= this->MAX_FONT_SIZE; i++) {
-				this->sizes.push_back(i);
-			}
+		for (uint i = this->MIN_FONT_SIZE; i <= this->MAX_FONT_SIZE; i++) {
+			this->sizes.push_back(i);
 		}
 
 		int position = std::clamp(this->selected_size - this->MIN_FONT_SIZE, 0U, (uint)this->sizes.size());
@@ -156,15 +147,11 @@ class FontFamilyWindow : public Window {
 
 	void UpdateSelections()
 	{
-		this->sprite_font = GetString(STR_GAME_OPTIONS_FONT_SPRITE);
-
 		FontCacheSubSetting *setting = GetFontCacheSubSetting(this->fs);
 		auto [font_family, font_style] = SplitFontFamilyAndStyle(FontCache::Get(this->fs)->GetFontName());
 		this->selected_family = font_family;
 		this->selected_style = font_style;
 		this->selected_size = setting->size;
-		this->selected_aa = setting->aa;
-		this->SetWidgetLoweredState(WID_FFW_ANTIALIAS_BUTTON, this->selected_aa);
 
 		this->style_editbox.text.Assign(this->selected_style);
 		SetDParam(0, this->ScaleFontSize(this->selected_size));
@@ -173,11 +160,9 @@ class FontFamilyWindow : public Window {
 
 	void ChangeFont(FontSize fs)
 	{
-		if (this->selected_family == this->sprite_font) {
-			SetFont(fs, "", this->selected_size, this->selected_aa);
-		} else if (!this->selected_family.empty() && !this->selected_style.empty()) {
+		if (!this->selected_family.empty() && !this->selected_style.empty()) {
 			std::string fontname = fmt::format("{}, {}", this->selected_family, this->selected_style);
-			SetFont(fs, fontname, this->selected_size, this->selected_aa);
+			SetFont(fs, fontname, this->selected_size);
 		}
 
 		this->style_editbox.text.Assign(this->selected_style);
@@ -210,31 +195,31 @@ public:
 		this->ChangeFont(FS_PREVIEW);
 	}
 
-	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *, Dimension *resize) override
+	void UpdateWidgetSize(int widget, Dimension &size, const Dimension &padding, Dimension &, Dimension &resize) override
 	{
 		switch (widget) {
 			case WID_FFW_FAMILIES:
-				size->width = 0;
-				for (const auto &ff : this->fonts) *size = maxdim(*size, GetStringBoundingBox(ff.family));
-				size->width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
-				resize->height = GetCharacterHeight(FS_NORMAL) + padding.height;
-				size->height = this->FONT_ROWS * resize->height;
+				size.width = 0;
+				for (const auto &ff : this->fonts) size = maxdim(size, GetStringBoundingBox(ff.family));
+				size.width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
+				resize.height = GetCharacterHeight(FS_NORMAL) + padding.height;
+				size.height = this->FONT_ROWS * resize.height;
 				break;
 
 			case WID_FFW_STYLES:
-				size->width = 0;
-				for (const auto &ff : this->fonts) *size = maxdim(*size, GetStringBoundingBox(ff.style));
-				size->width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
-				resize->height = GetCharacterHeight(FS_NORMAL) + padding.height;
-				size->height = this->FONT_ROWS * resize->height;
+				size.width = 0;
+				for (const auto &ff : this->fonts) size = maxdim(size, GetStringBoundingBox(ff.style));
+				size.width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
+				resize.height = GetCharacterHeight(FS_NORMAL) + padding.height;
+				size.height = this->FONT_ROWS * resize.height;
 				break;
 
 			case WID_FFW_SIZES:
 				SetDParamMaxDigits(0, 3);
-				*size = GetStringBoundingBox(STR_JUST_COMMA);
-				size->width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
-				resize->height = GetCharacterHeight(FS_NORMAL) + padding.height;
-				size->height = this->FONT_ROWS * resize->height;
+				size = GetStringBoundingBox(STR_JUST_COMMA);
+				size.width += WidgetDimensions::scaled.hsep_wide + padding.width; // hsep_wide to avoid cramped list
+				resize.height = GetCharacterHeight(FS_NORMAL) + padding.height;
+				size.height = this->FONT_ROWS * resize.height;
 				break;
 		}
 	}
@@ -324,15 +309,12 @@ public:
 				break;
 			}
 
-			case WID_FFW_ANTIALIAS_BUTTON: {
-				this->selected_aa = !this->selected_aa;
-				this->SetWidgetLoweredState(WID_FFW_ANTIALIAS_BUTTON, this->selected_aa);
-				this->ChangeFont(FS_PREVIEW);
-				this->SetDirty();
-				break;
-			}
-
 			case WID_FFW_CANCEL:
+				this->Close();
+				break;
+
+			case WID_FFW_DEFAULT:
+				SetFont(fs, "", 0);
 				this->Close();
 				break;
 
@@ -347,11 +329,9 @@ public:
 	{
 		switch (widget) {
 			case WID_FFW_FAMILIES: {
-				const Scrollbar *scroll = this->GetScrollbar(WID_FFW_FAMILIES_SCROLL);
 				Rect ir = r.Shrink(WidgetDimensions::scaled.matrix);
-				auto begin = std::begin(this->families) + scroll->GetPosition();
-				auto end = std::begin(this->families) + std::min<size_t>(scroll->GetPosition() + scroll->GetCapacity(), scroll->GetCount());
-				for (auto it = begin; it != end; ++it) {
+				auto [first, last] = this->GetScrollbar(WID_FFW_FAMILIES_SCROLL)->GetVisibleRangeIterators(this->families);
+				for (auto it = first; it != last; ++it) {
 					DrawString(ir, *it, *it == this->selected_family ? TC_WHITE : TC_BLACK);
 					ir.top += this->resize.step_height;
 				}
@@ -359,11 +339,9 @@ public:
 			}
 
 			case WID_FFW_STYLES: {
-				const Scrollbar *scroll = this->GetScrollbar(WID_FFW_STYLES_SCROLL);
 				Rect ir = r.Shrink(WidgetDimensions::scaled.matrix);
-				auto begin = std::begin(this->styles) + scroll->GetPosition();
-				auto end = std::begin(this->styles) + std::min<size_t>(scroll->GetPosition() + scroll->GetCapacity(), scroll->GetCount());
-				for (auto it = begin; it != end; ++it) {
+				auto [first, last] = this->GetScrollbar(WID_FFW_STYLES_SCROLL)->GetVisibleRangeIterators(this->styles);
+				for (auto it = first; it != last; ++it) {
 					DrawString(ir, *it, *it == this->selected_style ? TC_WHITE : TC_BLACK);
 					ir.top += this->resize.step_height;
 				}
@@ -371,11 +349,9 @@ public:
 			}
 
 			case WID_FFW_SIZES: {
-				const Scrollbar *scroll = this->GetScrollbar(WID_FFW_SIZES_SCROLL);
 				Rect ir = r.Shrink(WidgetDimensions::scaled.matrix);
-				auto begin = std::begin(this->sizes) + scroll->GetPosition();
-				auto end = std::begin(this->sizes) + std::min<size_t>(scroll->GetPosition() + scroll->GetCapacity(), scroll->GetCount());
-				for (auto it = begin; it != end; ++it) {
+				auto [first, last] = this->GetScrollbar(WID_FFW_SIZES_SCROLL)->GetVisibleRangeIterators(this->sizes);
+				for (auto it = first; it != last; ++it) {
 					SetDParam(0, this->ScaleFontSize(*it));
 					DrawString(ir, STR_JUST_COMMA, *it == this->selected_size ? TC_WHITE : TC_BLACK, SA_RIGHT);
 					ir.top += this->resize.step_height;
@@ -400,57 +376,57 @@ public:
 	}
 };
 
-static const NWidgetPart _nested_font_family_widgets[] = {
+static constexpr Colours FONT_FAMILY_COLOUR = COLOUR_GREY;
+static constexpr NWidgetPart _nested_font_family_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
-		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
-		NWidget(WWT_CAPTION, COLOUR_GREY), SetDataTip(STR_GAME_OPTIONS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_CLOSEBOX, FONT_FAMILY_COLOUR),
+		NWidget(WWT_CAPTION, FONT_FAMILY_COLOUR), SetDataTip(STR_GAME_OPTIONS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 	EndContainer(),
-	NWidget(WWT_PANEL, COLOUR_GREY),
+	NWidget(WWT_PANEL, FONT_FAMILY_COLOUR),
 		NWidget(NWID_VERTICAL), SetPadding(WidgetDimensions::unscaled.sparse), SetPIP(0, WidgetDimensions::unscaled.vsep_sparse, 0),
 			NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
 				NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
-					NWidget(WWT_EDITBOX, COLOUR_GREY, WID_FFW_FAMILY_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
+					NWidget(WWT_EDITBOX, FONT_FAMILY_COLOUR, WID_FFW_FAMILY_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
 					NWidget(NWID_HORIZONTAL),
-						NWidget(WWT_MATRIX, COLOUR_GREY, WID_FFW_FAMILIES), SetFill(1, 0), SetScrollbar(WID_FFW_FAMILIES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
-						NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_FFW_FAMILIES_SCROLL),
+						NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_FAMILIES), SetFill(1, 0), SetScrollbar(WID_FFW_FAMILIES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
+						NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_FAMILIES_SCROLL),
 					EndContainer(),
 				EndContainer(),
 				NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
-					NWidget(WWT_EDITBOX, COLOUR_GREY, WID_FFW_STYLE_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
+					NWidget(WWT_EDITBOX, FONT_FAMILY_COLOUR, WID_FFW_STYLE_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
 					NWidget(NWID_HORIZONTAL),
-						NWidget(WWT_MATRIX, COLOUR_GREY, WID_FFW_STYLES), SetFill(1, 0), SetScrollbar(WID_FFW_STYLES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
-						NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_FFW_STYLES_SCROLL),
+						NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_STYLES), SetFill(1, 0), SetScrollbar(WID_FFW_STYLES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
+						NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_STYLES_SCROLL),
 					EndContainer(),
 				EndContainer(),
 				NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
-					NWidget(WWT_EDITBOX, COLOUR_GREY, WID_FFW_SIZE_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
+					NWidget(WWT_EDITBOX, FONT_FAMILY_COLOUR, WID_FFW_SIZE_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
 					NWidget(NWID_HORIZONTAL),
-						NWidget(WWT_MATRIX, COLOUR_GREY, WID_FFW_SIZES), SetFill(1, 0), SetScrollbar(WID_FFW_SIZES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
-						NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_FFW_SIZES_SCROLL),
+						NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_SIZES), SetFill(1, 0), SetScrollbar(WID_FFW_SIZES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
+						NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_SIZES_SCROLL),
 					EndContainer(),
 				EndContainer(),
 			EndContainer(),
-			NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
-				NWidget(WWT_TEXT, COLOUR_GREY), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_GAME_OPTIONS_FONT_ANTIALIAS, STR_NULL),
-				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_ANTIALIAS_BUTTON), SetMinimalSize(21, 9), SetDataTip(STR_EMPTY, STR_GAME_OPTIONS_FONT_ANTIALIAS_TOOLTIP),
-			EndContainer(),
-			NWidget(WWT_INSET, COLOUR_GREY, WID_FFW_PREVIEW), SetFill(1, 0), SetMinimalSize(100, 50),
-			EndContainer(),
-			NWidget(NWID_HORIZONTAL, NC_EQUALSIZE), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
-				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_CANCEL), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_CANCEL, STR_NULL),
-				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_DEFAULT), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_DEFAULT, STR_NULL),
-				NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_FFW_OK), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_OK, STR_NULL),
+			NWidget(WWT_INSET, FONT_FAMILY_COLOUR, WID_FFW_PREVIEW), SetFill(1, 0), SetAspect(2, AspectFlags::ResizeY),
 			EndContainer(),
 		EndContainer(),
 	EndContainer(),
+	NWidget(NWID_HORIZONTAL),
+		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+			NWidget(WWT_TEXTBTN, FONT_FAMILY_COLOUR, WID_FFW_DEFAULT), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_DEFAULT, STR_NULL),
+			NWidget(WWT_TEXTBTN, FONT_FAMILY_COLOUR, WID_FFW_CANCEL), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_CANCEL, STR_NULL),
+			NWidget(WWT_TEXTBTN, FONT_FAMILY_COLOUR, WID_FFW_OK), SetFill(1, 0), SetResize(1, 0), SetDataTip(STR_BUTTON_OK, STR_NULL),
+		EndContainer(),
+		NWidget(WWT_RESIZEBOX, FONT_FAMILY_COLOUR),
+	EndContainer(),
 };
 
-static WindowDesc _font_family_desc(__FILE__, __LINE__,
+static WindowDesc _font_family_desc{
 	WDP_AUTO, nullptr, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
 	std::begin(_nested_font_family_widgets), std::end(_nested_font_family_widgets)
-);
+};
 
 void ShowFontFamilyWindow(Window *parent, int button, FontSize fs)
 {
