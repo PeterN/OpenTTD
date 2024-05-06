@@ -7,8 +7,8 @@
 
 /** @file settings_fonts_gui.cpp GUI for font settings. */
 
-#include "gfx_func.h"
 #include "stdafx.h"
+#include "gfx_func.h"
 #include "settings_gui.h"
 #include "textbuf_gui.h"
 #include "strings_func.h"
@@ -17,12 +17,12 @@
 #include "stringfilter_type.h"
 #include "querystring_gui.h"
 #include "fontcache.h"
+#include "window_func.h"
 #include "zoom_func.h"
 #include "widgets/settings_fonts_widget.h"
 #include "fontdetection.h"
 
 #include "safeguards.h"
-
 
 class FontFamilyWindow : public Window {
 	FontSize fs;
@@ -42,14 +42,12 @@ class FontFamilyWindow : public Window {
 	static inline const uint FILTER_LENGTH = 40;
 	static inline const uint FONT_ROWS = 8;
 
-	StringFilter family_filter;
-	static inline QueryString family_editbox{FILTER_LENGTH * MAX_CHAR_LENGTH, FILTER_LENGTH};
-	static inline QueryString style_editbox{FILTER_LENGTH * MAX_CHAR_LENGTH, FILTER_LENGTH};
-	static inline QueryString size_editbox{FILTER_LENGTH * MAX_CHAR_LENGTH, FILTER_LENGTH};
+	StringFilter filter;
+	static inline QueryString editbox{FILTER_LENGTH * MAX_CHAR_LENGTH, FILTER_LENGTH};
 
 	static int ScaleFontSize(int size)
 	{
-		return size;
+		return ScaleGUITrad(size);
 	}
 
 	void FillFonts()
@@ -73,10 +71,10 @@ class FontFamilyWindow : public Window {
 
 	bool FilterByText(const std::string &str)
 	{
-		if (this->family_filter.IsEmpty()) return true;
-		this->family_filter.ResetState();
-		this->family_filter.AddLine(str);
-		return this->family_filter.GetState();
+		if (this->filter.IsEmpty()) return true;
+		this->filter.ResetState();
+		this->filter.AddLine(str);
+		return this->filter.GetState();
 	}
 
 	void FillFamilies()
@@ -84,8 +82,8 @@ class FontFamilyWindow : public Window {
 		int position = -1;
 		this->families.clear();
 		for (auto it = std::begin(this->fonts); it != std::end(this->fonts); ++it) {
-			if (!FilterByText(it->family)) continue;
 			if (std::find(std::begin(this->families), std::end(this->families), it->family) != std::end(this->families)) continue;
+			if (!FilterByText(it->family)) continue;
 			if (this->selected_family == it->family) position = (int)this->families.size();
 			this->families.emplace_back(it->family);
 		}
@@ -102,7 +100,7 @@ class FontFamilyWindow : public Window {
 		FillStyles(this->selected_family);
 	}
 
-	void FillStyles(const std::string &family)
+	void FillStyles(std::string_view family)
 	{
 		int position = -1;
 		this->styles.clear();
@@ -152,10 +150,6 @@ class FontFamilyWindow : public Window {
 		this->selected_family = font_family;
 		this->selected_style = font_style;
 		this->selected_size = setting->size;
-
-		this->style_editbox.text.Assign(this->selected_style);
-		SetDParam(0, this->ScaleFontSize(this->selected_size));
-		this->size_editbox.text.Assign(GetString(STR_JUST_COMMA));
 	}
 
 	void ChangeFont(FontSize fs)
@@ -164,10 +158,6 @@ class FontFamilyWindow : public Window {
 			std::string fontname = fmt::format("{}, {}", this->selected_family, this->selected_style);
 			SetFont(fs, fontname, this->selected_size);
 		}
-
-		this->style_editbox.text.Assign(this->selected_style);
-		SetDParam(0, this->ScaleFontSize(this->selected_size));
-		this->size_editbox.text.Assign(GetString(STR_JUST_COMMA));
 	}
 
 public:
@@ -182,13 +172,9 @@ public:
 		this->FillFonts();
 		this->FinishInitNested(WN_GAME_OPTIONS_FONT);
 
-		this->querystrings[WID_FFW_FAMILY_FILTER] = &this->family_editbox;
-		this->querystrings[WID_FFW_STYLE_FILTER] = &this->style_editbox;
-		this->querystrings[WID_FFW_SIZE_FILTER] = &this->size_editbox;
-		this->family_editbox.cancel_button = QueryString::ACTION_CLEAR;
-		this->style_editbox.cancel_button = QueryString::ACTION_CLEAR;
-		this->size_editbox.cancel_button = QueryString::ACTION_CLEAR;
-		this->family_filter.SetFilterTerm(this->family_editbox.text.buf);
+		this->querystrings[WID_FFW_FILTER] = &this->editbox;
+		this->editbox.cancel_button = QueryString::ACTION_CLEAR;
+		this->filter.SetFilterTerm(this->editbox.text.buf);
 
 		this->FillFamilies();
 
@@ -244,39 +230,9 @@ public:
 	void OnEditboxChanged(int widget) override
 	{
 		switch (widget) {
-			case WID_FFW_FAMILY_FILTER:
-				this->family_filter.SetFilterTerm(this->family_editbox.text.buf);
+			case WID_FFW_FILTER:
+				this->filter.SetFilterTerm(this->editbox.text.buf);
 				this->FillFamilies();
-				break;
-
-			case WID_FFW_STYLE_FILTER:
-				if (this->style_editbox.text.buf[0] == '\0') return;
-				for (const auto &style : this->styles) {
-					if (StrStartsWithIgnoreCase(style, this->style_editbox.text.buf)) {
-						// Change selected style if existing selection doesn't start with the text.
-						if (!StrStartsWithIgnoreCase(this->selected_style, this->style_editbox.text.buf)) {
-							this->selected_style = style;
-							this->SetWidgetDirty(WID_FFW_STYLES);
-						}
-						break;
-					}
-				}
-				break;
-
-			case WID_FFW_SIZE_FILTER:
-				if (this->size_editbox.text.buf[0] == '\0') return;
-				for (const auto &size : this->sizes) {
-					SetDParam(0, this->ScaleFontSize(size));
-					if (StrStartsWithIgnoreCase(GetString(STR_JUST_COMMA), this->size_editbox.text.buf)) {
-						// Change selected size if existing selection doesn't start with the text.
-						SetDParam(0, this->ScaleFontSize(this->selected_size));
-						if (!StrStartsWithIgnoreCase(GetString(STR_JUST_COMMA), this->size_editbox.text.buf)) {
-							this->selected_size = size;
-							this->SetWidgetDirty(WID_FFW_SIZES);
-						}
-						break;
-					}
-				}
 				break;
 		}
 	}
@@ -360,7 +316,7 @@ public:
 			}
 
 			case WID_FFW_PREVIEW:
-				DrawStringMultiLine(r.Shrink(WidgetDimensions::scaled.fullbevel), STR_GAME_OPTIONS_FONT_PANGRAM, TC_BLACK, SA_CENTER, false, FS_PREVIEW);
+				DrawStringMultiLine(r.Shrink(WidgetDimensions::scaled.frametext), STR_GAME_OPTIONS_FONT_PANGRAM, TC_BLACK, SA_CENTER, false, FS_PREVIEW);
 				break;
 		}
 	}
@@ -384,30 +340,22 @@ static constexpr NWidgetPart _nested_font_family_widgets[] = {
 	EndContainer(),
 	NWidget(WWT_PANEL, FONT_FAMILY_COLOUR),
 		NWidget(NWID_VERTICAL), SetPadding(WidgetDimensions::unscaled.sparse), SetPIP(0, WidgetDimensions::unscaled.vsep_sparse, 0),
+			NWidget(WWT_EDITBOX, FONT_FAMILY_COLOUR, WID_FFW_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
 			NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_wide, 0),
-				NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
-					NWidget(WWT_EDITBOX, FONT_FAMILY_COLOUR, WID_FFW_FAMILY_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
-					NWidget(NWID_HORIZONTAL),
-						NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_FAMILIES), SetFill(1, 0), SetScrollbar(WID_FFW_FAMILIES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
-						NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_FAMILIES_SCROLL),
-					EndContainer(),
+				NWidget(NWID_HORIZONTAL),
+					NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_FAMILIES), SetFill(1, 0), SetScrollbar(WID_FFW_FAMILIES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
+					NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_FAMILIES_SCROLL),
 				EndContainer(),
-				NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
-					NWidget(WWT_EDITBOX, FONT_FAMILY_COLOUR, WID_FFW_STYLE_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
-					NWidget(NWID_HORIZONTAL),
-						NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_STYLES), SetFill(1, 0), SetScrollbar(WID_FFW_STYLES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
-						NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_STYLES_SCROLL),
-					EndContainer(),
+				NWidget(NWID_HORIZONTAL),
+					NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_STYLES), SetFill(1, 0), SetScrollbar(WID_FFW_STYLES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
+					NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_STYLES_SCROLL),
 				EndContainer(),
-				NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0),
-					NWidget(WWT_EDITBOX, FONT_FAMILY_COLOUR, WID_FFW_SIZE_FILTER), SetFill(1, 0), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
-					NWidget(NWID_HORIZONTAL),
-						NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_SIZES), SetFill(1, 0), SetScrollbar(WID_FFW_SIZES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
-						NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_SIZES_SCROLL),
-					EndContainer(),
+				NWidget(NWID_HORIZONTAL),
+					NWidget(WWT_MATRIX, FONT_FAMILY_COLOUR, WID_FFW_SIZES), SetFill(1, 0), SetScrollbar(WID_FFW_SIZES_SCROLL), SetMatrixDataTip(1, 0, STR_NULL),
+					NWidget(NWID_VSCROLLBAR, FONT_FAMILY_COLOUR, WID_FFW_SIZES_SCROLL),
 				EndContainer(),
 			EndContainer(),
-			NWidget(WWT_INSET, FONT_FAMILY_COLOUR, WID_FFW_PREVIEW), SetFill(1, 0), SetAspect(2, AspectFlags::ResizeY),
+			NWidget(WWT_INSET, FONT_FAMILY_COLOUR, WID_FFW_PREVIEW), SetFill(1, 0), SetMinimalTextLines(2, WidgetDimensions::unscaled.frametext.Vertical(), FS_PREVIEW), SetAspect(3, AspectFlags::ResizeY),
 			EndContainer(),
 		EndContainer(),
 	EndContainer(),
@@ -422,7 +370,7 @@ static constexpr NWidgetPart _nested_font_family_widgets[] = {
 };
 
 static WindowDesc _font_family_desc{
-	WDP_AUTO, nullptr, 0, 0,
+	WDP_CENTER, nullptr, 200, 460,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
 	std::begin(_nested_font_family_widgets), std::end(_nested_font_family_widgets)
@@ -430,5 +378,6 @@ static WindowDesc _font_family_desc{
 
 void ShowFontFamilyWindow(Window *parent, int button, FontSize fs)
 {
+	CloseWindowById(WC_GAME_OPTIONS, WN_GAME_OPTIONS_FONT);
 	new FontFamilyWindow(parent, button, fs, &_font_family_desc);
 }

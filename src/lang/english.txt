@@ -1066,6 +1066,7 @@ STR_GAME_OPTIONS_FONT_MONO                                      :Monospace font
 STR_GAME_OPTIONS_FONT_PANGRAM                                   :The quick brown fox jumps over the lazy dog.
 
 STR_GAME_OPTIONS_FONT_SETTING                                   :{RAW_STRING} {NUM}
+STR_GAME_OPTIONS_FONT_SETTING_TOOLTIP                           :Choose a different font
 
 STR_GAME_OPTIONS_PARTICIPATE_SURVEY_FRAME                       :{BLACK}Automated survey
 STR_GAME_OPTIONS_PARTICIPATE_SURVEY                             :{BLACK}Participate in automated survey
