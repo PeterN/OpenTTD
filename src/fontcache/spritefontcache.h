@@ -17,14 +17,15 @@
 class SpriteFontCache : public FontCache {
 public:
 	SpriteFontCache(FontSize fs);
-	void SetUnicodeGlyph(char32_t key, SpriteID sprite) override;
-	void InitializeUnicodeGlyphMap() override;
+	void SetUnicodeGlyph(char32_t key, SpriteID sprite);
+	void InitializeUnicodeGlyphMap();
 	void ClearFontCache() override;
 	const Sprite *GetGlyph(GlyphID key) override;
 	uint GetGlyphWidth(GlyphID key) override;
 	bool GetDrawGlyphShadow() override;
-	GlyphID MapCharToGlyph(char32_t key, bool allow_fallback = true) override;
+	GlyphID MapCharToGlyph(char32_t key) override;
 	std::string GetFontName() override { return "sprite"; }
+	void UpdateCharacterMap() override;
 	bool IsBuiltInFont() override { return true; }
 
 private:
