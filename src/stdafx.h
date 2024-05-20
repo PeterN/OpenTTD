@@ -76,6 +76,8 @@
 #include <variant>
 #include <vector>
 
+#include <filesystem>
+
 #if defined(UNIX) || defined(__MINGW32__)
 #	include <sys/types.h>
 #endif
