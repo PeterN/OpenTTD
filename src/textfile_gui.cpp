@@ -331,7 +331,7 @@ void TextfileWindow::CheckHyperlinkClick(Point pt)
 
 	/* Build line layout to figure out character position that was clicked. */
 	uint window_width = IsWidgetLowered(WID_TF_WRAPTEXT) ? this->GetWidget<NWidgetCore>(WID_TF_BACKGROUND)->current_x - WidgetDimensions::scaled.frametext.Horizontal() : INT_MAX;
-	Layouter layout(this->lines[line_index].text, window_width, this->lines[line_index].colour, FS_MONO);
+	Layouter layout(this->lines[line_index].text, window_width, FS_MONO);
 	assert(subline < layout.size());
 	ptrdiff_t char_index = layout.GetCharAtPosition(pt.x - WidgetDimensions::scaled.frametext.left, subline);
 	if (char_index < 0) return;
@@ -742,15 +742,14 @@ static std::vector<char> Xunzip(std::span<char> input)
 
 	/* Get text from file */
 	size_t filesize;
-	FILE *handle = FioFOpenFile(textfile, "rb", dir, &filesize);
-	if (handle == nullptr) return;
+	auto handle = FioFOpenFile(textfile, "rb", dir, &filesize);
+	if (!handle.has_value()) return;
 	/* Early return on empty files. */
 	if (filesize == 0) return;
 
 	std::vector<char> buf;
 	buf.resize(filesize);
-	size_t read = fread(buf.data(), 1, buf.size(), handle);
-	fclose(handle);
+	size_t read = fread(buf.data(), 1, buf.size(), *handle);
 
 	if (read != buf.size()) return;
 

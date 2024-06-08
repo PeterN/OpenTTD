@@ -590,8 +590,13 @@ static std::map<uint32_t, uint32_t> _grf_id_overrides;
  */
 static void SetNewGRFOverride(uint32_t source_grfid, uint32_t target_grfid)
 {
-	_grf_id_overrides[source_grfid] = target_grfid;
-	GrfMsg(5, "SetNewGRFOverride: Added override of 0x{:X} to 0x{:X}", BSWAP32(source_grfid), BSWAP32(target_grfid));
+	if (target_grfid == 0) {
+		_grf_id_overrides.erase(source_grfid);
+		GrfMsg(5, "SetNewGRFOverride: Removed override of 0x{:X}", BSWAP32(source_grfid));
+	} else {
+		_grf_id_overrides[source_grfid] = target_grfid;
+		GrfMsg(5, "SetNewGRFOverride: Added override of 0x{:X} to 0x{:X}", BSWAP32(source_grfid), BSWAP32(target_grfid));
+	}
 }
 
 /**
@@ -610,14 +615,13 @@ static Engine *GetNewEngine(const GRFFile *file, VehicleType type, uint16_t inte
 	if (_settings_game.vehicle.dynamic_engines) {
 		/* If dynamic_engies is enabled, there can be multiple independent ID ranges. */
 		scope_grfid = file->grfid;
-		uint32_t override = _grf_id_overrides[file->grfid];
-		if (override != 0) {
-			scope_grfid = override;
-			const GRFFile *grf_match = GetFileByGRFID(override);
+		if (auto it = _grf_id_overrides.find(file->grfid); it != std::end(_grf_id_overrides)) {
+			scope_grfid = it->second;
+			const GRFFile *grf_match = GetFileByGRFID(scope_grfid);
 			if (grf_match == nullptr) {
-				GrfMsg(5, "Tried mapping from GRFID {:x} to {:x} but target is not loaded", BSWAP32(file->grfid), BSWAP32(override));
+				GrfMsg(5, "Tried mapping from GRFID {:x} to {:x} but target is not loaded", BSWAP32(file->grfid), BSWAP32(scope_grfid));
 			} else {
-				GrfMsg(5, "Mapping from GRFID {:x} to {:x}", BSWAP32(file->grfid), BSWAP32(override));
+				GrfMsg(5, "Mapping from GRFID {:x} to {:x}", BSWAP32(file->grfid), BSWAP32(scope_grfid));
 			}
 		}
 
@@ -699,8 +703,9 @@ EngineID GetNewEngineID(const GRFFile *file, VehicleType type, uint16_t internal
 	uint32_t scope_grfid = INVALID_GRFID; // If not using dynamic_engines, all newgrfs share their ID range
 	if (_settings_game.vehicle.dynamic_engines) {
 		scope_grfid = file->grfid;
-		uint32_t override = _grf_id_overrides[file->grfid];
-		if (override != 0) scope_grfid = override;
+		if (auto it = _grf_id_overrides.find(file->grfid); it != std::end(_grf_id_overrides)) {
+			scope_grfid = it->second;
+		}
 	}
 
 	return _engine_mngr.GetID(type, internal_id, scope_grfid);
@@ -2594,6 +2599,7 @@ static ChangeInfoResult TownHouseChangeInfo(uint hid, int numinfo, int prop, Byt
 
 			case 0x22: // long maximum year
 				housespec->max_year = buf->ReadWord();
+				if (housespec->max_year == UINT16_MAX) housespec->max_year = CalendarTime::MAX_YEAR;
 				break;
 
 			case 0x23: { // variable length cargo types accepted
@@ -2638,7 +2644,12 @@ static ChangeInfoResult TownHouseChangeInfo(uint hid, int numinfo, int prop, Byt
 {
 	/* LanguageID "MAX_LANG", i.e. 7F is any. This language can't have a gender/case mapping, but has to be handled gracefully. */
 	const GRFFile *grffile = GetFileByGRFID(grfid);
-	return (grffile != nullptr && grffile->language_map != nullptr && language_id < MAX_LANG) ? &grffile->language_map[language_id] : nullptr;
+	if (grffile == nullptr) return nullptr;
+
+	auto it = grffile->language_map.find(language_id);
+	if (it == std::end(grffile->language_map)) return nullptr;
+
+	return &it->second;
 }
 
 /**
@@ -2659,6 +2670,7 @@ static ChangeInfoResult LoadTranslationTable(uint gvid, int numinfo, ByteReader 
 	}
 
 	translation_table.clear();
+	translation_table.reserve(numinfo);
 	for (int i = 0; i < numinfo; i++) {
 		translation_table.push_back(T(BSWAP32(buf->ReadDWord())));
 	}
@@ -2851,8 +2863,6 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 					}
 					break;
 				}
-
-				if (_cur.grffile->language_map == nullptr) _cur.grffile->language_map = new LanguageMap[MAX_LANG];
 
 				if (prop == 0x15) {
 					uint plural_form = buf->ReadByte();
@@ -3570,6 +3580,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 
 				for (uint8_t j = 0; j < new_num_layouts; j++) {
 					layout.clear();
+					layout.reserve(new_num_layouts);
 
 					for (uint k = 0;; k++) {
 						if (bytes_read >= definition_size) {
@@ -5237,6 +5248,7 @@ static void NewSpriteGroup(ByteReader *buf)
 
 			/* Sort ranges ascending. When ranges overlap, this may required clamping or splitting them */
 			std::vector<uint32_t> bounds;
+			bounds.reserve(ranges.size());
 			for (const auto &range : ranges) {
 				bounds.push_back(range.low);
 				if (range.high != UINT32_MAX) bounds.push_back(range.high + 1);
@@ -5245,6 +5257,7 @@ static void NewSpriteGroup(ByteReader *buf)
 			bounds.erase(std::unique(bounds.begin(), bounds.end()), bounds.end());
 
 			std::vector<const SpriteGroup *> target;
+			target.reserve(bounds.size());
 			for (const auto &bound : bounds) {
 				const SpriteGroup *t = group->default_group;
 				for (const auto &range : ranges) {
@@ -5300,6 +5313,7 @@ static void NewSpriteGroup(ByteReader *buf)
 				GrfMsg(1, "NewSpriteGroup: Random Action 2 nrand should be power of 2");
 			}
 
+			group->groups.reserve(num_groups);
 			for (uint i = 0; i < num_groups; i++) {
 				group->groups.push_back(GetGroupFromGroupID(setid, type, buf->ReadWord()));
 			}
@@ -5350,11 +5364,13 @@ static void NewSpriteGroup(ByteReader *buf)
 					std::vector<uint16_t> loaded;
 					std::vector<uint16_t> loading;
 
+					loaded.reserve(num_loaded);
 					for (uint i = 0; i < num_loaded; i++) {
 						loaded.push_back(buf->ReadWord());
 						GrfMsg(8, "NewSpriteGroup: + rg->loaded[{}]  = subset {}", i, loaded[i]);
 					}
 
+					loading.reserve(num_loading);
 					for (uint i = 0; i < num_loading; i++) {
 						loading.push_back(buf->ReadWord());
 						GrfMsg(8, "NewSpriteGroup: + rg->loading[{}] = subset {}", i, loading[i]);
@@ -5375,12 +5391,14 @@ static void NewSpriteGroup(ByteReader *buf)
 					act_group = group;
 
 					if (loaded_same && loaded.size() > 1) loaded.resize(1);
+					group->loaded.reserve(loaded.size());
 					for (uint16_t spriteid : loaded) {
 						const SpriteGroup *t = CreateGroupFromGroupID(feature, setid, type, spriteid);
 						group->loaded.push_back(t);
 					}
 
 					if (loading_same && loading.size() > 1) loading.resize(1);
+					group->loading.reserve(loading.size());
 					for (uint16_t spriteid : loading) {
 						const SpriteGroup *t = CreateGroupFromGroupID(feature, setid, type, spriteid);
 						group->loading.push_back(t);
@@ -8918,11 +8936,6 @@ GRFFile::GRFFile(const GRFConfig *config)
 	this->param_end = config->num_params;
 }
 
-GRFFile::~GRFFile()
-{
-	delete[] this->language_map;
-}
-
 /**
  * Find first cargo label that exists and is active from a list of cargo labels.
  * @param labels List of cargo labels.
@@ -9780,8 +9793,9 @@ static void FinalisePriceBaseMultipliers()
 	std::vector<int> grf_overrides(num_grfs, -1);
 	for (int i = 0; i < num_grfs; i++) {
 		GRFFile *source = _grf_files[i];
-		uint32_t override = _grf_id_overrides[source->grfid];
-		if (override == 0) continue;
+		auto it = _grf_id_overrides.find(source->grfid);
+		if (it == std::end(_grf_id_overrides)) continue;
+		uint32_t override = it->second;
 
 		GRFFile *dest = GetFileByGRFID(override);
 		if (dest == nullptr) continue;

@@ -1112,15 +1112,14 @@ DEF_CONSOLE_CMD(ConExec)
 
 	if (argc < 2) return false;
 
-	FILE *script_file = FioFOpenFile(argv[1], "r", BASE_DIR);
+	auto script_file = FioFOpenFile(argv[1], "r", BASE_DIR);
 
-	if (script_file == nullptr) {
+	if (!script_file.has_value()) {
 		if (argc == 2 || atoi(argv[2]) != 0) IConsolePrint(CC_ERROR, "Script file '{}' not found.", argv[1]);
 		return true;
 	}
 
 	if (_script_current_depth == 11) {
-		FioFCloseFile(script_file);
 		IConsolePrint(CC_ERROR, "Maximum 'exec' depth reached; script A is calling script B is calling script C ... more than 10 times.");
 		return true;
 	}
@@ -1129,7 +1128,7 @@ DEF_CONSOLE_CMD(ConExec)
 	uint script_depth = _script_current_depth;
 
 	char cmdline[ICON_CMDLN_SIZE];
-	while (fgets(cmdline, sizeof(cmdline), script_file) != nullptr) {
+	while (fgets(cmdline, sizeof(cmdline), *script_file) != nullptr) {
 		/* Remove newline characters from the executing script */
 		for (char *cmdptr = cmdline; *cmdptr != '\0'; cmdptr++) {
 			if (*cmdptr == '\n' || *cmdptr == '\r') {
@@ -1145,12 +1144,11 @@ DEF_CONSOLE_CMD(ConExec)
 		if (_script_current_depth == script_depth - 1) break;
 	}
 
-	if (ferror(script_file)) {
+	if (ferror(*script_file) != 0) {
 		IConsolePrint(CC_ERROR, "Encountered error while trying to read from script file '{}'.", argv[1]);
 	}
 
 	if (_script_current_depth == script_depth) _script_current_depth--;
-	FioFCloseFile(script_file);
 	return true;
 }
 
@@ -1175,7 +1173,7 @@ extern void ShowFramerateWindow();
 
 DEF_CONSOLE_CMD(ConScript)
 {
-	extern FILE *_iconsole_output_file;
+	extern std::optional<FileHandle> _iconsole_output_file;
 
 	if (argc == 0) {
 		IConsolePrint(CC_HELP, "Start or stop logging console output to a file. Usage: 'script <filename>'.");
@@ -1186,8 +1184,8 @@ DEF_CONSOLE_CMD(ConScript)
 	if (!CloseConsoleLogIfActive()) {
 		if (argc < 2) return false;
 
-		_iconsole_output_file = fopen(argv[1], "ab");
-		if (_iconsole_output_file == nullptr) {
+		_iconsole_output_file = FileHandle::Open(argv[1], "ab");
+		if (_iconsole_output_file) {
 			IConsolePrint(CC_ERROR, "Could not open console log file '{}'.", argv[1]);
 		} else {
 			IConsolePrint(CC_INFO, "Console log output started to '{}'.", argv[1]);
@@ -1913,6 +1911,52 @@ static std::vector<std::pair<std::string_view, NetworkAuthorizedKeys *>> _consol
 	{ "server", &_settings_client.network.server_authorized_keys },
 };
 
+enum ConNetworkAuthorizedKeyAction {
+	CNAKA_LIST,
+	CNAKA_ADD,
+	CNAKA_REMOVE,
+};
+
+static void PerformNetworkAuthorizedKeyAction(std::string_view name, NetworkAuthorizedKeys *authorized_keys, ConNetworkAuthorizedKeyAction action, const std::string &authorized_key, CompanyID company = INVALID_COMPANY)
+{
+	switch (action) {
+		case CNAKA_LIST:
+			IConsolePrint(CC_WHITE, "The authorized keys for {} are:", name);
+			for (auto &ak : *authorized_keys) IConsolePrint(CC_INFO, "  {}", ak);
+			return;
+
+		case CNAKA_ADD:
+			if (authorized_keys->Contains(authorized_key)) {
+				IConsolePrint(CC_WARNING, "Not added {} to {} as it already exists.", authorized_key, name);
+				return;
+			}
+
+			if (company == INVALID_COMPANY) {
+				authorized_keys->Add(authorized_key);
+			} else {
+				AutoRestoreBackup backup(_current_company, company);
+				Command<CMD_COMPANY_ALLOW_LIST_CTRL>::Post(CALCA_ADD, authorized_key);
+			}
+			IConsolePrint(CC_INFO, "Added {} to {}.", authorized_key, name);
+			return;
+
+		case CNAKA_REMOVE:
+			if (!authorized_keys->Contains(authorized_key)) {
+				IConsolePrint(CC_WARNING, "Not removed {} from {} as it does not exist.", authorized_key, name);
+				return;
+			}
+
+			if (company == INVALID_COMPANY) {
+				authorized_keys->Remove(authorized_key);
+			} else {
+				AutoRestoreBackup backup(_current_company, company);
+				Command<CMD_COMPANY_ALLOW_LIST_CTRL>::Post(CALCA_REMOVE, authorized_key);
+			}
+			IConsolePrint(CC_INFO, "Removed {} from {}.", authorized_key, name);
+			return;
+	}
+}
+
 DEF_CONSOLE_CMD(ConNetworkAuthorizedKey)
 {
 	if (argc <= 2) {
@@ -1924,29 +1968,31 @@ DEF_CONSOLE_CMD(ConNetworkAuthorizedKey)
 
 		std::string buffer;
 		for (auto [name, _] : _console_cmd_authorized_keys) fmt::format_to(std::back_inserter(buffer), ", {}", name);
-		IConsolePrint(CC_HELP, "The supported types are: all{}.", buffer);
+		IConsolePrint(CC_HELP, "The supported types are: all{} and company:<id>.", buffer);
 		return true;
 	}
 
-	bool valid_type = false; ///< Whether a valid type was given.
+	ConNetworkAuthorizedKeyAction action;
+	std::string_view action_string = argv[1];
+	if (StrEqualsIgnoreCase(action_string, "list")) {
+		action = CNAKA_LIST;
+	} else if (StrEqualsIgnoreCase(action_string, "add")) {
+		action = CNAKA_ADD;
+	} else if (StrEqualsIgnoreCase(action_string, "remove") || StrEqualsIgnoreCase(action_string, "delete")) {
+		action = CNAKA_REMOVE;
+	} else {
+		IConsolePrint(CC_WARNING, "No valid action was given.");
+		return false;
+	}
 
-	for (auto [name, authorized_keys] : _console_cmd_authorized_keys) {
-		if (!StrEqualsIgnoreCase(argv[2], name) && !StrEqualsIgnoreCase(argv[2], "all")) continue;
-
-		valid_type = true;
-
-		if (StrEqualsIgnoreCase(argv[1], "list")) {
-			IConsolePrint(CC_WHITE, "The authorized keys for {} are:", name);
-			for (auto &authorized_key : *authorized_keys) IConsolePrint(CC_INFO, "  {}", authorized_key);
-			continue;
-		}
-
+	std::string authorized_key;
+	if (action != CNAKA_LIST) {
 		if (argc <= 3) {
 			IConsolePrint(CC_ERROR, "You must enter the key.");
 			return false;
 		}
 
-		std::string authorized_key = argv[3];
+		authorized_key = argv[3];
 		if (StrStartsWithIgnoreCase(authorized_key, "client:")) {
 			std::string id_string(authorized_key.substr(7));
 			authorized_key = NetworkGetPublicKeyOfClient(static_cast<ClientID>(std::stoi(id_string)));
@@ -1956,34 +2002,40 @@ DEF_CONSOLE_CMD(ConNetworkAuthorizedKey)
 			}
 		}
 
-		if (StrEqualsIgnoreCase(argv[1], "add")) {
-			if (authorized_keys->Add(authorized_key)) {
-				IConsolePrint(CC_INFO, "Added {} to {}.", authorized_key, name);
-			} else {
-				IConsolePrint(CC_WARNING, "Not added {} to {} as it already exists.", authorized_key, name);
-			}
-			continue;
+		if (authorized_key.size() != NETWORK_PUBLIC_KEY_LENGTH - 1) {
+			IConsolePrint(CC_ERROR, "You must enter a valid authorized key.");
+			return false;
 		}
-
-		if (StrEqualsIgnoreCase(argv[1], "remove")) {
-			if (authorized_keys->Remove(authorized_key)) {
-				IConsolePrint(CC_INFO, "Removed {} from {}.", authorized_key, name);
-			} else {
-				IConsolePrint(CC_WARNING, "Not removed {} from {} as it does not exist.", authorized_key, name);
-			}
-			continue;
-		}
-
-		IConsolePrint(CC_WARNING, "No valid action was given.");
-		return false;
 	}
 
-	if (!valid_type) {
-		IConsolePrint(CC_WARNING, "No valid type was given.");
-		return false;
+	std::string_view type = argv[2];
+	if (StrEqualsIgnoreCase(type, "all")) {
+		for (auto [name, authorized_keys] : _console_cmd_authorized_keys) PerformNetworkAuthorizedKeyAction(name, authorized_keys, action, authorized_key);
+		for (Company *c : Company::Iterate()) PerformNetworkAuthorizedKeyAction(fmt::format("company:{}", c->index + 1), &c->allow_list, action, authorized_key, c->index);
+		return true;
 	}
 
-	return true;
+	if (StrStartsWithIgnoreCase(type, "company:")) {
+		std::string id_string(type.substr(8));
+		Company *c = Company::GetIfValid(std::stoi(id_string) - 1);
+		if (c == nullptr) {
+			IConsolePrint(CC_ERROR, "You must enter a valid company id; see 'companies'.");
+			return false;
+		}
+
+		PerformNetworkAuthorizedKeyAction(type, &c->allow_list, action, authorized_key, c->index);
+		return true;
+	}
+
+	for (auto [name, authorized_keys] : _console_cmd_authorized_keys) {
+		if (StrEqualsIgnoreCase(type, name)) continue;
+
+		PerformNetworkAuthorizedKeyAction(name, authorized_keys, action, authorized_key);
+		return true;
+	}
+
+	IConsolePrint(CC_WARNING, "No valid type was given.");
+	return false;
 }
 
 
@@ -2489,6 +2541,22 @@ DEF_CONSOLE_CMD(ConFramerateWindow)
 	return true;
 }
 
+/**
+ * Format a label as a string.
+ * If all elements are visible ASCII (excluding space) then the label will be formatted as a string of 4 characters,
+ * otherwise it will be output as an 8-digit hexadecimal value.
+ * @param label Label to format.
+ * @return string representation of label.
+ **/
+static std::string FormatLabel(uint32_t label)
+{
+	if (std::isgraph(GB(label, 24, 8)) && std::isgraph(GB(label, 16, 8)) && std::isgraph(GB(label, 8, 8)) && std::isgraph(GB(label, 0, 8))) {
+		return fmt::format("{:c}{:c}{:c}{:c}", GB(label, 24, 8), GB(label, 16, 8), GB(label, 8, 8), GB(label, 0, 8));
+	}
+
+	return fmt::format("{:08X}", BSWAP32(label));
+}
+
 static void ConDumpRoadTypes()
 {
 	IConsolePrint(CC_DEFAULT, "  Flags:");
@@ -2508,10 +2576,10 @@ static void ConDumpRoadTypes()
 			grfid = grf->grfid;
 			grfs.emplace(grfid, grf);
 		}
-		IConsolePrint(CC_DEFAULT, "  {:02d} {} {:c}{:c}{:c}{:c}, Flags: {}{}{}{}{}, GRF: {:08X}, {}",
+		IConsolePrint(CC_DEFAULT, "  {:02d} {} {}, Flags: {}{}{}{}{}, GRF: {:08X}, {}",
 				(uint)rt,
 				RoadTypeIsTram(rt) ? "Tram" : "Road",
-				rti->label >> 24, rti->label >> 16, rti->label >> 8, rti->label,
+				FormatLabel(rti->label),
 				HasBit(rti->flags, ROTF_CATENARY)          ? 'c' : '-',
 				HasBit(rti->flags, ROTF_NO_LEVEL_CROSSING) ? 'l' : '-',
 				HasBit(rti->flags, ROTF_NO_HOUSES)         ? 'X' : '-',
@@ -2546,9 +2614,9 @@ static void ConDumpRailTypes()
 			grfid = grf->grfid;
 			grfs.emplace(grfid, grf);
 		}
-		IConsolePrint(CC_DEFAULT, "  {:02d} {:c}{:c}{:c}{:c}, Flags: {}{}{}{}{}{}, GRF: {:08X}, {}",
+		IConsolePrint(CC_DEFAULT, "  {:02d} {}, Flags: {}{}{}{}{}{}, GRF: {:08X}, {}",
 				(uint)rt,
-				rti->label >> 24, rti->label >> 16, rti->label >> 8, rti->label,
+				FormatLabel(rti->label),
 				HasBit(rti->flags, RTF_CATENARY)          ? 'c' : '-',
 				HasBit(rti->flags, RTF_NO_LEVEL_CROSSING) ? 'l' : '-',
 				HasBit(rti->flags, RTF_HIDDEN)            ? 'h' : '-',
@@ -2588,10 +2656,10 @@ static void ConDumpCargoTypes()
 			grfid = grf->grfid;
 			grfs.emplace(grfid, grf);
 		}
-		IConsolePrint(CC_DEFAULT, "  {:02d} Bit: {:2d}, Label: {:c}{:c}{:c}{:c}, Callback mask: 0x{:02X}, Cargo class: {}{}{}{}{}{}{}{}{}{}{}, GRF: {:08X}, {}",
+		IConsolePrint(CC_DEFAULT, "  {:02d} Bit: {:2d}, Label: {}, Callback mask: 0x{:02X}, Cargo class: {}{}{}{}{}{}{}{}{}{}{}, GRF: {:08X}, {}",
 				spec->Index(),
 				spec->bitnum,
-				spec->label.base() >> 24, spec->label.base() >> 16, spec->label.base() >> 8, spec->label.base(),
+				FormatLabel(spec->label.base()),
 				spec->callback_mask,
 				(spec->classes & CC_PASSENGERS)   != 0 ? 'p' : '-',
 				(spec->classes & CC_MAIL)         != 0 ? 'm' : '-',
