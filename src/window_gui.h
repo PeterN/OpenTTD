@@ -159,7 +159,7 @@ struct HotkeyList;
 /**
  * High level window description
  */
-struct WindowDesc : ZeroedMemoryAllocator {
+struct WindowDesc {
 
 	WindowDesc(WindowPosition default_pos, const char *ini_key, int16_t def_width_trad, int16_t def_height_trad,
 			WindowClass window_class, WindowClass parent_class, uint32_t flags,
