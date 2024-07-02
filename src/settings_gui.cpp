@@ -767,7 +767,7 @@ struct GameOptionsWindow : Window {
 				this->SetWidgetDisabledState(WID_GO_GUI_FONT_AA, _fcsettings.prefer_sprite);
 				this->SetDirty();
 
-				InitFontCache(false);
+				// InitFontCache(false);
 				InitFontCache(true);
 				ClearFontCache();
 				CheckForMissingGlyphs();

@@ -37,9 +37,12 @@ static int ScaleFontTrad(int value)
  */
 SpriteFontCache::SpriteFontCache(FontSize fs) : FontCache(fs)
 {
+	FontCache::sprite_font_index[fs] = this->font_index;
 	this->InitializeUnicodeGlyphMap();
 	this->height = ScaleGUITrad(FontCache::GetDefaultFontHeight(this->fs));
 	this->ascender = (this->height - ScaleFontTrad(FontCache::GetDefaultFontHeight(this->fs))) / 2;
+	FontCache::UpdateCharacterHeight(this->fs);
+	this->UpdateCharacterMap();
 }
 
 /**
@@ -49,7 +52,7 @@ SpriteFontCache::SpriteFontCache(FontSize fs) : FontCache(fs)
  */
 SpriteID SpriteFontCache::GetUnicodeGlyph(GlyphID key)
 {
-	const auto found = this->glyph_to_spriteid_map.find(key & ~SPRITE_GLYPH);
+	const auto found = this->glyph_to_spriteid_map.find(key);
 	if (found == std::end(this->glyph_to_spriteid_map)) return 0;
 	return found->second;
 }
@@ -57,6 +60,14 @@ SpriteID SpriteFontCache::GetUnicodeGlyph(GlyphID key)
 void SpriteFontCache::SetUnicodeGlyph(char32_t key, SpriteID sprite)
 {
 	this->glyph_to_spriteid_map[key] = sprite;
+	this->ClaimCharacter(key);
+}
+
+void SpriteFontCache::UpdateCharacterMap()
+{
+	for (const auto &pair : this->glyph_to_spriteid_map) {
+		this->ClaimCharacter(pair.first);
+	}
 }
 
 void SpriteFontCache::InitializeUnicodeGlyphMap()
@@ -86,9 +97,10 @@ void SpriteFontCache::InitializeUnicodeGlyphMap()
 			/* Clear the glyph. This happens if the glyph at this code point
 			 * is non-standard and should be accessed by an SCC_xxx enum
 			 * entry only. */
-			this->SetUnicodeGlyph(unicode_map.code, 0);
+			this->glyph_to_spriteid_map.erase(unicode_map.code);
 		} else {
 			SpriteID sprite = base + key - ASCII_LETTERSTART;
+			if (!SpriteExists(sprite)) continue;
 			this->SetUnicodeGlyph(unicode_map.code, sprite);
 		}
 	}
@@ -99,28 +111,29 @@ void SpriteFontCache::ClearFontCache()
 	Layouter::ResetFontCache(this->fs);
 	this->height = ScaleGUITrad(FontCache::GetDefaultFontHeight(this->fs));
 	this->ascender = (this->height - ScaleFontTrad(FontCache::GetDefaultFontHeight(this->fs))) / 2;
+	FontCache::UpdateCharacterHeight(this->fs);
 }
 
 const Sprite *SpriteFontCache::GetGlyph(GlyphID key)
 {
-	SpriteID sprite = this->GetUnicodeGlyph(static_cast<char32_t>(key & ~SPRITE_GLYPH));
+	SpriteID sprite = this->GetUnicodeGlyph(key);
 	if (sprite == 0) sprite = this->GetUnicodeGlyph('?');
 	return GetSprite(sprite, SpriteType::Font);
 }
 
 uint SpriteFontCache::GetGlyphWidth(GlyphID key)
 {
-	SpriteID sprite = this->GetUnicodeGlyph(static_cast<char32_t>(key & ~SPRITE_GLYPH));
+	SpriteID sprite = this->GetUnicodeGlyph(key);
 	if (sprite == 0) sprite = this->GetUnicodeGlyph('?');
 	return SpriteExists(sprite) ? GetSprite(sprite, SpriteType::Font)->width + ScaleFontTrad(this->fs != FS_NORMAL ? 1 : 0) : 0;
 }
 
-GlyphID SpriteFontCache::MapCharToGlyph(char32_t key, [[maybe_unused]] bool allow_fallback)
+GlyphID SpriteFontCache::MapCharToGlyph(char32_t key)
 {
 	assert(IsPrintable(key));
 	SpriteID sprite = this->GetUnicodeGlyph(key);
 	if (sprite == 0) return 0;
-	return SPRITE_GLYPH | key;
+	return key;
 }
 
 bool SpriteFontCache::GetDrawGlyphShadow()
