@@ -46,7 +46,9 @@ struct SubsidyListWindow : Window {
 	{
 		if (widget != WID_SUL_PANEL) return;
 
-		int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SUL_PANEL, WidgetDimensions::scaled.framerect.top);
+		auto y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SUL_PANEL, WidgetDimensions::scaled.framerect.top);
+		if (y == Scrollbar::npos) return;
+
 		int num = 0;
 		for (const Subsidy *s : Subsidy::Iterate()) {
 			if (!s->IsAwarded()) {

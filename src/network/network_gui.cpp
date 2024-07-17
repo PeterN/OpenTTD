@@ -1603,7 +1603,9 @@ private:
 	 */
 	ButtonCommon *GetButtonAtPoint(Point pt)
 	{
-		uint index = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_CL_MATRIX);
+		auto index = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_CL_MATRIX);
+		if (index == Scrollbar::npos) return nullptr;
+
 		Rect matrix = this->GetWidget<NWidgetBase>(WID_CL_MATRIX)->GetCurrentRect().Shrink(WidgetDimensions::scaled.framerect);
 
 		bool rtl = _current_text_dir == TD_RTL;
@@ -1769,7 +1771,8 @@ public:
 	{
 		switch (widget) {
 			case WID_CL_MATRIX: {
-				int index = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_CL_MATRIX);
+				auto index = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_CL_MATRIX);
+				if (index == Scrollbar::npos) break;
 
 				bool rtl = _current_text_dir == TD_RTL;
 				Rect matrix = this->GetWidget<NWidgetBase>(WID_CL_MATRIX)->GetCurrentRect().Shrink(WidgetDimensions::scaled.framerect);

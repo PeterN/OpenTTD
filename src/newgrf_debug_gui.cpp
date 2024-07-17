@@ -579,8 +579,8 @@ struct NewGRFInspectWindow : Window {
 				if (nif->variables == nullptr) return;
 
 				/* Get the line, make sure it's within the boundaries. */
-				int32_t line = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NGRFI_MAINPANEL, WidgetDimensions::scaled.frametext.top);
-				if (line == INT32_MAX) return;
+				auto line = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NGRFI_MAINPANEL, WidgetDimensions::scaled.frametext.top);
+				if (line == Scrollbar::npos) return;
 
 				/* Find the variable related to the line */
 				for (const NIVariable *niv = nif->variables; niv->name != nullptr; niv++, line--) {

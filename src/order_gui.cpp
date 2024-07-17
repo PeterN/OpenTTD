@@ -599,8 +599,9 @@ private:
 	 */
 	VehicleOrderID GetOrderFromPt(int y)
 	{
-		int32_t sel = this->vscroll->GetScrolledRowFromWidget(y, this, WID_O_ORDER_LIST, WidgetDimensions::scaled.framerect.top);
-		if (sel == INT32_MAX) return INVALID_VEH_ORDER_ID;
+		auto sel = this->vscroll->GetScrolledRowFromWidget(y, this, WID_O_ORDER_LIST, WidgetDimensions::scaled.framerect.top);
+		if (sel == Scrollbar::npos) return INVALID_VEH_ORDER_ID;
+
 		/* One past the orders is the 'End of Orders' line. */
 		assert(IsInsideBS(sel, 0, vehicle->GetNumOrders() + 1));
 		return sel;

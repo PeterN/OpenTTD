@@ -459,10 +459,10 @@ struct DepotWindow : Window {
 		}
 		ym = (y - matrix_widget->pos_y) % this->resize.step_height;
 
-		int32_t row = this->vscroll->GetScrolledRowFromWidget(y, this, WID_D_MATRIX);
+		auto row = this->vscroll->GetScrolledRowFromWidget(y, this, WID_D_MATRIX);
 		uint pos = (row * this->num_columns) + xt;
 
-		if (row == INT32_MAX || this->vehicle_list.size() + this->wagon_list.size() <= pos) {
+		if (row == Scrollbar::npos || this->vehicle_list.size() + this->wagon_list.size() <= pos) {
 			/* Clicking on 'line' / 'block' without a vehicle */
 			if (this->type == VEH_TRAIN) {
 				/* End the dragging */

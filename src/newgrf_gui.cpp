@@ -354,8 +354,8 @@ struct NewGRFParametersWindow : public Window {
 
 			case WID_NP_BACKGROUND: {
 				if (!this->editable) break;
-				int32_t num = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NP_BACKGROUND);
-				if (num >= this->vscroll->GetCount()) break;
+				auto num = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NP_BACKGROUND);
+				if (num != Scrollbar::npos) break;
 
 				if (this->clicked_row != num) {
 					this->CloseChildWindows(WC_QUERY_STRING);
@@ -1027,7 +1027,8 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			case WID_NS_FILE_LIST: { // Select an active GRF.
 				ResetObjectToPlace();
 
-				uint i = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NS_FILE_LIST, WidgetDimensions::scaled.framerect.top);
+				auto i = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NS_FILE_LIST, WidgetDimensions::scaled.framerect.top);
+				if (i == Scrollbar::npos) break;
 
 				GRFConfig *c;
 				for (c = this->actives; c != nullptr && i > 0; c = c->next, i--) {}

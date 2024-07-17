@@ -496,10 +496,11 @@ public:
 				break;
 
 			case WID_AP_AIRPORT_LIST: {
-				int32_t num_clicked = this->vscroll->GetScrolledRowFromWidget(pt.y, this, widget, 0, this->line_height);
-				if (num_clicked == INT32_MAX) break;
-				const AirportSpec *as = AirportClass::Get(_selected_airport_class)->GetSpec(num_clicked);
-				if (as->IsAvailable()) this->SelectOtherAirport(num_clicked);
+				auto row = this->vscroll->GetScrolledRowFromWidget(pt.y, this, widget, 0, this->line_height);
+				if (row == Scrollbar::npos) break;
+
+				const AirportSpec *as = AirportClass::Get(_selected_airport_class)->GetSpec(row);
+				if (as->IsAvailable()) this->SelectOtherAirport(row);
 				break;
 			}
 

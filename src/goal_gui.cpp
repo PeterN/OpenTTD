@@ -75,14 +75,16 @@ struct GoalListWindow : public Window {
 				break;
 
 			case WID_GOAL_LIST: {
-				int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_GOAL_LIST, WidgetDimensions::scaled.framerect.top);
+				auto row = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_GOAL_LIST, WidgetDimensions::scaled.framerect.top);
+				if (row == Scrollbar::npos) return;
+
 				for (const Goal *s : Goal::Iterate()) {
 					if (s->company == this->window_number) {
-						if (y == 0) {
+						if (row == 0) {
 							this->HandleClick(s);
 							return;
 						}
-						y--;
+						row--;
 					}
 				}
 				break;

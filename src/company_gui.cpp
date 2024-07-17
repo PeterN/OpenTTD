@@ -945,10 +945,10 @@ public:
 
 			case WID_SCL_MATRIX: {
 				if (this->livery_class < LC_GROUP_RAIL) {
-					uint row = this->vscroll->GetScrolledRowFromWidget(pt.y, this, widget);
-					if (row >= this->rows) return;
+					auto row = this->vscroll->GetScrolledRowFromWidget(pt.y, this, widget);
+					if (row == Scrollbar::npos) return;
 
-					LiveryScheme j = (LiveryScheme)row;
+					LiveryScheme j = static_cast<LiveryScheme>(row);
 
 					for (LiveryScheme scheme = LS_BEGIN; scheme <= j && scheme < LS_END; scheme++) {
 						if (_livery_class[scheme] != this->livery_class || !HasBit(_loaded_newgrf_features.used_liveries, scheme)) j++;

@@ -189,15 +189,16 @@ struct ScriptListWindow : public Window {
 	{
 		switch (widget) {
 			case WID_SCRL_LIST: { // Select one of the Scripts
-				int sel = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SCRL_LIST) - 1;
-				if (sel < (int)this->info_list->size()) {
-					this->selected = sel;
-					this->SetDirty();
-					if (click_count > 1) {
-						this->ChangeScript();
-						this->Close();
-					}
+				auto sel = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SCRL_LIST) - 1;
+				if (sel == Scrollbar::npos) return;
+
+				this->selected = sel;
+				this->SetDirty();
+				if (click_count > 1) {
+					this->ChangeScript();
+					this->Close();
 				}
+
 				break;
 			}
 

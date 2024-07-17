@@ -240,7 +240,10 @@ struct AIConfigWindow : public Window {
 			}
 
 			case WID_AIC_LIST: { // Select a slot
-				this->selected_slot = (CompanyID)this->vscroll->GetScrolledRowFromWidget(pt.y, this, widget);
+				auto row = this->vscroll->GetScrolledRowFromWidget(pt.y, this, widget);
+				if (row == Scrollbar::npos) break;
+
+				this->selected_slot = static_cast<CompanyID>(row);
 				this->InvalidateData();
 				if (click_count > 1 && IsEditable(this->selected_slot)) ShowScriptListWindow((CompanyID)this->selected_slot, _ctrl_pressed);
 				break;

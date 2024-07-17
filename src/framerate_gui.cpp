@@ -701,8 +701,8 @@ struct FramerateWindow : Window {
 			case WID_FRW_TIMES_AVERAGE: {
 				/* Open time graph windows when clicking detail measurement lines */
 				const Scrollbar *sb = this->GetScrollbar(WID_FRW_SCROLLBAR);
-				int32_t line = sb->GetScrolledRowFromWidget(pt.y, this, widget, WidgetDimensions::scaled.vsep_normal + GetCharacterHeight(FS_NORMAL));
-				if (line != INT32_MAX) {
+				auto line = sb->GetScrolledRowFromWidget(pt.y, this, widget, WidgetDimensions::scaled.vsep_normal + GetCharacterHeight(FS_NORMAL));
+				if (line != Scrollbar::npos) {
 					line++;
 					/* Find the visible line that was clicked */
 					for (PerformanceElement e : DISPLAY_ORDER_PFE) {
