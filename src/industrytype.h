@@ -16,6 +16,7 @@
 #include "landscape_type.h"
 #include "cargo_type.h"
 #include "newgrf_animation_type.h"
+#include "newgrf_badge_type.h"
 #include "newgrf_commons.h"
 
 /** Available types of industry lifetimes. */
@@ -133,6 +134,7 @@ struct IndustrySpec {
 	bool enabled;                               ///< entity still available (by default true).newgrf can disable it, though
 	GRFFileProps grf_prop;                      ///< properties related to the grf file
 	std::vector<uint8_t> random_sounds; ///< Random sounds;
+	std::vector<BadgeLabel> badges;
 
 	bool IsRawIndustry() const;
 	bool IsProcessingIndustry() const;
@@ -163,6 +165,7 @@ struct IndustryTileSpec {
 	IndustryTileSpecialFlags special_flags; ///< Bitmask of extra flags used by the tile
 	bool enabled;                         ///< entity still available (by default true).newgrf can disable it, though
 	GRFFileProps grf_prop;                ///< properties related to the grf file
+	std::vector<BadgeLabel> badges;
 };
 
 /* industry_cmd.cpp*/

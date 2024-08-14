@@ -14,6 +14,7 @@
 #include "rail_type.h"
 #include "road_type.h"
 #include "fileio_type.h"
+#include "newgrf_badge_type.h"
 #include "newgrf_text_type.h"
 #include "core/bitmath_func.hpp"
 #include "core/alloc_type.hpp"
@@ -86,6 +87,7 @@ enum GrfSpecFeature {
 	GSF_ROADTYPES,
 	GSF_TRAMTYPES,
 	GSF_ROADSTOPS,
+	GSF_BADGES,
 	GSF_END,
 
 	GSF_FAKE_TOWNS = GSF_END, ///< Fake town GrfSpecFeature for NewGRF debugging (parent scope)
@@ -140,6 +142,8 @@ struct GRFFile : ZeroedMemoryAllocator {
 	RoadType tramtype_map[ROADTYPE_END];
 
 	CanalProperties canal_local_properties[CF_END]; ///< Canal properties as set by this NewGRF
+
+	std::unordered_map<uint16_t, BadgeLabel> badge_map;
 
 	std::unordered_map<uint8_t, LanguageMap> language_map; ///< Mappings related to the languages.
 

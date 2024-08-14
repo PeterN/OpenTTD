@@ -17,6 +17,7 @@
 #include "timer/timer_game_calendar.h"
 #include "sound_type.h"
 #include "strings_type.h"
+#include "newgrf_badge_type.h"
 
 typedef uint16_t EngineID; ///< Unique identification number of an engine.
 
@@ -159,6 +160,7 @@ struct EngineInfo {
 	uint16_t cargo_age_period; ///< Number of ticks before carried cargo is aged.
 	EngineID variant_id;     ///< Engine variant ID. If set, will be treated specially in purchase lists.
 	ExtraEngineFlags extra_flags;
+	std::vector<BadgeLabel> badges;
 };
 
 /**

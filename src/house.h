@@ -14,6 +14,7 @@
 #include "timer/timer_game_calendar.h"
 #include "house_type.h"
 #include "newgrf_animation_type.h"
+#include "newgrf_badge_type.h"
 #include "newgrf_commons.h"
 
 /**
@@ -117,6 +118,7 @@ struct HouseSpec {
 	uint8_t processing_time;                     ///< Periodic refresh multiplier
 	uint8_t minimum_life;                        ///< The minimum number of years this house will survive before the town rebuilds it
 	CargoTypes watched_cargoes;               ///< Cargo types watched for acceptance.
+	std::vector<BadgeLabel> badges;
 
 	HouseID Index() const;
 	Money GetRemovalCost() const;

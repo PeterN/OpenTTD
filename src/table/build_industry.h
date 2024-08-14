@@ -1135,7 +1135,7 @@ enum IndustryTypes {
 		{a1, a2, a3, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID}, \
 		{{im1, 0}, {im2, 0}, {im3, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}, \
 		pr, clim, bev, col, in, intx, s1, s2, s3, STR_UNDEFINED, {ai1, ai2, ai3, ai4}, {ag1, ag2, ag3, ag4}, \
-		0, true, GRFFileProps(INVALID_INDUSTRYTYPE), snd}
+		0, true, GRFFileProps(INVALID_INDUSTRYTYPE), snd, {}}
 	/* Format:
 	   tile table                              count and sounds table
 	   cost multiplier                         appear chances(4ingame, 4random)  map colour
@@ -1535,7 +1535,7 @@ static const IndustrySpec _origin_industry_specs[NEW_INDUSTRYOFFSET] = {
 #define MT(ca1, c1, ca2, c2, ca3, c3, sl, a1, a2, a3) { \
 	{INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO, INVALID_CARGO}, \
 	{c1, c2, c3, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID, CT_INVALID}, \
-	{ca1, ca2, ca3}, sl, a1, a2, a3, 0, {0, ANIM_STATUS_NO_ANIMATION, 2, 0}, INDTILE_SPECIAL_NONE, true, GRFFileProps(INVALID_INDUSTRYTILE) \
+	{ca1, ca2, ca3}, sl, a1, a2, a3, 0, {0, ANIM_STATUS_NO_ANIMATION, 2, 0}, INDTILE_SPECIAL_NONE, true, GRFFileProps(INVALID_INDUSTRYTILE), {} \
 }
 static const IndustryTileSpec _origin_industry_tile_specs[NEW_INDUSTRYTILEOFFSET] = {
 	/* Coal Mine */

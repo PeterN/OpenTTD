@@ -17,6 +17,8 @@
 #include "command_func.h"
 #include "company_func.h"
 #include "vehicle_gui.h"
+#include "newgrf_badge_type.h"
+#include "newgrf_badge.h"
 #include "newgrf_engine.h"
 #include "newgrf_text.h"
 #include "group.h"
@@ -26,6 +28,7 @@
 #include "timer/timer_game_calendar.h"
 #include "vehicle_func.h"
 #include "dropdown_type.h"
+#include "dropdown_common_type.h"
 #include "dropdown_func.h"
 #include "engine_gui.h"
 #include "cargotype.h"
@@ -72,8 +75,11 @@ static constexpr NWidgetPart _nested_build_vehicle_widgets[] = {
 			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BV_SHOW_HIDDEN_ENGINES),
 			NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_BV_CARGO_FILTER_DROPDOWN), SetResize(1, 0), SetFill(1, 0), SetDataTip(STR_JUST_STRING, STR_TOOLTIP_FILTER_CRITERIA),
 		EndContainer(),
-		NWidget(WWT_PANEL, COLOUR_GREY),
-			NWidget(WWT_EDITBOX, COLOUR_GREY, WID_BV_FILTER), SetResize(1, 0), SetFill(1, 0), SetPadding(2), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
+		NWidget(NWID_HORIZONTAL),
+			NWidget(WWT_PANEL, COLOUR_GREY),
+				NWidget(WWT_EDITBOX, COLOUR_GREY, WID_BV_FILTER), SetResize(1, 0), SetFill(1, 0), SetPadding(2), SetDataTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
+			EndContainer(),
+			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BV_CONFIGURE_BADGES), SetResize(0, 0), SetFill(0, 1), SetDataTip(STR_JUST_STRING, STR_NULL),
 		EndContainer(),
 	EndContainer(),
 	/* Vehicle list. */
@@ -976,6 +982,8 @@ int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number, 
 
 	if (refittable) y = ShowRefitOptionsList(left, right, y, engine_number);
 
+	y = DrawBadgeNameList({left, y, right, INT16_MAX}, e->info.badges, static_cast<GrfSpecFeature>(GSF_TRAINS + e->type));
+
 	/* Additional text from NewGRF */
 	y = ShowAdditionalText(left, right, y, engine_number);
 
@@ -990,6 +998,11 @@ int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number, 
 	return y;
 }
 
+static void DrawEngineBadgeColumn(int column_group, Rect r, const GUIBadgeClassList &badge_classes, const Engine *e)
+{
+	DrawBadgeColumn(column_group, r, badge_classes, e->info.badges, static_cast<GrfSpecFeature>(GSF_TRAINS + e->type), e->info.base_intro);
+}
+
 /**
  * Engine drawing loop
  * @param type Type of vehicle (VEH_*)
@@ -1000,7 +1013,7 @@ int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number, 
  * @param show_count Whether to show the amount of engines or not
  * @param selected_group the group to list the engines of
  */
-void DrawEngineList(VehicleType type, const Rect &r, const GUIEngineList &eng_list, const Scrollbar &sb, EngineID selected_id, bool show_count, GroupID selected_group)
+void DrawEngineList(VehicleType type, const Rect &r, const GUIEngineList &eng_list, const Scrollbar &sb, EngineID selected_id, bool show_count, GroupID selected_group, const GUIBadgeClassList &badge_classes)
 {
 	static const int sprite_y_offsets[] = { -1, -1, -2, -2 };
 
@@ -1014,7 +1027,14 @@ void DrawEngineList(VehicleType type, const Rect &r, const GUIEngineList &eng_li
 	int circle_width = std::max(GetScaledSpriteSize(SPR_CIRCLE_FOLDED).width, GetScaledSpriteSize(SPR_CIRCLE_UNFOLDED).width);
 	int linecolour = GetColourGradient(COLOUR_ORANGE, SHADE_NORMAL);
 
-	Rect ir      = r.WithHeight(step_size).Shrink(WidgetDimensions::scaled.matrix);
+	std::array<int, 3> total_badge_width{};
+	for (const auto &badge_class : badge_classes) {
+		total_badge_width[badge_class.column_group] += ScaleGUITrad(badge_class.size.width) + WidgetDimensions::scaled.hsep_normal;
+	}
+	if (total_badge_width[1] > 0) total_badge_width[1] += WidgetDimensions::scaled.hsep_wide;
+
+	Rect mr = r.WithHeight(step_size).Shrink(WidgetDimensions::scaled.matrix);
+	Rect ir = mr.Indent(total_badge_width[0], rtl).Indent(total_badge_width[2], !rtl);
 	int sprite_y_offset = ScaleSpriteTrad(sprite_y_offsets[type]) + ir.Height() / 2;
 
 	Dimension replace_icon = {0, 0};
@@ -1070,6 +1090,21 @@ void DrawEngineList(VehicleType type, const Rect &r, const GUIEngineList &eng_li
 		const uint num_engines = GetGroupNumEngines(_local_company, selected_group, item.engine_id);
 
 		const Engine *e = Engine::Get(item.engine_id);
+
+		if (total_badge_width[0] > 0) {
+			Rect br = mr.WithWidth(total_badge_width[0], rtl);
+			br.top = y - WidgetDimensions::scaled.matrix.top;
+			br.bottom = br.top + step_size - 1;
+			DrawEngineBadgeColumn(0, br, badge_classes, e);
+		}
+
+		if (total_badge_width[2] > 0) {
+			Rect br = mr.WithWidth(total_badge_width[2], !rtl).Indent(WidgetDimensions::scaled.hsep_normal, rtl);
+			br.top = y - WidgetDimensions::scaled.matrix.top;
+			br.bottom = br.top + step_size - 1;
+			DrawEngineBadgeColumn(2, br, badge_classes, e);
+		}
+
 		bool hidden = HasBit(e->company_hidden, _local_company);
 		StringID str = hidden ? STR_HIDDEN_ENGINE_NAME : STR_ENGINE_NAME;
 		TextColour tc = (item.engine_id == selected_id) ? TC_WHITE : ((hidden | shaded) ? (TC_GREY | TC_FORCED | TC_NO_SHADE) : TC_BLACK);
@@ -1081,6 +1116,15 @@ void DrawEngineList(VehicleType type, const Rect &r, const GUIEngineList &eng_li
 			SetDParam(0, PackEngineNameDParam(item.engine_id, EngineNameContext::PurchaseList, item.indent));
 		}
 		Rect itr = tr.Indent(indent, rtl);
+
+		if (total_badge_width[1] > 0) {
+			Rect br = itr.WithWidth(total_badge_width[1], rtl).Indent(WidgetDimensions::scaled.hsep_normal, rtl);
+			br.top = y - WidgetDimensions::scaled.matrix.top;
+			br.bottom = br.top + step_size - 1;
+			DrawEngineBadgeColumn(1, br, badge_classes, e);
+			itr = itr.Indent(total_badge_width[1], rtl);
+		}
+
 		DrawString(itr.left, itr.right, y + normal_text_y_offset, str, tc);
 		int sprite_x = ir.Indent(indent + circle_width + WidgetDimensions::scaled.hsep_normal, rtl).WithWidth(sprite_width, rtl).left + sprite_left;
 		DrawVehicleEngine(r.left, r.right, sprite_x, y + sprite_y_offset, item.engine_id, (show_count && num_engines == 0) ? PALETTE_CRASH : GetEnginePalette(item.engine_id, _local_company), EIT_PURCHASE);
@@ -1172,6 +1216,8 @@ struct BuildVehicleWindow : Window {
 	} filter;                                   ///< Filter to apply.
 	bool descending_sort_order;                 ///< Sort direction, @see _engine_sort_direction
 	uint8_t sort_criteria;                         ///< Current sort criterium.
+	std::array<int, 3> total_badge_width;
+
 	bool show_hidden_engines;                   ///< State of the 'show hidden engines' button.
 	bool listview_mode;                         ///< If set, only display the available vehicles and do not show a 'build' button.
 	EngineID sel_engine;                        ///< Currently selected engine, or #INVALID_ENGINE
@@ -1181,6 +1227,7 @@ struct BuildVehicleWindow : Window {
 	int details_height;                         ///< Minimal needed height of the details panels, in text lines (found so far).
 	Scrollbar *vscroll;
 	TestedEngineDetails te;                     ///< Tested cost and capacity after refit.
+	GUIBadgeClassList badge_classes;
 
 	StringFilter string_filter;                 ///< Filter for vehicle name
 	QueryString vehicle_editbox;                ///< Filter editbox
@@ -1201,6 +1248,36 @@ struct BuildVehicleWindow : Window {
 		}
 	}
 
+	void BuildBadgeClasses()
+	{
+		auto gbcl = GetBadgeClassList(static_cast<GrfSpecFeature>(this->vehicle_type));
+		this->badge_classes.clear();
+		int column_group = 0;
+
+		for (const auto &bc : badgeconfig) {
+			if (bc.first == INT_MAX - 1) {
+				column_group = 1;
+			} else if (bc.first == INT_MAX - 2) {
+				column_group = 2;
+			} else {
+				if (bc.second) continue;
+
+				auto found = std::find_if(std::begin(gbcl), std::end(gbcl), [&](const auto &gbc) { return bc.first == gbc.badge_class; });
+				if (found == std::end(gbcl)) continue;
+
+				auto &x = this->badge_classes.emplace_back(*found);
+				x.column_group = column_group;
+			}
+		}
+
+		this->total_badge_width.fill(0);
+		for (const auto &badge_class : badge_classes) {
+			this->total_badge_width[badge_class.column_group] += ScaleGUITrad(badge_class.size.width) + WidgetDimensions::scaled.hsep_normal;
+		}
+		/* Centre column has padding on both sides. */
+		if (this->total_badge_width[1] != 0) this->total_badge_width[1] += WidgetDimensions::scaled.hsep_wide;
+	}
+
 	BuildVehicleWindow(WindowDesc &desc, TileIndex tile, VehicleType type) : Window(desc), vehicle_editbox(MAX_LENGTH_VEHICLE_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_VEHICLE_NAME_CHARS)
 	{
 		this->vehicle_type = type;
@@ -1212,6 +1289,9 @@ struct BuildVehicleWindow : Window {
 		this->sort_criteria         = _engine_sort_last_criteria[type];
 		this->descending_sort_order = _engine_sort_last_order[type];
 		this->show_hidden_engines   = _engine_sort_show_hidden_engines[type];
+
+		if (badgeconfig.empty()) this->ResetBadgeConfig();
+		this->BuildBadgeClasses();
 
 		this->UpdateFilterByTile();
 
@@ -1376,6 +1456,9 @@ struct BuildVehicleWindow : Window {
 		SetDParam(0, PackEngineNameDParam(e->index, EngineNameContext::PurchaseList));
 		this->string_filter.AddLine(GetString(STR_ENGINE_NAME));
 
+		/* Filter by badges */
+		FilterByBadge(this->string_filter, e->info.badges);
+
 		/* Filter NewGRF extra text */
 		auto text = GetNewGRFAdditionalText(e->index);
 		if (text) this->string_filter.AddLine(*text);
@@ -1392,6 +1475,8 @@ struct BuildVehicleWindow : Window {
 
 		list.clear();
 
+		static TicToc::State tts("Filter", 1);
+		TicToc tt(tts);
 		/* Make list of all available train engines and wagons.
 		 * Also check to see if the previously selected engine is still available,
 		 * and if not, reset selection to INVALID_ENGINE. This could be the case
@@ -1606,6 +1691,109 @@ struct BuildVehicleWindow : Window {
 		return list;
 	}
 
+	template <class TBase, bool TEnd = true, FontSize TFs = FS_NORMAL>
+	class DropDownMover : public TBase {
+		bool up; ///< Can be moved up.
+		bool down; ///< Can be moved down.
+		Dimension dim; ///< Dimension of checkmark.
+	public:
+		template <typename... Args>
+		explicit DropDownMover(bool up, bool down, Args&&... args) : TBase(std::forward<Args>(args)...), up(up), down(down)
+		{
+			Dimension d = NWidgetScrollbar::GetVerticalDimension();
+			this->dim = {d.width * 2, d.height};
+		}
+
+		uint Height() const override { return std::max<uint>(this->dim.height, this->TBase::Height()); }
+		uint Width() const override { return this->dim.width + WidgetDimensions::scaled.hsep_wide + this->TBase::Width(); }
+
+		void Draw(const Rect &full, const Rect &r, bool sel, Colours bg_colour) const override
+		{
+			bool rtl = TEnd ^ (_current_text_dir == TD_RTL);
+
+			Dimension d = NWidgetScrollbar::GetVerticalDimension();
+
+			if (up) DrawString(r.WithWidth(d.width, rtl), STR_JUST_UP_ARROW, this->GetColour(sel), SA_CENTER, false, TFs);
+			if (down) DrawString(r.Indent(d.width, rtl).WithWidth(d.width, rtl), STR_JUST_DOWN_ARROW, this->GetColour(sel), SA_CENTER, false, TFs);
+
+			this->TBase::Draw(full, r.Indent(this->dim.width + WidgetDimensions::scaled.hsep_wide, rtl), sel, bg_colour);
+		}
+	};
+
+	using DropDownListCheckedMoverItem = DropDownMover<DropDownCheck<DropDownString<DropDownListItem>>>;
+
+	static inline std::vector<std::pair<int, bool>> badgeconfig;
+
+	void ResetBadgeConfig() const
+	{
+		badgeconfig.clear();
+		for (const auto &b : Badge::classes) {
+			badgeconfig.emplace_back(b, false);
+		}
+		badgeconfig.emplace_back(INT_MAX - 1, false);
+		badgeconfig.emplace_back(INT_MAX - 2, false);
+	}
+
+	DropDownList BuildBadgeConfigurationList() const
+	{
+		DropDownList list;
+
+		list.push_back(MakeDropDownListStringItem(STR_BADGE_CONFIG_RESET, INT_MAX));
+		list.push_back(MakeDropDownListDividerItem());
+
+		for (auto it = std::begin(badgeconfig); it != std::end(badgeconfig); ++it) {
+			if (it->first == INT_MAX - 1) {
+				list.push_back(MakeDropDownListStringItem(STR_BADGE_CONFIG_PREVIEW, it->first, false, true));
+			} else if (it->first == INT_MAX - 2) {
+				list.push_back(MakeDropDownListStringItem(STR_BADGE_CONFIG_NAME, it->first, false, true));
+			} else {
+				Badge *badge = Badge::Get(GetBadgeClassDescriptorLabel(it->first));
+				if (badge == nullptr) continue;
+
+				list.push_back(std::make_unique<DropDownListCheckedMoverItem>(it != std::begin(badgeconfig), std::next(it) != std::end(badgeconfig), !it->second, badge->name, it->first));
+			}
+		}
+
+		return list;
+	}
+
+	DropDownList BuildBadgeDropDownList(GUIBadgeClass badge_class) const
+	{
+		GrfSpecFeature feature = static_cast<GrfSpecFeature>(this->vehicle_type);
+		DropDownList list;
+
+		/* Add item for disabling filtering. */
+		list.push_back(MakeDropDownListStringItem(this->GetCargoFilterLabel(CargoFilterCriteria::CF_ANY), CargoFilterCriteria::CF_ANY));
+
+		list.push_back(MakeDropDownListDividerItem());
+
+		/* Add badges */
+		// Dimension d = GetBadgeNominalDimension(badge_class.badge_class, GSF_TRAINS);
+		Dimension d = badge_class.size;
+		d.width = ScaleGUITrad(d.width);
+		d.height = ScaleGUITrad(d.height);
+
+		auto start = list.size();
+
+		for (const auto &pair : Badge::specs) {
+			if (GetBadgeClass(pair.first) != badge_class.badge_class) continue;
+			if (pair.second.name == 0) continue;
+			if (!pair.second.used.test(feature)) continue;
+
+			SpriteID sprite = GetBadgeSprite(pair.second, feature, std::nullopt);
+			if (sprite == 0) {
+				list.push_back(MakeDropDownListStringItem(pair.second.name, pair.first));
+			} else {
+				list.push_back(MakeDropDownListIconItem(d, sprite, PAL_NONE, pair.second.name, pair.first));
+			}
+		}
+
+		auto last = list.end();
+		std::sort(std::begin(list) + start, last, DropDownListStringItem::NatSortFunc);
+
+		return list;
+	}
+
 	void BuildVehicle()
 	{
 		EngineID sel_eng = this->sel_engine;
@@ -1689,6 +1877,10 @@ struct BuildVehicleWindow : Window {
 				ShowDropDownList(this, this->BuildCargoDropDownList(), this->cargo_filter_criteria, widget);
 				break;
 
+			case WID_BV_CONFIGURE_BADGES:
+				ShowDropDownList(this, this->BuildBadgeConfigurationList(), -1, widget, 0, false, true);
+				break;
+
 			case WID_BV_SHOW_HIDE: {
 				const Engine *e = (this->sel_engine == INVALID_ENGINE) ? nullptr : Engine::Get(this->sel_engine);
 				if (e != nullptr) {
@@ -1763,6 +1955,10 @@ struct BuildVehicleWindow : Window {
 				}
 				break;
 			}
+
+			case WID_BV_CONFIGURE_BADGES:
+				SetDParam(0, STR_BADGES);
+				break;
 		}
 	}
 
@@ -1772,7 +1968,7 @@ struct BuildVehicleWindow : Window {
 			case WID_BV_LIST:
 				resize.height = GetEngineListHeight(this->vehicle_type);
 				size.height = 3 * resize.height;
-				size.width = std::max(size.width, GetVehicleImageCellSize(this->vehicle_type, EIT_PURCHASE).extend_left + GetVehicleImageCellSize(this->vehicle_type, EIT_PURCHASE).extend_right + 165) + padding.width;
+				size.width = std::max(size.width, this->total_badge_width[0] + this->total_badge_width[1] + this->total_badge_width[2] + GetVehicleImageCellSize(this->vehicle_type, EIT_PURCHASE).extend_left + GetVehicleImageCellSize(this->vehicle_type, EIT_PURCHASE).extend_right + 165) + padding.width;
 				break;
 
 			case WID_BV_PANEL:
@@ -1818,7 +2014,8 @@ struct BuildVehicleWindow : Window {
 					*this->vscroll,
 					this->sel_engine,
 					false,
-					DEFAULT_GROUP
+					DEFAULT_GROUP,
+					this->badge_classes
 				);
 				break;
 
@@ -1885,6 +2082,41 @@ struct BuildVehicleWindow : Window {
 					this->SelectEngine(this->sel_engine);
 				}
 				break;
+
+			case WID_BV_CONFIGURE_BADGES: {
+				if (index == INT_MAX - 1 || index == INT_MAX - 2) return;
+
+				auto it = std::find_if(std::begin(badgeconfig), std::end(badgeconfig), [index](const auto &b) { return b.first == index; });
+				if (it != std::end(badgeconfig)) {
+					int w = NWidgetScrollbar::GetVerticalDimension().width;
+
+					extern Point _dropdown_hit;
+					if (_dropdown_hit.y - _dropdown_hit.x < w) {
+						/* Move up */
+						if (it != std::begin(badgeconfig)) std::swap(*it, *std::prev(it));
+					} else if (_dropdown_hit.y - _dropdown_hit.x < w * 2) {
+						/* Move down */
+						if (std::next(it) != std::end(badgeconfig)) std::swap(*it, *std::next(it));
+					} else {
+						/* Toggle */
+						it->second = !it->second;
+					}
+
+					this->BuildBadgeClasses();
+					this->SetDirty();
+					ReplaceDropDownList(this, this->BuildBadgeConfigurationList(), -1);
+					return;
+				}
+
+				if (index == INT_MAX) {
+					this->ResetBadgeConfig();
+					this->BuildBadgeClasses();
+					this->SetDirty();
+				}
+
+				this->CloseChildWindows(WC_DROPDOWN_MENU);
+				break;
+			}
 		}
 		this->SetDirty();
 	}

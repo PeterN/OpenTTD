@@ -305,6 +305,9 @@ add_files(
     newgrf_station.h
     newgrf_storage.cpp
     newgrf_storage.h
+    newgrf_badge.cpp
+    newgrf_badge.h
+    newgrf_badge_type.h
     newgrf_text.cpp
     newgrf_text.h
     newgrf_text_type.h

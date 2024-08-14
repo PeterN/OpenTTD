@@ -74,6 +74,7 @@ struct ObjectSpec : NewGRFSpecBase<ObjectClassID> {
 	uint8_t height;                 ///< The height of this structure, in heightlevels; max MAX_TILE_HEIGHT.
 	uint8_t views;                  ///< The number of views.
 	uint8_t generate_amount;        ///< Number of objects which are attempted to be generated per 256^2 map during world generation.
+	std::vector<BadgeLabel> badges;
 
 	/**
 	 * Test if this object is enabled.
