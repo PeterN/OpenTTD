@@ -1717,9 +1717,9 @@ static void ViewportDrawStrings(ZoomLevel zoom, const StringSpriteToDrawVector *
 		if (ss.colour != INVALID_COLOUR) {
 			if (IsTransparencySet(TO_SIGNS) && ss.string_id != STR_WHITE_SIGN) {
 				/* Don't draw the rectangle.
-				 * Real colours need the TC_IS_PALETTE_COLOUR flag.
+				 * Palette colours need to be converted to text colours.
 				 * Otherwise colours from _string_colourmap are assumed. */
-				colour = (TextColour)GetColourGradient(ss.colour, SHADE_LIGHTER) | TC_IS_PALETTE_COLOUR;
+				colour = GetTextColour(GetColourGradient(ss.colour, SHADE_LIGHTER));
 			} else {
 				/* Draw the rectangle if 'transparent station signs' is off,
 				 * or if we are drawing a general text sign (STR_WHITE_SIGN). */

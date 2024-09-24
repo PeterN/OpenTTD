@@ -38,6 +38,7 @@ inline bool IsValidColours(Colours colours)
 	return colours < COLOUR_END;
 }
 
+TextColour GetTextColour(uint8_t colour);
 TextColour GetContrastColour(uint8_t background, uint8_t threshold = 128);
 
 enum ColourShade : uint8_t {

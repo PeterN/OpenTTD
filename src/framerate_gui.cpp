@@ -1003,7 +1003,7 @@ struct FrametimeGraphWindow : Window {
 
 			/* If the peak value is significantly larger than the average, mark and label it */
 			if (points_drawn > 0 && peak_value > TIMESTAMP_PRECISION / 100 && 2 * peak_value > 3 * value_sum / points_drawn) {
-				TextColour tc_peak = (TextColour)(TC_IS_PALETTE_COLOUR | c_peak);
+				TextColour tc_peak = GetTextColour(c_peak);
 				GfxFillRect(peak_point.x - 1, peak_point.y - 1, peak_point.x + 1, peak_point.y + 1, c_peak);
 				SetDParam(0, peak_value * 1000 / TIMESTAMP_PRECISION);
 				int label_y = std::max(y_max, peak_point.y - GetCharacterHeight(FS_SMALL));

@@ -279,6 +279,16 @@ void DoPaletteAnimations()
 }
 
 /**
+ * Compose a TextColour from the given palette colour.
+ * @param colour Palette colour to use.
+ * @returns TextColour representing the palette colour.
+ */
+TextColour GetTextColour(uint8_t colour)
+{
+	return static_cast<TextColour>(colour) | TC_IS_PALETTE_COLOUR;
+}
+
+/**
  * Determine a contrasty text colour for a coloured background.
  * @param background Background colour.
  * @param threshold Background colour brightness threshold below which the background is considered dark and TC_WHITE is returned, range: 0 - 255, default 128.
