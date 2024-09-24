@@ -471,9 +471,9 @@ static void SetColourRemap(TextColour colour)
 
 	/* Black strings have no shading ever; the shading is black, so it
 	 * would be invisible at best, but it actually makes it illegible. */
-	bool no_shade   = (colour & TC_NO_SHADE) != 0 || colour == TC_BLACK;
-	bool raw_colour = (colour & TC_IS_PALETTE_COLOUR) != 0;
-	colour &= ~(TC_NO_SHADE | TC_IS_PALETTE_COLOUR | TC_FORCED);
+	bool no_shade   = HasFlag(colour, TC_NO_SHADE) || colour == TC_BLACK;
+	bool raw_colour = HasFlag(colour, TC_IS_PALETTE_COLOUR);
+	colour &= ~TC_FLAGS_MASK;
 
 	_string_colourremap[1] = raw_colour ? (uint8_t)colour : _string_colourmap[colour];
 	_string_colourremap[2] = no_shade ? 0 : 1;
@@ -591,7 +591,7 @@ static int DrawLayoutLine(const ParagraphLayouter::Line &line, int y, int left, 
 			FontCache *fc = f->fc;
 			TextColour colour = f->colour;
 			if (colour == TC_INVALID || HasFlag(default_colour, TC_FORCED)) colour = default_colour;
-			colour_has_shadow = (colour & TC_NO_SHADE) == 0 && colour != TC_BLACK;
+			colour_has_shadow = !HasFlag(colour, TC_NO_SHADE) && colour != TC_BLACK;
 			SetColourRemap(do_shadow ? TC_BLACK : colour); // the last run also sets the colour for the truncation dots
 			if (do_shadow && (!fc->GetDrawGlyphShadow() || !colour_has_shadow)) continue;
 

@@ -38,7 +38,7 @@ struct FontState {
 	{
 		assert(((c & TC_COLOUR_MASK) >= TC_BLUE && (c & TC_COLOUR_MASK) <= TC_BLACK) || (c & TC_COLOUR_MASK) == TC_INVALID);
 		assert((c & (TC_COLOUR_MASK | TC_FLAGS_MASK)) == c);
-		if ((this->cur_colour & TC_FORCED) == 0) this->cur_colour = c;
+		if (!HasFlag(this->cur_colour, TC_FORCED)) this->cur_colour = c;
 	}
 
 	/**

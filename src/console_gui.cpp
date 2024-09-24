@@ -541,7 +541,7 @@ static bool TruncateBuffer()
 bool IsValidConsoleColour(TextColour c)
 {
 	/* A normal text colour is used. */
-	if (!(c & TC_IS_PALETTE_COLOUR)) return TC_BEGIN <= c && c < TC_END;
+	if (!HasFlag(c, TC_IS_PALETTE_COLOUR)) return TC_BEGIN <= c && c < TC_END;
 
 	/* A text colour from the palette is used; must be the company
 	 * colour gradient, so it must be one of those. */
