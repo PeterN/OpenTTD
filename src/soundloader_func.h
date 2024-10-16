@@ -5,31 +5,12 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file countedobj.cpp Support for reference counted objects. */
+/** @file soundloader_func.h Functions related to sound loaders. */
 
-#include "../stdafx.h"
+#ifndef SOUNDLOADER_FUNC_H
+#define SOUNDLOADER_FUNC_H
 
-#include "countedptr.hpp"
+bool LoadSound(SoundEntry &sound, SoundID sound_id);
+bool LoadSoundData(SoundEntry &sound, bool new_format, SoundID sound_id, const std::string &name);
 
-#include "../safeguards.h"
-
-int32_t SimpleCountedObject::AddRef()
-{
-	return ++m_ref_cnt;
-}
-
-int32_t SimpleCountedObject::Release()
-{
-	int32_t res = --m_ref_cnt;
-	assert(res >= 0);
-	if (res == 0) {
-		try {
-			FinalRelease(); // may throw, for example ScriptTest/ExecMode
-		} catch (...) {
-			delete this;
-			throw;
-		}
-		delete this;
-	}
-	return res;
-}
+#endif /* SOUNDLOADER_FUNC_H */

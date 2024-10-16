@@ -21,10 +21,11 @@ struct MixerChannel;
 typedef void(*MxStreamCallback)(int16_t *buffer, size_t samples);
 
 bool MxInitialize(uint rate);
+uint32_t MxGetRate();
 void MxMixSamples(void *buffer, uint samples);
 
 MixerChannel *MxAllocateChannel();
-void MxSetChannelRawSrc(MixerChannel *mc, int8_t *mem, size_t size, uint rate, bool is16bit);
+void MxSetChannelRawSrc(MixerChannel *mc, const std::shared_ptr<std::vector<uint8_t>> &mem, uint rate, bool is16bit);
 void MxSetChannelVolume(MixerChannel *mc, uint volume, float pan);
 void MxActivateChannel(MixerChannel*);
 void MxCloseAllChannels();
