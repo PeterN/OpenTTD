@@ -401,7 +401,7 @@ StationIDStack OrderList::GetNextStoppingStation(const Vehicle *v, const Order *
 
 	const Order *next = first;
 	if (first == nullptr) {
-		next = this->GetOrderAt(v->cur_implicit_order_index);
+		next = this->GetOrderAt(v->GetConsist().cur_implicit_order_index);
 		if (next == nullptr) {
 			next = this->GetFirstOrder();
 			if (next == nullptr) return INVALID_STATION;
@@ -439,11 +439,11 @@ StationIDStack OrderList::GetNextStoppingStation(const Vehicle *v, const Order *
 
 		/* Don't return a next stop if the vehicle has to unload everything. */
 		if (next == nullptr || ((next->IsType(OT_GOTO_STATION) || next->IsType(OT_IMPLICIT)) &&
-				next->GetDestination() == v->last_station_visited &&
+				next->GetDestination() == v->GetConsist().last_station_visited &&
 				(next->GetUnloadType() & (OUFB_TRANSFER | OUFB_UNLOAD)) != 0)) {
 			return INVALID_STATION;
 		}
-	} while (next->IsType(OT_GOTO_DEPOT) || next->GetDestination() == v->last_station_visited);
+	} while (next->IsType(OT_GOTO_DEPOT) || next->GetDestination() == v->GetConsist().last_station_visited);
 
 	return next->GetDestination();
 }
@@ -596,7 +596,7 @@ void OrderList::DebugCheckSanity() const
 
 	for (const Vehicle *v = this->first_shared; v != nullptr; v = v->NextShared()) {
 		++check_num_vehicles;
-		assert(v->orders == this);
+		assert(v->GetConsist().orders == this);
 	}
 	assert(this->num_vehicles == check_num_vehicles);
 	Debug(misc, 6, "... detected {} orders ({} manual), {} vehicles, {} timetabled, {} total",
@@ -670,7 +670,7 @@ uint GetOrderDistance(const Order *prev, const Order *cur, const Vehicle *v, int
 		conditional_depth++;
 
 		int dist1 = GetOrderDistance(prev, v->GetOrder(cur->GetConditionSkipToOrder()), v, conditional_depth);
-		int dist2 = GetOrderDistance(prev, cur->next == nullptr ? v->orders->GetFirstOrder() : cur->next, v, conditional_depth);
+		int dist2 = GetOrderDistance(prev, cur->next == nullptr ? v->GetConsist().orders->GetFirstOrder() : cur->next, v, conditional_depth);
 		return std::max(dist1, dist2);
 	}
 
@@ -888,7 +888,7 @@ CommandCost CmdInsertOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID se
 
 	if (v->GetNumOrders() >= MAX_VEH_ORDER_ID) return CommandCost(STR_ERROR_TOO_MANY_ORDERS);
 	if (!Order::CanAllocateItem()) return CommandCost(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
-	if (v->orders == nullptr && !OrderList::CanAllocateItem()) return CommandCost(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
+	if (v->GetConsist().orders == nullptr && !OrderList::CanAllocateItem()) return CommandCost(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
 
 	if (flags & DC_EXEC) {
 		Order *new_o = new Order();
@@ -907,45 +907,48 @@ CommandCost CmdInsertOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID se
  */
 void InsertOrder(Vehicle *v, Order *new_o, VehicleOrderID sel_ord)
 {
+	Consist &v_consist = v->GetConsist();
+
 	/* Create new order and link in list */
-	if (v->orders == nullptr) {
-		v->orders = new OrderList(new_o, v);
+	if (v_consist.orders == nullptr) {
+		v_consist.orders = new OrderList(new_o, v);
 	} else {
-		v->orders->InsertOrderAt(new_o, sel_ord);
+		v_consist.orders->InsertOrderAt(new_o, sel_ord);
 	}
 
 	Vehicle *u = v->FirstShared();
 	DeleteOrderWarnings(u);
 	for (; u != nullptr; u = u->NextShared()) {
-		assert(v->orders == u->orders);
+		Consist &u_consist = u->GetConsist();
+		assert(v_consist.orders == u_consist.orders);
 
 		/* If there is added an order before the current one, we need
 		 * to update the selected order. We do not change implicit/real order indices though.
 		 * If the new order is between the current implicit order and real order, the implicit order will
 		 * later skip the inserted order. */
-		if (sel_ord <= u->cur_real_order_index) {
-			uint cur = u->cur_real_order_index + 1;
+		if (sel_ord <= u_consist.cur_real_order_index) {
+			uint cur = u_consist.cur_real_order_index + 1;
 			/* Check if we don't go out of bound */
 			if (cur < u->GetNumOrders()) {
-				u->cur_real_order_index = cur;
+				u_consist.cur_real_order_index = cur;
 			}
 		}
-		if (sel_ord == u->cur_implicit_order_index && u->IsGroundVehicle()) {
+		if (sel_ord == u_consist.cur_implicit_order_index && u->IsGroundVehicle()) {
 			/* We are inserting an order just before the current implicit order.
 			 * We do not know whether we will reach current implicit or the newly inserted order first.
 			 * So, disable creation of implicit orders until we are on track again. */
 			uint16_t &gv_flags = u->GetGroundVehicleFlags();
 			SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 		}
-		if (sel_ord <= u->cur_implicit_order_index) {
-			uint cur = u->cur_implicit_order_index + 1;
+		if (sel_ord <= u_consist.cur_implicit_order_index) {
+			uint cur = u_consist.cur_implicit_order_index + 1;
 			/* Check if we don't go out of bound */
 			if (cur < u->GetNumOrders()) {
-				u->cur_implicit_order_index = cur;
+				u_consist.cur_implicit_order_index = cur;
 			}
 		}
 		/* Unbunching data is no longer valid. */
-		u->ResetDepotUnbunching();
+		u_consist.ResetDepotUnbunching();
 
 		/* Update any possible open window of the vehicle */
 		InvalidateVehicleOrder(u, INVALID_VEH_ORDER_ID | (sel_ord << 8));
@@ -1016,13 +1019,15 @@ CommandCost CmdDeleteOrder(DoCommandFlag flags, VehicleID veh_id, VehicleOrderID
  */
 static void CancelLoadingDueToDeletedOrder(Vehicle *v)
 {
-	assert(v->current_order.IsType(OT_LOADING));
+	Consist &consist = v->GetConsist();
+
+	assert(consist.current_order.IsType(OT_LOADING));
 	/* NON-stop flag is misused to see if a train is in a station that is
 	 * on its order list or not */
-	v->current_order.SetNonStopType(ONSF_STOP_EVERYWHERE);
+	consist.current_order.SetNonStopType(ONSF_STOP_EVERYWHERE);
 	/* When full loading, "cancel" that order so the vehicle doesn't
 	 * stay indefinitely at this station anymore. */
-	if (v->current_order.GetLoadType() & OLFB_FULL_LOAD) v->current_order.SetLoadType(OLF_LOAD_IF_POSSIBLE);
+	if (consist.current_order.GetLoadType() & OLFB_FULL_LOAD) consist.current_order.SetLoadType(OLF_LOAD_IF_POSSIBLE);
 }
 
 /**
@@ -1032,37 +1037,40 @@ static void CancelLoadingDueToDeletedOrder(Vehicle *v)
  */
 void DeleteOrder(Vehicle *v, VehicleOrderID sel_ord)
 {
-	v->orders->DeleteOrderAt(sel_ord);
+	Consist &v_consist = v->GetConsist();
+
+	v_consist.orders->DeleteOrderAt(sel_ord);
 
 	Vehicle *u = v->FirstShared();
 	DeleteOrderWarnings(u);
 	for (; u != nullptr; u = u->NextShared()) {
-		assert(v->orders == u->orders);
+		Consist &u_consist = u->GetConsist();
+		assert(v_consist.orders == u_consist.orders);
 
-		if (sel_ord == u->cur_real_order_index && u->current_order.IsType(OT_LOADING)) {
+		if (sel_ord == u_consist.cur_real_order_index && u_consist.current_order.IsType(OT_LOADING)) {
 			CancelLoadingDueToDeletedOrder(u);
 		}
 
-		if (sel_ord < u->cur_real_order_index) {
-			u->cur_real_order_index--;
-		} else if (sel_ord == u->cur_real_order_index) {
+		if (sel_ord < u_consist.cur_real_order_index) {
+			u_consist.cur_real_order_index--;
+		} else if (sel_ord == u_consist.cur_real_order_index) {
 			u->UpdateRealOrderIndex();
 		}
 
-		if (sel_ord < u->cur_implicit_order_index) {
-			u->cur_implicit_order_index--;
-		} else if (sel_ord == u->cur_implicit_order_index) {
+		if (sel_ord < u_consist.cur_implicit_order_index) {
+			u_consist.cur_implicit_order_index--;
+		} else if (sel_ord == u_consist.cur_implicit_order_index) {
 			/* Make sure the index is valid */
-			if (u->cur_implicit_order_index >= u->GetNumOrders()) u->cur_implicit_order_index = 0;
+			if (u_consist.cur_implicit_order_index >= u->GetNumOrders()) u_consist.cur_implicit_order_index = 0;
 
 			/* Skip non-implicit orders for the implicit-order-index (e.g. if the current implicit order was deleted */
-			while (u->cur_implicit_order_index != u->cur_real_order_index && !u->GetOrder(u->cur_implicit_order_index)->IsType(OT_IMPLICIT)) {
-				u->cur_implicit_order_index++;
-				if (u->cur_implicit_order_index >= u->GetNumOrders()) u->cur_implicit_order_index = 0;
+			while (u_consist.cur_implicit_order_index != u_consist.cur_real_order_index && !u->GetOrder(u_consist.cur_implicit_order_index)->IsType(OT_IMPLICIT)) {
+				u_consist.cur_implicit_order_index++;
+				if (u_consist.cur_implicit_order_index >= u->GetNumOrders()) u_consist.cur_implicit_order_index = 0;
 			}
 		}
 		/* Unbunching data is no longer valid. */
-		u->ResetDepotUnbunching();
+		u_consist.ResetDepotUnbunching();
 
 		/* Update any possible open window of the vehicle */
 		InvalidateVehicleOrder(u, sel_ord | (INVALID_VEH_ORDER_ID << 8));
@@ -1097,20 +1105,22 @@ void DeleteOrder(Vehicle *v, VehicleOrderID sel_ord)
 CommandCost CmdSkipToOrder(DoCommandFlag flags, VehicleID veh_id, VehicleOrderID sel_ord)
 {
 	Vehicle *v = Vehicle::GetIfValid(veh_id);
+	if (v == nullptr || !v->HasConsist()) return CMD_ERROR;
+	Consist &consist = v->GetConsist();
 
-	if (v == nullptr || !v->IsPrimaryVehicle() || sel_ord == v->cur_implicit_order_index || sel_ord >= v->GetNumOrders() || v->GetNumOrders() < 2) return CMD_ERROR;
+	if (sel_ord == consist.cur_implicit_order_index || sel_ord >= v->GetNumOrders() || v->GetNumOrders() < 2) return CMD_ERROR;
 
 	CommandCost ret = CheckOwnership(v->owner);
 	if (ret.Failed()) return ret;
 
 	if (flags & DC_EXEC) {
-		if (v->current_order.IsType(OT_LOADING)) v->LeaveStation();
+		if (consist.current_order.IsType(OT_LOADING)) v->LeaveStation();
 
-		v->cur_implicit_order_index = v->cur_real_order_index = sel_ord;
+		consist.cur_implicit_order_index = consist.cur_real_order_index = sel_ord;
 		v->UpdateRealOrderIndex();
 
 		/* Unbunching data is no longer valid. */
-		v->ResetDepotUnbunching();
+		consist.ResetDepotUnbunching();
 
 		InvalidateVehicleOrder(v, VIWD_MODIFY_ORDERS);
 
@@ -1135,7 +1145,8 @@ CommandCost CmdSkipToOrder(DoCommandFlag flags, VehicleID veh_id, VehicleOrderID
 CommandCost CmdMoveOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID moving_order, VehicleOrderID target_order)
 {
 	Vehicle *v = Vehicle::GetIfValid(veh);
-	if (v == nullptr || !v->IsPrimaryVehicle()) return CMD_ERROR;
+	if (v == nullptr || !v->HasConsist()) return CMD_ERROR;
+	Consist &v_consist = v->GetConsist();
 
 	CommandCost ret = CheckOwnership(v->owner);
 	if (ret.Failed()) return ret;
@@ -1149,7 +1160,7 @@ CommandCost CmdMoveOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID movi
 	if (moving_one == nullptr) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		v->orders->MoveOrder(moving_order, target_order);
+		v_consist.orders->MoveOrder(moving_order, target_order);
 
 		/* Update shared list */
 		Vehicle *u = v->FirstShared();
@@ -1157,6 +1168,7 @@ CommandCost CmdMoveOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID movi
 		DeleteOrderWarnings(u);
 
 		for (; u != nullptr; u = u->NextShared()) {
+			Consist &u_consist = u->GetConsist();
 			/* Update the current order.
 			 * There are multiple ways to move orders, which result in cur_implicit_order_index
 			 * and cur_real_order_index to not longer make any sense. E.g. moving another
@@ -1173,26 +1185,26 @@ CommandCost CmdMoveOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID movi
 			 * completely out-dated anyway. So, keep it simple and just keep cur_implicit_order_index as well.
 			 * The worst which can happen is that a lot of implicit orders are removed when reaching current_order.
 			 */
-			if (u->cur_real_order_index == moving_order) {
-				u->cur_real_order_index = target_order;
-			} else if (u->cur_real_order_index > moving_order && u->cur_real_order_index <= target_order) {
-				u->cur_real_order_index--;
-			} else if (u->cur_real_order_index < moving_order && u->cur_real_order_index >= target_order) {
-				u->cur_real_order_index++;
+			if (u_consist.cur_real_order_index == moving_order) {
+				u_consist.cur_real_order_index = target_order;
+			} else if (u_consist.cur_real_order_index > moving_order && u_consist.cur_real_order_index <= target_order) {
+				u_consist.cur_real_order_index--;
+			} else if (u_consist.cur_real_order_index < moving_order && u_consist.cur_real_order_index >= target_order) {
+				u_consist.cur_real_order_index++;
 			}
 
-			if (u->cur_implicit_order_index == moving_order) {
-				u->cur_implicit_order_index = target_order;
-			} else if (u->cur_implicit_order_index > moving_order && u->cur_implicit_order_index <= target_order) {
-				u->cur_implicit_order_index--;
-			} else if (u->cur_implicit_order_index < moving_order && u->cur_implicit_order_index >= target_order) {
-				u->cur_implicit_order_index++;
+			if (u_consist.cur_implicit_order_index == moving_order) {
+				u_consist.cur_implicit_order_index = target_order;
+			} else if (u_consist.cur_implicit_order_index > moving_order && u_consist.cur_implicit_order_index <= target_order) {
+				u_consist.cur_implicit_order_index--;
+			} else if (u_consist.cur_implicit_order_index < moving_order && u_consist.cur_implicit_order_index >= target_order) {
+				u_consist.cur_implicit_order_index++;
 			}
 			/* Unbunching data is no longer valid. */
-			u->ResetDepotUnbunching();
+			u_consist.ResetDepotUnbunching();
 
 
-			assert(v->orders == u->orders);
+			assert(v_consist.orders == u_consist.orders);
 			/* Update any possible open window of the vehicle */
 			InvalidateVehicleOrder(u, moving_order | (target_order << 8));
 		}
@@ -1235,7 +1247,7 @@ CommandCost CmdModifyOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID se
 	if (mof >= MOF_END) return CMD_ERROR;
 
 	Vehicle *v = Vehicle::GetIfValid(veh);
-	if (v == nullptr || !v->IsPrimaryVehicle()) return CMD_ERROR;
+	if (v == nullptr || !v->HasConsist()) return CMD_ERROR;
 
 	CommandCost ret = CheckOwnership(v->owner);
 	if (ret.Failed()) return ret;
@@ -1453,6 +1465,7 @@ CommandCost CmdModifyOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID se
 		Vehicle *u = v->FirstShared();
 		DeleteOrderWarnings(u);
 		for (; u != nullptr; u = u->NextShared()) {
+			Consist &u_consist = u->GetConsist();
 			/* Toggle u->current_order "Full load" flag if it changed.
 			 * However, as the same flag is used for depot orders, check
 			 * whether we are not going to a depot as there are three
@@ -1462,14 +1475,14 @@ CommandCost CmdModifyOrder(DoCommandFlag flags, VehicleID veh, VehicleOrderID se
 			 * so do not care and those orders should not be active
 			 * when this function is called.
 			 */
-			if (sel_ord == u->cur_real_order_index &&
-					(u->current_order.IsType(OT_GOTO_STATION) || u->current_order.IsType(OT_LOADING)) &&
-					u->current_order.GetLoadType() != order->GetLoadType()) {
-				u->current_order.SetLoadType(order->GetLoadType());
+			if (sel_ord == u_consist.cur_real_order_index &&
+					(u_consist.current_order.IsType(OT_GOTO_STATION) || u_consist.current_order.IsType(OT_LOADING)) &&
+					u_consist.current_order.GetLoadType() != order->GetLoadType()) {
+				u_consist.current_order.SetLoadType(order->GetLoadType());
 			}
 
 			/* Unbunching data is no longer valid. */
-			u->ResetDepotUnbunching();
+			u_consist.ResetDepotUnbunching();
 
 			InvalidateVehicleOrder(u, VIWD_MODIFY_ORDERS);
 		}
@@ -1518,7 +1531,7 @@ static bool CheckAircraftOrderDistance(const Aircraft *v_new, const Vehicle *v_o
 CommandCost CmdCloneOrder(DoCommandFlag flags, CloneOptions action, VehicleID veh_dst, VehicleID veh_src)
 {
 	Vehicle *dst = Vehicle::GetIfValid(veh_dst);
-	if (dst == nullptr || !dst->IsPrimaryVehicle()) return CMD_ERROR;
+	if (dst == nullptr || !dst->IsPrimaryVehicle() || !dst->HasConsist()) return CMD_ERROR;
 
 	CommandCost ret = CheckOwnership(dst->owner);
 	if (ret.Failed()) return ret;
@@ -1528,7 +1541,7 @@ CommandCost CmdCloneOrder(DoCommandFlag flags, CloneOptions action, VehicleID ve
 			Vehicle *src = Vehicle::GetIfValid(veh_src);
 
 			/* Sanity checks */
-			if (src == nullptr || !src->IsPrimaryVehicle() || dst->type != src->type || dst == src) return CMD_ERROR;
+			if (src == nullptr || !src->IsPrimaryVehicle() || !src->HasConsist() || dst->type != src->type || dst == src) return CMD_ERROR;
 
 			ret = CheckOwnership(src->owner);
 			if (ret.Failed()) return ret;
@@ -1558,7 +1571,7 @@ CommandCost CmdCloneOrder(DoCommandFlag flags, CloneOptions action, VehicleID ve
 				return CommandCost(STR_ERROR_AIRCRAFT_NOT_ENOUGH_RANGE);
 			}
 
-			if (src->orders == nullptr && !OrderList::CanAllocateItem()) {
+			if (src->GetConsist().orders == nullptr && !OrderList::CanAllocateItem()) {
 				return CommandCost(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
 			}
 
@@ -1568,7 +1581,7 @@ CommandCost CmdCloneOrder(DoCommandFlag flags, CloneOptions action, VehicleID ve
 				 * (We mainly do this to keep the order indices valid and in range.) */
 				DeleteVehicleOrders(dst, false, dst->GetNumOrders() != src->GetNumOrders());
 
-				dst->orders = src->orders;
+				dst->GetConsist().orders = src->GetConsist().orders;
 
 				/* Link this vehicle in the shared-list */
 				dst->AddToShared(src);
@@ -1585,7 +1598,7 @@ CommandCost CmdCloneOrder(DoCommandFlag flags, CloneOptions action, VehicleID ve
 			Vehicle *src = Vehicle::GetIfValid(veh_src);
 
 			/* Sanity checks */
-			if (src == nullptr || !src->IsPrimaryVehicle() || dst->type != src->type || dst == src) return CMD_ERROR;
+			if (src == nullptr || !src->IsPrimaryVehicle() || !src->HasConsist() || dst->type != src->type || dst == src) return CMD_ERROR;
 
 			ret = CheckOwnership(src->owner);
 			if (ret.Failed()) return ret;
@@ -1625,14 +1638,14 @@ CommandCost CmdCloneOrder(DoCommandFlag flags, CloneOptions action, VehicleID ve
 					(*order_dst)->AssignOrder(*order);
 					order_dst = &(*order_dst)->next;
 				}
-				if (dst->orders == nullptr) {
-					dst->orders = new OrderList(first, dst);
+				if (dst->GetConsist().orders == nullptr) {
+					dst->GetConsist().orders = new OrderList(first, dst);
 				} else {
-					assert(dst->orders->GetFirstOrder() == nullptr);
-					assert(!dst->orders->IsShared());
-					delete dst->orders;
+					assert(dst->GetConsist().orders->GetFirstOrder() == nullptr);
+					assert(!dst->GetConsist().orders->IsShared());
+					delete dst->GetConsist().orders;
 					assert(OrderList::CanAllocateItem());
-					dst->orders = new OrderList(first, dst);
+					dst->GetConsist().orders = new OrderList(first, dst);
 				}
 
 				InvalidateVehicleOrder(dst, VIWD_REMOVE_ALL_ORDERS);
@@ -1662,7 +1675,7 @@ CommandCost CmdOrderRefit(DoCommandFlag flags, VehicleID veh, VehicleOrderID ord
 	if (cargo >= NUM_CARGO && cargo != CARGO_NO_REFIT && cargo != CARGO_AUTO_REFIT) return CMD_ERROR;
 
 	const Vehicle *v = Vehicle::GetIfValid(veh);
-	if (v == nullptr || !v->IsPrimaryVehicle()) return CMD_ERROR;
+	if (v == nullptr || !v->IsPrimaryVehicle() || !v->HasConsist()) return CMD_ERROR;
 
 	CommandCost ret = CheckOwnership(v->owner);
 	if (ret.Failed()) return ret;
@@ -1688,9 +1701,11 @@ CommandCost CmdOrderRefit(DoCommandFlag flags, VehicleID veh, VehicleOrderID ord
 			/* Update any possible open window of the vehicle */
 			InvalidateVehicleOrder(u, VIWD_MODIFY_ORDERS);
 
+			Consist &u_consist = u->GetConsist();
+
 			/* If the vehicle already got the current depot set as current order, then update current order as well */
-			if (u->cur_real_order_index == order_number && (u->current_order.GetDepotOrderType() & ODTFB_PART_OF_ORDERS)) {
-				u->current_order.SetRefit(cargo);
+			if (u_consist.cur_real_order_index == order_number && (u_consist.current_order.GetDepotOrderType() & ODTFB_PART_OF_ORDERS)) {
+				u_consist.current_order.SetRefit(cargo);
 			}
 		}
 	}
@@ -1752,7 +1767,7 @@ void CheckOrders(const Vehicle *v)
 		if (v->GetNumOrders() > 1) {
 			const Order *last = v->GetLastOrder();
 
-			if (v->orders->GetFirstOrder()->Equals(*last)) {
+			if (v->GetConsist().orders->GetFirstOrder()->Equals(*last)) {
 				message = STR_NEWS_VEHICLE_HAS_DUPLICATE_ENTRY;
 			}
 		}
@@ -1761,7 +1776,7 @@ void CheckOrders(const Vehicle *v)
 		if (n_st < 2 && message == INVALID_STRING_ID) message = STR_NEWS_VEHICLE_HAS_TOO_FEW_ORDERS;
 
 #ifdef WITH_ASSERT
-		if (v->orders != nullptr) v->orders->DebugCheckSanity();
+		if (v->HasConsist() && v->GetConsist().orders != nullptr) v->GetConsist().orders->DebugCheckSanity();
 #endif
 
 		/* We don't have a problem */
@@ -1788,9 +1803,12 @@ void RemoveOrderFromAllVehicles(OrderType type, DestinationID destination, bool 
 
 	/* Go through all vehicles */
 	for (Vehicle *v : Vehicle::Iterate()) {
-		if ((v->type == VEH_AIRCRAFT && v->current_order.IsType(OT_GOTO_DEPOT) && !hangar ? OT_GOTO_STATION : v->current_order.GetType()) == type &&
-				(!hangar || v->type == VEH_AIRCRAFT) && v->current_order.GetDestination() == destination) {
-			v->current_order.MakeDummy();
+		if (!v->HasConsist()) continue;
+		Consist &consist = v->GetConsist();
+
+		if ((v->type == VEH_AIRCRAFT && consist.current_order.IsType(OT_GOTO_DEPOT) && !hangar ? OT_GOTO_STATION : consist.current_order.GetType()) == type &&
+				(!hangar || v->type == VEH_AIRCRAFT) && consist.current_order.GetDestination() == destination) {
+			consist.current_order.MakeDummy();
 			SetWindowDirty(WC_VEHICLE_VIEW, v->index);
 		}
 
@@ -1816,9 +1834,9 @@ restart:
 				}
 
 				/* Clear wait time */
-				v->orders->UpdateTotalDuration(-order->GetWaitTime());
+				consist.orders->UpdateTotalDuration(-order->GetWaitTime());
 				if (order->IsWaitTimetabled()) {
-					v->orders->UpdateTimetableDuration(-order->GetTimetabledWait());
+					consist.orders->UpdateTimetableDuration(-order->GetTimetabledWait());
 					order->SetWaitTimetabled(false);
 				}
 				order->SetWaitTime(0);
@@ -1864,24 +1882,27 @@ bool Vehicle::HasDepotOrder() const
  */
 void DeleteVehicleOrders(Vehicle *v, bool keep_orderlist, bool reset_order_indices)
 {
+	if (!v->HasConsist()) return;
+
 	DeleteOrderWarnings(v);
 
+	Consist &consist = v->GetConsist();
 	if (v->IsOrderListShared()) {
 		/* Remove ourself from the shared order list. */
 		v->RemoveFromShared();
-		v->orders = nullptr;
-	} else if (v->orders != nullptr) {
+		consist.orders = nullptr;
+	} else if (consist.orders != nullptr) {
 		/* Remove the orders */
-		v->orders->FreeChain(keep_orderlist);
-		if (!keep_orderlist) v->orders = nullptr;
+		consist.orders->FreeChain(keep_orderlist);
+		if (!keep_orderlist) consist.orders = nullptr;
 	}
 
 	/* Unbunching data is no longer valid. */
-	v->ResetDepotUnbunching();
+	consist.ResetDepotUnbunching();
 
 	if (reset_order_indices) {
-		v->cur_implicit_order_index = v->cur_real_order_index = 0;
-		if (v->current_order.IsType(OT_LOADING)) {
+		consist.cur_implicit_order_index = consist.cur_real_order_index = 0;
+		if (consist.current_order.IsType(OT_LOADING)) {
 			CancelLoadingDueToDeletedOrder(v);
 		}
 	}
@@ -1993,8 +2014,10 @@ VehicleOrderID ProcessConditionalOrder(const Order *order, const Vehicle *v)
  */
 bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool pbs_look_ahead)
 {
+	Consist &consist = v->GetConsist();
+
 	if (conditional_depth > v->GetNumOrders()) {
-		v->current_order.Free();
+		consist.current_order.Free();
 		v->SetDestTile(TileIndex{});
 		return false;
 	}
@@ -2012,7 +2035,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 				break;
 			}
 
-			if (v->current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT) {
+			if (consist.current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT) {
 				/* If the vehicle can't find its destination, delay its next search.
 				 * In case many vehicles are in this state, use the vehicle index to spread out pathfinder calls. */
 				if (v->dest_tile == 0 && TimerGameEconomy::date_fract != (v->index % Ticks::DAY_TICKS)) break;
@@ -2025,7 +2048,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 					if (pbs_look_ahead && closestDepot.reverse) return false;
 
 					v->SetDestTile(closestDepot.location);
-					v->current_order.SetDestination(closestDepot.destination);
+					consist.current_order.SetDestination(closestDepot.destination);
 
 					/* If there is no depot in front, reverse automatically (trains only) */
 					if (v->type == VEH_TRAIN && closestDepot.reverse) Command<CMD_REVERSE_TRAIN_DIRECTION>::Do(DC_EXEC, v->index, false);
@@ -2050,7 +2073,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 					v->SetDestTile(Depot::Get(order->GetDestination())->xy);
 				} else {
 					Aircraft *a = Aircraft::From(v);
-					DestinationID destination = a->current_order.GetDestination();
+					DestinationID destination = consist.current_order.GetDestination();
 					if (a->targetairport != destination) {
 						/* The aircraft is now heading for a different hangar than the next in the orders */
 						a->SetDestTile(a->GetOrderStationLocation(destination));
@@ -2071,9 +2094,9 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 				/* Jump to next_order. cur_implicit_order_index becomes exactly that order,
 				 * cur_real_order_index might come after next_order. */
 				UpdateVehicleTimetable(v, false);
-				v->cur_implicit_order_index = v->cur_real_order_index = next_order;
+				consist.cur_implicit_order_index = consist.cur_real_order_index = next_order;
 				v->UpdateRealOrderIndex();
-				v->current_order_time += v->GetOrder(v->cur_real_order_index)->GetTimetabledTravel();
+				consist.current_order_time += v->GetOrder(consist.cur_real_order_index)->GetTimetabledTravel();
 
 				/* Disable creation of implicit orders.
 				 * When inserting them we do not know that we would have to make the conditional orders point to them. */
@@ -2093,23 +2116,23 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 			return false;
 	}
 
-	assert(v->cur_implicit_order_index < v->GetNumOrders());
-	assert(v->cur_real_order_index < v->GetNumOrders());
+	assert(consist.cur_implicit_order_index < v->GetNumOrders());
+	assert(consist.cur_real_order_index < v->GetNumOrders());
 
 	/* Get the current order */
-	order = v->GetOrder(v->cur_real_order_index);
+	order = v->GetOrder(consist.cur_real_order_index);
 	if (order != nullptr && order->IsType(OT_IMPLICIT)) {
 		assert(v->GetNumManualOrders() == 0);
 		order = nullptr;
 	}
 
 	if (order == nullptr) {
-		v->current_order.Free();
+		consist.current_order.Free();
 		v->SetDestTile(TileIndex{});
 		return false;
 	}
 
-	v->current_order = *order;
+	consist.current_order = *order;
 	return UpdateOrderDest(v, order, conditional_depth + 1, pbs_look_ahead);
 }
 
@@ -2122,10 +2145,12 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
  */
 bool ProcessOrders(Vehicle *v)
 {
-	switch (v->current_order.GetType()) {
+	Consist &consist = v->GetConsist();
+
+	switch (consist.current_order.GetType()) {
 		case OT_GOTO_DEPOT:
 			/* Let a depot order in the orderlist interrupt. */
-			if (!(v->current_order.GetDepotOrderType() & ODTFB_PART_OF_ORDERS)) return false;
+			if (!(consist.current_order.GetDepotOrderType() & ODTFB_PART_OF_ORDERS)) return false;
 			break;
 
 		case OT_LOADING:
@@ -2145,27 +2170,27 @@ bool ProcessOrders(Vehicle *v)
 	 * will be reset to nothing. (That also happens if no order, but in that case
 	 * it won't hit the point in code where may_reverse is checked)
 	 */
-	bool may_reverse = v->current_order.IsType(OT_NOTHING);
+	bool may_reverse = consist.current_order.IsType(OT_NOTHING);
 
 	/* Check if we've reached a 'via' destination. */
-	if (((v->current_order.IsType(OT_GOTO_STATION) && (v->current_order.GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION)) || v->current_order.IsType(OT_GOTO_WAYPOINT)) &&
+	if (((consist.current_order.IsType(OT_GOTO_STATION) && (consist.current_order.GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION)) || consist.current_order.IsType(OT_GOTO_WAYPOINT)) &&
 			IsTileType(v->tile, MP_STATION) &&
-			v->current_order.GetDestination() == GetStationIndex(v->tile)) {
+			consist.current_order.GetDestination() == GetStationIndex(v->tile)) {
 		v->DeleteUnreachedImplicitOrders();
 		/* We set the last visited station here because we do not want
 		 * the train to stop at this 'via' station if the next order
 		 * is a no-non-stop order; in that case not setting the last
 		 * visited station will cause the vehicle to still stop. */
-		v->last_station_visited = v->current_order.GetDestination();
+		consist.last_station_visited = consist.current_order.GetDestination();
 		UpdateVehicleTimetable(v, true);
 		v->IncrementImplicitOrderIndex();
 	}
 
 	/* Get the current order */
-	assert(v->cur_implicit_order_index == 0 || v->cur_implicit_order_index < v->GetNumOrders());
+	assert(consist.cur_implicit_order_index == 0 || consist.cur_implicit_order_index < v->GetNumOrders());
 	v->UpdateRealOrderIndex();
 
-	const Order *order = v->GetOrder(v->cur_real_order_index);
+	const Order *order = v->GetOrder(consist.cur_real_order_index);
 	if (order != nullptr && order->IsType(OT_IMPLICIT)) {
 		assert(v->GetNumManualOrders() == 0);
 		order = nullptr;
@@ -2179,19 +2204,19 @@ bool ProcessOrders(Vehicle *v)
 			return false;
 		}
 
-		v->current_order.Free();
+		consist.current_order.Free();
 		v->SetDestTile(TileIndex{});
 		return false;
 	}
 
 	/* If it is unchanged, keep it. */
-	if (order->Equals(v->current_order) && (v->type == VEH_AIRCRAFT || v->dest_tile != 0) &&
+	if (order->Equals(consist.current_order) && (v->type == VEH_AIRCRAFT || v->dest_tile != 0) &&
 			(v->type != VEH_SHIP || !order->IsType(OT_GOTO_STATION) || Station::Get(order->GetDestination())->ship_station.tile != INVALID_TILE)) {
 		return false;
 	}
 
 	/* Otherwise set it, and determine the destination tile. */
-	v->current_order = *order;
+	consist.current_order = *order;
 
 	InvalidateVehicleOrder(v, VIWD_MODIFY_ORDERS);
 	switch (v->type) {
@@ -2223,7 +2248,7 @@ bool Order::ShouldStopAtStation(const Vehicle *v, StationID station) const
 	bool is_dest_station = this->IsType(OT_GOTO_STATION) && this->dest == station;
 
 	return (!this->IsType(OT_GOTO_DEPOT) || (this->GetDepotOrderType() & ODTFB_PART_OF_ORDERS) != 0) &&
-			v->last_station_visited != station && // Do stop only when we've not just been there
+			v->GetConsist().last_station_visited != station && // Do stop only when we've not just been there
 			/* Finally do stop when there is no non-stop flag set for this type of station. */
 			!(this->GetNonStopType() & (is_dest_station ? ONSF_NO_STOP_AT_DESTINATION_STATION : ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS));
 }

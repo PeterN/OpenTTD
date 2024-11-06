@@ -838,8 +838,8 @@ bool AfterLoadGame()
 
 	/* Fix the cache for cargo payments. */
 	for (CargoPayment *cp : CargoPayment::Iterate()) {
-		cp->front->cargo_payment = cp;
-		cp->current_station = cp->front->last_station_visited;
+		cp->front->GetConsist().cargo_payment = cp;
+		cp->current_station = cp->front->GetConsist().last_station_visited;
 	}
 
 
@@ -1492,7 +1492,8 @@ bool AfterLoadGame()
 		}
 
 		for (Vehicle *v : Vehicle::Iterate()) {
-			v->current_order.SetRefit(CARGO_NO_REFIT);
+			if (!v->HasConsist()) continue;
+			v->GetConsist().current_order.SetRefit(CARGO_NO_REFIT);
 		}
 	}
 
@@ -1606,7 +1607,7 @@ bool AfterLoadGame()
 				const AircraftVehicleInfo *avi = AircraftVehInfo(v->engine_type);
 				v->cur_speed *= 128;
 				v->cur_speed /= 10;
-				v->acceleration = avi->acceleration;
+				v->GetConsist().acceleration = avi->acceleration;
 			}
 		}
 	}
@@ -1635,14 +1636,15 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_57)) {
 		/* Added a FIFO queue of vehicles loading at stations */
 		for (Vehicle *v : Vehicle::Iterate()) {
-			if ((v->type != VEH_TRAIN || Train::From(v)->IsFrontEngine()) &&  // for all locs
-					!(v->vehstatus & (VS_STOPPED | VS_CRASHED)) && // not stopped or crashed
-					v->current_order.IsType(OT_LOADING)) {         // loading
-				Station::Get(v->last_station_visited)->loading_vehicles.push_back(v);
+			if (!v->HasConsist()) continue;
+			Consist &consist = v->GetConsist();
+			if (!(v->vehstatus & (VS_STOPPED | VS_CRASHED)) && // not stopped or crashed
+					consist.current_order.IsType(OT_LOADING)) {         // loading
+				Station::Get(consist.last_station_visited)->loading_vehicles.push_back(v);
 
 				/* The loading finished flag is *only* set when actually completely
 				 * finished. Because the vehicle is loading, it is not finished. */
-				ClrBit(v->vehicle_flags, VF_LOADING_FINISHED);
+				ClrBit(consist.consist_flags, VCF_LOADING_FINISHED);
 			}
 		}
 	} else if (IsSavegameVersionBefore(SLV_59)) {
@@ -1651,7 +1653,7 @@ bool AfterLoadGame()
 		for (Station *st : Station::Iterate()) {
 			for (auto iter = st->loading_vehicles.begin(); iter != st->loading_vehicles.end(); /* nothing */) {
 				Vehicle *v = *iter;
-				if (!v->current_order.IsType(OT_LOADING)) {
+				if (!v->HasConsist() || !v->GetConsist().current_order.IsType(OT_LOADING)) {
 					iter = st->loading_vehicles.erase(iter);
 				} else {
 					++iter;
@@ -1776,12 +1778,15 @@ bool AfterLoadGame()
 		for (Order *order : Order::Iterate()) order->ConvertFromOldSavegame();
 
 		for (Vehicle *v : Vehicle::Iterate()) {
-			if (v->orders != nullptr && v->orders->GetFirstOrder() != nullptr && v->orders->GetFirstOrder()->IsType(OT_NOTHING)) {
-				v->orders->FreeChain();
-				v->orders = nullptr;
+			if (!v->HasConsist()) continue;
+			Consist &consist = v->GetConsist();
+
+			if (consist.orders != nullptr && consist.orders->GetFirstOrder() != nullptr && consist.orders->GetFirstOrder()->IsType(OT_NOTHING)) {
+				consist.orders->FreeChain();
+				consist.orders = nullptr;
 			}
 
-			v->current_order.ConvertFromOldSavegame();
+			consist.current_order.ConvertFromOldSavegame();
 			if (v->type == VEH_ROAD && v->IsPrimaryVehicle() && v->FirstShared() == v) {
 				for (Order *order : v->Orders()) order->SetNonStopType(ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 			}
@@ -1796,9 +1801,12 @@ bool AfterLoadGame()
 		}
 
 		for (Vehicle *v : Vehicle::Iterate()) {
-			if ((v->current_order.GetUnloadType() & (OUFB_UNLOAD | OUFB_TRANSFER)) == (OUFB_UNLOAD | OUFB_TRANSFER)) {
-				v->current_order.SetUnloadType(OUFB_TRANSFER);
-				v->current_order.SetLoadType(OLFB_NO_LOAD);
+			if (!v->HasConsist()) continue;
+			Consist &consist = v->GetConsist();
+
+			if ((consist.current_order.GetUnloadType() & (OUFB_UNLOAD | OUFB_TRANSFER)) == (OUFB_UNLOAD | OUFB_TRANSFER)) {
+				consist.current_order.SetUnloadType(OUFB_TRANSFER);
+				consist.current_order.SetLoadType(OLFB_NO_LOAD);
 			}
 		}
 	} else if (IsSavegameVersionBefore(SLV_DEPOT_UNBUNCHING)) {
@@ -1809,8 +1817,11 @@ bool AfterLoadGame()
 		}
 
 		for (Vehicle *v : Vehicle::Iterate()) {
-			if (!v->current_order.IsType(OT_GOTO_DEPOT)) continue;
-			v->current_order.SetDepotActionType((OrderDepotActionFlags)(v->current_order.GetDepotActionType() >> 1));
+			if (!v->HasConsist()) continue;
+			Consist &consist = v->GetConsist();
+
+			if (!consist.current_order.IsType(OT_GOTO_DEPOT)) continue;
+			consist.current_order.SetDepotActionType((OrderDepotActionFlags)(consist.current_order.GetDepotActionType() >> 1));
 		}
 	}
 
@@ -1921,8 +1932,10 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_88)) {
 		/* Profits are now with 8 bit fract */
 		for (Vehicle *v : Vehicle::Iterate()) {
-			v->profit_this_year <<= 8;
-			v->profit_last_year <<= 8;
+			if (v->HasConsist()) {
+				v->GetConsist().profit_this_year <<= 8;
+				v->GetConsist().profit_last_year <<= 8;
+			}
 			v->running_ticks = 0;
 		}
 	}
@@ -2202,7 +2215,8 @@ bool AfterLoadGame()
 				 * assert() in Pool::GetNew() happy by calling CanAllocateItem(). */
 				static_assert(CargoPaymentPool::MAX_SIZE == VehiclePool::MAX_SIZE);
 				assert(CargoPayment::CanAllocateItem());
-				if (v->cargo_payment == nullptr) v->cargo_payment = new CargoPayment(v);
+				Consist &consist = v->GetConsist();
+				if (consist.cargo_payment == nullptr) consist.cargo_payment = new CargoPayment(v);
 			}
 		}
 	}
@@ -2395,11 +2409,13 @@ bool AfterLoadGame()
 	/* Wait counter and load/unload ticks got split. */
 	if (IsSavegameVersionBefore(SLV_136)) {
 		for (Aircraft *a : Aircraft::Iterate()) {
-			a->turn_counter = a->current_order.IsType(OT_LOADING) ? 0 : a->load_unload_ticks;
+			if (!a->HasConsist()) continue;
+			a->turn_counter = a->GetConsist().current_order.IsType(OT_LOADING) ? 0 : a->GetConsist().load_unload_ticks;
 		}
 
 		for (Train *t : Train::Iterate()) {
-			t->wait_counter = t->current_order.IsType(OT_LOADING) ? 0 : t->load_unload_ticks;
+			if (!t->HasConsist()) continue;
+			t->wait_counter = t->GetConsist().current_order.IsType(OT_LOADING) ? 0 : t->GetConsist().load_unload_ticks;
 		}
 	}
 
@@ -2631,7 +2647,8 @@ bool AfterLoadGame()
 		for (RoadVehicle *rv : RoadVehicle::Iterate()) {
 			if (rv->state == RVSB_IN_DEPOT || rv->state == RVSB_WORMHOLE) continue;
 
-			bool loading = rv->current_order.IsType(OT_LOADING) || rv->current_order.IsType(OT_LEAVESTATION);
+			const Consist &consist = rv->GetConsist();
+			bool loading = consist.current_order.IsType(OT_LOADING) || consist.current_order.IsType(OT_LEAVESTATION);
 			if (HasBit(rv->state, RVS_IN_ROAD_STOP)) {
 				extern const uint8_t _road_stop_stop_frame[];
 				SB(rv->state, RVS_ENTERED_STOP, 1, loading || rv->frame > _road_stop_stop_frame[rv->state - RVSB_IN_ROAD_STOP + (_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)]);
@@ -2647,7 +2664,7 @@ bool AfterLoadGame()
 			if (!HasBit(t->flags, 5)) continue;
 
 			ClrBit(t->flags, 5);
-			SetBit(t->vehicle_flags, VF_PATHFINDER_LOST);
+			if (t->HasConsist()) SetBit(t->GetConsist().consist_flags, VCF_PATHFINDER_LOST);
 		}
 
 		/* Introduced terraform/clear limits. */
@@ -2762,11 +2779,12 @@ bool AfterLoadGame()
 		/* Fill Vehicle::cur_real_order_index */
 		for (Vehicle *v : Vehicle::Iterate()) {
 			if (!v->IsPrimaryVehicle()) continue;
+			Consist &consist = v->GetConsist();
 
 			/* Older versions are less strict with indices being in range and fix them on the fly */
-			if (v->cur_implicit_order_index >= v->GetNumOrders()) v->cur_implicit_order_index = 0;
+			if (consist.cur_implicit_order_index >= v->GetNumOrders()) consist.cur_implicit_order_index = 0;
 
-			v->cur_real_order_index = v->cur_implicit_order_index;
+			consist.cur_real_order_index = consist.cur_implicit_order_index;
 			v->UpdateRealOrderIndex();
 		}
 	}
@@ -2925,7 +2943,7 @@ bool AfterLoadGame()
 		for (Aircraft *v : Aircraft::Iterate()) {
 			if (v->subtype <= AIR_AIRCRAFT) {
 				const AircraftVehicleInfo *avi = AircraftVehInfo(v->engine_type);
-				v->acceleration = avi->acceleration;
+				v->GetConsist().acceleration = avi->acceleration;
 			}
 		}
 
@@ -3212,7 +3230,10 @@ bool AfterLoadGame()
 	/* Use current order time to approximate last loading time */
 	if (IsSavegameVersionBefore(SLV_LAST_LOADING_TICK)) {
 		for (Vehicle *v : Vehicle::Iterate()) {
-			v->last_loading_tick = std::max(TimerGameTick::counter, static_cast<uint64_t>(v->current_order_time)) - v->current_order_time;
+			if (!v->HasConsist()) continue;
+			Consist &consist = v->GetConsist();
+
+			consist.last_loading_tick = std::max(TimerGameTick::counter, static_cast<uint64_t>(consist.current_order_time)) - consist.current_order_time;
 		}
 	}
 
@@ -3305,7 +3326,9 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_SHIP_ACCELERATION)) {
 		/* NewGRF acceleration information was added to ships. */
 		for (Ship *s : Ship::Iterate()) {
-			if (s->acceleration == 0) s->acceleration = ShipVehInfo(s->engine_type)->acceleration;
+			if (!s->HasConsist()) continue;
+			Consist &consist = s->GetConsist();
+			if (consist.acceleration == 0) consist.acceleration = ShipVehInfo(s->engine_type)->acceleration;
 		}
 	}
 

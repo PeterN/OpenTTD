@@ -671,7 +671,7 @@ public:
 					auto [first, last] = this->vscroll->GetVisibleRangeIterators(this->vehgroups);
 					for (auto it = first; it != last; ++it) {
 						const Vehicle *v = it->GetSingleVehicle();
-						if (v->group_id != this->vli.index) {
+						if (!v->HasConsist() || v->group_id != this->vli.index) {
 							GfxFillRect(mr.Shrink(WidgetDimensions::scaled.bevel), GetColourGradient(COLOUR_GREY, SHADE_DARK), FILLRECT_CHECKER);
 						}
 						mr = mr.Translate(0, this->resize.step_height);
@@ -817,7 +817,7 @@ public:
 							 * It only makes sense to select a group if not using shared orders
 							 * since two vehicles sharing orders can be from different groups.
 							 */
-							this->SelectGroup(v->group_id);
+							this->SelectGroup(v->HasConsist() ? v->group_id : INVALID_GROUP);
 						}
 
 						SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
@@ -1082,7 +1082,8 @@ public:
 
 		/* Do not highlight when dragging over the current group */
 		if (this->vehicle_sel != INVALID_VEHICLE) {
-			if (Vehicle::Get(vehicle_sel)->group_id == new_group_over) new_group_over = INVALID_GROUP;
+			const Vehicle *v = Vehicle::Get(vehicle_sel);
+			if (v->HasConsist() && v->group_id == new_group_over) new_group_over = INVALID_GROUP;
 		} else if (this->group_sel != INVALID_GROUP) {
 			if (this->group_sel == new_group_over || Group::Get(this->group_sel)->parent == new_group_over) new_group_over = INVALID_GROUP;
 		}

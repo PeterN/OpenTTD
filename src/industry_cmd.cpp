@@ -2718,6 +2718,7 @@ int WhoCanServiceIndustry(Industry *ind)
 	int result = 0;
 	for (const Vehicle *v : Vehicle::Iterate()) {
 		/* Is it worthwhile to try this vehicle? */
+		if (!v->HasConsist()) continue;
 		if (v->owner != _local_company && result != 0) continue;
 
 		/* Check whether it accepts the right kind of cargo */

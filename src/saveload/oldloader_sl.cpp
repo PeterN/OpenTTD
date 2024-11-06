@@ -179,7 +179,8 @@ void FixOldVehicles()
 		/* Vehicle-subtype is different in TTD(Patch) */
 		if (v->type == VEH_EFFECT) v->subtype = v->subtype >> 1;
 
-		v->name = CopyFromOldName(_old_vehicle_names[v->index]);
+		std::string name = CopyFromOldName(_old_vehicle_names[v->index]);
+		if (!name.empty()) v->GetConsist().name = std::move(name);
 
 		/* We haven't used this bit for stations for ages */
 		if (v->type == VEH_ROAD) {
@@ -202,9 +203,12 @@ void FixOldVehicles()
 		 * (loading) order which causes assertions and the like later on.
 		 */
 		if (!IsCompanyBuildableVehicleType(v) ||
-				(v->IsPrimaryVehicle() && v->current_order.IsType(OT_NOTHING))) {
-			v->current_order.MakeDummy();
+				(v->IsPrimaryVehicle() && v->GetConsist().current_order.IsType(OT_NOTHING))) {
+			v->GetConsist().current_order.MakeDummy();
 		}
+
+		/* Remove consist information for non-primary vehicles. */
+		if (!v->IsPrimaryVehicle()) v->consist.reset();
 
 		/* Shared orders are fixed in AfterLoadVehicles now */
 	}
@@ -1151,6 +1155,8 @@ static bool LoadOldVehicleUnion(LoadgameState *ls, int)
 
 static uint16_t _cargo_count;
 
+static Consist _old_consist;
+
 static const OldChunks vehicle_chunk[] = {
 	OCL_SVAR(  OC_UINT8, Vehicle, subtype ),
 
@@ -1161,12 +1167,12 @@ static const OldChunks vehicle_chunk[] = {
 	OCL_VAR ( OC_UINT16,   1, &_old_order ),
 
 	OCL_NULL ( 1 ), ///< num_orders, now calculated
-	OCL_SVAR(  OC_UINT8, Vehicle, cur_implicit_order_index ),
+	OCL_VAR(  OC_UINT8, 1, &_old_consist.cur_implicit_order_index ),
 	OCL_SVAR(   OC_TILE, Vehicle, dest_tile ),
-	OCL_SVAR( OC_UINT16, Vehicle, load_unload_ticks ),
+	OCL_VAR( OC_UINT16, 1, &_old_consist.load_unload_ticks ),
 	OCL_SVAR( OC_FILE_U16 | OC_VAR_U32, Vehicle, date_of_last_service ),
-	OCL_SVAR( OC_UINT16, Vehicle, service_interval ),
-	OCL_SVAR( OC_FILE_U8 | OC_VAR_U16, Vehicle, last_station_visited ),
+	OCL_VAR( OC_UINT16, 1, &_old_consist.service_interval ),
+	OCL_VAR( OC_FILE_U8 | OC_VAR_U16, 1, &_old_consist.last_station_visited ),
 	OCL_SVAR( OC_TTD | OC_UINT8, Vehicle, tick_counter ),
 	OCL_CNULL( OC_TTD, 2 ), ///< max_speed, now it is calculated.
 	OCL_CNULL( OC_TTO, 1 ), ///< max_speed, now it is calculated.
@@ -1188,8 +1194,8 @@ static const OldChunks vehicle_chunk[] = {
 	OCL_SVAR( OC_FILE_U16 | OC_VAR_U8, Vehicle, vehstatus ),
 	OCL_SVAR( OC_TTD | OC_UINT16, Vehicle, cur_speed ),
 	OCL_SVAR( OC_TTO | OC_FILE_U8 | OC_VAR_U16, Vehicle, cur_speed ),
-	OCL_SVAR(  OC_UINT8, Vehicle, subspeed ),
-	OCL_SVAR(  OC_UINT8, Vehicle, acceleration ),
+	OCL_VAR(  OC_UINT8, 1, &_old_consist.subspeed ),
+	OCL_VAR(  OC_UINT8, 1, &_old_consist.acceleration ),
 	OCL_SVAR(  OC_UINT8, Vehicle, progress ),
 
 	OCL_SVAR(  OC_UINT8, Vehicle, cargo_type ),
@@ -1205,7 +1211,7 @@ static const OldChunks vehicle_chunk[] = {
 	OCL_SVAR( OC_FILE_U16 | OC_VAR_U32, Vehicle, age ),
 	OCL_SVAR( OC_FILE_U16 | OC_VAR_U32, Vehicle, max_age ),
 	OCL_SVAR( OC_FILE_U8 | OC_VAR_I32, Vehicle, build_year ),
-	OCL_SVAR( OC_FILE_U8 | OC_VAR_U16, Vehicle, unitnumber ),
+	OCL_VAR( OC_FILE_U8 | OC_VAR_U16, 1, &_old_consist.unitnumber ),
 
 	OCL_SVAR( OC_TTD | OC_UINT16, Vehicle, engine_type ),
 	OCL_SVAR( OC_TTO | OC_FILE_U8 | OC_VAR_U16, Vehicle, engine_type ),
@@ -1223,8 +1229,8 @@ static const OldChunks vehicle_chunk[] = {
 	OCL_SVAR( OC_UINT16, Vehicle, reliability ),
 	OCL_SVAR( OC_UINT16, Vehicle, reliability_spd_dec ),
 
-	OCL_SVAR( OC_FILE_I32 | OC_VAR_I64, Vehicle, profit_this_year ),
-	OCL_SVAR( OC_FILE_I32 | OC_VAR_I64, Vehicle, profit_last_year ),
+	OCL_VAR( OC_FILE_I32 | OC_VAR_I64, 1, &_old_consist.profit_this_year ),
+	OCL_VAR( OC_FILE_I32 | OC_VAR_I64, 1, &_old_consist.profit_last_year ),
 
 	OCL_VAR ( OC_UINT16,   1, &_old_next_ptr ),
 
@@ -1250,6 +1256,8 @@ bool LoadOldVehicle(LoadgameState *ls, int num)
 {
 	/* Read the TTDPatch flags, because we need some info from it */
 	ReadTTDPatchFlags();
+
+	_old_consist = {};
 
 	for (uint i = 0; i < _old_vehicle_multiplier; i++) {
 		_current_vehicle_id = num * _old_vehicle_multiplier + i;
@@ -1360,12 +1368,17 @@ bool LoadOldVehicle(LoadgameState *ls, int num)
 			}
 		}
 
+		/* At this point we don't yet know if this is a single vehicle or part of a chain, so we have to give the
+		 * consist information. This is removed later in FixOldVehicles(). */
+		v->GetOrCreateConsist() = _old_consist;
+
 		if (_old_order_ptr != 0 && _old_order_ptr != 0xFFFFFFFF) {
 			uint max = _savegame_type == SGT_TTO ? 3000 : 5000;
 			uint old_id = RemapOrderIndex(_old_order_ptr);
-			if (old_id < max) v->old_orders = Order::Get(old_id); // don't accept orders > max number of orders
+			if (old_id < max) v->GetOrCreateConsist().old_orders = Order::Get(old_id); // don't accept orders > max number of orders
 		}
-		v->current_order.AssignOrder(UnpackOldOrder(_old_order));
+		Order order = UnpackOldOrder(_old_order);
+		if (order.GetType() != OT_DUMMY) v->GetConsist().current_order.AssignOrder(order);
 
 		if (v->type == VEH_DISASTER) {
 			DisasterVehicle::From(v)->state = UnpackOldOrder(_old_order).GetDestination();

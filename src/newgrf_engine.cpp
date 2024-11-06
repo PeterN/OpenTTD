@@ -266,11 +266,11 @@ static uint8_t MapAircraftMovementAction(const Aircraft *v)
 
 		case TERM1:
 		case HELIPAD1:
-			return (v->current_order.IsType(OT_LOADING)) ? AMA_TTDP_ON_PAD1 : AMA_TTDP_LANDING_TO_PAD1;
+			return (v->GetConsist().current_order.IsType(OT_LOADING)) ? AMA_TTDP_ON_PAD1 : AMA_TTDP_LANDING_TO_PAD1;
 
 		case TERM2:
 		case HELIPAD2:
-			return (v->current_order.IsType(OT_LOADING)) ? AMA_TTDP_ON_PAD2 : AMA_TTDP_LANDING_TO_PAD2;
+			return (v->GetConsist().current_order.IsType(OT_LOADING)) ? AMA_TTDP_ON_PAD2 : AMA_TTDP_LANDING_TO_PAD2;
 
 		case TERM3:
 		case TERM4:
@@ -279,7 +279,7 @@ static uint8_t MapAircraftMovementAction(const Aircraft *v)
 		case TERM7:
 		case TERM8:
 		case HELIPAD3:
-			return (v->current_order.IsType(OT_LOADING)) ? AMA_TTDP_ON_PAD3 : AMA_TTDP_LANDING_TO_PAD3;
+			return (v->GetConsist().current_order.IsType(OT_LOADING)) ? AMA_TTDP_ON_PAD3 : AMA_TTDP_LANDING_TO_PAD3;
 
 		case TAKEOFF:      // Moving to takeoff position
 		case STARTTAKEOFF: // Accelerating down runway
@@ -296,7 +296,7 @@ static uint8_t MapAircraftMovementAction(const Aircraft *v)
 		case HELILANDING:
 		case HELIENDLANDING:
 			/* @todo Need to check terminal we're landing to. Is it known yet? */
-			return (v->current_order.IsType(OT_GOTO_DEPOT)) ?
+			return (v->GetConsist().current_order.IsType(OT_GOTO_DEPOT)) ?
 				AMA_TTDP_LANDING_TO_HANGAR : AMA_TTDP_LANDING_TO_PAD1;
 
 		default:
@@ -413,6 +413,12 @@ static uint32_t PositionHelper(const Vehicle *v, bool consecutive)
 	return chain_before | chain_after << 8 | (chain_before + chain_after + consecutive) << 16;
 }
 
+static NewGRFCache &GetOrCreateNewGRFCache(Vehicle *v)
+{
+	if (v->grf_cache == nullptr) v->grf_cache = std::make_unique<NewGRFCache>();
+	return *v->grf_cache;
+}
+
 static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object, uint8_t variable, uint32_t parameter, bool &available)
 {
 	/* Calculated vehicle parameters */
@@ -420,22 +426,27 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 		case 0x25: // Get engine GRF ID
 			return v->GetGRFID();
 
-		case 0x40: // Get length of consist
-			if (!HasBit(v->grf_cache.cache_valid, NCVV_POSITION_CONSIST_LENGTH)) {
-				v->grf_cache.position_consist_length = PositionHelper(v, false);
-				SetBit(v->grf_cache.cache_valid, NCVV_POSITION_CONSIST_LENGTH);
+		case 0x40: { // Get length of consist
+			NewGRFCache &grf_cache = GetOrCreateNewGRFCache(v);
+			if (!HasBit(grf_cache.cache_valid, NCVV_POSITION_CONSIST_LENGTH)) {
+				grf_cache.position_consist_length = PositionHelper(v, false);
+				SetBit(grf_cache.cache_valid, NCVV_POSITION_CONSIST_LENGTH);
 			}
-			return v->grf_cache.position_consist_length;
+			return grf_cache.position_consist_length;
+		}
 
-		case 0x41: // Get length of same consecutive wagons
-			if (!HasBit(v->grf_cache.cache_valid, NCVV_POSITION_SAME_ID_LENGTH)) {
-				v->grf_cache.position_same_id_length = PositionHelper(v, true);
-				SetBit(v->grf_cache.cache_valid, NCVV_POSITION_SAME_ID_LENGTH);
+		case 0x41: { // Get length of same consecutive wagons
+			NewGRFCache &grf_cache = GetOrCreateNewGRFCache(v);
+			if (!HasBit(grf_cache.cache_valid, NCVV_POSITION_SAME_ID_LENGTH)) {
+				grf_cache.position_same_id_length = PositionHelper(v, true);
+				SetBit(grf_cache.cache_valid, NCVV_POSITION_SAME_ID_LENGTH);
 			}
-			return v->grf_cache.position_same_id_length;
+			return grf_cache.position_same_id_length;
+		}
 
 		case 0x42: { // Consist cargo information
-			if (!HasBit(v->grf_cache.cache_valid, NCVV_CONSIST_CARGO_INFORMATION)) {
+			NewGRFCache &grf_cache = GetOrCreateNewGRFCache(v);
+			if (!HasBit(grf_cache.cache_valid, NCVV_CONSIST_CARGO_INFORMATION)) {
 				std::array<uint8_t, NUM_CARGO> common_cargoes{};
 				uint8_t cargo_classes = 0;
 				uint8_t user_def_data = 0;
@@ -471,12 +482,12 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 
 				/* Note: We have to store the untranslated cargotype in the cache as the cache can be read by different NewGRFs,
 				 *       which will need different translations */
-				v->grf_cache.consist_cargo_information = cargo_classes | (common_cargo_type << 8) | (common_subtype << 16) | (user_def_data << 24);
-				SetBit(v->grf_cache.cache_valid, NCVV_CONSIST_CARGO_INFORMATION);
+				grf_cache.consist_cargo_information = cargo_classes | (common_cargo_type << 8) | (common_subtype << 16) | (user_def_data << 24);
+				SetBit(grf_cache.cache_valid, NCVV_CONSIST_CARGO_INFORMATION);
 			}
 
 			/* The cargo translation is specific to the accessing GRF, and thus cannot be cached. */
-			CargoID common_cargo_type = (v->grf_cache.consist_cargo_information >> 8) & 0xFF;
+			CargoID common_cargo_type = (grf_cache.consist_cargo_information >> 8) & 0xFF;
 
 			/* Note:
 			 *  - Unlike everywhere else the cargo translation table is only used since grf version 8, not 7.
@@ -490,15 +501,17 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 			uint8_t common_bitnum = (common_cargo_type == INVALID_CARGO) ? 0xFF :
 				(grffile == nullptr || grffile->grf_version < 8) ? CargoSpec::Get(common_cargo_type)->bitnum : grffile->cargo_map[common_cargo_type];
 
-			return (v->grf_cache.consist_cargo_information & 0xFFFF00FF) | common_bitnum << 8;
+			return (grf_cache.consist_cargo_information & 0xFFFF00FF) | common_bitnum << 8;
 		}
 
-		case 0x43: // Company information
-			if (!HasBit(v->grf_cache.cache_valid, NCVV_COMPANY_INFORMATION)) {
-				v->grf_cache.company_information = GetCompanyInfo(v->owner, LiveryHelper(v->engine_type, v));
-				SetBit(v->grf_cache.cache_valid, NCVV_COMPANY_INFORMATION);
+		case 0x43: { // Company information
+			NewGRFCache &grf_cache = GetOrCreateNewGRFCache(v);
+			if (!HasBit(grf_cache.cache_valid, NCVV_COMPANY_INFORMATION)) {
+				grf_cache.company_information = GetCompanyInfo(v->owner, LiveryHelper(v->engine_type, v));
+				SetBit(grf_cache.cache_valid, NCVV_COMPANY_INFORMATION);
 			}
-			return v->grf_cache.company_information;
+			return grf_cache.company_information;
+		}
 
 		case 0x44: // Aircraft information
 			if (v->type != VEH_AIRCRAFT || !Aircraft::From(v)->IsNormalAircraft()) return UINT_MAX;
@@ -589,16 +602,18 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 			if (!v->IsPrimaryVehicle()) return 0;
 			return v->GetCurrentMaxSpeed();
 
-		case 0x4D: // Position within articulated vehicle
-			if (!HasBit(v->grf_cache.cache_valid, NCVV_POSITION_IN_VEHICLE)) {
+		case 0x4D: { // Position within articulated vehicle
+			NewGRFCache &grf_cache = GetOrCreateNewGRFCache(v);
+			if (!HasBit(grf_cache.cache_valid, NCVV_POSITION_IN_VEHICLE)) {
 				uint8_t artic_before = 0;
 				for (const Vehicle *u = v; u->IsArticulatedPart(); u = u->Previous()) artic_before++;
 				uint8_t artic_after = 0;
 				for (const Vehicle *u = v; u->HasArticulatedPart(); u = u->Next()) artic_after++;
-				v->grf_cache.position_in_vehicle = artic_before | artic_after << 8;
-				SetBit(v->grf_cache.cache_valid, NCVV_POSITION_IN_VEHICLE);
+				grf_cache.position_in_vehicle = artic_before | artic_after << 8;
+				SetBit(grf_cache.cache_valid, NCVV_POSITION_IN_VEHICLE);
 			}
-			return v->grf_cache.position_in_vehicle;
+			return grf_cache.position_in_vehicle;
+		}
 
 		/* Variables which use the parameter */
 		case 0x60: // Count consist's engine ID occurrence
@@ -733,17 +748,17 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 		case 0x07: break; // not implemented
 		case 0x08: break; // not implemented
 		case 0x09: break; // not implemented
-		case 0x0A: return v->current_order.MapOldOrder();
-		case 0x0B: return v->current_order.GetDestination();
+		case 0x0A: return v->HasConsist() ? v->GetConsist().current_order.MapOldOrder() : 0;
+		case 0x0B: return v->HasConsist() ? v->GetConsist().current_order.GetDestination() : 0;
 		case 0x0C: return v->GetNumOrders();
-		case 0x0D: return v->cur_real_order_index;
+		case 0x0D: return v->HasConsist() ? v->GetConsist().cur_real_order_index : 0;
 		case 0x0E: break; // not implemented
 		case 0x0F: break; // not implemented
 		case 0x10:
 		case 0x11: {
 			uint ticks;
-			if (v->current_order.IsType(OT_LOADING)) {
-				ticks = v->load_unload_ticks;
+			if (v->HasConsist() && v->GetConsist().current_order.IsType(OT_LOADING)) {
+				ticks = v->GetConsist().load_unload_ticks;
 			} else {
 				switch (v->type) {
 					case VEH_TRAIN:    ticks = Train::From(v)->wait_counter; break;
@@ -757,7 +772,7 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 		case 0x13: return GB(ClampTo<uint16_t>(v->date_of_last_service_newgrf - CalendarTime::DAYS_TILL_ORIGINAL_BASE_YEAR), 8, 8);
 		case 0x14: return v->GetServiceInterval();
 		case 0x15: return GB(v->GetServiceInterval(), 8, 8);
-		case 0x16: return v->last_station_visited;
+		case 0x16: return v->HasConsist() ? v->GetConsist().last_station_visited : 0;
 		case 0x17: return v->tick_counter;
 		case 0x18:
 		case 0x19: {
@@ -801,8 +816,8 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 		case 0x33: return 0; // non-existent high byte of vehstatus
 		case 0x34: return v->type == VEH_AIRCRAFT ? (v->cur_speed * 10) / 128 : v->cur_speed;
 		case 0x35: return GB(v->type == VEH_AIRCRAFT ? (v->cur_speed * 10) / 128 : v->cur_speed, 8, 8);
-		case 0x36: return v->subspeed;
-		case 0x37: return v->acceleration;
+		case 0x36: return v->HasConsist() ? v->GetConsist().subspeed : 0;
+		case 0x37: return v->HasConsist() ? v->GetConsist().acceleration : 0;
 		case 0x38: break; // not implemented
 		case 0x39: return v->cargo_type;
 		case 0x3A: return v->cargo_cap;
@@ -816,7 +831,7 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 		case 0x42: return ClampTo<uint16_t>(v->max_age);
 		case 0x43: return GB(ClampTo<uint16_t>(v->max_age), 8, 8);
 		case 0x44: return (Clamp(v->build_year, CalendarTime::ORIGINAL_BASE_YEAR, CalendarTime::ORIGINAL_MAX_YEAR) - CalendarTime::ORIGINAL_BASE_YEAR).base();
-		case 0x45: return v->unitnumber;
+		case 0x45: return v->HasConsist() ? v->GetConsist().unitnumber : 0;
 		case 0x46: return v->GetEngine()->grf_prop.local_id;
 		case 0x47: return GB(v->GetEngine()->grf_prop.local_id, 8, 8);
 		case 0x48:
@@ -987,7 +1002,7 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 		return nullptr;
 	}
 
-	bool in_motion = !v->First()->current_order.IsType(OT_LOADING);
+	bool in_motion = !(v->First()->HasConsist() && v->First()->GetConsist().current_order.IsType(OT_LOADING));
 
 	uint totalsets = in_motion ? (uint)group->loaded.size() : (uint)group->loading.size();
 
@@ -1387,14 +1402,16 @@ void FillNewGRFVehicleCache(const Vehicle *v)
 	};
 	static_assert(NCVV_END == lengthof(cache_entries));
 
+	NewGRFCache &grf_cache = GetOrCreateNewGRFCache(const_cast<Vehicle *>(v));
+
 	/* Resolve all the variables, so their caches are set. */
 	for (const auto &cache_entry : cache_entries) {
 		/* Only resolve when the cache isn't valid. */
-		if (HasBit(v->grf_cache.cache_valid, cache_entry[1])) continue;
+		if (HasBit(grf_cache.cache_valid, cache_entry[1])) continue;
 		bool stub;
 		ro.GetScope(VSG_SCOPE_SELF)->GetVariable(cache_entry[0], 0, stub);
 	}
 
 	/* Make sure really all bits are set. */
-	assert(v->grf_cache.cache_valid == (1 << NCVV_END) - 1);
+	assert(grf_cache.cache_valid == (1 << NCVV_END) - 1);
 }

@@ -2217,7 +2217,7 @@ static CommandCost RemoveRoadStop(TileIndex tile, DoCommandFlag flags, int repla
 			[](const Vehicle *v) { return v->type == VEH_ROAD; },
 			[station_id](const Order *order) { return order->IsType(OT_GOTO_STATION) && order->GetDestination() == station_id; },
 			[station_id, tile](Vehicle *v) {
-				if (v->current_order.IsType(OT_GOTO_STATION) && v->dest_tile == tile) {
+				if (v->GetConsist().current_order.IsType(OT_GOTO_STATION) && v->dest_tile == tile) {
 					v->SetDestTile(v->GetOrderStationLocation(station_id));
 				}
 			}
@@ -2979,22 +2979,23 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		ClearDockingTilesCheckingNeighbours(tile2);
 
 		for (Ship *s : Ship::Iterate()) {
+			Consist &consist = s->GetConsist();
 			/* Find all ships going to our dock. */
-			if (s->current_order.GetDestination() != st->index) {
+			if (consist.current_order.GetDestination() != st->index) {
 				continue;
 			}
 
 			/* Find ships that are marked as "loading" but are no longer on a
 			 * docking tile. Force them to leave the station (as they were loading
 			 * on the removed dock). */
-			if (s->current_order.IsType(OT_LOADING) && !(IsDockingTile(s->tile) && IsShipDestinationTile(s->tile, st->index))) {
+			if (consist.current_order.IsType(OT_LOADING) && !(IsDockingTile(s->tile) && IsShipDestinationTile(s->tile, st->index))) {
 				s->LeaveStation();
 			}
 
 			/* If we no longer have a dock, mark the order as invalid and send
 			 * the ship to the next order (or, if there is none, make it
 			 * wander the world). */
-			if (s->current_order.IsType(OT_GOTO_STATION) && !(st->facilities & FACIL_DOCK)) {
+			if (consist.current_order.IsType(OT_GOTO_STATION) && !(st->facilities & FACIL_DOCK)) {
 				s->SetDestTile(s->GetOrderStationLocation(st->index));
 			}
 		}
@@ -3707,7 +3708,7 @@ static VehicleEnterTileStatus VehicleEnter_Station(Vehicle *v, TileIndex tile, i
 {
 	if (v->type == VEH_TRAIN) {
 		StationID station_id = GetStationIndex(tile);
-		if (!v->current_order.ShouldStopAtStation(v, station_id)) return VETSB_CONTINUE;
+		if (!v->HasConsist() || !v->GetConsist().current_order.ShouldStopAtStation(v, station_id)) return VETSB_CONTINUE;
 		if (!IsRailStation(tile) || !v->IsFrontEngine()) return VETSB_CONTINUE;
 
 		int station_ahead;

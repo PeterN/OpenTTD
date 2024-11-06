@@ -25,17 +25,19 @@
  */
 /* static */ void LinkRefresher::Run(Vehicle *v, bool allow_merge, bool is_full_loading)
 {
+	const Consist &consist = v->GetConsist();
+
 	/* If there are no orders we can't predict anything.*/
-	if (v->orders == nullptr) return;
+	if (consist.orders == nullptr) return;
 
 	/* Make sure the first order is a useful order. */
-	const Order *first = v->orders->GetNextDecisionNode(v->GetOrder(v->cur_implicit_order_index), 0);
+	const Order *first = consist.orders->GetNextDecisionNode(v->GetOrder(consist.cur_implicit_order_index), 0);
 	if (first == nullptr) return;
 
 	HopSet seen_hops;
 	LinkRefresher refresher(v, &seen_hops, allow_merge, is_full_loading);
 
-	refresher.RefreshLinks(first, first, v->last_loading_station != INVALID_STATION ? 1 << HAS_CARGO : 0);
+	refresher.RefreshLinks(first, first, consist.last_loading_station != INVALID_STATION ? 1 << HAS_CARGO : 0);
 }
 
 /**
@@ -170,10 +172,11 @@ const Order *LinkRefresher::PredictNextOrder(const Order *cur, const Order *next
 		 * their respective stations being equal is handled elsewhere. */
 		SetBit(flags, USE_NEXT);
 
+		const Consist &consist = this->vehicle->GetConsist();
 		if (next->IsType(OT_CONDITIONAL)) {
-			const Order *skip_to = this->vehicle->orders->GetNextDecisionNode(
-					this->vehicle->orders->GetOrderAt(next->GetConditionSkipToOrder()), num_hops);
-			if (skip_to != nullptr && num_hops < this->vehicle->orders->GetNumOrders()) {
+			const Order *skip_to = consist.orders->GetNextDecisionNode(
+					consist.orders->GetOrderAt(next->GetConditionSkipToOrder()), num_hops);
+			if (skip_to != nullptr && num_hops < consist.orders->GetNumOrders()) {
 				/* Make copies of capacity tracking lists. There is potential
 				 * for optimization here: If the vehicle never refits we don't
 				 * need to copy anything. Also, if we've seen the branched link
@@ -185,8 +188,8 @@ const Order *LinkRefresher::PredictNextOrder(const Order *cur, const Order *next
 
 		/* Reassign next with the following stop. This can be a station or a
 		 * depot.*/
-		next = this->vehicle->orders->GetNextDecisionNode(
-				this->vehicle->orders->GetNext(next), num_hops++);
+		next = consist.orders->GetNextDecisionNode(
+				consist.orders->GetNext(next), num_hops++);
 	}
 	return next;
 }
@@ -229,15 +232,16 @@ void LinkRefresher::RefreshStats(const Order *cur, const Order *next)
 			 * loading. Don't do that if the vehicle has been waiting for longer than the entire
 			 * order list is supposed to take, though. If that is the case the total duration is
 			 * probably far off and we'd greatly overestimate the capacity by increasing.*/
-			if (this->is_full_loading && this->vehicle->orders != nullptr &&
-					st->index == vehicle->last_station_visited &&
-					this->vehicle->orders->GetTotalDuration() > this->vehicle->current_order_time) {
-				uint effective_capacity = cargo_quantity * this->vehicle->load_unload_ticks;
-				if (effective_capacity > (uint)this->vehicle->orders->GetTotalDuration()) {
+			const Consist &consist = this->vehicle->GetConsist();
+			if (this->is_full_loading && consist.orders != nullptr &&
+					st->index == consist.last_station_visited &&
+					consist.orders->GetTotalDuration() > consist.current_order_time) {
+				uint effective_capacity = cargo_quantity * consist.load_unload_ticks;
+				if (effective_capacity > (uint)consist.orders->GetTotalDuration()) {
 					IncreaseStats(st, c, next_station, effective_capacity /
-							this->vehicle->orders->GetTotalDuration(), 0, 0,
+							consist.orders->GetTotalDuration(), 0, 0,
 							EUM_INCREASE | restricted_mode);
-				} else if (RandomRange(this->vehicle->orders->GetTotalDuration()) < effective_capacity) {
+				} else if (RandomRange(consist.orders->GetTotalDuration()) < effective_capacity) {
 					IncreaseStats(st, c, next_station, 1, 0, 0, EUM_INCREASE | restricted_mode);
 				} else {
 					IncreaseStats(st, c, next_station, cargo_quantity, 0, time_estimate, EUM_REFRESH | restricted_mode);

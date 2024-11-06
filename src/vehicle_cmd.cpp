@@ -148,7 +148,7 @@ std::tuple<CommandCost, VehicleID, uint, uint16_t, CargoArray> CmdBuildVehicle(D
 	CargoArray cargo_capacities{};
 	if (value.Succeeded()) {
 		if (subflags & DC_EXEC) {
-			v->unitnumber = unit_num;
+			if (v->HasConsist()) v->GetConsist().unitnumber = unit_num;
 			v->value      = value.GetCost();
 			veh_id        = v->index;
 		}
@@ -195,7 +195,7 @@ std::tuple<CommandCost, VehicleID, uint, uint16_t, CargoArray> CmdBuildVehicle(D
 				if (!(subflags & DC_AUTOREPLACE)) OrderBackup::Restore(v, client_id);
 			}
 
-			Company::Get(v->owner)->freeunits[v->type].UseID(v->unitnumber);
+			if (v->HasConsist()) Company::Get(v->owner)->freeunits[v->type].UseID(v->GetConsist().unitnumber);
 		}
 
 
@@ -236,9 +236,10 @@ CommandCost CmdSellVehicle(DoCommandFlag flags, VehicleID v_id, bool sell_chain,
 
 	/* Can we actually make the order backup, i.e. are there enough orders? */
 	if (backup_order &&
-			front->orders != nullptr &&
-			!front->orders->IsShared() &&
-			!Order::CanAllocateItem(front->orders->GetNumOrders())) {
+			front->HasConsist() &&
+			front->GetConsist().orders != nullptr &&
+			!front->GetConsist().orders->IsShared() &&
+			!Order::CanAllocateItem(front->GetConsist().orders->GetNumOrders())) {
 		/* Only happens in exceptional cases when there aren't enough orders anyhow.
 		 * Thus it should be safe to just drop the orders in that case. */
 		backup_order = false;
@@ -509,7 +510,7 @@ std::tuple<CommandCost, uint, uint16_t, CargoArray> CmdRefitVehicle(DoCommandFla
 	/* Allow auto-refitting only during loading and normal refitting only in a depot. */
 	if ((flags & DC_QUERY_COST) == 0 && // used by the refit GUI, including the order refit GUI.
 			!free_wagon && // used by autoreplace/renew
-			(!auto_refit || !front->current_order.IsType(OT_LOADING)) && // refit inside stations
+			(!auto_refit || !front->GetConsist().current_order.IsType(OT_LOADING)) && // refit inside stations
 			!front->IsStoppedInDepot()) { // refit inside depots
 		return { CommandCost(STR_ERROR_TRAIN_MUST_BE_STOPPED_INSIDE_DEPOT + front->type), 0, 0, {} };
 	}
@@ -635,7 +636,7 @@ CommandCost CmdStartStopVehicle(DoCommandFlag flags, VehicleID veh_id, bool eval
 		if (v->type != VEH_TRAIN) v->cur_speed = 0; // trains can stop 'slowly'
 
 		/* Unbunching data is no longer valid. */
-		v->ResetDepotUnbunching();
+		v->GetConsist().ResetDepotUnbunching();
 
 		v->MarkDirty();
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
@@ -753,7 +754,8 @@ CommandCost CmdDepotMassAutoReplace(DoCommandFlag flags, TileIndex tile, Vehicle
 bool IsUniqueVehicleName(const std::string &name)
 {
 	for (const Vehicle *v : Vehicle::Iterate()) {
-		if (!v->name.empty() && v->name == name) return false;
+		if (!v->HasConsist()) continue;
+		if (!v->GetConsist().name.empty() && v->GetConsist().name == name) return false;
 	}
 
 	return true;
@@ -766,30 +768,32 @@ bool IsUniqueVehicleName(const std::string &name)
  */
 static void CloneVehicleName(const Vehicle *src, Vehicle *dst)
 {
+	const Consist &src_consist = src->GetConsist();
+	Consist &dst_consist = dst->GetConsist();
 	std::string buf;
 
 	/* Find the position of the first digit in the last group of digits. */
 	size_t number_position;
-	for (number_position = src->name.length(); number_position > 0; number_position--) {
+	for (number_position = src_consist.name.length(); number_position > 0; number_position--) {
 		/* The design of UTF-8 lets this work simply without having to check
 		 * for UTF-8 sequences. */
-		if (src->name[number_position - 1] < '0' || src->name[number_position - 1] > '9') break;
+		if (src_consist.name[number_position - 1] < '0' || src_consist.name[number_position - 1] > '9') break;
 	}
 
 	/* Format buffer and determine starting number. */
 	long num;
 	uint8_t padding = 0;
-	if (number_position == src->name.length()) {
+	if (number_position == src_consist.name.length()) {
 		/* No digit at the end, so start at number 2. */
-		buf = src->name;
+		buf = src_consist.name;
 		buf += " ";
 		number_position = buf.length();
 		num = 2;
 	} else {
 		/* Found digits, parse them and start at the next number. */
-		buf = src->name.substr(0, number_position);
+		buf = src_consist.name.substr(0, number_position);
 
-		auto num_str = src->name.substr(number_position);
+		auto num_str = src_consist.name.substr(number_position);
 		padding = (uint8_t)num_str.length();
 
 		std::istringstream iss(num_str);
@@ -807,7 +811,7 @@ static void CloneVehicleName(const Vehicle *src, Vehicle *dst)
 		/* Check the name is unique. */
 		auto new_name = oss.str();
 		if (IsUniqueVehicleName(new_name)) {
-			dst->name = new_name;
+			dst_consist.name = new_name;
 			break;
 		}
 	}
@@ -909,7 +913,7 @@ std::tuple<CommandCost, VehicleID> CmdCloneVehicle(DoCommandFlag flags, TileInde
 			} else {
 				/* this is a front engine or not a train. */
 				w_front = w;
-				w->service_interval = v->service_interval;
+				w->GetConsist().service_interval = v->GetConsist().service_interval;
 				w->SetServiceIntervalIsCustom(v->ServiceIntervalIsCustom());
 				w->SetServiceIntervalIsPercent(v->ServiceIntervalIsPercent());
 			}
@@ -989,7 +993,7 @@ std::tuple<CommandCost, VehicleID> CmdCloneVehicle(DoCommandFlag flags, TileInde
 		}
 
 		/* Now clone the vehicle's name, if it has one. */
-		if (!v_front->name.empty()) CloneVehicleName(v_front, w_front);
+		if (!v_front->GetConsist().name.empty()) CloneVehicleName(v_front, w_front);
 
 		/* Since we can't estimate the cost of cloning a vehicle accurately we must
 		 * check whether the company has enough money manually. */
@@ -1069,7 +1073,7 @@ CommandCost CmdSendVehicleToDepot(DoCommandFlag flags, VehicleID veh_id, DepotCo
 CommandCost CmdRenameVehicle(DoCommandFlag flags, VehicleID veh_id, const std::string &text)
 {
 	Vehicle *v = Vehicle::GetIfValid(veh_id);
-	if (v == nullptr || !v->IsPrimaryVehicle()) return CMD_ERROR;
+	if (v == nullptr || !v->IsPrimaryVehicle() || !v->HasConsist()) return CMD_ERROR;
 
 	CommandCost ret = CheckOwnership(v->owner);
 	if (ret.Failed()) return ret;
@@ -1083,9 +1087,9 @@ CommandCost CmdRenameVehicle(DoCommandFlag flags, VehicleID veh_id, const std::s
 
 	if (flags & DC_EXEC) {
 		if (reset) {
-			v->name.clear();
+			v->GetConsist().name.clear();
 		} else {
-			v->name = text;
+			v->GetConsist().name = text;
 		}
 		InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), 1);
 		MarkWholeScreenDirty();

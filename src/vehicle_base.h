@@ -40,18 +40,31 @@ enum VehStatus {
 	VS_CRASHED         = 0x80, ///< Vehicle is crashed.
 };
 
+enum VehicleConsistFlags {
+	VCF_LOADING_FINISHED = 0,        ///< Vehicle has finished loading.
+	// VF_CARGO_UNLOADING = 1,         ///< Vehicle is unloading cargo.
+	// VF_BUILT_AS_PROTOTYPE = 2,      ///< Vehicle is a prototype (accepted as exclusive preview).
+	VCF_TIMETABLE_STARTED = 3,       ///< Whether the vehicle has started running on the timetable yet.
+	VCF_AUTOFILL_TIMETABLE = 4,      ///< Whether the vehicle should fill in the timetable automatically.
+	VCF_AUTOFILL_PRES_WAIT_TIME = 5, ///< Whether non-destructive auto-fill should preserve waiting times
+	VCF_STOP_LOADING = 6,            ///< Don't load anymore during the next load cycle.
+	VCF_PATHFINDER_LOST = 7,         ///< Vehicle's pathfinder is lost.
+	VCF_SERVINT_IS_CUSTOM = 8,       ///< Service interval is custom.
+	VCF_SERVINT_IS_PERCENT = 9,      ///< Service interval is percent.
+};
+
 /** Bit numbers in #Vehicle::vehicle_flags. */
 enum VehicleFlags {
-	VF_LOADING_FINISHED,        ///< Vehicle has finished loading.
-	VF_CARGO_UNLOADING,         ///< Vehicle is unloading cargo.
-	VF_BUILT_AS_PROTOTYPE,      ///< Vehicle is a prototype (accepted as exclusive preview).
-	VF_TIMETABLE_STARTED,       ///< Whether the vehicle has started running on the timetable yet.
-	VF_AUTOFILL_TIMETABLE,      ///< Whether the vehicle should fill in the timetable automatically.
-	VF_AUTOFILL_PRES_WAIT_TIME, ///< Whether non-destructive auto-fill should preserve waiting times
-	VF_STOP_LOADING,            ///< Don't load anymore during the next load cycle.
-	VF_PATHFINDER_LOST,         ///< Vehicle's pathfinder is lost.
-	VF_SERVINT_IS_CUSTOM,       ///< Service interval is custom.
-	VF_SERVINT_IS_PERCENT,      ///< Service interval is percent.
+	// VCF_LOADING_FINISHED = 0,        ///< Vehicle has finished loading.
+	VF_CARGO_UNLOADING = 1,         ///< Vehicle is unloading cargo.
+	VF_BUILT_AS_PROTOTYPE = 2,      ///< Vehicle is a prototype (accepted as exclusive preview).
+	// VCF_TIMETABLE_STARTED = 3,       ///< Whether the vehicle has started running on the timetable yet.
+	// VCF_AUTOFILL_TIMETABLE = 4,      ///< Whether the vehicle should fill in the timetable automatically.
+	// VCF_AUTOFILL_PRES_WAIT_TIME = 5, ///< Whether non-destructive auto-fill should preserve waiting times
+	// VCF_STOP_LOADING = 6,            ///< Don't load anymore during the next load cycle.
+	// VCF_PATHFINDER_LOST = 7,         ///< Vehicle's pathfinder is lost.
+	// VCF_SERVINT_IS_CUSTOM = 8,       ///< Service interval is custom.
+	// VCF_SERVINT_IS_PERCENT = 9,      ///< Service interval is percent.
 };
 
 /** Bit numbers used to indicate which of the #NewGRFCache values are valid. */
@@ -240,17 +253,55 @@ struct ClosestDepot {
 		location(location), destination(destination), reverse(reverse), found(true) {}
 };
 
+struct Consist : BaseConsist {
+	Vehicle *next_shared = nullptr; ///< pointer to the next vehicle that shares the order
+	Vehicle *previous_shared = nullptr; ///< NOSAVE: pointer to the previous vehicle in the shared order chain
+
+	Money profit_this_year = 0; ///< Profit this year << 8, low 8 bits are fract
+	Money profit_last_year = 0; ///< Profit last year << 8, low 8 bits are fract
+
+	CargoPayment *cargo_payment = nullptr; ///< The cargo payment we're currently in
+
+	TextEffectID fill_percent_te_id = INVALID_TE_ID; ///< a text-effect id to a loading indicator object
+	UnitID unitnumber = 0; ///< unit number, for display purposes only
+
+	// uint16_t cur_speed; ///< current speed
+	uint8_t subspeed = 0; ///< fractional speed
+	uint8_t acceleration = 0; ///< used by train & aircraft
+
+	StationID last_station_visited = INVALID_STATION; ///< The last station we stopped at.
+	StationID last_loading_station = INVALID_STATION; ///< Last station the vehicle has stopped at and could possibly leave from with any cargo loaded.
+	TimerGameTick::TickCounter last_loading_tick = 0; ///< Last TimerGameTick::counter tick that the vehicle has stopped at a station and could possibly leave with any cargo loaded.
+
+	uint16_t load_unload_ticks = 0; ///< Ticks to wait before starting next cycle.
+
+	Order current_order{}; ///< The current order (+ status, like: loading)
+
+	union {
+		OrderList *orders; ///< Pointer to the order list for this vehicle
+		Order *old_orders; ///< Only used during conversion of old save games
+	};
+
+	Consist() : orders(nullptr) {}
+
+	~Consist()
+	{
+		// assert(this->next_shared == nullptr);
+		// assert(this->previous_shared == nullptr);
+		// assert(this->orders == nullptr);
+		// assert(this->cargo_payment == nullptr);
+		// assert(this->unitnumber == 0);
+	}
+};
+
 /** %Vehicle data structure. */
-struct Vehicle : VehiclePool::PoolItem<&_vehicle_pool>, BaseVehicle, BaseConsist {
+struct Vehicle : VehiclePool::PoolItem<&_vehicle_pool>, BaseVehicle {
 private:
 	typedef std::list<RefitDesc> RefitList;
 
 	Vehicle *next;                      ///< pointer to the next vehicle in the chain
 	Vehicle *previous;                  ///< NOSAVE: pointer to the previous vehicle in the chain
 	Vehicle *first;                     ///< NOSAVE: pointer to the first vehicle in the chain
-
-	Vehicle *next_shared;               ///< pointer to the next vehicle that shares the order
-	Vehicle *previous_shared;           ///< NOSAVE: pointer to the previous vehicle in the shared order chain
 
 public:
 	friend void FixOldVehicles();
@@ -270,11 +321,9 @@ public:
 	 */
 	TileIndex dest_tile;
 
-	Money profit_this_year;             ///< Profit this year << 8, low 8 bits are fract
-	Money profit_last_year;             ///< Profit last year << 8, low 8 bits are fract
-	Money value;                        ///< Value of the vehicle
+	std::unique_ptr<Consist> consist;
 
-	CargoPayment *cargo_payment;        ///< The cargo payment we're currently in
+	Money value;                        ///< Value of the vehicle
 
 	mutable Rect coord;                 ///< NOSAVE: Graphical bounding box of the vehicle, i.e. what to redraw on moves.
 
@@ -322,21 +371,12 @@ public:
 	int8_t y_offs;                        ///< y offset for vehicle sprite
 	EngineID engine_type;               ///< The type of engine used for this vehicle.
 
-	TextEffectID fill_percent_te_id;    ///< a text-effect id to a loading indicator object
-	UnitID unitnumber;                  ///< unit number, for display purposes only
-
 	uint16_t cur_speed;                   ///< current speed
-	uint8_t subspeed;                      ///< fractional speed
-	uint8_t acceleration;                  ///< used by train & aircraft
 	uint32_t motion_counter;              ///< counter to occasionally play a vehicle sound.
 	uint8_t progress;                      ///< The percentage (if divided by 256) this vehicle already crossed the tile unit.
 
 	uint8_t waiting_triggers;              ///< Triggers to be yet matched before rerandomizing the random bits.
 	uint16_t random_bits; ///< Bits used for randomized variational spritegroups.
-
-	StationID last_station_visited;     ///< The last station we stopped at.
-	StationID last_loading_station;     ///< Last station the vehicle has stopped at and could possibly leave from with any cargo loaded.
-	TimerGameTick::TickCounter last_loading_tick; ///< Last TimerGameTick::counter tick that the vehicle has stopped at a station and could possibly leave with any cargo loaded.
 
 	VehicleCargoList cargo;             ///< The cargo this vehicle is carrying
 	CargoID cargo_type;                 ///< type of cargo this vehicle is carrying
@@ -349,18 +389,13 @@ public:
 	uint8_t day_counter;                   ///< Increased by one for each day
 	uint8_t tick_counter;                  ///< Increased by one for each tick
 	uint8_t running_ticks;                 ///< Number of ticks this vehicle was not stopped this day
-	uint16_t load_unload_ticks;           ///< Ticks to wait before starting next cycle.
 
 	uint8_t vehstatus;                     ///< Status
 	uint8_t subtype;                       ///< subtype (Filled with values from #AircraftSubType/#DisasterSubType/#EffectVehicleType/#GroundVehicleSubtypeFlags)
-	Order current_order;                ///< The current order (+ status, like: loading)
 
-	union {
-		OrderList *orders;              ///< Pointer to the order list for this vehicle
-		Order *old_orders;              ///< Only used during conversion of old save games
-	};
+	uint16_t vehicle_flags;               ///< Used for gradual loading and other miscellaneous things (@see VehicleFlags enum)
 
-	NewGRFCache grf_cache;              ///< Cache of often used calculated NewGRF values
+	std::unique_ptr<NewGRFCache> grf_cache;              ///< Cache of often used calculated NewGRF values
 	VehicleCache vcache;                ///< Cache of often used vehicle values.
 
 	GroupID group_id;                   ///< Index of group Pool array
@@ -384,6 +419,7 @@ public:
 
 	void BeginLoading();
 	void CancelReservation(StationID next, Station *st);
+	void CancelReservation();
 	void LeaveStation();
 
 	GroundVehicleCache *GetGroundVehicleCache();
@@ -488,13 +524,37 @@ public:
 	const GRFFile *GetGRF() const;
 	uint32_t GetGRFID() const;
 
+	inline bool HasConsist() const
+	{
+		return this->consist != nullptr;
+	}
+
+	inline const Consist &GetConsist() const
+	{
+		assert(this->consist != nullptr);
+		return *this->consist;
+	}
+
+	inline Consist &GetConsist()
+	{
+		assert(this->consist != nullptr);
+		return *this->consist;
+	}
+
+	inline Consist &GetOrCreateConsist()
+	{
+		if (this->consist == nullptr) this->consist = std::make_unique<Consist>();
+		return *this->consist;
+	}
+
 	/**
 	 * Invalidates cached NewGRF variables
 	 * @see InvalidateNewGRFCacheOfChain
 	 */
 	inline void InvalidateNewGRFCache()
 	{
-		this->grf_cache.cache_valid = 0;
+		if (this->grf_cache == nullptr) return;
+		this->grf_cache->cache_valid = 0;
 	}
 
 	/**
@@ -614,13 +674,13 @@ public:
 	 * Gets the profit vehicle had this year. It can be sent into SetDParam for string processing.
 	 * @return the vehicle's profit this year
 	 */
-	Money GetDisplayProfitThisYear() const { return (this->profit_this_year >> 8); }
+	Money GetDisplayProfitThisYear() const { return (this->GetConsist().profit_this_year >> 8); }
 
 	/**
 	 * Gets the profit vehicle had last year. It can be sent into SetDParam for string processing.
 	 * @return the vehicle's profit last year
 	 */
-	Money GetDisplayProfitLastYear() const { return (this->profit_last_year >> 8); }
+	Money GetDisplayProfitLastYear() const { return (this->GetConsist().profit_last_year >> 8); }
 
 	void SetNext(Vehicle *next);
 
@@ -702,7 +762,7 @@ public:
 	 * Get the first order of the vehicles order list.
 	 * @return first order of order list.
 	 */
-	inline Order *GetFirstOrder() const { return (this->orders == nullptr) ? nullptr : this->orders->GetFirstOrder(); }
+	inline Order *GetFirstOrder() const { return (this->GetConsist().orders == nullptr) ? nullptr : this->GetConsist().orders->GetFirstOrder(); }
 
 	void AddToShared(Vehicle *shared_chain);
 	void RemoveFromShared();
@@ -711,37 +771,37 @@ public:
 	 * Get the next vehicle of the shared vehicle chain.
 	 * @return the next shared vehicle or nullptr when there isn't a next vehicle.
 	 */
-	inline Vehicle *NextShared() const { return this->next_shared; }
+	inline Vehicle *NextShared() const { return this->GetConsist().next_shared; }
 
 	/**
 	 * Get the previous vehicle of the shared vehicle chain
 	 * @return the previous shared vehicle or nullptr when there isn't a previous vehicle.
 	 */
-	inline Vehicle *PreviousShared() const { return this->previous_shared; }
+	inline Vehicle *PreviousShared() const { return this->GetConsist().previous_shared; }
 
 	/**
 	 * Get the first vehicle of this vehicle chain.
 	 * @return the first vehicle of the chain.
 	 */
-	inline Vehicle *FirstShared() const { return (this->orders == nullptr) ? this->First() : this->orders->GetFirstSharedVehicle(); }
+	inline Vehicle *FirstShared() const { return (this->GetConsist().orders == nullptr) ? this->First() : this->GetConsist().orders->GetFirstSharedVehicle(); }
 
 	/**
 	 * Check if we share our orders with another vehicle.
 	 * @return true if there are other vehicles sharing the same order
 	 */
-	inline bool IsOrderListShared() const { return this->orders != nullptr && this->orders->IsShared(); }
+	inline bool IsOrderListShared() const { return this->GetConsist().orders != nullptr && this->GetConsist().orders->IsShared(); }
 
 	/**
 	 * Get the number of orders this vehicle has.
 	 * @return the number of orders this vehicle has.
 	 */
-	inline VehicleOrderID GetNumOrders() const { return (this->orders == nullptr) ? 0 : this->orders->GetNumOrders(); }
+	inline VehicleOrderID GetNumOrders() const { return (this->GetConsist().orders == nullptr) ? 0 : this->GetConsist().orders->GetNumOrders(); }
 
 	/**
 	 * Get the number of manually added orders this vehicle has.
 	 * @return the number of manually added orders this vehicle has.
 	 */
-	inline VehicleOrderID GetNumManualOrders() const { return (this->orders == nullptr) ? 0 : this->orders->GetNumManualOrders(); }
+	inline VehicleOrderID GetNumManualOrders() const { return (this->GetConsist().orders == nullptr) ? 0 : this->GetConsist().orders->GetNumManualOrders(); }
 
 	/**
 	 * Get the next station the vehicle will stop at.
@@ -749,7 +809,7 @@ public:
 	 */
 	inline StationIDStack GetNextStoppingStation() const
 	{
-		return (this->orders == nullptr) ? INVALID_STATION : this->orders->GetNextStoppingStation(this);
+		return (this->GetConsist().orders == nullptr) ? INVALID_STATION : this->GetConsist().orders->GetNextStoppingStation(this);
 	}
 
 	void ResetRefitCaps();
@@ -764,18 +824,20 @@ public:
 	 */
 	inline void CopyVehicleConfigAndStatistics(Vehicle *src)
 	{
-		this->CopyConsistPropertiesFrom(src);
+		Consist &consist = this->GetConsist();
+		Consist &srcconsist = src->GetConsist();
 
+		consist.CopyConsistPropertiesFrom(&srcconsist);
 		this->ReleaseUnitNumber();
-		this->unitnumber = src->unitnumber;
 
-		this->current_order = src->current_order;
-		this->dest_tile  = src->dest_tile;
+		consist.unitnumber = srcconsist.unitnumber;
+		srcconsist.unitnumber = 0;
 
-		this->profit_this_year = src->profit_this_year;
-		this->profit_last_year = src->profit_last_year;
+		consist.current_order = srcconsist.current_order;
+		this->dest_tile = src->dest_tile;
 
-		src->unitnumber = 0;
+		consist.profit_this_year = srcconsist.profit_this_year;
+		consist.profit_last_year = srcconsist.profit_last_year;
 	}
 
 
@@ -817,17 +879,17 @@ public:
 	void UpdatePositionAndViewport();
 	bool MarkAllViewportsDirty() const;
 
-	inline uint16_t GetServiceInterval() const { return this->service_interval; }
+	inline uint16_t GetServiceInterval() const { return this->GetConsist().service_interval; }
 
-	inline void SetServiceInterval(uint16_t interval) { this->service_interval = interval; }
+	inline void SetServiceInterval(uint16_t interval) { this->GetConsist().service_interval = interval; }
 
-	inline bool ServiceIntervalIsCustom() const { return HasBit(this->vehicle_flags, VF_SERVINT_IS_CUSTOM); }
+	inline bool ServiceIntervalIsCustom() const { return HasBit(this->GetConsist().consist_flags, VCF_SERVINT_IS_CUSTOM); }
 
-	inline bool ServiceIntervalIsPercent() const { return HasBit(this->vehicle_flags, VF_SERVINT_IS_PERCENT); }
+	inline bool ServiceIntervalIsPercent() const { return HasBit(this->GetConsist().consist_flags, VCF_SERVINT_IS_PERCENT); }
 
-	inline void SetServiceIntervalIsCustom(bool on) { AssignBit(this->vehicle_flags, VF_SERVINT_IS_CUSTOM, on); }
+	inline void SetServiceIntervalIsCustom(bool on) { AssignBit(this->GetConsist().consist_flags, VCF_SERVINT_IS_CUSTOM, on); }
 
-	inline void SetServiceIntervalIsPercent(bool on) { AssignBit(this->vehicle_flags, VF_SERVINT_IS_PERCENT, on); }
+	inline void SetServiceIntervalIsPercent(bool on) { AssignBit(this->GetConsist().consist_flags, VCF_SERVINT_IS_PERCENT, on); }
 
 	bool HasFullLoadOrder() const;
 	bool HasConditionalOrder() const;
@@ -842,14 +904,15 @@ private:
 	 */
 	void SkipToNextRealOrderIndex()
 	{
+		Consist &consist = this->GetConsist();
 		if (this->GetNumManualOrders() > 0) {
 			/* Advance to next real order */
 			do {
-				this->cur_real_order_index++;
-				if (this->cur_real_order_index >= this->GetNumOrders()) this->cur_real_order_index = 0;
-			} while (this->GetOrder(this->cur_real_order_index)->IsType(OT_IMPLICIT));
+				consist.cur_real_order_index++;
+				if (consist.cur_real_order_index >= this->GetNumOrders()) consist.cur_real_order_index = 0;
+			} while (this->GetOrder(consist.cur_real_order_index)->IsType(OT_IMPLICIT));
 		} else {
-			this->cur_real_order_index = 0;
+			consist.cur_real_order_index = 0;
 		}
 	}
 
@@ -861,18 +924,19 @@ public:
 	 */
 	void IncrementImplicitOrderIndex()
 	{
-		if (this->cur_implicit_order_index == this->cur_real_order_index) {
+		Consist &consist = this->GetConsist();
+		if (consist.cur_implicit_order_index == consist.cur_real_order_index) {
 			/* Increment real order index as well */
 			this->SkipToNextRealOrderIndex();
 		}
 
-		assert(this->cur_real_order_index == 0 || this->cur_real_order_index < this->GetNumOrders());
+		assert(consist.cur_real_order_index == 0 || consist.cur_real_order_index < this->GetNumOrders());
 
 		/* Advance to next implicit order */
 		do {
-			this->cur_implicit_order_index++;
-			if (this->cur_implicit_order_index >= this->GetNumOrders()) this->cur_implicit_order_index = 0;
-		} while (this->cur_implicit_order_index != this->cur_real_order_index && !this->GetOrder(this->cur_implicit_order_index)->IsType(OT_IMPLICIT));
+			consist.cur_implicit_order_index++;
+			if (consist.cur_implicit_order_index >= this->GetNumOrders()) consist.cur_implicit_order_index = 0;
+		} while (consist.cur_implicit_order_index != consist.cur_real_order_index && !this->GetOrder(consist.cur_implicit_order_index)->IsType(OT_IMPLICIT));
 
 		InvalidateVehicleOrder(this, 0);
 	}
@@ -885,7 +949,8 @@ public:
 	 */
 	void IncrementRealOrderIndex()
 	{
-		if (this->cur_implicit_order_index == this->cur_real_order_index) {
+		const Consist &consist = this->GetConsist();
+		if (consist.cur_implicit_order_index == consist.cur_real_order_index) {
 			/* Increment both real and implicit order */
 			this->IncrementImplicitOrderIndex();
 		} else {
@@ -900,17 +965,19 @@ public:
 	 */
 	void UpdateRealOrderIndex()
 	{
+		Consist &consist = this->GetConsist();
+
 		/* Make sure the index is valid */
-		if (this->cur_real_order_index >= this->GetNumOrders()) this->cur_real_order_index = 0;
+		if (consist.cur_real_order_index >= this->GetNumOrders()) consist.cur_real_order_index = 0;
 
 		if (this->GetNumManualOrders() > 0) {
 			/* Advance to next real order */
-			while (this->GetOrder(this->cur_real_order_index)->IsType(OT_IMPLICIT)) {
-				this->cur_real_order_index++;
-				if (this->cur_real_order_index >= this->GetNumOrders()) this->cur_real_order_index = 0;
+			while (this->GetOrder(consist.cur_real_order_index)->IsType(OT_IMPLICIT)) {
+				consist.cur_real_order_index++;
+				if (consist.cur_real_order_index >= this->GetNumOrders()) consist.cur_real_order_index = 0;
 			}
 		} else {
-			this->cur_real_order_index = 0;
+			consist.cur_real_order_index = 0;
 		}
 	}
 
@@ -921,7 +988,7 @@ public:
 	 */
 	inline Order *GetOrder(int index) const
 	{
-		return (this->orders == nullptr) ? nullptr : this->orders->GetOrderAt(index);
+		return (this->GetConsist().orders == nullptr) ? nullptr : this->GetConsist().orders->GetOrderAt(index);
 	}
 
 	/**
@@ -930,7 +997,7 @@ public:
 	 */
 	inline Order *GetLastOrder() const
 	{
-		return (this->orders == nullptr) ? nullptr : this->orders->GetLastOrder();
+		return (this->GetConsist().orders == nullptr) ? nullptr : this->GetConsist().orders->GetLastOrder();
 	}
 
 	bool IsEngineCountable() const;
@@ -1081,7 +1148,8 @@ public:
 	 * Returns an iterable ensemble of orders of a vehicle
 	 * @return an iterable ensemble of orders of a vehicle
 	 */
-	IterateWrapper Orders() const { return IterateWrapper(this->orders); }
+	IterateWrapper Orders() const { return IterateWrapper(this->GetConsist().
+	orders); }
 
 	uint32_t GetDisplayMaxWeight() const;
 	uint32_t GetDisplayMinPowerToWeight() const;

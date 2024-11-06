@@ -1689,17 +1689,18 @@ static void FormatString(StringBuilder &builder, const char *str_arg, StringPara
 
 				case SCC_VEHICLE_NAME: { // {VEHICLE}
 					const Vehicle *v = Vehicle::GetIfValid(args.GetNextParameter<VehicleID>());
-					if (v == nullptr) break;
+					if (v == nullptr || !v->HasConsist()) break;
 
-					if (!v->name.empty()) {
-						auto tmp_params = MakeParameters(v->name);
+					const Consist &consist = v->GetConsist();
+					if (!consist.name.empty()) {
+						auto tmp_params = MakeParameters(consist.name);
 						GetStringWithArgs(builder, STR_JUST_RAW_STRING, tmp_params);
 					} else if (v->group_id != DEFAULT_GROUP) {
 						/* The vehicle has no name, but is member of a group, so print group name */
-						auto tmp_params = MakeParameters(v->group_id, v->unitnumber);
+						auto tmp_params = MakeParameters(v->group_id, consist.unitnumber);
 						GetStringWithArgs(builder, STR_FORMAT_GROUP_VEHICLE_NAME, tmp_params);
 					} else {
-						auto tmp_params = MakeParameters(v->unitnumber);
+						auto tmp_params = MakeParameters(consist.unitnumber);
 
 						StringID string_id;
 						switch (v->type) {

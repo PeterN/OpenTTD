@@ -272,8 +272,8 @@ int GetTrainStopLocation(StationID station_id, TileIndex tile, const Train *v, i
 	if (v->gcache.cached_total_length >= *station_length) {
 		/* The train is longer than the station, make it stop at the far end of the platform */
 		osl = OSL_PLATFORM_FAR_END;
-	} else if (v->current_order.IsType(OT_GOTO_STATION) && v->current_order.GetDestination() == station_id) {
-		osl = v->current_order.GetStopLocation();
+	} else if (v->GetConsist().current_order.IsType(OT_GOTO_STATION) && v->GetConsist().current_order.GetDestination() == station_id) {
+		osl = v->GetConsist().current_order.GetStopLocation();
 	}
 
 	/* The stop location of the FRONT! of the train */
@@ -387,7 +387,7 @@ int Train::GetCurrentMaxSpeed() const
 
 	if (_settings_game.vehicle.train_acceleration_model == AM_REALISTIC && IsRailStationTile(this->tile)) {
 		StationID sid = GetStationIndex(this->tile);
-		if (this->current_order.ShouldStopAtStation(this, sid)) {
+		if (this->GetConsist().current_order.ShouldStopAtStation(this, sid)) {
 			int station_ahead;
 			int station_length;
 			int stop_at = GetTrainStopLocation(sid, this->tile, this, &station_ahead, &station_length);
@@ -422,7 +422,7 @@ int Train::GetCurrentMaxSpeed() const
 		}
 	}
 
-	max_speed = std::min<int>(max_speed, this->current_order.GetMaxSpeed());
+	max_speed = std::min<int>(max_speed, this->GetConsist().current_order.GetMaxSpeed());
 	return std::min<int>(max_speed, this->gcache.cached_max_track_speed);
 }
 
@@ -434,7 +434,10 @@ void Train::UpdateAcceleration()
 	uint power = this->gcache.cached_power;
 	uint weight = this->gcache.cached_weight;
 	assert(weight != 0);
-	this->acceleration = Clamp(power / weight * 4, 1, 255);
+
+	if (!this->HasConsist()) return;
+
+	this->GetConsist().acceleration = Clamp(power / weight * 4, 1, 255);
 }
 
 int Train::GetCursorImageOffset() const
@@ -763,6 +766,7 @@ CommandCost CmdBuildRailVehicle(DoCommandFlag flags, TileIndex tile, const Engin
 		int y = TileY(tile) * TILE_SIZE + _vehicle_initial_y_fract[dir];
 
 		Train *v = new Train();
+		v->GetOrCreateConsist();
 		*ret = v;
 		v->direction = DiagDirToDir(dir);
 		v->tile = tile;
@@ -777,8 +781,6 @@ CommandCost CmdBuildRailVehicle(DoCommandFlag flags, TileIndex tile, const Engin
 		assert(IsValidCargoID(v->cargo_type));
 		v->cargo_cap = rvi->capacity;
 		v->refit_cap = 0;
-		v->last_station_visited = INVALID_STATION;
-		v->last_loading_station = INVALID_STATION;
 
 		v->engine_type = e->index;
 		v->gcache.first_engine = INVALID_ENGINE; // needs to be set before first callback
@@ -1177,8 +1179,8 @@ static void NormaliseTrainHead(Train *head)
 	SetWindowWidgetDirty(WC_VEHICLE_VIEW, head->index, WID_VV_REFIT);
 
 	/* If we don't have a unit number yet, set one. */
-	if (head->unitnumber != 0) return;
-	head->unitnumber = Company::Get(head->owner)->freeunits[head->type].UseID(GetFreeUnitNumber(VEH_TRAIN));
+	if (head->GetConsist().unitnumber != 0) return;
+	head->GetConsist().unitnumber = Company::Get(head->owner)->freeunits[head->type].UseID(GetFreeUnitNumber(VEH_TRAIN));
 }
 
 /**
@@ -1330,14 +1332,15 @@ CommandCost CmdMoveRailVehicle(DoCommandFlag flags, VehicleID src_veh, VehicleID
 			if (src_head != nullptr && src_head->IsFrontEngine()) {
 				/* Cases #?b: Transfer order, unit number and other stuff
 				 * to the new front engine. */
-				src_head->orders = src->orders;
-				if (src_head->orders != nullptr) src_head->AddToShared(src);
+				Consist &consist = src_head->GetOrCreateConsist();
+				consist.orders = src->GetConsist().orders;
+				if (consist.orders != nullptr) src_head->AddToShared(src);
 				src_head->CopyVehicleConfigAndStatistics(src);
 			}
 			/* Remove stuff not valid anymore for non-front engines. */
 			DeleteVehicleOrders(src);
 			src->ReleaseUnitNumber();
-			src->name.clear();
+			src->consist.reset();
 		}
 
 		/* We weren't a front engine but are becoming one. So
@@ -1415,7 +1418,7 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, bool sell_chain, b
 		return ret;
 	}
 
-	if (first->orders == nullptr && !OrderList::CanAllocateItem()) {
+	if (first->HasConsist() && first->GetConsist().orders == nullptr && !OrderList::CanAllocateItem()) {
 		/* Restore the train we had. */
 		RestoreTrainBackup(original);
 		return CommandCost(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
@@ -1433,7 +1436,8 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, bool sell_chain, b
 			if (v->IsEngine()) {
 				/* We are selling the front engine. In this case we want to
 				 * 'give' the order, unit number and such to the new head. */
-				new_head->orders = first->orders;
+				Consist &consist = new_head->GetOrCreateConsist();
+				consist.orders = first->GetConsist().orders;
 				new_head->AddToShared(first);
 				DeleteVehicleOrders(first);
 
@@ -1548,7 +1552,7 @@ static void MarkTrainAsStuck(Train *v)
 
 		/* Stop train */
 		v->cur_speed = 0;
-		v->subspeed = 0;
+		v->GetConsist().subspeed = 0;
 		v->SetLastSpeed();
 
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
@@ -2038,7 +2042,7 @@ void ReverseTrainDirection(Train *v)
 		if (TryPathReserve(v, false, first_tile_okay)) {
 			/* Do a look-ahead now in case our current tile was already a safe tile. */
 			CheckNextTrainTile(v);
-		} else if (v->current_order.GetType() != OT_LOADING) {
+		} else if (v->GetConsist().current_order.GetType() != OT_LOADING) {
 			/* Do not wait for a way out when we're still loading */
 			MarkTrainAsStuck(v);
 		}
@@ -2092,8 +2096,9 @@ CommandCost CmdReverseTrainDirection(DoCommandFlag flags, VehicleID veh_id, bool
 		if ((v->vehstatus & VS_CRASHED) || v->breakdown_ctr != 0) return CMD_ERROR;
 
 		if (flags & DC_EXEC) {
+			Consist &consist = v->GetConsist();
 			/* Properly leave the station if we are loading and won't be loading anymore */
-			if (v->current_order.IsType(OT_LOADING)) {
+			if (consist.current_order.IsType(OT_LOADING)) {
 				const Vehicle *last = v;
 				while (last->Next() != nullptr) last = last->Next();
 
@@ -2112,12 +2117,12 @@ CommandCost CmdReverseTrainDirection(DoCommandFlag flags, VehicleID veh_id, bool
 			} else {
 				v->cur_speed = 0;
 				v->SetLastSpeed();
-				HideFillingPercent(&v->fill_percent_te_id);
+				HideFillingPercent(&consist.fill_percent_te_id);
 				ReverseTrainDirection(v);
 			}
 
 			/* Unbunching data is no longer valid. */
-			v->ResetDepotUnbunching();
+			consist.ResetDepotUnbunching();
 		}
 	}
 	return CommandCost();
@@ -2150,7 +2155,7 @@ CommandCost CmdForceTrainProceed(DoCommandFlag flags, VehicleID veh_id)
 		SetWindowDirty(WC_VEHICLE_VIEW, t->index);
 
 		/* Unbunching data is no longer valid. */
-		t->ResetDepotUnbunching();
+		t->GetConsist().ResetDepotUnbunching();
 	}
 
 	return CommandCost();
@@ -2206,7 +2211,8 @@ static void CheckNextTrainTile(Train *v)
 	/* Exit if we are inside a depot. */
 	if (v->track == TRACK_BIT_DEPOT) return;
 
-	switch (v->current_order.GetType()) {
+	Consist &consist = v->GetConsist();
+	switch (consist.current_order.GetType()) {
 		/* Exit if we reached our destination depot. */
 		case OT_GOTO_DEPOT:
 			if (v->tile == v->dest_tile) return;
@@ -2214,7 +2220,7 @@ static void CheckNextTrainTile(Train *v)
 
 		case OT_GOTO_WAYPOINT:
 			/* If we reached our waypoint, make sure we see that. */
-			if (IsRailWaypointTile(v->tile) && GetStationIndex(v->tile) == v->current_order.GetDestination()) ProcessOrders(v);
+			if (IsRailWaypointTile(v->tile) && GetStationIndex(v->tile) == consist.current_order.GetDestination()) ProcessOrders(v);
 			break;
 
 		case OT_NOTHING:
@@ -2228,7 +2234,7 @@ static void CheckNextTrainTile(Train *v)
 			break;
 	}
 	/* Exit if we are on a station tile and are going to stop. */
-	if (IsRailStationTile(v->tile) && v->current_order.ShouldStopAtStation(v, GetStationIndex(v->tile))) return;
+	if (IsRailStationTile(v->tile) && consist.current_order.ShouldStopAtStation(v, GetStationIndex(v->tile))) return;
 
 	Trackdir td = v->GetVehicleTrackdir();
 
@@ -2299,7 +2305,7 @@ static bool CheckTrainStayInDepot(Train *v)
 	}
 
 	/* We are leaving a depot, but have to go to the exact same one; re-enter. */
-	if (v->current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
+	if (v->GetConsist().current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
 		/* Service when depot has no reservation. */
 		if (!HasDepotReservation(v->tile)) VehicleEnterDepot(v);
 		return true;
@@ -2609,10 +2615,10 @@ private:
 public:
 	VehicleOrderSaver(Train *_v) :
 		v(_v),
-		old_order(_v->current_order),
+		old_order(_v->GetConsist().current_order),
 		old_dest_tile(_v->dest_tile),
-		old_last_station_visited(_v->last_station_visited),
-		index(_v->cur_real_order_index),
+		old_last_station_visited(_v->GetConsist().last_station_visited),
+		index(_v->GetConsist().cur_real_order_index),
 		suppress_implicit_orders(HasBit(_v->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS)),
 		restored(false)
 	{
@@ -2623,9 +2629,9 @@ public:
 	 */
 	void Restore()
 	{
-		this->v->current_order = this->old_order;
+		this->v->GetConsist().current_order = this->old_order;
 		this->v->dest_tile = this->old_dest_tile;
-		this->v->last_station_visited = this->old_last_station_visited;
+		this->v->GetConsist().last_station_visited = this->old_last_station_visited;
 		AssignBit(this->v->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS, suppress_implicit_orders);
 		this->restored = true;
 	}
@@ -2665,7 +2671,7 @@ public:
 					[[fallthrough]];
 				case OT_GOTO_STATION:
 				case OT_GOTO_WAYPOINT:
-					this->v->current_order = *order;
+					this->v->GetConsist().current_order = *order;
 					return UpdateOrderDest(this->v, order, 0, true);
 				case OT_CONDITIONAL: {
 					VehicleOrderID next = ProcessConditionalOrder(order, this->v);
@@ -2684,7 +2690,7 @@ public:
 			 * orders can lead to an infinite loop. */
 			++this->index;
 			depth++;
-		} while (this->index != this->v->cur_real_order_index && depth < this->v->GetNumOrders());
+		} while (this->index != this->v->GetConsist().cur_real_order_index && depth < this->v->GetNumOrders());
 
 		return false;
 	}
@@ -2721,6 +2727,7 @@ static Track ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, 
 		best_track = track;
 	}
 
+	Consist &consist = v->GetConsist();
 	PBSTileInfo   res_dest(tile, INVALID_TRACKDIR, false);
 	DiagDirection dest_enterdir = enterdir;
 	if (do_track_reservation) {
@@ -2743,7 +2750,7 @@ static Track ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, 
 		 * Also check if the current order is a service order so we don't reserve a path to
 		 * the destination but instead to the next one if service isn't needed. */
 		CheckIfTrainNeedsService(v);
-		if (v->current_order.IsType(OT_DUMMY) || v->current_order.IsType(OT_CONDITIONAL) || v->current_order.IsType(OT_GOTO_DEPOT)) ProcessOrders(v);
+		if (consist.current_order.IsType(OT_DUMMY) || consist.current_order.IsType(OT_CONDITIONAL) || consist.current_order.IsType(OT_GOTO_DEPOT)) ProcessOrders(v);
 	}
 
 	/* Save the current train order. The destructor will restore the old order on function exit. */
@@ -2755,11 +2762,11 @@ static Track ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, 
 	 * for a path and no look-ahead is necessary. This also avoids a
 	 * problem with depot orders not part of the order list when the
 	 * order list itself is empty. */
-	if (v->current_order.IsType(OT_LEAVESTATION)) {
+	if (consist.current_order.IsType(OT_LEAVESTATION)) {
 		orders.SwitchToNextOrder(false);
-	} else if (v->current_order.IsType(OT_LOADING) || (!v->current_order.IsType(OT_GOTO_DEPOT) && (
-			v->current_order.IsType(OT_GOTO_STATION) ?
-			IsRailStationTile(v->tile) && v->current_order.GetDestination() == GetStationIndex(v->tile) :
+	} else if (consist.current_order.IsType(OT_LOADING) || (!consist.current_order.IsType(OT_GOTO_DEPOT) && (
+			consist.current_order.IsType(OT_GOTO_STATION) ?
+			IsRailStationTile(v->tile) && consist.current_order.GetDestination() == GetStationIndex(v->tile) :
 			v->tile == v->dest_tile))) {
 		orders.SwitchToNextOrder(true);
 	}
@@ -2844,10 +2851,10 @@ static Track ChooseTrainTrack(Train *v, TileIndex tile, DiagDirection enterdir, 
 	if (changed_signal) MarkTileDirtyByTile(tile);
 
 	orders.Restore();
-	if (v->current_order.IsType(OT_GOTO_DEPOT) &&
-			(v->current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT) &&
+	if (consist.current_order.IsType(OT_GOTO_DEPOT) &&
+			(consist.current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT) &&
 			final_dest != INVALID_TILE && IsRailDepotTile(final_dest)) {
-		v->current_order.SetDestination(GetDepotIndex(final_dest));
+		consist.current_order.SetDestination(GetDepotIndex(final_dest));
 		v->dest_tile = final_dest;
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 	}
@@ -2950,7 +2957,7 @@ static bool CheckReverseTrain(const Train *v)
  */
 TileIndex Train::GetOrderStationLocation(StationID station)
 {
-	if (station == this->last_station_visited) this->last_station_visited = INVALID_STATION;
+	if (station == this->GetConsist().last_station_visited) this->GetConsist().last_station_visited = INVALID_STATION;
 
 	const Station *st = Station::Get(station);
 	if (!(st->facilities & FACIL_TRAIN)) {
@@ -2988,7 +2995,7 @@ int Train::UpdateSpeed()
 	switch (_settings_game.vehicle.train_acceleration_model) {
 		default: NOT_REACHED();
 		case AM_ORIGINAL:
-			return this->DoUpdateSpeed(this->acceleration * (this->GetAccelerationStatus() == AS_BRAKE ? -4 : 2), 0, this->GetCurrentMaxSpeed());
+			return this->DoUpdateSpeed(this->GetConsist().acceleration * (this->GetAccelerationStatus() == AS_BRAKE ? -4 : 2), 0, this->GetCurrentMaxSpeed());
 
 		case AM_REALISTIC:
 			return this->DoUpdateSpeed(this->GetAcceleration(), this->GetAccelerationStatus() == AS_BRAKE ? 0 : 2, this->GetCurrentMaxSpeed());
@@ -3002,7 +3009,7 @@ int Train::UpdateSpeed()
  */
 static void TrainEnterStation(Train *v, StationID station)
 {
-	v->last_station_visited = station;
+	v->GetConsist().last_station_visited = station;
 
 	/* check if a train ever visited this station before */
 	Station *st = Station::Get(station);
@@ -3131,7 +3138,7 @@ uint Train::Crash(bool flooded)
 		if (crossing != INVALID_TILE) UpdateLevelCrossing(crossing);
 
 		/* Remove the loading indicators (if any) */
-		HideFillingPercent(&this->fill_percent_te_id);
+		HideFillingPercent(&this->GetConsist().fill_percent_te_id);
 	}
 
 	victims += this->GroundVehicleBase::Crash(flooded);
@@ -3371,12 +3378,12 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 						if (!HasSignalOnTrackdir(gp.new_tile, ReverseTrackdir(i))) {
 							v->cur_speed = 0;
-							v->subspeed = 0;
+							v->GetConsist().subspeed = 0;
 							v->progress = 255; // make sure that every bit of acceleration will hit the signal again, so speed stays 0.
 							if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_oneway_signal * Ticks::DAY_TICKS * 2) return false;
 						} else if (HasSignalOnTrackdir(gp.new_tile, i)) {
 							v->cur_speed = 0;
-							v->subspeed = 0;
+							v->GetConsist().subspeed = 0;
 							v->progress = 255; // make sure that every bit of acceleration will hit the signal again, so speed stays 0.
 							if (!_settings_game.pf.reverse_at_signals || ++v->wait_counter < _settings_game.pf.wait_twoway_signal * Ticks::DAY_TICKS * 2) {
 								DiagDirection exitdir = TrackdirToExitdir(i);
@@ -3583,7 +3590,7 @@ reverse_train_direction:
 	if (reverse) {
 		v->wait_counter = 0;
 		v->cur_speed = 0;
-		v->subspeed = 0;
+		v->GetConsist().subspeed = 0;
 		ReverseTrainDirection(v);
 	}
 
@@ -3643,6 +3650,7 @@ static void DeleteLastWagon(Train *v)
 	 * one which will physically be removed */
 	Train *u = v;
 	for (; v->Next() != nullptr; v = v->Next()) u = v;
+	v->CancelReservation();
 	u->SetNext(nullptr);
 
 	if (first != v) {
@@ -3653,7 +3661,6 @@ static void DeleteLastWagon(Train *v)
 		if (first->track == TRACK_BIT_DEPOT) {
 			SetWindowDirty(WC_VEHICLE_DEPOT, first->tile);
 		}
-		v->last_station_visited = first->last_station_visited; // for PreDestructor
 	}
 
 	/* 'v' shouldn't be accessed after it has been deleted */
@@ -3959,11 +3966,11 @@ static bool TrainLocoHandler(Train *v, bool mode)
 	/* exit if train is stopped */
 	if ((v->vehstatus & VS_STOPPED) && v->cur_speed == 0) return true;
 
-	bool valid_order = !v->current_order.IsType(OT_NOTHING) && v->current_order.GetType() != OT_CONDITIONAL;
+	bool valid_order = !v->GetConsist().current_order.IsType(OT_NOTHING) && v->GetConsist().current_order.GetType() != OT_CONDITIONAL;
 	if (ProcessOrders(v) && CheckReverseTrain(v)) {
 		v->wait_counter = 0;
 		v->cur_speed = 0;
-		v->subspeed = 0;
+		v->GetConsist().subspeed = 0;
 		ClrBit(v->flags, VRF_LEAVING_STATION);
 		ReverseTrainDirection(v);
 		return true;
@@ -3982,14 +3989,14 @@ static bool TrainLocoHandler(Train *v, bool mode)
 
 	v->HandleLoading(mode);
 
-	if (v->current_order.IsType(OT_LOADING)) return true;
+	if (v->GetConsist().current_order.IsType(OT_LOADING)) return true;
 
 	if (CheckTrainStayInDepot(v)) return true;
 
 	if (!mode) v->ShowVisualEffect();
 
 	/* We had no order but have an order now, do look ahead. */
-	if (!valid_order && !v->current_order.IsType(OT_NOTHING)) {
+	if (!valid_order && !v->GetConsist().current_order.IsType(OT_NOTHING)) {
 		CheckNextTrainTile(v);
 	}
 
@@ -4021,8 +4028,8 @@ static bool TrainLocoHandler(Train *v, bool mode)
 		}
 	}
 
-	if (v->current_order.IsType(OT_LEAVESTATION)) {
-		v->current_order.Free();
+	if (v->GetConsist().current_order.IsType(OT_LEAVESTATION)) {
+		v->GetConsist().current_order.Free();
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		return true;
 	}
@@ -4054,12 +4061,12 @@ static bool TrainLocoHandler(Train *v, bool mode)
 			/* No more moving this tick */
 			if (j < adv_spd || v->cur_speed == 0) break;
 
-			OrderType order_type = v->current_order.GetType();
+			OrderType order_type = v->GetConsist().current_order.GetType();
 			/* Do not skip waypoints (incl. 'via' stations) when passing through at full speed. */
 			if ((order_type == OT_GOTO_WAYPOINT || order_type == OT_GOTO_STATION) &&
-						(v->current_order.GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) &&
+						(v->GetConsist().current_order.GetNonStopType() & ONSF_NO_STOP_AT_DESTINATION_STATION) &&
 						IsTileType(v->tile, MP_STATION) &&
-						v->current_order.GetDestination() == GetStationIndex(v->tile)) {
+						v->GetConsist().current_order.GetDestination() == GetStationIndex(v->tile)) {
 				ProcessOrders(v);
 			}
 		}
@@ -4115,7 +4122,7 @@ bool Train::Tick()
 
 		if (!(this->vehstatus & VS_STOPPED) || this->cur_speed > 0) this->running_ticks++;
 
-		this->current_order_time++;
+		this->GetConsist().current_order_time++;
 
 		if (!TrainLocoHandler(this, false)) return false;
 
@@ -4148,11 +4155,11 @@ static void CheckIfTrainNeedsService(Train *v)
 	FindDepotData tfdd = FindClosestTrainDepot(v, max_penalty);
 	/* Only go to the depot if it is not too far out of our way. */
 	if (tfdd.best_length == UINT_MAX || tfdd.best_length > max_penalty) {
-		if (v->current_order.IsType(OT_GOTO_DEPOT)) {
+		if (v->GetConsist().current_order.IsType(OT_GOTO_DEPOT)) {
 			/* If we were already heading for a depot but it has
 			 * suddenly moved farther away, we continue our normal
 			 * schedule? */
-			v->current_order.MakeDummy();
+			v->GetConsist().current_order.MakeDummy();
 			SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		}
 		return;
@@ -4160,14 +4167,14 @@ static void CheckIfTrainNeedsService(Train *v)
 
 	DepotID depot = GetDepotIndex(tfdd.tile);
 
-	if (v->current_order.IsType(OT_GOTO_DEPOT) &&
-			v->current_order.GetDestination() != depot &&
+	if (v->GetConsist().current_order.IsType(OT_GOTO_DEPOT) &&
+			v->GetConsist().current_order.GetDestination() != depot &&
 			!Chance16(3, 16)) {
 		return;
 	}
 
 	SetBit(v->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
-	v->current_order.MakeGoToDepot(depot, ODTFB_SERVICE, ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS, ODATFB_NEAREST_DEPOT);
+	v->GetConsist().current_order.MakeGoToDepot(depot, ODTFB_SERVICE, ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS, ODATFB_NEAREST_DEPOT);
 	v->dest_tile = tfdd.tile;
 	SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 }
@@ -4193,8 +4200,8 @@ void Train::OnNewEconomyDay()
 		CheckOrders(this);
 
 		/* update destination */
-		if (this->current_order.IsType(OT_GOTO_STATION)) {
-			TileIndex tile = Station::Get(this->current_order.GetDestination())->train_station.tile;
+		if (this->GetConsist().current_order.IsType(OT_GOTO_STATION)) {
+			TileIndex tile = Station::Get(this->GetConsist().current_order.GetDestination())->train_station.tile;
 			if (tile != INVALID_TILE) this->dest_tile = tile;
 		}
 
@@ -4202,7 +4209,7 @@ void Train::OnNewEconomyDay()
 			/* running costs */
 			CommandCost cost(EXPENSES_TRAIN_RUN, this->GetRunningCost() * this->running_ticks / (CalendarTime::DAYS_IN_YEAR  * Ticks::DAY_TICKS));
 
-			this->profit_this_year -= cost.GetCost();
+			this->GetConsist().profit_this_year -= cost.GetCost();
 			this->running_ticks = 0;
 
 			SubtractMoneyFromCompanyFract(this->owner, cost);

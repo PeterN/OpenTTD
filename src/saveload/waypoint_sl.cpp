@@ -151,8 +151,9 @@ void MoveWaypointsToBaseStations()
 
 	for (Vehicle *v : Vehicle::Iterate()) {
 		if (v->type != VEH_TRAIN) continue;
+		if (!v->HasConsist()) continue;
 
-		UpdateWaypointOrder(&v->current_order);
+		UpdateWaypointOrder(&v->GetConsist().current_order);
 	}
 
 	ResetOldWaypoints();

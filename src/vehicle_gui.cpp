@@ -209,7 +209,8 @@ uint GetUnitNumberDigits(VehicleList &vehicles)
 {
 	uint unitnumber = 0;
 	for (const Vehicle *v : vehicles) {
-		unitnumber = std::max<uint>(unitnumber, v->unitnumber);
+		if (!v->HasConsist()) continue;
+		unitnumber = std::max<uint>(unitnumber, v->GetConsist().unitnumber);
 	}
 
 	return CountDigitsForAllocatingSpace(unitnumber);
@@ -238,7 +239,8 @@ void BaseVehicleListWindow::BuildVehicleList()
 		for (auto it = this->vehicles.begin(); it != this->vehicles.end(); ++it) {
 			this->vehgroups.emplace_back(it, it + 1);
 
-			max_unitnumber = std::max<uint>(max_unitnumber, (*it)->unitnumber);
+			if (!(*it)->HasConsist()) continue;
+			max_unitnumber = std::max<uint>(max_unitnumber, (*it)->GetConsist().unitnumber);
 		}
 		this->unitnumber_digits = CountDigitsForAllocatingSpace(max_unitnumber);
 	} else {
@@ -1450,7 +1452,7 @@ static bool VehicleGroupAverageProfitLastYearSorter(const GUIVehicleGroup &a, co
 /** Sort vehicles by their number */
 static bool VehicleNumberSorter(const Vehicle * const &a, const Vehicle * const &b)
 {
-	return a->unitnumber < b->unitnumber;
+	return a->GetConsist().unitnumber < b->GetConsist().unitnumber;
 }
 
 /** Sort vehicles by their name */
@@ -1565,7 +1567,7 @@ static bool VehicleTimeToLiveSorter(const Vehicle * const &a, const Vehicle * co
 /** Sort vehicles by the timetable delay */
 static bool VehicleTimetableDelaySorter(const Vehicle * const &a, const Vehicle * const &b)
 {
-	int r = a->lateness_counter - b->lateness_counter;
+	int r = a->GetConsist().lateness_counter - b->GetConsist().lateness_counter;
 	return (r != 0) ? r < 0 : VehicleNumberSorter(a, b);
 }
 
@@ -1685,7 +1687,7 @@ static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, uin
 	VehicleOrderID oid = start;
 
 	do {
-		if (oid == v->cur_real_order_index) DrawString(left, right, y, STR_JUST_RIGHT_ARROW, TC_BLACK, SA_LEFT, false, FS_SMALL);
+		if (oid == v->GetConsist().cur_real_order_index) DrawString(left, right, y, STR_JUST_RIGHT_ARROW, TC_BLACK, SA_LEFT, false, FS_SMALL);
 
 		if (order->IsType(OT_GOTO_STATION)) {
 			SetDParam(0, order->GetDestination());
@@ -1698,7 +1700,7 @@ static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, uin
 		oid++;
 		order = order->next;
 		if (order == nullptr) {
-			order = v->orders->GetFirstOrder();
+			order = v->GetConsist().orders->GetFirstOrder();
 			oid = 0;
 		}
 	} while (oid != start);
@@ -1810,7 +1812,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 			case GB_NONE: {
 				const Vehicle *v = vehgroup.GetSingleVehicle();
 
-				if (HasBit(v->vehicle_flags, VF_PATHFINDER_LOST)) {
+				if (HasBit(v->GetConsist().consist_flags, VCF_PATHFINDER_LOST)) {
 					DrawSprite(SPR_WARNING_SIGN, PAL_NONE, vehicle_button_x, ir.top + GetCharacterHeight(FS_NORMAL) + WidgetDimensions::scaled.vsep_normal + profit.height);
 				}
 
@@ -1826,7 +1828,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 						SetBit(vehicle_cargoes, u->cargo_type);
 					}
 
-					if (!v->name.empty()) {
+					if (!v->GetConsist().name.empty()) {
 						/* The vehicle got a name so we will print it and the cargoes */
 						SetDParam(0, STR_VEHICLE_NAME);
 						SetDParam(1, v->index);
@@ -1845,7 +1847,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 						SetDParam(0, vehicle_cargoes);
 						DrawString(tr.left, tr.right, ir.top, STR_VEHICLE_LIST_CARGO, TC_BLACK, SA_LEFT, false, FS_SMALL);
 					}
-				} else if (!v->name.empty()) {
+				} else if (!v->GetConsist().name.empty()) {
 					/* The vehicle got a name so we will print it */
 					SetDParam(0, v->index);
 					DrawString(tr.left, tr.right, ir.top, STR_VEHICLE_NAME, TC_BLACK, SA_LEFT, false, FS_SMALL);
@@ -1855,7 +1857,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 					DrawString(tr.left, tr.right, ir.top, STR_GROUP_NAME, TC_BLACK, SA_LEFT, false, FS_SMALL);
 				}
 
-				if (show_orderlist) DrawSmallOrderList(v, olr.left, olr.right, ir.top + GetCharacterHeight(FS_SMALL), this->order_arrow_width, v->cur_real_order_index);
+				if (show_orderlist) DrawSmallOrderList(v, olr.left, olr.right, ir.top + GetCharacterHeight(FS_SMALL), this->order_arrow_width, v->GetConsist().cur_real_order_index);
 
 				TextColour tc;
 				if (v->IsChainInDepot()) {
@@ -1864,7 +1866,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 					tc = (v->age > v->max_age - CalendarTime::DAYS_IN_LEAP_YEAR) ? TC_RED : TC_BLACK;
 				}
 
-				SetDParam(0, v->unitnumber);
+				SetDParam(0, v->GetConsist().unitnumber);
 				DrawString(ir.left, ir.right, ir.top + WidgetDimensions::scaled.framerect.top, STR_JUST_COMMA, tc);
 				break;
 			}
@@ -3165,7 +3167,7 @@ public:
 			this->SetWidgetDisabledState(WID_VV_TURN_AROUND, !is_localcompany);
 		}
 
-		this->SetWidgetDisabledState(WID_VV_ORDER_LOCATION, v->current_order.GetLocation(v) == INVALID_TILE);
+		this->SetWidgetDisabledState(WID_VV_ORDER_LOCATION, v->GetConsist().current_order.GetLocation(v) == INVALID_TILE);
 
 		const Window *mainwindow = GetMainWindow();
 		if (mainwindow->viewport->follow_vehicle == v->index) {
@@ -3211,31 +3213,32 @@ public:
 			}
 		} else if (v->IsInDepot() && v->IsWaitingForUnbunching()) {
 			str = STR_VEHICLE_STATUS_WAITING_UNBUNCHING;
-		} else if (v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->current_order.IsType(OT_LOADING)) {
+		} else if (v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->GetConsist().current_order.IsType(OT_LOADING)) {
 			str = STR_VEHICLE_STATUS_TRAIN_STUCK;
-		} else if (v->type == VEH_AIRCRAFT && HasBit(Aircraft::From(v)->flags, VAF_DEST_TOO_FAR) && !v->current_order.IsType(OT_LOADING)) {
+		} else if (v->type == VEH_AIRCRAFT && HasBit(Aircraft::From(v)->flags, VAF_DEST_TOO_FAR) && !v->GetConsist().current_order.IsType(OT_LOADING)) {
 			str = STR_VEHICLE_STATUS_AIRCRAFT_TOO_FAR;
 		} else { // vehicle is in a "normal" state, show current order
 			if (mouse_over_start_stop) {
 				if (v->vehstatus & VS_STOPPED) {
 					text_colour = TC_RED | TC_FORCED;
-				} else if (v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->current_order.IsType(OT_LOADING)) {
+				} else if (v->type == VEH_TRAIN && HasBit(Train::From(v)->flags, VRF_TRAIN_STUCK) && !v->GetConsist().current_order.IsType(OT_LOADING)) {
 					text_colour = TC_ORANGE | TC_FORCED;
 				}
 			}
-			switch (v->current_order.GetType()) {
+			const Consist &consist = v->GetConsist();
+			switch (consist.current_order.GetType()) {
 				case OT_GOTO_STATION: {
-					SetDParam(0, v->current_order.GetDestination());
+					SetDParam(0, consist.current_order.GetDestination());
 					SetDParam(1, PackVelocity(v->GetDisplaySpeed(), v->type));
-					str = HasBit(v->vehicle_flags, VF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_STATION_VEL : STR_VEHICLE_STATUS_HEADING_FOR_STATION_VEL;
+					str = HasBit(consist.consist_flags, VCF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_STATION_VEL : STR_VEHICLE_STATUS_HEADING_FOR_STATION_VEL;
 					break;
 				}
 
 				case OT_GOTO_DEPOT: {
 					SetDParam(0, v->type);
-					SetDParam(1, v->current_order.GetDestination());
+					SetDParam(1, consist.current_order.GetDestination());
 					SetDParam(2, PackVelocity(v->GetDisplaySpeed(), v->type));
-					if (v->current_order.GetDestination() == INVALID_DEPOT) {
+					if (consist.current_order.GetDestination() == INVALID_DEPOT) {
 						/* This case *only* happens when multiple nearest depot orders
 						 * follow each other (including an order list only one order: a
 						 * nearest depot order) and there are no reachable depots.
@@ -3243,12 +3246,12 @@ public:
 						 * depot with index 0, which would be used as fallback for
 						 * evaluating the string in the status bar. */
 						str = STR_EMPTY;
-					} else if (v->current_order.GetDepotActionType() & ODATFB_HALT) {
-						str = HasBit(v->vehicle_flags, VF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_DEPOT_VEL : STR_VEHICLE_STATUS_HEADING_FOR_DEPOT_VEL;
-					} else if (v->current_order.GetDepotActionType() & ODATFB_UNBUNCH) {
-						str = HasBit(v->vehicle_flags, VF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_DEPOT_SERVICE_VEL : STR_VEHICLE_STATUS_HEADING_FOR_DEPOT_UNBUNCH_VEL;
+					} else if (consist.current_order.GetDepotActionType() & ODATFB_HALT) {
+						str = HasBit(consist.consist_flags, VCF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_DEPOT_VEL : STR_VEHICLE_STATUS_HEADING_FOR_DEPOT_VEL;
+					} else if (consist.current_order.GetDepotActionType() & ODATFB_UNBUNCH) {
+						str = HasBit(consist.consist_flags, VCF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_DEPOT_SERVICE_VEL : STR_VEHICLE_STATUS_HEADING_FOR_DEPOT_UNBUNCH_VEL;
 					} else {
-						str = HasBit(v->vehicle_flags, VF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_DEPOT_SERVICE_VEL : STR_VEHICLE_STATUS_HEADING_FOR_DEPOT_SERVICE_VEL;
+						str = HasBit(consist.consist_flags, VCF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_DEPOT_SERVICE_VEL : STR_VEHICLE_STATUS_HEADING_FOR_DEPOT_SERVICE_VEL;
 					}
 					break;
 				}
@@ -3259,8 +3262,8 @@ public:
 
 				case OT_GOTO_WAYPOINT: {
 					assert(v->type == VEH_TRAIN || v->type == VEH_ROAD || v->type == VEH_SHIP);
-					SetDParam(0, v->current_order.GetDestination());
-					str = HasBit(v->vehicle_flags, VF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_WAYPOINT_VEL : STR_VEHICLE_STATUS_HEADING_FOR_WAYPOINT_VEL;
+					SetDParam(0, consist.current_order.GetDestination());
+					str = HasBit(consist.consist_flags, VCF_PATHFINDER_LOST) ? STR_VEHICLE_STATUS_CANNOT_REACH_WAYPOINT_VEL : STR_VEHICLE_STATUS_HEADING_FOR_WAYPOINT_VEL;
 					SetDParam(1, PackVelocity(v->GetDisplaySpeed(), v->type));
 					break;
 				}
@@ -3286,7 +3289,7 @@ public:
 		bool rtl = (_current_text_dir == TD_RTL);
 		uint icon_width = std::max({GetScaledSpriteSize(SPR_WARNING_SIGN).width, GetScaledSpriteSize(SPR_FLAG_VEH_STOPPED).width, GetScaledSpriteSize(SPR_FLAG_VEH_RUNNING).width});
 		Rect tr = r.Shrink(WidgetDimensions::scaled.framerect);
-		SpriteID image = ((v->vehstatus & VS_STOPPED) != 0) ? SPR_FLAG_VEH_STOPPED : (HasBit(v->vehicle_flags, VF_PATHFINDER_LOST)) ? SPR_WARNING_SIGN : SPR_FLAG_VEH_RUNNING;
+		SpriteID image = ((v->vehstatus & VS_STOPPED) != 0) ? SPR_FLAG_VEH_STOPPED : (HasBit(v->GetConsist().consist_flags, VCF_PATHFINDER_LOST)) ? SPR_WARNING_SIGN : SPR_FLAG_VEH_RUNNING;
 		DrawSpriteIgnorePadding(image, PAL_NONE, tr.WithWidth(icon_width, rtl), SA_CENTER);
 		tr = tr.Indent(icon_width + WidgetDimensions::scaled.imgbtn.Horizontal(), rtl);
 		DrawString(tr.left, tr.right, CenterBounds(tr.top, tr.bottom, GetCharacterHeight(FS_NORMAL)), str, text_colour, SA_HOR_CENTER);
@@ -3310,7 +3313,7 @@ public:
 
 			case WID_VV_ORDER_LOCATION: {
 				/* Scroll to current order destination */
-				TileIndex tile = v->current_order.GetLocation(v);
+				TileIndex tile = v->GetConsist().current_order.GetLocation(v);
 				if (tile == INVALID_TILE) break;
 
 				if (_ctrl_pressed) {

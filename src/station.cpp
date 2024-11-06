@@ -120,13 +120,12 @@ Station::~Station()
 	}
 
 	for (Vehicle *v : Vehicle::Iterate()) {
+		if (!v->HasConsist()) continue;
+		Consist &consist = v->GetConsist();
+
 		/* Forget about this station if this station is removed */
-		if (v->last_station_visited == this->index) {
-			v->last_station_visited = INVALID_STATION;
-		}
-		if (v->last_loading_station == this->index) {
-			v->last_loading_station = INVALID_STATION;
-		}
+		if (consist.last_station_visited == this->index) consist.last_station_visited = INVALID_STATION;
+		if (consist.last_loading_station == this->index) consist.last_loading_station = INVALID_STATION;
 	}
 
 	/* Remove station from industries and towns that reference it. */

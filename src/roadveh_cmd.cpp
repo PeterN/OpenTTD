@@ -269,6 +269,7 @@ CommandCost CmdBuildRoadVehicle(DoCommandFlag flags, TileIndex tile, const Engin
 		const RoadVehicleInfo *rvi = &e->u.road;
 
 		RoadVehicle *v = new RoadVehicle();
+		v->GetOrCreateConsist();
 		*ret = v;
 		v->direction = DiagDirToDir(GetRoadDepotDirection(tile));
 		v->owner = _current_company;
@@ -289,8 +290,6 @@ CommandCost CmdBuildRoadVehicle(DoCommandFlag flags, TileIndex tile, const Engin
 		v->cargo_cap = rvi->capacity;
 		v->refit_cap = 0;
 
-		v->last_station_visited = INVALID_STATION;
-		v->last_loading_station = INVALID_STATION;
 		v->engine_type = e->index;
 		v->gcache.first_engine = INVALID_ENGINE; // needs to be set before first callback
 
@@ -374,7 +373,7 @@ CommandCost CmdTurnRoadVeh(DoCommandFlag flags, VehicleID veh_id)
 			v->overtaking != 0 ||
 			v->state == RVSB_WORMHOLE ||
 			v->IsInDepot() ||
-			v->current_order.IsType(OT_LOADING)) {
+			v->GetConsist().current_order.IsType(OT_LOADING)) {
 		return CMD_ERROR;
 	}
 
@@ -386,7 +385,7 @@ CommandCost CmdTurnRoadVeh(DoCommandFlag flags, VehicleID veh_id)
 		v->reverse_ctr = 180;
 
 		/* Unbunching data is no longer valid. */
-		v->ResetDepotUnbunching();
+		v->GetConsist().ResetDepotUnbunching();
 	}
 
 	return CommandCost();
@@ -454,7 +453,7 @@ inline int RoadVehicle::GetCurrentMaxSpeed() const
 		}
 	}
 
-	return std::min(max_speed, this->current_order.GetMaxSpeed() * 2);
+	return std::min(max_speed, this->GetConsist().current_order.GetMaxSpeed() * 2);
 }
 
 /**
@@ -463,11 +462,10 @@ inline int RoadVehicle::GetCurrentMaxSpeed() const
  */
 static void DeleteLastRoadVeh(RoadVehicle *v)
 {
-	RoadVehicle *first = v->First();
 	Vehicle *u = v;
 	for (; v->Next() != nullptr; v = v->Next()) u = v;
+	v->CancelReservation();
 	u->SetNext(nullptr);
-	v->last_station_visited = first->last_station_visited; // for PreDestructor
 
 	/* Only leave the road stop when we're really gone. */
 	if (IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END)) RoadStop::GetByTile(v->tile, GetRoadStopType(v->tile))->Leave(v);
@@ -582,7 +580,7 @@ static bool RoadVehCheckTrainCrash(RoadVehicle *v)
 
 TileIndex RoadVehicle::GetOrderStationLocation(StationID station)
 {
-	if (station == this->last_station_visited) this->last_station_visited = INVALID_STATION;
+	if (station == this->GetConsist().last_station_visited) this->GetConsist().last_station_visited = INVALID_STATION;
 
 	const Station *st = Station::Get(station);
 	if (!CanVehicleUseStation(this, st)) {
@@ -1017,7 +1015,7 @@ bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 
 	if (first) {
 		/* We are leaving a depot, but have to go to the exact same one; re-enter */
-		if (v->current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
+		if (v->GetConsist().current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
 			VehicleEnterDepot(v);
 			return true;
 		}
@@ -1449,11 +1447,11 @@ again:
 
 			/* In case an RV is stopped in a road stop, why not try to load? */
 			if (v->cur_speed == 0 && IsInsideMM(v->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) &&
-					v->current_order.ShouldStopAtStation(v, GetStationIndex(v->tile)) &&
-					v->owner == GetTileOwner(v->tile) && !v->current_order.IsType(OT_LEAVESTATION) &&
+					v->GetConsist().current_order.ShouldStopAtStation(v, GetStationIndex(v->tile)) &&
+					v->owner == GetTileOwner(v->tile) && !v->GetConsist().current_order.IsType(OT_LEAVESTATION) &&
 					GetRoadStopType(v->tile) == (v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK)) {
 				Station *st = Station::GetByTile(v->tile);
-				v->last_station_visited = st->index;
+				v->GetConsist().last_station_visited = st->index;
 				RoadVehArrivesAt(v, st);
 				v->BeginLoading();
 			}
@@ -1482,7 +1480,7 @@ again:
 	if (v->IsFrontEngine() && ((IsInsideMM(v->state, RVSB_IN_ROAD_STOP, RVSB_IN_ROAD_STOP_END) &&
 			_road_stop_stop_frame[v->state - RVSB_IN_ROAD_STOP + (_settings_game.vehicle.road_side << RVS_DRIVE_SIDE)] == v->frame) ||
 			(IsInsideMM(v->state, RVSB_IN_DT_ROAD_STOP, RVSB_IN_DT_ROAD_STOP_END) &&
-			v->current_order.ShouldStopAtStation(v, GetStationIndex(v->tile)) &&
+			v->GetConsist().current_order.ShouldStopAtStation(v, GetStationIndex(v->tile)) &&
 			v->owner == GetTileOwner(v->tile) &&
 			GetRoadStopType(v->tile) == (v->IsBus() ? ROADSTOP_BUS : ROADSTOP_TRUCK) &&
 			v->frame == RVC_DRIVE_THROUGH_STOP_FRAME))) {
@@ -1513,9 +1511,9 @@ again:
 			rs->SetEntranceBusy(false);
 			SetBit(v->state, RVS_ENTERED_STOP);
 
-			v->last_station_visited = st->index;
+			v->GetConsist().last_station_visited = st->index;
 
-			if (IsDriveThroughStopTile(v->tile) || (v->current_order.IsType(OT_GOTO_STATION) && v->current_order.GetDestination() == st->index)) {
+			if (IsDriveThroughStopTile(v->tile) || (v->GetConsist().current_order.IsType(OT_GOTO_STATION) && v->GetConsist().current_order.GetDestination() == st->index)) {
 				RoadVehArrivesAt(v, st);
 				v->BeginLoading();
 				return false;
@@ -1527,7 +1525,7 @@ again:
 				v->cur_speed = 0;
 				return false;
 			}
-			if (v->current_order.IsType(OT_LEAVESTATION)) v->current_order.Free();
+			if (v->GetConsist().current_order.IsType(OT_LEAVESTATION)) v->GetConsist().current_order.Free();
 		}
 
 		if (IsBayRoadStopTile(v->tile)) rs->SetEntranceBusy(true);
@@ -1544,8 +1542,8 @@ again:
 		return false;
 	}
 
-	if (v->current_order.IsType(OT_LEAVESTATION) && IsDriveThroughStopTile(v->tile)) {
-		v->current_order.Free();
+	if (v->HasConsist() && v->GetConsist().current_order.IsType(OT_LEAVESTATION) && IsDriveThroughStopTile(v->tile)) {
+		v->GetConsist().current_order.Free();
 	}
 
 	/* Move to next frame unless vehicle arrived at a stop position
@@ -1561,7 +1559,7 @@ again:
 static bool RoadVehController(RoadVehicle *v)
 {
 	/* decrease counters */
-	v->current_order_time++;
+	v->GetConsist().current_order_time++;
 	if (v->reverse_ctr != 0) v->reverse_ctr--;
 
 	/* handle crashed */
@@ -1579,7 +1577,7 @@ static bool RoadVehController(RoadVehicle *v)
 	ProcessOrders(v);
 	v->HandleLoading();
 
-	if (v->current_order.IsType(OT_LOADING)) return true;
+	if (v->GetConsist().current_order.IsType(OT_LOADING)) return true;
 
 	if (v->IsInDepot()) {
 		/* Check if we should wait here for unbunching. */
@@ -1670,16 +1668,17 @@ static void CheckIfRoadVehNeedsService(RoadVehicle *v)
 		return;
 	}
 
+	Consist &consist = v->GetConsist();
 	uint max_penalty = _settings_game.pf.yapf.maximum_go_to_depot_penalty;
 
 	FindDepotData rfdd = FindClosestRoadDepot(v, max_penalty);
 	/* Only go to the depot if it is not too far out of our way. */
 	if (rfdd.best_length == UINT_MAX || rfdd.best_length > max_penalty) {
-		if (v->current_order.IsType(OT_GOTO_DEPOT)) {
+		if (consist.current_order.IsType(OT_GOTO_DEPOT)) {
 			/* If we were already heading for a depot but it has
 			 * suddenly moved farther away, we continue our normal
 			 * schedule? */
-			v->current_order.MakeDummy();
+			consist.current_order.MakeDummy();
 			SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		}
 		return;
@@ -1687,14 +1686,14 @@ static void CheckIfRoadVehNeedsService(RoadVehicle *v)
 
 	DepotID depot = GetDepotIndex(rfdd.tile);
 
-	if (v->current_order.IsType(OT_GOTO_DEPOT) &&
-			v->current_order.GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS &&
+	if (consist.current_order.IsType(OT_GOTO_DEPOT) &&
+			consist.current_order.GetNonStopType() & ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS &&
 			!Chance16(1, 20)) {
 		return;
 	}
 
 	SetBit(v->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
-	v->current_order.MakeGoToDepot(depot, ODTFB_SERVICE);
+	consist.current_order.MakeGoToDepot(depot, ODTFB_SERVICE);
 	v->SetDestTile(rfdd.tile);
 	SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 }
@@ -1723,7 +1722,7 @@ void RoadVehicle::OnNewEconomyDay()
 
 	CommandCost cost(EXPENSES_ROADVEH_RUN, this->GetRunningCost() * this->running_ticks / (CalendarTime::DAYS_IN_YEAR * Ticks::DAY_TICKS));
 
-	this->profit_this_year -= cost.GetCost();
+	this->GetConsist().profit_this_year -= cost.GetCost();
 	this->running_ticks = 0;
 
 	SubtractMoneyFromCompanyFract(this->owner, cost);

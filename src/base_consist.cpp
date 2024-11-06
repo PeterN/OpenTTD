@@ -34,13 +34,13 @@ void BaseConsist::CopyConsistPropertiesFrom(const BaseConsist *src)
 	this->cur_real_order_index = src->cur_real_order_index;
 	this->cur_implicit_order_index = src->cur_implicit_order_index;
 
-	if (HasBit(src->vehicle_flags, VF_TIMETABLE_STARTED)) SetBit(this->vehicle_flags, VF_TIMETABLE_STARTED);
-	if (HasBit(src->vehicle_flags, VF_AUTOFILL_TIMETABLE)) SetBit(this->vehicle_flags, VF_AUTOFILL_TIMETABLE);
-	if (HasBit(src->vehicle_flags, VF_AUTOFILL_PRES_WAIT_TIME)) SetBit(this->vehicle_flags, VF_AUTOFILL_PRES_WAIT_TIME);
-	if (HasBit(src->vehicle_flags, VF_SERVINT_IS_PERCENT) != HasBit(this->vehicle_flags, VF_SERVINT_IS_PERCENT)) {
-		ToggleBit(this->vehicle_flags, VF_SERVINT_IS_PERCENT);
+	if (HasBit(src->consist_flags, VCF_TIMETABLE_STARTED)) SetBit(this->consist_flags, VCF_TIMETABLE_STARTED);
+	if (HasBit(src->consist_flags, VCF_AUTOFILL_TIMETABLE)) SetBit(this->consist_flags, VCF_AUTOFILL_TIMETABLE);
+	if (HasBit(src->consist_flags, VCF_AUTOFILL_PRES_WAIT_TIME)) SetBit(this->consist_flags, VCF_AUTOFILL_PRES_WAIT_TIME);
+	if (HasBit(src->consist_flags, VCF_SERVINT_IS_PERCENT) != HasBit(this->consist_flags, VCF_SERVINT_IS_PERCENT)) {
+		ToggleBit(this->consist_flags, VCF_SERVINT_IS_PERCENT);
 	}
-	if (HasBit(src->vehicle_flags, VF_SERVINT_IS_CUSTOM)) SetBit(this->vehicle_flags, VF_SERVINT_IS_CUSTOM);
+	if (HasBit(src->consist_flags, VCF_SERVINT_IS_CUSTOM)) SetBit(this->consist_flags, VCF_SERVINT_IS_CUSTOM);
 }
 
 /**

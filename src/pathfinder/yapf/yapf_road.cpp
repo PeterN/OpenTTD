@@ -161,7 +161,7 @@ public:
 
 			/* add min/max speed penalties */
 			int min_speed = 0;
-			int max_veh_speed = std::min<int>(v->GetDisplayMaxSpeed(), v->current_order.GetMaxSpeed() * 2);
+			int max_veh_speed = std::min<int>(v->GetDisplayMaxSpeed(), v->GetConsist().current_order.GetMaxSpeed() * 2);
 			int max_speed = F.GetSpeedLimit(&min_speed);
 			if (max_speed < max_veh_speed) segment_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (4 + F.tiles_skipped) / max_veh_speed;
 			if (min_speed > max_veh_speed) segment_cost += YAPF_TILE_LENGTH * (min_speed - max_veh_speed);
@@ -240,14 +240,15 @@ protected:
 public:
 	void SetDestination(const RoadVehicle *v)
 	{
-		if (v->current_order.IsType(OT_GOTO_STATION)) {
-			this->dest_station = v->current_order.GetDestination();
+		const Consist &consist = v->GetConsist();
+		if (consist.current_order.IsType(OT_GOTO_STATION)) {
+			this->dest_station = consist.current_order.GetDestination();
 			this->station_type = v->IsBus() ? STATION_BUS : STATION_TRUCK;
 			this->dest_tile = CalcClosestStationTile(this->dest_station, v->tile, this->station_type);
 			this->non_artic = !v->HasArticulatedPart();
 			this->dest_trackdirs = INVALID_TRACKDIR_BIT;
-		} else if (v->current_order.IsType(OT_GOTO_WAYPOINT)) {
-			this->dest_station = v->current_order.GetDestination();
+		} else if (consist.current_order.IsType(OT_GOTO_WAYPOINT)) {
+			this->dest_station = consist.current_order.GetDestination();
 			this->station_type = STATION_ROADWAYPOINT;
 			this->dest_tile = CalcClosestStationTile(this->dest_station, v->tile, this->station_type);
 			this->non_artic = !v->HasArticulatedPart();
@@ -371,7 +372,7 @@ public:
 		 * However, when going to a station the (initial) destination
 		 * tile might not be a station, but a junction, in which case
 		 * this method forces the vehicle to jump in circles. */
-		if (tile == v->dest_tile && !v->current_order.IsType(OT_GOTO_STATION)) {
+		if (tile == v->dest_tile && !v->GetConsist().current_order.IsType(OT_GOTO_STATION)) {
 			/* choose diagonal trackdir reachable from enterdir */
 			return DiagDirToDiagTrackdir(enterdir);
 		}

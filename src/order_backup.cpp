@@ -45,11 +45,11 @@ OrderBackup::~OrderBackup()
  */
 OrderBackup::OrderBackup(const Vehicle *v, uint32_t user)
 {
-	this->user             = user;
-	this->tile             = v->tile;
-	this->group            = v->group_id;
+	this->user = user;
+	this->tile = v->tile;
+	this->group = v->group_id;
 
-	this->CopyConsistPropertiesFrom(v);
+	this->CopyConsistPropertiesFrom(&v->GetConsist());
 
 	/* If we have shared orders, store the vehicle we share the order with. */
 	if (v->IsOrderListShared()) {
@@ -74,11 +74,13 @@ OrderBackup::OrderBackup(const Vehicle *v, uint32_t user)
  */
 void OrderBackup::DoRestore(Vehicle *v)
 {
+	Consist &consist = v->GetConsist();
+
 	/* If we had shared orders, recover that */
 	if (this->clone != nullptr) {
 		Command<CMD_CLONE_ORDER>::Do(DC_EXEC, CO_SHARE, v->index, this->clone->index);
 	} else if (this->orders != nullptr && OrderList::CanAllocateItem()) {
-		v->orders = new OrderList(this->orders, v);
+		consist.orders = new OrderList(this->orders, v);
 		this->orders = nullptr;
 		/* Make sure buoys/oil rigs are updated in the station list. */
 		InvalidateWindowClassesData(WC_STATION_LIST, 0);
@@ -87,11 +89,11 @@ void OrderBackup::DoRestore(Vehicle *v)
 	/* Remove backed up name if it's no longer unique. */
 	if (!IsUniqueVehicleName(this->name)) this->name.clear();
 
-	v->CopyConsistPropertiesFrom(this);
+	consist.CopyConsistPropertiesFrom(this);
 
 	/* Make sure orders are in range */
 	v->UpdateRealOrderIndex();
-	if (v->cur_implicit_order_index >= v->GetNumOrders()) v->cur_implicit_order_index = v->cur_real_order_index;
+	if (consist.cur_implicit_order_index >= v->GetNumOrders()) consist.cur_implicit_order_index = consist.cur_real_order_index;
 
 	/* Restore vehicle group */
 	Command<CMD_ADD_VEHICLE_GROUP>::Do(DC_EXEC, this->group, v->index, false, VehicleListIdentifier{});

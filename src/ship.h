@@ -49,7 +49,7 @@ struct Ship final : public SpecializedVehicle<Ship, VEH_SHIP> {
 	void GetImage(Direction direction, EngineImageType image_type, VehicleSpriteSeq *result) const override;
 	int GetDisplaySpeed() const override { return this->cur_speed / 2; }
 	int GetDisplayMaxSpeed() const override { return this->vcache.cached_max_speed / 2; }
-	int GetCurrentMaxSpeed() const override { return std::min<int>(this->vcache.cached_max_speed, this->current_order.GetMaxSpeed() * 2); }
+	int GetCurrentMaxSpeed() const override { return std::min<int>(this->vcache.cached_max_speed, this->GetConsist().current_order.GetMaxSpeed() * 2); }
 	Money GetRunningCost() const override;
 	bool IsInDepot() const override { return this->state == TRACK_BIT_DEPOT; }
 	bool Tick() override;

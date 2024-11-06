@@ -296,7 +296,7 @@
 {
 	if (!IsPrimaryVehicle(vehicle_id)) return -1;
 
-	return ::Vehicle::Get(vehicle_id)->unitnumber;
+	return ::Vehicle::Get(vehicle_id)->GetConsist().unitnumber;
 }
 
 /* static */ std::optional<std::string> ScriptVehicle::GetName(VehicleID vehicle_id)
@@ -359,7 +359,7 @@
 	if (v->breakdown_ctr != 0) return ScriptVehicle::VS_BROKEN;
 	if (v->IsStoppedInDepot()) return ScriptVehicle::VS_IN_DEPOT;
 	if (vehstatus & ::VS_STOPPED) return ScriptVehicle::VS_STOPPED;
-	if (v->current_order.IsType(OT_LOADING)) return ScriptVehicle::VS_AT_STATION;
+	if (v->First()->GetConsist().current_order.IsType(OT_LOADING)) return ScriptVehicle::VS_AT_STATION;
 	return ScriptVehicle::VS_RUNNING;
 }
 
@@ -463,7 +463,7 @@
 	if (!IsPrimaryVehicle(vehicle_id)) return false;
 
 	const Vehicle *v = ::Vehicle::Get(vehicle_id);
-	return v->orders != nullptr && v->orders->GetNumVehicles() > 1;
+	return v->GetConsist().orders != nullptr && v->GetConsist().orders->GetNumVehicles() > 1;
 }
 
 /* static */ SQInteger ScriptVehicle::GetReliability(VehicleID vehicle_id)

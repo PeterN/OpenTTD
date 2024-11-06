@@ -184,8 +184,8 @@
 	Money profit = 0;
 
 	for (const Vehicle *v : Vehicle::Iterate()) {
+		if (!v->HasConsist()) continue;
 		if (v->group_id != group_id) continue;
-		if (!v->IsPrimaryVehicle()) continue;
 
 		profit += v->GetDisplayProfitThisYear();
 	}
@@ -208,8 +208,8 @@
 	uint32_t vehicle_count = 0;
 
 	for (const Vehicle *v : Vehicle::Iterate()) {
+		if (!v->HasConsist()) continue;
 		if (v->group_id != group_id) continue;
-		if (!v->IsPrimaryVehicle()) continue;
 
 		occupancy += v->trip_occupancy;
 		vehicle_count++;

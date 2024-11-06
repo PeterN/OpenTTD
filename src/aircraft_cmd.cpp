@@ -133,10 +133,11 @@ static StationID FindNearestHangar(const Aircraft *v)
 	const Station *last_dest = nullptr;
 	const Station *next_dest = nullptr;
 	if (max_range != 0) {
-		if (v->current_order.IsType(OT_GOTO_STATION) ||
-				(v->current_order.IsType(OT_GOTO_DEPOT) && (v->current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT) == 0)) {
-			last_dest = Station::GetIfValid(v->last_station_visited);
-			next_dest = Station::GetIfValid(v->current_order.GetDestination());
+		const Consist &consist = v->GetConsist();
+		if (consist.current_order.IsType(OT_GOTO_STATION) ||
+				(consist.current_order.IsType(OT_GOTO_DEPOT) && (consist.current_order.GetDepotActionType() & ODATFB_NEAREST_DEPOT) == 0)) {
+			last_dest = Station::GetIfValid(consist.last_station_visited);
+			next_dest = Station::GetIfValid(consist.current_order.GetDestination());
 		} else {
 			last_dest = GetTargetAirportIfValid(v);
 			next_dest = Station::GetIfValid(v->GetNextStoppingStation().value);
@@ -282,6 +283,7 @@ CommandCost CmdBuildAircraft(DoCommandFlag flags, TileIndex tile, const Engine *
 	if (flags & DC_EXEC) {
 		Aircraft *v = new Aircraft(); // aircraft
 		Aircraft *u = new Aircraft(); // shadow
+		Consist &consist = v->GetOrCreateConsist();
 		*ret = v;
 
 		v->direction = DIR_SE;
@@ -317,11 +319,7 @@ CommandCost CmdBuildAircraft(DoCommandFlag flags, TileIndex tile, const Engine *
 			u->cargo_cap = avi->mail_capacity;
 		}
 
-		v->name.clear();
-		v->last_station_visited = INVALID_STATION;
-		v->last_loading_station = INVALID_STATION;
-
-		v->acceleration = avi->acceleration;
+		consist.acceleration = avi->acceleration;
 		v->engine_type = e->index;
 		u->engine_type = e->index;
 
@@ -420,20 +418,22 @@ static void CheckIfAircraftNeedsService(Aircraft *v)
 		return;
 	}
 
+	Consist &consist = v->GetConsist();
+
 	/* When we're parsing conditional orders and the like
 	 * we don't want to consider going to a depot too. */
-	if (!v->current_order.IsType(OT_GOTO_DEPOT) && !v->current_order.IsType(OT_GOTO_STATION)) return;
+	if (!consist.current_order.IsType(OT_GOTO_DEPOT) && !consist.current_order.IsType(OT_GOTO_STATION)) return;
 
-	const Station *st = Station::Get(v->current_order.GetDestination());
+	const Station *st = Station::Get(consist.current_order.GetDestination());
 
 	assert(st != nullptr);
 
 	/* only goto depot if the target airport has a depot */
 	if (st->airport.HasHangar() && CanVehicleUseStation(v, st)) {
-		v->current_order.MakeGoToDepot(st->index, ODTFB_SERVICE);
+		consist.current_order.MakeGoToDepot(st->index, ODTFB_SERVICE);
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
-	} else if (v->current_order.IsType(OT_GOTO_DEPOT)) {
-		v->current_order.MakeDummy();
+	} else if (consist.current_order.IsType(OT_GOTO_DEPOT)) {
+		consist.current_order.MakeDummy();
 		SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 	}
 }
@@ -469,7 +469,7 @@ void Aircraft::OnNewEconomyDay()
 
 	CommandCost cost(EXPENSES_AIRCRAFT_RUN, this->GetRunningCost() * this->running_ticks / (CalendarTime::DAYS_IN_YEAR * Ticks::DAY_TICKS));
 
-	this->profit_this_year -= cost.GetCost();
+	this->GetConsist().profit_this_year -= cost.GetCost();
 	this->running_ticks = 0;
 
 	SubtractMoneyFromCompanyFract(this->owner, cost);
@@ -486,7 +486,7 @@ static void HelicopterTickHandler(Aircraft *v)
 
 	/* if true, helicopter rotors do not rotate. This should only be the case if a helicopter is
 	 * loading/unloading at a terminal or stopped */
-	if (v->current_order.IsType(OT_LOADING) || (v->vehstatus & VS_STOPPED)) {
+	if (v->GetConsist().current_order.IsType(OT_LOADING) || (v->vehstatus & VS_STOPPED)) {
 		if (u->cur_speed != 0) {
 			u->cur_speed++;
 			if (u->cur_speed >= 0x80 && u->state == HRS_ROTOR_MOVING_3) {
@@ -572,7 +572,7 @@ void SetAircraftPosition(Aircraft *v, int x, int y, int z)
  */
 void HandleAircraftEnterHangar(Aircraft *v)
 {
-	v->subspeed = 0;
+	v->GetConsist().subspeed = 0;
 	v->progress = 0;
 
 	Aircraft *u = v->Next();
@@ -645,6 +645,8 @@ static constexpr uint16_t SPEED_LIMIT_NONE = UINT16_MAX; ///< No environmental s
  */
 static int UpdateAircraftSpeed(Aircraft *v, uint speed_limit = SPEED_LIMIT_NONE, bool hard_limit = true)
 {
+	Consist &consist = v->GetConsist();
+
 	/**
 	 * 'acceleration' has the unit 3/8 mph/tick. This function is called twice per tick.
 	 * So the speed amount we need to accelerate is:
@@ -652,7 +654,7 @@ static int UpdateAircraftSpeed(Aircraft *v, uint speed_limit = SPEED_LIMIT_NONE,
 	 *                               = acceleration * 3 / 10 * 256 * (km-ish/h / 256)
 	 *                               ~ acceleration * 77 (km-ish/h / 256)
 	 */
-	uint spd = v->acceleration * 77;
+	uint spd = consist.acceleration * 77;
 	uint8_t t;
 
 	/* Adjust speed limits by plane speed factor to prevent taxiing
@@ -670,7 +672,7 @@ static int UpdateAircraftSpeed(Aircraft *v, uint speed_limit = SPEED_LIMIT_NONE,
 		speed_limit = v->vcache.cached_max_speed;
 	}
 
-	v->subspeed = (t = v->subspeed) + (uint8_t)spd;
+	consist.subspeed = (t = consist.subspeed) + (uint8_t)spd;
 
 	/* Aircraft's current speed is used twice so that very fast planes are
 	 * forced to slow down rapidly in the short distance needed. The magic
@@ -682,7 +684,7 @@ static int UpdateAircraftSpeed(Aircraft *v, uint speed_limit = SPEED_LIMIT_NONE,
 		speed_limit = v->cur_speed - std::max(1, ((v->cur_speed * v->cur_speed) / 16384) / _settings_game.vehicle.plane_speed);
 	}
 
-	spd = std::min(v->cur_speed + (spd >> 8) + (v->subspeed < t), speed_limit);
+	spd = std::min(v->cur_speed + (spd >> 8) + (consist.subspeed < t), speed_limit);
 
 	/* updates statusbar only if speed have changed to save CPU time */
 	if (spd != v->cur_speed) {
@@ -890,7 +892,7 @@ static bool AircraftController(Aircraft *v)
 		/* Jump into our "holding pattern" state machine if possible */
 		if (v->pos >= afc->nofelements) {
 			v->pos = v->previous_pos = AircraftGetEntryPoint(v, afc, DIR_N);
-		} else if (v->targetairport != v->current_order.GetDestination()) {
+		} else if (v->targetairport != v->GetConsist().current_order.GetDestination()) {
 			/* If not possible, just get out of here fast */
 			v->state = FLYING;
 			UpdateAircraftCache(v);
@@ -1291,8 +1293,8 @@ void HandleMissingAircraftOrders(Aircraft *v)
 		cur_company.Restore();
 
 		if (ret.Failed()) CrashAirplane(v);
-	} else if (!v->current_order.IsType(OT_GOTO_DEPOT)) {
-		v->current_order.Free();
+	} else if (!v->GetConsist().current_order.IsType(OT_GOTO_DEPOT)) {
+		v->GetConsist().current_order.Free();
 	}
 }
 
@@ -1400,10 +1402,10 @@ static void MaybeCrashAirplane(Aircraft *v)
  */
 static void AircraftEntersTerminal(Aircraft *v)
 {
-	if (v->current_order.IsType(OT_GOTO_DEPOT)) return;
+	if (v->GetConsist().current_order.IsType(OT_GOTO_DEPOT)) return;
 
 	Station *st = Station::Get(v->targetairport);
-	v->last_station_visited = v->targetairport;
+	v->GetConsist().last_station_visited = v->targetairport;
 
 	/* Check if station was ever visited before */
 	if (!(st->had_vehicle_of_type & HVOT_AIRCRAFT)) {
@@ -1446,8 +1448,9 @@ static void AircraftLandAirplane(Aircraft *v)
 /** set the right pos when heading to other airports after takeoff */
 void AircraftNextAirportPos_and_Order(Aircraft *v)
 {
-	if (v->current_order.IsType(OT_GOTO_STATION) || v->current_order.IsType(OT_GOTO_DEPOT)) {
-		v->targetairport = v->current_order.GetDestination();
+	const Consist &consist = v->GetConsist();
+	if (consist.current_order.IsType(OT_GOTO_STATION) || consist.current_order.IsType(OT_GOTO_DEPOT)) {
+		v->targetairport = consist.current_order.GetDestination();
 	}
 
 	const Station *st = GetTargetAirportIfValid(v);
@@ -1467,7 +1470,7 @@ void AircraftNextAirportPos_and_Order(Aircraft *v)
 void AircraftLeaveHangar(Aircraft *v, Direction exit_dir)
 {
 	v->cur_speed = 0;
-	v->subspeed = 0;
+	v->GetConsist().subspeed = 0;
 	v->progress = 0;
 	v->direction = exit_dir;
 	v->vehstatus &= ~VS_HIDDEN;
@@ -1523,21 +1526,23 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 		return;
 	}
 
+	Consist &consist = v->GetConsist();
+
 	/* if we were sent to the depot, stay there */
-	if (v->current_order.IsType(OT_GOTO_DEPOT) && (v->vehstatus & VS_STOPPED)) {
-		v->current_order.Free();
+	if (consist.current_order.IsType(OT_GOTO_DEPOT) && (v->vehstatus & VS_STOPPED)) {
+		consist.current_order.Free();
 		return;
 	}
 
 	/* Check if we should wait here for unbunching. */
 	if (v->IsWaitingForUnbunching()) return;
 
-	if (!v->current_order.IsType(OT_GOTO_STATION) &&
-			!v->current_order.IsType(OT_GOTO_DEPOT))
+	if (!consist.current_order.IsType(OT_GOTO_STATION) &&
+			!consist.current_order.IsType(OT_GOTO_DEPOT))
 		return;
 
 	/* We are leaving a hangar, but have to go to the exact same one; re-enter */
-	if (v->current_order.IsType(OT_GOTO_DEPOT) && v->current_order.GetDestination() == v->targetairport) {
+	if (consist.current_order.IsType(OT_GOTO_DEPOT) && consist.current_order.GetDestination() == v->targetairport) {
 		VehicleEnterDepot(v);
 		return;
 	}
@@ -1546,7 +1551,7 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
 
 	/* We are already at the target airport, we need to find a terminal */
-	if (v->current_order.GetDestination() == v->targetairport) {
+	if (consist.current_order.GetDestination() == v->targetairport) {
 		/* FindFreeTerminal:
 		 * 1. Find a free terminal, 2. Occupy it, 3. Set the vehicle's state to that terminal */
 		if (v->subtype == AIR_HELICOPTER) {
@@ -1584,7 +1589,9 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 		return;
 	}
 
-	if (v->current_order.IsType(OT_NOTHING)) return;
+	Consist &consist = v->GetConsist();
+
+	if (consist.current_order.IsType(OT_NOTHING)) return;
 
 	/* if the block of the next position is busy, stay put */
 	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
@@ -1593,11 +1600,11 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	 * ---> start moving */
 
 	bool go_to_hangar = false;
-	switch (v->current_order.GetType()) {
+	switch (consist.current_order.GetType()) {
 		case OT_GOTO_STATION: // ready to fly to another airport
 			break;
 		case OT_GOTO_DEPOT:   // visit hangar for servicing, sale, etc.
-			go_to_hangar = v->current_order.GetDestination() == v->targetairport;
+			go_to_hangar = consist.current_order.GetDestination() == v->targetairport;
 			break;
 		case OT_CONDITIONAL:
 			/* In case of a conditional order we just have to wait a tick
@@ -1605,7 +1612,7 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 			 * we should not clear the order as that makes us go nowhere. */
 			return;
 		default:  // orders have been deleted (no orders), goto depot and don't bother us
-			v->current_order.Free();
+			consist.current_order.Free();
 			go_to_hangar = true;
 	}
 
@@ -1675,7 +1682,7 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 				 * we don't want that for plane in air
 				 * hack for speed thingie */
 				uint16_t tcur_speed = v->cur_speed;
-				uint16_t tsubspeed = v->subspeed;
+				uint16_t tsubspeed = v->GetConsist().subspeed;
 				if (!AirportHasBlock(v, current, apc)) {
 					v->state = landingtype; // LANDING / HELILANDING
 					if (v->state == HELILANDING) SetBit(v->flags, VAF_HELI_DIRECT_DESCENT);
@@ -1687,7 +1694,7 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 					return;
 				}
 				v->cur_speed = tcur_speed;
-				v->subspeed = tsubspeed;
+				v->GetConsist().subspeed = tsubspeed;
 			}
 			current = current->next;
 		}
@@ -1724,7 +1731,7 @@ static void AircraftEventHandler_EndLanding(Aircraft *v, const AirportFTAClass *
 	 * 1. in case all terminals are busy AirportFindFreeTerminal() returns false or
 	 * 2. not going for terminal (but depot, no order),
 	 * --> get out of the way to the hangar. */
-	if (v->current_order.IsType(OT_GOTO_STATION)) {
+	if (v->GetConsist().current_order.IsType(OT_GOTO_STATION)) {
 		if (AirportFindFreeTerminal(v, apc)) return;
 	}
 	v->state = HANGAR;
@@ -1743,7 +1750,7 @@ static void AircraftEventHandler_HeliEndLanding(Aircraft *v, const AirportFTACla
 	 * --> else TAKEOFF
 	 * the reason behind this is that if an airport has a terminal, it also has a hangar. Airplanes
 	 * must go to a hangar. */
-	if (v->current_order.IsType(OT_GOTO_STATION)) {
+	if (v->GetConsist().current_order.IsType(OT_GOTO_STATION)) {
 		if (AirportFindFreeHelipad(v, apc)) return;
 	}
 	v->state = Station::Get(v->targetairport)->airport.HasHangar() ? HANGAR : HELITAKEOFF;
@@ -1868,7 +1875,7 @@ static bool AirportHasBlock(Aircraft *v, const AirportFTA *current_pos, const Ai
 
 		if (st->airport.flags & airport_flags) {
 			v->cur_speed = 0;
-			v->subspeed = 0;
+			v->GetConsist().subspeed = 0;
 			return true;
 		}
 	}
@@ -1909,7 +1916,7 @@ static bool AirportSetBlocks(Aircraft *v, const AirportFTA *current_pos, const A
 		Station *st = Station::Get(v->targetairport);
 		if (st->airport.flags & airport_flags) {
 			v->cur_speed = 0;
-			v->subspeed = 0;
+			v->GetConsist().subspeed = 0;
 			return false;
 		}
 
@@ -2092,7 +2099,9 @@ static bool AircraftEventHandler(Aircraft *v, int loop)
 	ProcessOrders(v);
 	v->HandleLoading(loop != 0);
 
-	if (v->current_order.IsType(OT_LOADING) || v->current_order.IsType(OT_LEAVESTATION)) return true;
+	Consist &consist = v->GetConsist();
+
+	if (consist.current_order.IsType(OT_LOADING) || consist.current_order.IsType(OT_LEAVESTATION)) return true;
 
 	if (v->state >= ENDTAKEOFF && v->state <= HELIENDLANDING) {
 		/* If we are flying, unconditionally clear the 'dest too far' state. */
@@ -2101,7 +2110,7 @@ static bool AircraftEventHandler(Aircraft *v, int loop)
 		/* Check the distance to the next destination. This code works because the target
 		 * airport is only updated after take off and not on the ground. */
 		Station *cur_st = Station::GetIfValid(v->targetairport);
-		Station *next_st = v->current_order.IsType(OT_GOTO_STATION) || v->current_order.IsType(OT_GOTO_DEPOT) ? Station::GetIfValid(v->current_order.GetDestination()) : nullptr;
+		Station *next_st = consist.current_order.IsType(OT_GOTO_STATION) || consist.current_order.IsType(OT_GOTO_DEPOT) ? Station::GetIfValid(consist.current_order.GetDestination()) : nullptr;
 
 		if (cur_st != nullptr && cur_st->airport.tile != INVALID_TILE && next_st != nullptr && next_st->airport.tile != INVALID_TILE) {
 			uint dist = DistanceSquare(cur_st->airport.tile, next_st->airport.tile);
@@ -2126,7 +2135,7 @@ bool Aircraft::Tick()
 
 	if (this->subtype == AIR_HELICOPTER) HelicopterTickHandler(this);
 
-	this->current_order_time++;
+	this->GetConsist().current_order_time++;
 
 	for (uint i = 0; i != 2; i++) {
 		/* stop if the aircraft was deleted */
@@ -2167,7 +2176,7 @@ void UpdateAirplanesOnNewStation(const Station *st)
 		if (!v->IsNormalAircraft() || v->targetairport != st->index) continue;
 		assert(v->state == FLYING);
 
-		Order *o = &v->current_order;
+		Order *o = &v->GetConsist().current_order;
 		/* The aircraft is heading to a hangar, but the new station doesn't have one,
 		 * or the aircraft can't land on the new station. Cancel current order. */
 		if (o->IsType(OT_GOTO_DEPOT) && !(o->GetDepotOrderType() & ODTFB_PART_OF_ORDERS) && o->GetDestination() == st->index &&

@@ -402,9 +402,10 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 				end_segment_reason |= ESRB_DEPOT;
 
 			} else if (cur.tile_type == MP_STATION && IsRailWaypoint(cur.tile)) {
-				if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
-						GetStationIndex(cur.tile) == v->current_order.GetDestination() &&
-						!Waypoint::Get(v->current_order.GetDestination())->IsSingleTile()) {
+				const Consist &consist = v->GetConsist();
+				if (consist.current_order.IsType(OT_GOTO_WAYPOINT) &&
+						GetStationIndex(cur.tile) == consist.current_order.GetDestination() &&
+						!Waypoint::Get(consist.current_order.GetDestination())->IsSingleTile()) {
 					/* This waypoint is our destination; maybe this isn't an unreserved
 					 * one, so check that and if so see that as the last signal being
 					 * red. This way waypoints near stations should work better. */
@@ -467,7 +468,7 @@ no_entry_cost: // jump here at the beginning if the node has no parent (it is th
 			{
 				int min_speed = 0;
 				int max_speed = tf->GetSpeedLimit(&min_speed);
-				int max_veh_speed = std::min<int>(v->GetDisplayMaxSpeed(), v->current_order.GetMaxSpeed());
+				int max_veh_speed = std::min<int>(v->GetDisplayMaxSpeed(), v->GetConsist().current_order.GetMaxSpeed());
 				if (max_speed < max_veh_speed) {
 					extra_cost += YAPF_TILE_LENGTH * (max_veh_speed - max_speed) * (4 + tf->tiles_skipped) / max_veh_speed;
 				}

@@ -209,19 +209,20 @@ static void CheckIfShipNeedsService(Vehicle *v)
 		return;
 	}
 
+	Consist &consist = v->GetConsist();
 	uint max_distance = _settings_game.pf.yapf.maximum_go_to_depot_penalty / YAPF_TILE_LENGTH;
 
 	const Depot *depot = FindClosestShipDepot(v, max_distance);
 
 	if (depot == nullptr) {
-		if (v->current_order.IsType(OT_GOTO_DEPOT)) {
-			v->current_order.MakeDummy();
+		if (consist.current_order.IsType(OT_GOTO_DEPOT)) {
+			consist.current_order.MakeDummy();
 			SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 		}
 		return;
 	}
 
-	v->current_order.MakeGoToDepot(depot->index, ODTFB_SERVICE);
+	consist.current_order.MakeGoToDepot(depot->index, ODTFB_SERVICE);
 	v->SetDestTile(depot->xy);
 	SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 }
@@ -275,7 +276,7 @@ void Ship::OnNewEconomyDay()
 
 	CommandCost cost(EXPENSES_SHIP_RUN, this->GetRunningCost() * this->running_ticks / (CalendarTime::DAYS_IN_YEAR * Ticks::DAY_TICKS));
 
-	this->profit_this_year -= cost.GetCost();
+	this->GetConsist().profit_this_year -= cost.GetCost();
 	this->running_ticks = 0;
 
 	SubtractMoneyFromCompanyFract(this->owner, cost);
@@ -317,7 +318,7 @@ void Ship::PlayLeaveStationSound(bool force) const
 
 TileIndex Ship::GetOrderStationLocation(StationID station)
 {
-	if (station == this->last_station_visited) this->last_station_visited = INVALID_STATION;
+	if (station == this->GetConsist().last_station_visited) this->GetConsist().last_station_visited = INVALID_STATION;
 
 	const Station *st = Station::Get(station);
 	if (CanVehicleUseStation(this, st)) {
@@ -381,8 +382,8 @@ static bool CheckShipLeaveDepot(Ship *v)
 	if (v->IsWaitingForUnbunching()) return true;
 
 	/* We are leaving a depot, but have to go to the exact same one; re-enter */
-	if (v->current_order.IsType(OT_GOTO_DEPOT) &&
-			IsShipDepotTile(v->tile) && GetDepotIndex(v->tile) == v->current_order.GetDestination()) {
+	if (v->GetConsist().current_order.IsType(OT_GOTO_DEPOT) &&
+			IsShipDepotTile(v->tile) && GetDepotIndex(v->tile) == v->GetConsist().current_order.GetDestination()) {
 		VehicleEnterDepot(v);
 		return true;
 	}
@@ -442,9 +443,10 @@ static bool CheckShipLeaveDepot(Ship *v)
  */
 static uint ShipAccelerate(Vehicle *v)
 {
+	const Consist &consist = v->GetConsist();
 	uint speed;
-	speed = std::min<uint>(v->cur_speed + v->acceleration, v->vcache.cached_max_speed);
-	speed = std::min<uint>(speed, v->current_order.GetMaxSpeed() * 2);
+	speed = std::min<uint>(v->cur_speed + consist.acceleration, v->vcache.cached_max_speed);
+	speed = std::min<uint>(speed, consist.current_order.GetMaxSpeed() * 2);
 
 	/* updates statusbar only if speed have changed to save CPU time */
 	if (speed != v->cur_speed) {
@@ -698,8 +700,10 @@ static void ReverseShip(Ship *v)
 
 static void ShipController(Ship *v)
 {
+	Consist &consist = v->GetConsist();
+
 	v->tick_counter++;
-	v->current_order_time++;
+	consist.current_order_time++;
 
 	if (v->HandleBreakdown()) return;
 
@@ -709,7 +713,7 @@ static void ShipController(Ship *v)
 
 	v->HandleLoading();
 
-	if (v->current_order.IsType(OT_LOADING)) return;
+	if (consist.current_order.IsType(OT_LOADING)) return;
 
 	if (CheckShipLeaveDepot(v)) return;
 
@@ -748,8 +752,8 @@ static void ShipController(Ship *v)
 
 					/* A leave station order only needs one tick to get processed, so we can
 					 * always skip ahead. */
-					if (v->current_order.IsType(OT_LEAVESTATION)) {
-						v->current_order.Free();
+					if (consist.current_order.IsType(OT_LEAVESTATION)) {
+						consist.current_order.Free();
 						SetWindowWidgetDirty(WC_VEHICLE_VIEW, v->index, WID_VV_START_STOP);
 						/* Test if continuing forward would lead to a dead-end, moving into the dock. */
 						const DiagDirection exitdir = VehicleExitDir(v->direction, v->state);
@@ -757,30 +761,30 @@ static void ShipController(Ship *v)
 						if (TrackStatusToTrackBits(GetTileTrackStatus(tile, TRANSPORT_WATER, 0, exitdir)) == TRACK_BIT_NONE) return ReverseShip(v);
 					} else if (v->dest_tile != 0) {
 						/* We have a target, let's see if we reached it... */
-						if (v->current_order.IsType(OT_GOTO_WAYPOINT) &&
+						if (consist.current_order.IsType(OT_GOTO_WAYPOINT) &&
 								DistanceManhattan(v->dest_tile, gp.new_tile) <= 3) {
 							/* We got within 3 tiles of our target buoy, so let's skip to our
 							 * next order */
 							UpdateVehicleTimetable(v, true);
 							v->IncrementRealOrderIndex();
-							v->current_order.MakeDummy();
-						} else if (v->current_order.IsType(OT_GOTO_DEPOT) &&
+							consist.current_order.MakeDummy();
+						} else if (consist.current_order.IsType(OT_GOTO_DEPOT) &&
 							v->dest_tile == gp.new_tile) {
 							/* Depot orders really need to reach the tile */
 							if ((gp.x & 0xF) == 8 && (gp.y & 0xF) == 8) {
 								VehicleEnterDepot(v);
 								return;
 							}
-						} else if (v->current_order.IsType(OT_GOTO_STATION) && IsDockingTile(gp.new_tile)) {
+						} else if (consist.current_order.IsType(OT_GOTO_STATION) && IsDockingTile(gp.new_tile)) {
 							/* Process station in the orderlist. */
-							Station *st = Station::Get(v->current_order.GetDestination());
+							Station *st = Station::Get(consist.current_order.GetDestination());
 							if (st->docking_station.Contains(gp.new_tile) && IsShipDestinationTile(gp.new_tile, st->index)) {
-								v->last_station_visited = st->index;
+								consist.last_station_visited = st->index;
 								if (st->facilities & FACIL_DOCK) { // ugly, ugly workaround for problem with ships able to drop off cargo at wrong stations
 									ShipArrivesAt(v, st);
 									v->BeginLoading();
 								} else { // leave stations without docks right away
-									v->current_order.MakeLeaveStation();
+									consist.current_order.MakeLeaveStation();
 									v->IncrementRealOrderIndex();
 								}
 							}
@@ -902,6 +906,7 @@ CommandCost CmdBuildShip(DoCommandFlag flags, TileIndex tile, const Engine *e, V
 		const ShipVehicleInfo *svi = &e->u.ship;
 
 		Ship *v = new Ship();
+		Consist &consist = v->GetOrCreateConsist();
 		*ret = v;
 
 		v->owner = _current_company;
@@ -921,8 +926,6 @@ CommandCost CmdBuildShip(DoCommandFlag flags, TileIndex tile, const Engine *e, V
 		v->cargo_cap = svi->capacity;
 		v->refit_cap = 0;
 
-		v->last_station_visited = INVALID_STATION;
-		v->last_loading_station = INVALID_STATION;
 		v->engine_type = e->index;
 
 		v->reliability = e->reliability;
@@ -938,7 +941,7 @@ CommandCost CmdBuildShip(DoCommandFlag flags, TileIndex tile, const Engine *e, V
 		v->sprite_cache.sprite_seq.Set(SPR_IMG_QUERY);
 		v->random_bits = Random();
 
-		v->acceleration = svi->acceleration;
+		consist.acceleration = svi->acceleration;
 		v->UpdateCache();
 
 		if (e->flags & ENGINE_EXCLUSIVE_PREVIEW) SetBit(v->vehicle_flags, VF_BUILT_AS_PROTOTYPE);

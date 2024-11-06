@@ -364,8 +364,8 @@ protected:
 	 */
 	inline uint DoUpdateSpeed(uint accel, int min_speed, int max_speed)
 	{
-		uint spd = this->subspeed + accel;
-		this->subspeed = (uint8_t)spd;
+		uint spd = this->GetConsist().subspeed + accel;
+		this->GetConsist().subspeed = (uint8_t)spd;
 
 		/* When we are going faster than the maximum speed, reduce the speed
 		 * somewhat gradually. But never lower than the maximum speed. */

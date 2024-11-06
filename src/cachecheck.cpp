@@ -89,7 +89,11 @@ void CheckCaches()
 
 		for (const Vehicle *u = v; u != nullptr; u = u->Next()) {
 			FillNewGRFVehicleCache(u);
-			grf_cache.emplace_back(u->grf_cache);
+			if (u->grf_cache == nullptr) {
+				grf_cache.emplace_back();
+			} else {
+				grf_cache.emplace_back(*u->grf_cache);
+			}
 			veh_cache.emplace_back(u->vcache);
 			switch (u->type) {
 				case VEH_TRAIN:
@@ -115,24 +119,25 @@ void CheckCaches()
 		uint length = 0;
 		for (const Vehicle *u = v; u != nullptr; u = u->Next()) {
 			FillNewGRFVehicleCache(u);
-			if (grf_cache[length] != u->grf_cache) {
-				Debug(desync, 2, "warning: newgrf cache mismatch: type {}, vehicle {}, company {}, unit number {}, wagon {}", v->type, v->index, v->owner, v->unitnumber, length);
+			UnitID unitnumber = v->HasConsist() ? v->GetConsist().unitnumber : 0;
+			if ((u->grf_cache == nullptr && grf_cache[length] == NewGRFCache{}) || (u->grf_cache != nullptr && grf_cache[length] == *u->grf_cache)) {
+				Debug(desync, 2, "warning: newgrf cache mismatch: type {}, vehicle {}, company {}, unit number {}, wagon {}", v->type, v->index, v->owner, unitnumber, length);
 			}
 			if (veh_cache[length] != u->vcache) {
-				Debug(desync, 2, "warning: vehicle cache mismatch: type {}, vehicle {}, company {}, unit number {}, wagon {}", v->type, v->index, v->owner, v->unitnumber, length);
+				Debug(desync, 2, "warning: vehicle cache mismatch: type {}, vehicle {}, company {}, unit number {}, wagon {}", v->type, v->index, v->owner, unitnumber, length);
 			}
 			switch (u->type) {
 				case VEH_TRAIN:
 					if (gro_cache[length] != Train::From(u)->gcache) {
-						Debug(desync, 2, "warning: train ground vehicle cache mismatch: vehicle {}, company {}, unit number {}, wagon {}", v->index, v->owner, v->unitnumber, length);
+						Debug(desync, 2, "warning: train ground vehicle cache mismatch: vehicle {}, company {}, unit number {}, wagon {}", v->index, v->owner, unitnumber, length);
 					}
 					if (tra_cache[length] != Train::From(u)->tcache) {
-						Debug(desync, 2, "warning: train cache mismatch: vehicle {}, company {}, unit number {}, wagon {}", v->index, v->owner, v->unitnumber, length);
+						Debug(desync, 2, "warning: train cache mismatch: vehicle {}, company {}, unit number {}, wagon {}", v->index, v->owner, unitnumber, length);
 					}
 					break;
 				case VEH_ROAD:
 					if (gro_cache[length] != RoadVehicle::From(u)->gcache) {
-						Debug(desync, 2, "warning: road vehicle ground vehicle cache mismatch: vehicle {}, company {}, unit number {}, wagon {}", v->index, v->owner, v->unitnumber, length);
+						Debug(desync, 2, "warning: road vehicle ground vehicle cache mismatch: vehicle {}, company {}, unit number {}, wagon {}", v->index, v->owner, unitnumber, length);
 					}
 					break;
 				default:
