@@ -1321,8 +1321,7 @@ static void BuildRiver(TileIndex begin, TileIndex end, TileIndex spring, bool ma
  */
 static std::tuple<bool, bool> FlowRiver(TileIndex spring, TileIndex begin, uint min_river_length)
 {
-#	define SET_MARK(x) marks.insert(x)
-#	define IS_MARKED(x) (marks.find(x) != marks.end())
+	static constexpr uint LAKE_THRESHOLD = 32;
 
 	uint height = TileHeight(begin);
 
@@ -1330,15 +1329,15 @@ static std::tuple<bool, bool> FlowRiver(TileIndex spring, TileIndex begin, uint 
 		return { DistanceManhattan(spring, begin) > min_river_length, GetTileZ(begin) == 0 };
 	}
 
-	std::set<TileIndex> marks;
-	SET_MARK(begin);
+	std::vector<TileIndex> marks;
+	marks.reserve(128); // Pre-allocate a reasonable amount to reduce small reallocations.
+	marks.push_back(begin);
 
 	/* Breadth first search for the closest tile we can flow down to. */
-	std::list<TileIndex> queue;
+	std::deque<TileIndex> queue;
 	queue.push_back(begin);
 
 	bool found = false;
-	uint count = 0; // Number of tiles considered; to be used for lake location guessing.
 	TileIndex end;
 	do {
 		end = queue.front();
@@ -1352,11 +1351,15 @@ static std::tuple<bool, bool> FlowRiver(TileIndex spring, TileIndex begin, uint 
 
 		for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
 			TileIndex t2 = end + TileOffsByDiagDir(d);
-			if (IsValidTile(t2) && !IS_MARKED(t2) && FlowsDown(end, t2)) {
-				SET_MARK(t2);
-				count++;
-				queue.push_back(t2);
-			}
+			if (!IsValidTile(t2)) continue;
+
+			auto it = std::lower_bound(std::begin(marks), std::end(marks), t2);
+			if (it != std::end(marks) && *it == t2) continue;
+
+			if (!FlowsDown(end, t2)) continue;
+
+			marks.insert(it, t2);
+			queue.push_back(t2);
 		}
 	} while (!queue.empty());
 
@@ -1364,11 +1367,10 @@ static std::tuple<bool, bool> FlowRiver(TileIndex spring, TileIndex begin, uint 
 	if (found) {
 		/* Flow further down hill. */
 		std::tie(found, main_river) = FlowRiver(spring, end, min_river_length);
-	} else if (count > 32) {
+	} else if (std::size(marks) > LAKE_THRESHOLD) {
 		/* Maybe we can make a lake. Find the Nth of the considered tiles. */
-		std::set<TileIndex>::const_iterator cit = marks.cbegin();
-		std::advance(cit, RandomRange(count - 1));
-		TileIndex lakeCenter = *cit;
+		auto it = std::next(marks.begin(), RandomRange(std::size(marks)));
+		TileIndex lakeCenter = *it;
 
 		if (IsValidTile(lakeCenter) &&
 				/* A river, or lake, can only be built on flat slopes. */
@@ -1392,7 +1394,6 @@ static std::tuple<bool, bool> FlowRiver(TileIndex spring, TileIndex begin, uint 
 		}
 	}
 
-	marks.clear();
 	if (found) BuildRiver(begin, end, spring, main_river);
 	return { found, main_river };
 }
