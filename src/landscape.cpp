@@ -1367,9 +1367,9 @@ static std::tuple<bool, bool> FlowRiver(TileIndex spring, TileIndex begin, uint 
 	if (found) {
 		/* Flow further down hill. */
 		std::tie(found, main_river) = FlowRiver(spring, end, min_river_length);
-	} else if (std::size(marks) > LAKE_THRESHOLD) {
+	} else if (std::size(marks) > LAKE_THRESHOLD + 1) { // +1 to match original behaviour
 		/* Maybe we can make a lake. Find the Nth of the considered tiles. */
-		auto it = std::next(marks.begin(), RandomRange(std::size(marks)));
+		auto it = std::next(marks.begin(), RandomRange(std::size(marks) - 2)); // -2 to match original behaviour
 		TileIndex lakeCenter = *it;
 
 		if (IsValidTile(lakeCenter) &&
