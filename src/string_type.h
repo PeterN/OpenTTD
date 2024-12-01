@@ -55,8 +55,4 @@ enum StringValidationSettings {
 };
 DECLARE_ENUM_AS_BIT_SET(StringValidationSettings)
 
-
-/** Type for a list of strings. */
-typedef std::vector<std::string> StringList;
-
 #endif /* STRING_TYPE_H */

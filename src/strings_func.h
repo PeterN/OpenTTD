@@ -11,7 +11,6 @@
 #define STRINGS_FUNC_H
 
 #include "strings_type.h"
-#include "string_type.h"
 #include "gfx_type.h"
 #include "core/bitmath_func.hpp"
 #include "core/strong_typedef_type.hpp"

@@ -10,7 +10,6 @@
 #ifndef FONTCACHE_H
 #define FONTCACHE_H
 
-#include "string_type.h"
 #include "spritecache.h"
 
 /** Glyphs are characters from a font. */
