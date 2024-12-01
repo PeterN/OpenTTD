@@ -85,8 +85,8 @@ LanguageStrings ReadRawLanguageStrings(const std::string &file)
 
 /** A reader that simply reads using fopen. */
 struct StringListReader : StringReader {
-	StringList::const_iterator p;   ///< The current location of the iteration.
-	StringList::const_iterator end; ///< The end of the iteration.
+	std::vector<std::string>::const_iterator p;   ///< The current location of the iteration.
+	std::vector<std::string>::const_iterator end; ///< The end of the iteration.
 
 	/**
 	 * Create the reader.
@@ -109,13 +109,13 @@ struct StringListReader : StringReader {
 
 /** Class for writing an encoded language. */
 struct TranslationWriter : LanguageWriter {
-	StringList &strings; ///< The encoded strings.
+	std::vector<std::string> &strings; ///< The encoded strings.
 
 	/**
 	 * Writer for the encoded data.
 	 * @param strings The string table to add the strings to.
 	 */
-	TranslationWriter(StringList &strings) : strings(strings)
+	TranslationWriter(std::vector<std::string> &strings) : strings(strings)
 	{
 	}
 
@@ -136,19 +136,19 @@ struct TranslationWriter : LanguageWriter {
 
 	void Write(const uint8_t *buffer, size_t length) override
 	{
-		this->strings.emplace_back((const char *)buffer, length);
+		this->strings.emplace_back(reinterpret_cast<const char *>(buffer), length);
 	}
 };
 
 /** Class for writing the string IDs. */
 struct StringNameWriter : HeaderWriter {
-	StringList &strings; ///< The string names.
+	std::vector<std::string> &strings; ///< The string names.
 
 	/**
 	 * Writer for the string names.
 	 * @param strings The string table to add the strings to.
 	 */
-	StringNameWriter(StringList &strings) : strings(strings)
+	StringNameWriter(std::vector<std::string> &strings) : strings(strings)
 	{
 	}
 
