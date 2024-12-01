@@ -16,7 +16,6 @@
 #include "command_func.h"
 #include "company_func.h"
 #include "town.h"
-#include "string_func.h"
 #include "company_base.h"
 #include "texteff.hpp"
 #include "strings_func.h"
@@ -68,7 +67,7 @@ static WindowDesc _land_info_desc(
 );
 
 class LandInfoWindow : public Window {
-	StringList  landinfo_data;    ///< Info lines to show.
+	std::vector<std::string> landinfo_data; ///< Info lines to show.
 	std::string cargo_acceptance; ///< Centered multi-line string for cargo acceptance.
 
 public:
@@ -79,9 +78,10 @@ public:
 		if (widget != WID_LI_BACKGROUND) return;
 
 		Rect ir = r.Shrink(WidgetDimensions::scaled.frametext);
-		for (size_t i = 0; i < this->landinfo_data.size(); i++) {
-			DrawString(ir, this->landinfo_data[i], i == 0 ? TC_LIGHT_BLUE : TC_FROMSTRING, SA_HOR_CENTER);
-			ir.top += GetCharacterHeight(FS_NORMAL) + (i == 0 ? WidgetDimensions::scaled.vsep_wide : WidgetDimensions::scaled.vsep_normal);
+		for (bool first = true; const std::string &line : this->landinfo_data) {
+			DrawString(ir, line, first ? TC_LIGHT_BLUE : TC_FROMSTRING, SA_HOR_CENTER);
+			ir.top += GetCharacterHeight(FS_NORMAL) + (first ? WidgetDimensions::scaled.vsep_wide : WidgetDimensions::scaled.vsep_normal);
+			first = false;
 		}
 
 		if (!this->cargo_acceptance.empty()) {
@@ -95,11 +95,12 @@ public:
 		if (widget != WID_LI_BACKGROUND) return;
 
 		size.height = WidgetDimensions::scaled.frametext.Vertical();
-		for (size_t i = 0; i < this->landinfo_data.size(); i++) {
-			uint width = GetStringBoundingBox(this->landinfo_data[i]).width + WidgetDimensions::scaled.frametext.Horizontal();
+		for (bool first = true; const std::string &line : this->landinfo_data) {
+			uint width = GetStringBoundingBox(line).width + WidgetDimensions::scaled.frametext.Horizontal();
 			size.width = std::max(size.width, width);
 
-			size.height += GetCharacterHeight(FS_NORMAL) + (i == 0 ? WidgetDimensions::scaled.vsep_wide : WidgetDimensions::scaled.vsep_normal);
+			size.height += GetCharacterHeight(FS_NORMAL) + (first ? WidgetDimensions::scaled.vsep_wide : WidgetDimensions::scaled.vsep_normal);
+			first = false;
 		}
 
 		if (!this->cargo_acceptance.empty()) {
