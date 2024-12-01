@@ -115,8 +115,8 @@ static auto &SecretSettingTables()
 	return _secrets_setting_tables;
 }
 
-typedef void SettingDescProc(IniFile &ini, const SettingTable &desc, const char *grpname, void *object, bool only_startup);
-typedef void SettingDescProcList(IniFile &ini, const char *grpname, StringList &list);
+using SettingDescProc = void(IniFile &ini, const SettingTable &desc, const char *grpname, void *object, bool only_startup);
+using SettingDescProcList = void(IniFile &ini, const char *grpname, std::vector<std::string> &list);
 
 static bool IsSignedVarMemType(VarType vt)
 {
@@ -821,7 +821,7 @@ void ListSettingDesc::ResetToDefault(void *) const
  * @param grpname character string identifying the section-header of the ini file that will be parsed
  * @param list new list with entries of the given section
  */
-static void IniLoadSettingList(IniFile &ini, const char *grpname, StringList &list)
+static void IniLoadSettingList(IniFile &ini, const char *grpname, std::vector<std::string> &list)
 {
 	const IniGroup *group = ini.GetGroup(grpname);
 
@@ -843,7 +843,7 @@ static void IniLoadSettingList(IniFile &ini, const char *grpname, StringList &li
  * @param list pointer to an string(pointer) array that will be used as the
  *             source to be saved into the relevant ini section
  */
-static void IniSaveSettingList(IniFile &ini, const char *grpname, StringList &list)
+static void IniSaveSettingList(IniFile &ini, const char *grpname, std::vector<std::string> &list)
 {
 	IniGroup &group = ini.GetOrCreateGroup(grpname);
 	group.Clear();

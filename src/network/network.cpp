@@ -70,9 +70,9 @@ bool _is_network_server;  ///< Does this client wants to be a network-server?
 ClientID _network_own_client_id;      ///< Our client identifier.
 ClientID _redirect_console_to_client; ///< If not invalid, redirect the console output to a client.
 uint8_t _network_reconnect;             ///< Reconnect timeout
-StringList _network_bind_list;        ///< The addresses to bind on.
-StringList _network_host_list;        ///< The servers we know.
-StringList _network_ban_list;         ///< The banned clients.
+std::vector<std::string> _network_bind_list; ///< The addresses to bind on.
+std::vector<std::string> _network_host_list; ///< The servers we know.
+std::vector<std::string> _network_ban_list; ///< The banned clients.
 uint32_t _frame_counter_server;         ///< The frame_counter of the server, if in network-mode
 uint32_t _frame_counter_max;            ///< To where we may go with our clients
 uint32_t _frame_counter;                ///< The current frame.

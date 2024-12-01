@@ -22,14 +22,13 @@
 #include "../gfx_type.h"
 #include "../openttd.h"
 #include "../company_type.h"
-#include "../string_type.h"
 
 extern ClientID _network_own_client_id;
 extern ClientID _redirect_console_to_client;
 extern uint8_t _network_reconnect;
-extern StringList _network_bind_list;
-extern StringList _network_host_list;
-extern StringList _network_ban_list;
+extern std::vector<std::string> _network_bind_list;
+extern std::vector<std::string> _network_host_list;
+extern std::vector<std::string> _network_ban_list;
 
 uint8_t NetworkSpectatorCount();
 bool NetworkIsValidClientName(const std::string_view client_name);
