@@ -11,7 +11,6 @@
 #define SETTINGS_FUNC_H
 
 #include "company_type.h"
-#include "string_type.h"
 
 struct IniFile;
 
@@ -26,7 +25,7 @@ void SaveToConfig();
 void IniLoadWindowSettings(IniFile &ini, const char *grpname, void *desc);
 void IniSaveWindowSettings(IniFile &ini, const char *grpname, void *desc);
 
-StringList GetGRFPresetList();
+std::vector<std::string> GetGRFPresetList();
 struct GRFConfig *LoadGRFPresetFromConfig(const char *config_name);
 void SaveGRFPresetToConfig(const char *config_name, struct GRFConfig *config);
 void DeleteGRFPresetFromConfig(const char *config_name);

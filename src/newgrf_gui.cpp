@@ -617,7 +617,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	StringFilter string_filter; ///< Filter for available grf.
 	QueryString filter_editbox; ///< Filter editbox;
 
-	StringList grf_presets;     ///< List of known NewGRF presets.
+	std::vector<std::string> grf_presets;     ///< List of known NewGRF presets.
 
 	GRFConfig *actives;         ///< Temporary active grf list to which changes are made.
 	GRFConfig *active_sel;      ///< Selected active grf item.
@@ -2058,7 +2058,7 @@ static WindowDesc _save_preset_desc(
 /** Class for the save preset window. */
 struct SavePresetWindow : public Window {
 	QueryString presetname_editbox; ///< Edit box of the save preset.
-	StringList presets; ///< Available presets.
+	std::vector<std::string> presets; ///< Available presets.
 	Scrollbar *vscroll; ///< Pointer to the scrollbar widget.
 	int selected; ///< Selected entry in the preset list, or \c -1 if none selected.
 
@@ -2102,8 +2102,9 @@ struct SavePresetWindow : public Window {
 			case WID_SVP_PRESET_LIST: {
 				resize.height = GetCharacterHeight(FS_NORMAL);
 				size.height = 0;
-				for (uint i = 0; i < this->presets.size(); i++) {
-					Dimension d = GetStringBoundingBox(this->presets[i]);
+
+				for (const std::string &preset : this->presets) {
+					Dimension d = GetStringBoundingBox(preset);
 					size.width = std::max(size.width, d.width + padding.width);
 					resize.height = std::max(resize.height, d.height);
 				}

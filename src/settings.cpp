@@ -1518,9 +1518,9 @@ void SaveToConfig()
  * Get the list of known NewGrf presets.
  * @returns List of preset names.
  */
-StringList GetGRFPresetList()
+std::vector<std::string> GetGRFPresetList()
 {
-	StringList list;
+	std::vector<std::string> list;
 
 	ConfigIniFile ini(_config_file);
 	for (const IniGroup &group : ini.groups) {
