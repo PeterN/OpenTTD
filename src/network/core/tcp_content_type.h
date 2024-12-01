@@ -71,7 +71,7 @@ struct ContentInfo {
 	uint32_t unique_id = 0;                    ///< Unique ID; either GRF ID or shortname
 	MD5Hash md5sum;                          ///< The MD5 checksum
 	std::vector<ContentID> dependencies;     ///< The dependencies (unique server side ids)
-	StringList tags;                         ///< Tags associated with the content
+	std::vector<std::string> tags;           ///< Tags associated with the content
 	State state = State::UNSELECTED;         ///< Whether the content info is selected (for download)
 	bool upgrade = false;                    ///< This item is an upgrade
 
