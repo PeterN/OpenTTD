@@ -362,13 +362,11 @@ struct CheatWindow : Window {
 		if (btn == CHT_CHANGE_DATE && x >= SETTING_BUTTON_WIDTH) {
 			/* Click at the date text directly. */
 			clicked_widget = CHT_CHANGE_DATE;
-			SetDParam(0, value);
-			ShowQueryString(STR_JUST_INT, STR_CHEAT_CHANGE_DATE_QUERY_CAPT, 8, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
+			ShowQueryString(GetString(STR_JUST_INT, value), STR_CHEAT_CHANGE_DATE_QUERY_CAPT, 8, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
 			return;
 		} else if (btn == CHT_EDIT_MAX_HL && x >= SETTING_BUTTON_WIDTH) {
 			clicked_widget = CHT_EDIT_MAX_HL;
-			SetDParam(0, value);
-			ShowQueryString(STR_JUST_INT, STR_CHEAT_EDIT_MAX_HL_QUERY_CAPT, 8, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
+			ShowQueryString(GetString(STR_JUST_INT, value), STR_CHEAT_EDIT_MAX_HL_QUERY_CAPT, 8, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
 			return;
 		}
 
