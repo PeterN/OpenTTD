@@ -99,9 +99,7 @@ struct EnginePreviewWindow : Window {
 		this->vehicle_space = std::max<int>(ScaleSpriteTrad(40), y - y_offs);
 
 		size.width = std::max(size.width, x + std::abs(x_offs));
-		SetDParam(0, GetEngineCategoryName(engine));
-		size.height = GetStringHeight(STR_ENGINE_PREVIEW_MESSAGE, size.width) + WidgetDimensions::scaled.vsep_wide + GetCharacterHeight(FS_NORMAL) + this->vehicle_space;
-		SetDParam(0, engine);
+		size.height = GetStringHeight(GetString(STR_ENGINE_PREVIEW_MESSAGE, GetEngineCategoryName(engine)), size.width) + WidgetDimensions::scaled.vsep_wide + GetCharacterHeight(FS_NORMAL) + this->vehicle_space;
 		size.height += GetStringHeight(GetEngineInfoString(engine), size.width);
 	}
 
@@ -110,11 +108,9 @@ struct EnginePreviewWindow : Window {
 		if (widget != WID_EP_QUESTION) return;
 
 		EngineID engine = this->window_number;
-		SetDParam(0, GetEngineCategoryName(engine));
-		int y = DrawStringMultiLine(r, STR_ENGINE_PREVIEW_MESSAGE, TC_FROMSTRING, SA_HOR_CENTER | SA_TOP) + WidgetDimensions::scaled.vsep_wide;
+		int y = DrawStringMultiLine(r, GetString(STR_ENGINE_PREVIEW_MESSAGE, GetEngineCategoryName(engine)), TC_FROMSTRING, SA_HOR_CENTER | SA_TOP) + WidgetDimensions::scaled.vsep_wide;
 
-		SetDParam(0, PackEngineNameDParam(engine, EngineNameContext::PreviewNews));
-		DrawString(r.left, r.right, y, STR_ENGINE_NAME, TC_BLACK, SA_HOR_CENTER);
+		DrawString(r.left, r.right, y, GetString(STR_ENGINE_NAME, PackEngineNameDParam(engine, EngineNameContext::PreviewNews)), TC_BLACK, SA_HOR_CENTER);
 		y += GetCharacterHeight(FS_NORMAL);
 
 		DrawVehicleEngine(r.left, r.right, this->width >> 1, y + this->vehicle_space / 2, engine, GetEnginePalette(engine, _local_company), EIT_PREVIEW);
@@ -168,99 +164,118 @@ uint GetTotalCapacityOfArticulatedParts(EngineID engine)
 	return cap.GetSum<uint>();
 }
 
-static StringID GetTrainEngineInfoString(const Engine *e)
+static std::string GetTrainEngineInfoString(const Engine *e)
 {
-	SetDParam(0, STR_ENGINE_PREVIEW_COST_WEIGHT);
-	SetDParam(1, e->GetCost());
-	SetDParam(2, e->GetDisplayWeight());
-
-	SetDParam(3, (_settings_game.vehicle.train_acceleration_model != AM_ORIGINAL && GetRailTypeInfo(e->u.rail.railtype)->acceleration_type != 2) ? STR_ENGINE_PREVIEW_SPEED_POWER_MAX_TE : STR_ENGINE_PREVIEW_SPEED_POWER);
-	SetDParam(4, PackVelocity(e->GetDisplayMaxSpeed(), e->type));
-	SetDParam(5, e->GetPower());
-	SetDParam(6, e->GetDisplayMaxTractiveEffort());
-
-	SetDParam(7, TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR);
-	SetDParam(8, e->GetRunningCost());
-
-	SetDParam(9, STR_ENGINE_PREVIEW_CAPACITY);
 	uint capacity = GetTotalCapacityOfArticulatedParts(e->index);
-	SetDParam(10, capacity != 0 ? e->GetDefaultCargoType() : INVALID_CARGO);
-	SetDParam(11, capacity);
 
-	return STR_ENGINE_PREVIEW_TEXT4;
+	return GetString(STR_ENGINE_PREVIEW_TEXT4,
+		STR_ENGINE_PREVIEW_COST_WEIGHT,
+		e->GetCost(),
+		e->GetDisplayWeight(),
+
+		(_settings_game.vehicle.train_acceleration_model != AM_ORIGINAL && GetRailTypeInfo(e->u.rail.railtype)->acceleration_type != 2) ? STR_ENGINE_PREVIEW_SPEED_POWER_MAX_TE : STR_ENGINE_PREVIEW_SPEED_POWER,
+		PackVelocity(e->GetDisplayMaxSpeed(), e->type),
+		e->GetPower(),
+		e->GetDisplayMaxTractiveEffort(),
+
+		TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR,
+		e->GetRunningCost(),
+
+		STR_ENGINE_PREVIEW_CAPACITY,
+		capacity != 0 ? e->GetDefaultCargoType() : INVALID_CARGO,
+		capacity,
+		std::monostate{},
+		std::monostate{});
 }
 
-static StringID GetAircraftEngineInfoString(const Engine *e)
+static std::string GetAircraftEngineInfoString(const Engine *e)
 {
 	CargoID cargo = e->GetDefaultCargoType();
 	uint16_t mail_capacity;
 	uint capacity = e->GetDisplayDefaultCapacity(&mail_capacity);
 	uint16_t range = e->GetRange();
 
-	SetDParam(0, STR_ENGINE_PREVIEW_COST_MAX_SPEED);
-	SetDParam(1, e->GetCost());
-	SetDParam(2, PackVelocity(e->GetDisplayMaxSpeed(), e->type));
+	return GetString(STR_ENGINE_PREVIEW_TEXT4,
+		STR_ENGINE_PREVIEW_COST_MAX_SPEED,
+		e->GetCost(),
+		PackVelocity(e->GetDisplayMaxSpeed(), e->type),
 
-	SetDParam(3, range > 0 ? STR_ENGINE_PREVIEW_TYPE_RANGE : STR_ENGINE_PREVIEW_TYPE);
-	SetDParam(4, e->GetAircraftTypeText());
-	SetDParam(5, range);
+		range > 0 ? STR_ENGINE_PREVIEW_TYPE_RANGE : STR_ENGINE_PREVIEW_TYPE,
+		e->GetAircraftTypeText(),
+		range,
+		std::monostate{},
 
-	SetDParam(7, TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR);
-	SetDParam(8, e->GetRunningCost());
+		TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR,
+		e->GetRunningCost(),
 
-	SetDParam(9, mail_capacity > 0 ? STR_ENGINE_PREVIEW_CAPACITY_2 : STR_ENGINE_PREVIEW_CAPACITY);
-	SetDParam(10, cargo);
-	SetDParam(11, capacity);
-	SetDParam(12, GetCargoIDByLabel(CT_MAIL));
-	SetDParam(13, mail_capacity);
-
-	return STR_ENGINE_PREVIEW_TEXT4;
+		mail_capacity > 0 ? STR_ENGINE_PREVIEW_CAPACITY_2 : STR_ENGINE_PREVIEW_CAPACITY,
+		cargo,
+		capacity,
+		GetCargoIDByLabel(CT_MAIL),
+		mail_capacity);
 }
 
-static StringID GetRoadVehEngineInfoString(const Engine *e)
+static std::string GetRoadVehEngineInfoString(const Engine *e)
 {
-	SetDParam(7, TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR);
-	SetDParam(8, e->GetRunningCost());
-
-	SetDParam(9, STR_ENGINE_PREVIEW_CAPACITY);
 	uint capacity = GetTotalCapacityOfArticulatedParts(e->index);
-	SetDParam(10, capacity != 0 ? e->GetDefaultCargoType() : INVALID_CARGO);
-	SetDParam(11, capacity);
 
 	if (_settings_game.vehicle.roadveh_acceleration_model == AM_ORIGINAL) {
-		SetDParam(0, STR_ENGINE_PREVIEW_COST_MAX_SPEED);
-		SetDParam(1, e->GetCost());
-		SetDParam(2, PackVelocity(e->GetDisplayMaxSpeed(), e->type));
+		return GetString(STR_ENGINE_PREVIEW_TEXT3,
+			STR_ENGINE_PREVIEW_COST_MAX_SPEED,
+			e->GetCost(),
+			PackVelocity(e->GetDisplayMaxSpeed(), e->type),
 
-		return STR_ENGINE_PREVIEW_TEXT3;
-	} else {
-		SetDParam(0, STR_ENGINE_PREVIEW_COST_WEIGHT);
-		SetDParam(1, e->GetCost());
-		SetDParam(2, e->GetDisplayWeight());
+			std::monostate{}, // four
+			std::monostate{}, // unused
+			std::monostate{}, // string
+			std::monostate{}, // parameters
 
-		SetDParam(3, STR_ENGINE_PREVIEW_SPEED_POWER_MAX_TE);
-		SetDParam(4, PackVelocity(e->GetDisplayMaxSpeed(), e->type));
-		SetDParam(5, e->GetPower());
-		SetDParam(6, e->GetDisplayMaxTractiveEffort());
+			TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR,
+			e->GetRunningCost(),
 
-		return STR_ENGINE_PREVIEW_TEXT4;
+			STR_ENGINE_PREVIEW_CAPACITY,
+			capacity != 0 ? e->GetDefaultCargoType() : INVALID_CARGO,
+			capacity);
 	}
+
+	return GetString(STR_ENGINE_PREVIEW_TEXT4,
+		STR_ENGINE_PREVIEW_COST_WEIGHT,
+		e->GetCost(),
+		e->GetDisplayWeight(),
+
+		STR_ENGINE_PREVIEW_SPEED_POWER_MAX_TE,
+		PackVelocity(e->GetDisplayMaxSpeed(), e->type),
+		e->GetPower(),
+		e->GetDisplayMaxTractiveEffort(),
+
+		TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR,
+		e->GetRunningCost(),
+
+		STR_ENGINE_PREVIEW_CAPACITY,
+		capacity != 0 ? e->GetDefaultCargoType() : INVALID_CARGO,
+		capacity,
+		std::monostate{},
+		std::monostate{});
 }
 
-static StringID GetShipEngineInfoString(const Engine *e)
+static std::string GetShipEngineInfoString(const Engine *e)
 {
-	SetDParam(0, STR_ENGINE_PREVIEW_COST_MAX_SPEED);
-	SetDParam(1, e->GetCost());
-	SetDParam(2, PackVelocity(e->GetDisplayMaxSpeed(), e->type));
+	return GetString(STR_ENGINE_PREVIEW_TEXT3,
+		STR_ENGINE_PREVIEW_COST_MAX_SPEED,
+		e->GetCost(),
+		PackVelocity(e->GetDisplayMaxSpeed(), e->type),
 
-	SetDParam(7, TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR);
-	SetDParam(8, e->GetRunningCost());
+		std::monostate{}, // four
+		std::monostate{}, // unused
+		std::monostate{}, // string
+		std::monostate{}, // parameters
 
-	SetDParam(9, STR_ENGINE_PREVIEW_CAPACITY);
-	SetDParam(10, e->GetDefaultCargoType());
-	SetDParam(11, e->GetDisplayDefaultCapacity());
+		TimerGameEconomy::UsingWallclockUnits() ? STR_ENGINE_PREVIEW_RUNCOST_PERIOD : STR_ENGINE_PREVIEW_RUNCOST_YEAR,
+		e->GetRunningCost(),
 
-	return STR_ENGINE_PREVIEW_TEXT3;
+		STR_ENGINE_PREVIEW_CAPACITY,
+		e->GetDefaultCargoType(),
+		e->GetDisplayDefaultCapacity());
 }
 
 
@@ -270,7 +285,7 @@ static StringID GetShipEngineInfoString(const Engine *e)
  * @return String describing the engine.
  * @post \c DParam array is set up for printing the string.
  */
-StringID GetEngineInfoString(EngineID engine)
+std::string GetEngineInfoString(EngineID engine)
 {
 	const Engine *e = Engine::Get(engine);
 

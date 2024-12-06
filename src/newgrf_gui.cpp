@@ -86,26 +86,21 @@ static void ShowNewGRFInfo(const GRFConfig *c, const Rect &r, bool show_params)
 
 	/* Draw filename or not if it is not known (GRF sent over internet) */
 	if (!c->filename.empty()) {
-		SetDParamStr(0, c->filename);
-		tr.top = DrawStringMultiLine(tr, STR_NEWGRF_SETTINGS_FILENAME);
+		tr.top = DrawStringMultiLine(tr, GetString(STR_NEWGRF_SETTINGS_FILENAME, c->filename));
 	}
 
 	/* Prepare and draw GRF ID */
-	SetDParamStr(0, fmt::format("{:08X}", BSWAP32(c->ident.grfid)));
-	tr.top = DrawStringMultiLine(tr, STR_NEWGRF_SETTINGS_GRF_ID);
+	tr.top = DrawStringMultiLine(tr, GetString(STR_NEWGRF_SETTINGS_GRF_ID, fmt::format("{:08X}", BSWAP32(c->ident.grfid))));
 
 	if ((_settings_client.gui.newgrf_developer_tools || _settings_client.gui.newgrf_show_old_versions) && c->version != 0) {
-		SetDParam(0, c->version);
-		tr.top = DrawStringMultiLine(tr, STR_NEWGRF_SETTINGS_VERSION);
+		tr.top = DrawStringMultiLine(tr, GetString(STR_NEWGRF_SETTINGS_VERSION, c->version));
 	}
 	if ((_settings_client.gui.newgrf_developer_tools || _settings_client.gui.newgrf_show_old_versions) && c->min_loadable_version != 0) {
-		SetDParam(0, c->min_loadable_version);
-		tr.top = DrawStringMultiLine(tr, STR_NEWGRF_SETTINGS_MIN_VERSION);
+		tr.top = DrawStringMultiLine(tr, GetString(STR_NEWGRF_SETTINGS_MIN_VERSION, c->min_loadable_version));
 	}
 
 	/* Prepare and draw MD5 sum */
-	SetDParamStr(0, FormatArrayAsHex(c->ident.md5sum));
-	tr.top = DrawStringMultiLine(tr, STR_NEWGRF_SETTINGS_MD5SUM);
+	tr.top = DrawStringMultiLine(tr, GetString(STR_NEWGRF_SETTINGS_MD5SUM, FormatArrayAsHex(c->ident.md5sum)));
 
 	/* Show GRF parameter list */
 	if (show_params) {
@@ -134,8 +129,7 @@ static void ShowNewGRFInfo(const GRFConfig *c, const Rect &r, bool show_params)
 
 	/* Draw GRF info if it exists */
 	if (!StrEmpty(c->GetDescription())) {
-		SetDParamStr(0, c->GetDescription());
-		tr.top = DrawStringMultiLine(tr, STR_JUST_RAW_STRING, TC_BLACK);
+		tr.top = DrawStringMultiLine(tr, GetString(STR_JUST_RAW_STRING, c->GetDescription()), TC_BLACK);
 	} else {
 		tr.top = DrawStringMultiLine(tr, STR_NEWGRF_SETTINGS_NO_INFO);
 	}
@@ -222,8 +216,7 @@ struct NewGRFParametersWindow : public Window {
 			}
 
 			case WID_NP_NUMPAR: {
-				SetDParamMaxValue(0, GRFConfig::MAX_NUM_PARAMS);
-				Dimension d = GetStringBoundingBox(this->GetWidget<NWidgetCore>(widget)->widget_data);
+				Dimension d = GetStringBoundingBox(GetString(this->GetWidget<NWidgetCore>(widget)->widget_data, GetParamMaxValue(GRFConfig::MAX_NUM_PARAMS)));
 				d.width += padding.width;
 				d.height += padding.height;
 				size = maxdim(size, d);
@@ -774,8 +767,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			case WID_NS_PRESET_LIST: {
 				Dimension d = GetStringBoundingBox(STR_NUM_CUSTOM);
 				for (const auto &i : this->grf_presets) {
-					SetDParamStr(0, i);
-					d = maxdim(d, GetStringBoundingBox(STR_JUST_RAW_STRING));
+					d = maxdim(d, GetStringBoundingBox(GetString(STR_JUST_RAW_STRING, i)));
 				}
 				d.width += padding.width;
 				size = maxdim(d, size);
@@ -2215,22 +2207,22 @@ struct ScanProgressWindow : public Window {
 	{
 		switch (widget) {
 			case WID_SP_PROGRESS_BAR: {
-				SetDParamMaxValue(0, 100);
-				size = GetStringBoundingBox(STR_GENERATION_PROGRESS);
+				uint64_t max_value = GetParamMaxValue(100);
+				size = GetStringBoundingBox(GetString(STR_GENERATION_PROGRESS, max_value));
 				/* We need some spacing for the 'border' */
 				size.height += WidgetDimensions::scaled.frametext.Horizontal();
 				size.width  += WidgetDimensions::scaled.frametext.Vertical();
 				break;
 			}
 
-			case WID_SP_PROGRESS_TEXT:
-				SetDParamMaxDigits(0, 4);
-				SetDParamMaxDigits(1, 4);
+			case WID_SP_PROGRESS_TEXT: {
+				uint64_t max_digits = GetParamMaxDigits(4);
 				/* We really don't know the width. We could determine it by scanning the NewGRFs,
 				 * but this is the status window for scanning them... */
-				size.width = std::max<uint>(size.width, GetStringBoundingBox(STR_NEWGRF_SCAN_STATUS).width + padding.width);
+				size.width = std::max<uint>(size.width, GetStringBoundingBox(GetString(STR_NEWGRF_SCAN_STATUS, max_digits, max_digits)).width + padding.width);
 				size.height = GetCharacterHeight(FS_NORMAL) * 2 + WidgetDimensions::scaled.vsep_normal;
 				break;
+			}
 		}
 	}
 
@@ -2243,15 +2235,12 @@ struct ScanProgressWindow : public Window {
 				Rect ir = r.Shrink(WidgetDimensions::scaled.bevel);
 				uint percent = scanned * 100 / std::max(1U, _settings_client.gui.last_newgrf_count);
 				DrawFrameRect(ir.WithWidth(ir.Width() * percent / 100, _current_text_dir == TD_RTL), COLOUR_MAUVE, FR_NONE);
-				SetDParam(0, percent);
-				DrawString(ir.left, ir.right, CenterBounds(ir.top, ir.bottom, GetCharacterHeight(FS_NORMAL)), STR_GENERATION_PROGRESS, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString(ir.left, ir.right, CenterBounds(ir.top, ir.bottom, GetCharacterHeight(FS_NORMAL)), GetString(STR_GENERATION_PROGRESS, percent), TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 			}
 
 			case WID_SP_PROGRESS_TEXT:
-				SetDParam(0, this->scanned);
-				SetDParam(1, _settings_client.gui.last_newgrf_count);
-				DrawString(r.left, r.right, r.top, STR_NEWGRF_SCAN_STATUS, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString(r.left, r.right, r.top, GetString(STR_NEWGRF_SCAN_STATUS, this->scanned, _settings_client.gui.last_newgrf_count), TC_FROMSTRING, SA_HOR_CENTER);
 
 				DrawString(r.left, r.right, r.top + GetCharacterHeight(FS_NORMAL) + WidgetDimensions::scaled.vsep_normal, this->last_name, TC_BLACK, SA_HOR_CENTER);
 				break;

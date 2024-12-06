@@ -459,7 +459,10 @@ struct NewsWindow : Window {
 			case WID_N_VEH_INFO: {
 				assert(this->ni->reftype1 == NR_ENGINE);
 				EngineID engine = this->ni->ref1;
-				str = GetEngineInfoString(engine);
+
+				/* Handle this properly... */
+				SetDParamStr(0, GetEngineInfoString(engine));
+				str = STR_JUST_RAW_STRING;
 				break;
 			}
 
@@ -523,8 +526,7 @@ struct NewsWindow : Window {
 			}
 			case WID_N_MGR_NAME: {
 				const CompanyNewsInformation *cni = static_cast<const CompanyNewsInformation*>(this->ni->data.get());
-				SetDParamStr(0, cni->president_name);
-				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, GetString(STR_JUST_RAW_STRING, cni->president_name), TC_FROMSTRING, SA_CENTER);
 				break;
 			}
 			case WID_N_COMPANY_MSG:
@@ -614,8 +616,7 @@ struct NewsWindow : Window {
 
 		NWidgetResizeBase *wid = this->GetWidget<NWidgetResizeBase>(WID_N_MGR_NAME);
 		if (wid != nullptr) {
-			SetDParamStr(0, static_cast<const CompanyNewsInformation *>(this->ni->data.get())->president_name);
-			int y = GetStringHeight(STR_JUST_RAW_STRING, wid->current_x);
+			int y = GetStringHeight(GetString(STR_JUST_RAW_STRING, static_cast<const CompanyNewsInformation *>(this->ni->data.get())->president_name), wid->current_x);
 			if (wid->UpdateVerticalSize(y)) this->ReInit(0, 0);
 		}
 	}
@@ -1187,8 +1188,7 @@ struct MessageHistoryWindow : Window {
 
 			/* Months are off-by-one, so it's actually 8. Not using
 			 * month 12 because the 1 is usually less wide. */
-			SetDParam(0, TimerGameCalendar::ConvertYMDToDate(CalendarTime::ORIGINAL_MAX_YEAR, 7, 30));
-			this->date_width = GetStringBoundingBox(STR_JUST_DATE_TINY).width + WidgetDimensions::scaled.hsep_wide;
+			this->date_width = GetStringBoundingBox(GetString(STR_JUST_DATE_TINY, TimerGameCalendar::ConvertYMDToDate(CalendarTime::ORIGINAL_MAX_YEAR, 7, 30))).width + WidgetDimensions::scaled.hsep_wide;
 
 			size.height = 4 * resize.height + WidgetDimensions::scaled.framerect.Vertical(); // At least 4 lines are visible.
 			size.width = std::max(200u, size.width); // At least 200 pixels wide.
@@ -1207,8 +1207,7 @@ struct MessageHistoryWindow : Window {
 
 		auto [first, last] = this->vscroll->GetVisibleRangeIterators(_news);
 		for (auto ni = first; ni != last; ++ni) {
-			SetDParam(0, ni->date);
-			DrawString(date.left, date.right, y, STR_JUST_DATE_TINY, TC_WHITE);
+			DrawString(date.left, date.right, y, GetString(STR_JUST_DATE_TINY, ni->date), TC_WHITE);
 
 			DrawNewsString(news.left, news.right, y, TC_WHITE, &*ni);
 			y += this->line_height;

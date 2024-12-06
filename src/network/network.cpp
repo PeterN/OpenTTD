@@ -264,11 +264,6 @@ void NetworkTextMessage(NetworkAction action, TextColour colour, bool self_send,
 		default:                            strid = STR_NETWORK_CHAT_ALL; break;
 	}
 
-	SetDParamStr(0, name);
-	SetDParamStr(1, str);
-	SetDParam(2, data);
-	SetDParamStr(3, data_str);
-
 	/* All of these strings start with "***". These characters are interpreted as both left-to-right and
 	 * right-to-left characters depending on the context. As the next text might be an user's name, the
 	 * user name's characters will influence the direction of the "***" instead of the language setting
@@ -276,7 +271,7 @@ void NetworkTextMessage(NetworkAction action, TextColour colour, bool self_send,
 	std::ostringstream stream;
 	std::ostreambuf_iterator<char> iterator(stream);
 	Utf8Encode(iterator, _current_text_dir == TD_LTR ? CHAR_TD_LRM : CHAR_TD_RLM);
-	std::string message = stream.str() + GetString(strid);
+	std::string message = stream.str() + GetString(strid, name, str, data, data_str);
 
 	Debug(desync, 1, "msg: {:08x}; {:02x}; {}", TimerGameEconomy::date, TimerGameEconomy::date_fract, message);
 	IConsolePrint(colour, message);
@@ -365,29 +360,31 @@ void NetworkHandlePauseChange(PauseMode prev_mode, PauseMode changed_mode)
 			bool paused = (_pause_mode != PM_UNPAUSED);
 			if (!paused && !changed) return;
 
-			StringID str;
+			EncodedString str;
 			if (!changed) {
 				int i = -1;
 
-				if ((_pause_mode & PM_PAUSED_NORMAL) != PM_UNPAUSED)         SetDParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_MANUAL);
-				if ((_pause_mode & PM_PAUSED_JOIN) != PM_UNPAUSED)           SetDParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_CONNECTING_CLIENTS);
-				if ((_pause_mode & PM_PAUSED_GAME_SCRIPT) != PM_UNPAUSED)    SetDParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_GAME_SCRIPT);
-				if ((_pause_mode & PM_PAUSED_ACTIVE_CLIENTS) != PM_UNPAUSED) SetDParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_NOT_ENOUGH_PLAYERS);
-				if ((_pause_mode & PM_PAUSED_LINK_GRAPH) != PM_UNPAUSED)     SetDParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_LINK_GRAPH);
-				str = STR_NETWORK_SERVER_MESSAGE_GAME_STILL_PAUSED_1 + i;
+				ArrayStringParametersWriter<5> params;
+				if ((_pause_mode & PM_PAUSED_NORMAL) != PM_UNPAUSED)         params.SetParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_MANUAL);
+				if ((_pause_mode & PM_PAUSED_JOIN) != PM_UNPAUSED)           params.SetParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_CONNECTING_CLIENTS);
+				if ((_pause_mode & PM_PAUSED_GAME_SCRIPT) != PM_UNPAUSED)    params.SetParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_GAME_SCRIPT);
+				if ((_pause_mode & PM_PAUSED_ACTIVE_CLIENTS) != PM_UNPAUSED) params.SetParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_NOT_ENOUGH_PLAYERS);
+				if ((_pause_mode & PM_PAUSED_LINK_GRAPH) != PM_UNPAUSED)     params.SetParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_LINK_GRAPH);
+				str = GetEncodedString(STR_NETWORK_SERVER_MESSAGE_GAME_STILL_PAUSED_1 + i, std::span{params});
 			} else {
+				StringID reason;
 				switch (changed_mode) {
-					case PM_PAUSED_NORMAL:         SetDParam(0, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_MANUAL); break;
-					case PM_PAUSED_JOIN:           SetDParam(0, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_CONNECTING_CLIENTS); break;
-					case PM_PAUSED_GAME_SCRIPT:    SetDParam(0, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_GAME_SCRIPT); break;
-					case PM_PAUSED_ACTIVE_CLIENTS: SetDParam(0, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_NOT_ENOUGH_PLAYERS); break;
-					case PM_PAUSED_LINK_GRAPH:     SetDParam(0, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_LINK_GRAPH); break;
+					case PM_PAUSED_NORMAL:         reason = STR_NETWORK_SERVER_MESSAGE_GAME_REASON_MANUAL; break;
+					case PM_PAUSED_JOIN:           reason = STR_NETWORK_SERVER_MESSAGE_GAME_REASON_CONNECTING_CLIENTS; break;
+					case PM_PAUSED_GAME_SCRIPT:    reason = STR_NETWORK_SERVER_MESSAGE_GAME_REASON_GAME_SCRIPT; break;
+					case PM_PAUSED_ACTIVE_CLIENTS: reason = STR_NETWORK_SERVER_MESSAGE_GAME_REASON_NOT_ENOUGH_PLAYERS; break;
+					case PM_PAUSED_LINK_GRAPH:     reason = STR_NETWORK_SERVER_MESSAGE_GAME_REASON_LINK_GRAPH; break;
 					default: NOT_REACHED();
 				}
-				str = paused ? STR_NETWORK_SERVER_MESSAGE_GAME_PAUSED : STR_NETWORK_SERVER_MESSAGE_GAME_UNPAUSED;
+				str = GetEncodedString(paused ? STR_NETWORK_SERVER_MESSAGE_GAME_PAUSED : STR_NETWORK_SERVER_MESSAGE_GAME_UNPAUSED, reason);
 			}
 
-			NetworkTextMessage(NETWORK_ACTION_SERVER_MESSAGE, CC_DEFAULT, false, "", GetString(str));
+			NetworkTextMessage(NETWORK_ACTION_SERVER_MESSAGE, CC_DEFAULT, false, "", str.GetDecodedString());
 			break;
 		}
 

@@ -997,8 +997,7 @@ protected:
 					y + GetCharacterHeight(FS_SMALL) > dpi->top &&
 					y < dpi->top + dpi->height) {
 				/* And draw it. */
-				SetDParam(0, t->index);
-				DrawString(x, x + t->cache.sign.width_small, y, STR_SMALLMAP_TOWN);
+				DrawString(x, x + t->cache.sign.width_small, y, GetString(STR_SMALLMAP_TOWN, t->index));
 			}
 		}
 	}
@@ -1675,10 +1674,13 @@ public:
 							[[fallthrough]];
 
 						default:
-							if (this->map_type == SMT_CONTOUR) SetDParam(0, tbl->height * TILE_HEIGHT_STEP);
 							/* Anything that is not an industry or a company is using normal process */
 							GfxFillRect(icon, PC_BLACK);
-							DrawString(text, tbl->legend);
+							if (this->map_type == SMT_CONTOUR) {
+								DrawString(text, GetString(tbl->legend, tbl->height * TILE_HEIGHT_STEP));
+							} else {
+								DrawString(text, tbl->legend);
+							}
 							break;
 					}
 					GfxFillRect(icon.Shrink(WidgetDimensions::scaled.bevel), legend_colour); // Legend colour

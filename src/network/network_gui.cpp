@@ -372,36 +372,41 @@ protected:
 		if (cur_item->status == NGLS_ONLINE) {
 			if (const NWidgetBase *nwid = this->GetWidget<NWidgetBase>(WID_NG_CLIENTS); nwid->current_x != 0) {
 				Rect clients = nwid->GetCurrentRect();
-				SetDParam(0, cur_item->info.clients_on);
-				SetDParam(1, cur_item->info.clients_max);
-				SetDParam(2, cur_item->info.companies_on);
-				SetDParam(3, cur_item->info.companies_max);
-				DrawString(clients.left, clients.right, y + text_y_offset, STR_NETWORK_SERVER_LIST_GENERAL_ONLINE, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString(clients.left, clients.right, y + text_y_offset,
+						GetString(STR_NETWORK_SERVER_LIST_GENERAL_ONLINE,
+								cur_item->info.clients_on,
+								cur_item->info.clients_max,
+								cur_item->info.companies_on,
+								cur_item->info.companies_max),
+						TC_FROMSTRING, SA_HOR_CENTER);
 			}
 
 			if (const NWidgetBase *nwid = this->GetWidget<NWidgetBase>(WID_NG_MAPSIZE); nwid->current_x != 0) {
 				/* map size */
 				Rect mapsize = nwid->GetCurrentRect();
-				SetDParam(0, cur_item->info.map_width);
-				SetDParam(1, cur_item->info.map_height);
-				DrawString(mapsize.left, mapsize.right, y + text_y_offset, STR_NETWORK_SERVER_LIST_MAP_SIZE_SHORT, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString(mapsize.left, mapsize.right, y + text_y_offset,
+						GetString(STR_NETWORK_SERVER_LIST_MAP_SIZE_SHORT, cur_item->info.map_width, cur_item->info.map_height),
+						TC_FROMSTRING, SA_HOR_CENTER);
 			}
 
 			if (const NWidgetBase *nwid = this->GetWidget<NWidgetBase>(WID_NG_DATE); nwid->current_x != 0) {
 				/* current date */
 				Rect date = nwid->GetCurrentRect();
 				TimerGameCalendar::YearMonthDay ymd = TimerGameCalendar::ConvertDateToYMD(cur_item->info.calendar_date);
-				SetDParam(0, ymd.year);
-				DrawString(date.left, date.right, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
+				DrawString(date.left, date.right, y + text_y_offset,
+						GetString(STR_JUST_INT, ymd.year),
+						TC_BLACK, SA_HOR_CENTER);
 			}
 
 			if (const NWidgetBase *nwid = this->GetWidget<NWidgetBase>(WID_NG_YEARS); nwid->current_x != 0) {
 				/* play time */
 				Rect years = nwid->GetCurrentRect();
 				const auto play_time = cur_item->info.ticks_playing / Ticks::TICKS_PER_SECOND;
-				SetDParam(0, play_time / 60 / 60);
-				SetDParam(1, (play_time / 60) % 60);
-				DrawString(years.left, years.right, y + text_y_offset, STR_NETWORK_SERVER_LIST_PLAY_TIME_SHORT, TC_BLACK, SA_HOR_CENTER);
+				auto minutes = play_time / 60 / 60;
+				auto hours = (play_time / 60) % 60;
+				DrawString(years.left, years.right, y + text_y_offset,
+						GetString(STR_NETWORK_SERVER_LIST_PLAY_TIME_SHORT, minutes, hours),
+						TC_BLACK, SA_HOR_CENTER);
 			}
 
 			/* Set top and bottom of info rect to current row. */
@@ -640,41 +645,31 @@ public:
 		if (sel->status != NGLS_ONLINE) {
 			tr.top = DrawStringMultiLine(tr, header_msg, TC_FROMSTRING, SA_HOR_CENTER);
 		} else { // show game info
-			SetDParam(0, sel->info.clients_on);
-			SetDParam(1, sel->info.clients_max);
-			SetDParam(2, sel->info.companies_on);
-			SetDParam(3, sel->info.companies_max);
-			tr.top = DrawStringMultiLine(tr, STR_NETWORK_SERVER_LIST_CLIENTS);
+			tr.top = DrawStringMultiLine(tr,
+				GetString(STR_NETWORK_SERVER_LIST_CLIENTS,
+					sel->info.clients_on,
+					sel->info.clients_max,
+					sel->info.companies_on,
+					sel->info.companies_max));
 
-			SetDParam(0, STR_CLIMATE_TEMPERATE_LANDSCAPE + sel->info.landscape);
-			tr.top = DrawStringMultiLine(tr, STR_NETWORK_SERVER_LIST_LANDSCAPE); // landscape
+			tr.top = DrawStringMultiLine(tr, GetString(STR_NETWORK_SERVER_LIST_LANDSCAPE, STR_CLIMATE_TEMPERATE_LANDSCAPE + sel->info.landscape)); // landscape
 
-			SetDParam(0, sel->info.map_width);
-			SetDParam(1, sel->info.map_height);
-			tr.top = DrawStringMultiLine(tr, STR_NETWORK_SERVER_LIST_MAP_SIZE); // map size
+			tr.top = DrawStringMultiLine(tr, GetString(STR_NETWORK_SERVER_LIST_MAP_SIZE, sel->info.map_width, sel->info.map_height)); // map size
 
-			SetDParamStr(0, sel->info.server_revision);
-			tr.top = DrawStringMultiLine(tr, STR_NETWORK_SERVER_LIST_SERVER_VERSION); // server version
+			tr.top = DrawStringMultiLine(tr, GetString(STR_NETWORK_SERVER_LIST_SERVER_VERSION, sel->info.server_revision)); // server version
 
-			SetDParamStr(0, sel->connection_string);
 			StringID invite_or_address = sel->connection_string.starts_with("+") ? STR_NETWORK_SERVER_LIST_INVITE_CODE : STR_NETWORK_SERVER_LIST_SERVER_ADDRESS;
-			tr.top = DrawStringMultiLine(tr, invite_or_address); // server address / invite code
+			tr.top = DrawStringMultiLine(tr, GetString(invite_or_address, sel->connection_string)); // server address / invite code
 
-			SetDParam(0, sel->info.calendar_start);
-			tr.top = DrawStringMultiLine(tr, STR_NETWORK_SERVER_LIST_START_DATE); // start date
+			tr.top = DrawStringMultiLine(tr, GetString(STR_NETWORK_SERVER_LIST_START_DATE, sel->info.calendar_start)); // start date
 
-			SetDParam(0, sel->info.calendar_date);
-			tr.top = DrawStringMultiLine(tr, STR_NETWORK_SERVER_LIST_CURRENT_DATE); // current date
+			tr.top = DrawStringMultiLine(tr, GetString(STR_NETWORK_SERVER_LIST_CURRENT_DATE, sel->info.calendar_date)); // current date
 
 			const auto play_time = sel->info.ticks_playing / Ticks::TICKS_PER_SECOND;
-			SetDParam(0, play_time / 60 / 60);
-			SetDParam(1, (play_time / 60) % 60);
-			tr.top = DrawStringMultiLine(tr, STR_NETWORK_SERVER_LIST_PLAY_TIME); // play time
+			tr.top = DrawStringMultiLine(tr, GetString(STR_NETWORK_SERVER_LIST_PLAY_TIME, play_time / 60 / 60, (play_time / 60) % 60)); // play time
 
 			if (sel->info.gamescript_version != -1) {
-				SetDParamStr(0, sel->info.gamescript_name);
-				SetDParam(1, sel->info.gamescript_version);
-				tr.top = DrawStringMultiLine(tr, STR_NETWORK_SERVER_LIST_GAMESCRIPT); // gamescript name and version
+				tr.top = DrawStringMultiLine(tr, GetString(STR_NETWORK_SERVER_LIST_GAMESCRIPT, sel->info.gamescript_name, sel->info.gamescript_version)); // gamescript name and version
 			}
 
 			tr.top += WidgetDimensions::scaled.vsep_wide;
@@ -1965,9 +1960,7 @@ public:
 			} else {
 				DrawCompanyIcon(company_id, icon_left, y + offset);
 
-				SetDParam(0, company_id);
-				SetDParam(1, company_id);
-				DrawString(tr.left, tr.right, y + text_y_offset, STR_COMPANY_NAME, TC_SILVER);
+				DrawString(tr.left, tr.right, y + text_y_offset, GetString(STR_COMPANY_NAME, company_id, company_id), TC_SILVER);
 			}
 		}
 
@@ -2002,8 +1995,7 @@ public:
 					tr = tr.Indent(d2.width + WidgetDimensions::scaled.hsep_normal, rtl);
 				}
 
-				SetDParamStr(0, ci->client_name);
-				DrawString(tr.left, tr.right, y + text_y_offset, STR_JUST_RAW_STRING, TC_BLACK);
+				DrawString(tr.left, tr.right, y + text_y_offset, GetString(STR_JUST_RAW_STRING, ci->client_name), TC_BLACK);
 			}
 
 			y += this->line_height;
@@ -2119,13 +2111,12 @@ struct NetworkJoinStatusWindow : Window {
 			case WID_NJS_PROGRESS_TEXT:
 				switch (_network_join_status) {
 					case NETWORK_JOIN_STATUS_WAITING:
-						SetDParam(0, _network_join_waiting);
-						DrawStringMultiLine(r, STR_NETWORK_CONNECTING_WAITING, TC_FROMSTRING, SA_CENTER);
+						DrawStringMultiLine(r, GetString(STR_NETWORK_CONNECTING_WAITING, _network_join_waiting), TC_FROMSTRING, SA_CENTER);
 						break;
 					case NETWORK_JOIN_STATUS_DOWNLOADING:
-						SetDParam(0, _network_join_bytes);
-						SetDParam(1, _network_join_bytes_total);
-						DrawStringMultiLine(r, _network_join_bytes_total == 0 ? STR_NETWORK_CONNECTING_DOWNLOADING_1 : STR_NETWORK_CONNECTING_DOWNLOADING_2, TC_FROMSTRING, SA_CENTER);
+						DrawStringMultiLine(r,
+								GetString(_network_join_bytes_total == 0 ? STR_NETWORK_CONNECTING_DOWNLOADING_1 : STR_NETWORK_CONNECTING_DOWNLOADING_2, _network_join_bytes, _network_join_bytes_total),
+								TC_FROMSTRING, SA_CENTER);
 						break;
 					default:
 						break;
@@ -2143,20 +2134,19 @@ struct NetworkJoinStatusWindow : Window {
 					size = maxdim(size, GetStringBoundingBox(STR_NETWORK_CONNECTING_1 + i));
 				}
 				/* For the number of waiting (other) players */
-				SetDParamMaxValue(0, MAX_CLIENTS);
-				size = maxdim(size, GetStringBoundingBox(STR_NETWORK_CONNECTING_WAITING));
+				size = maxdim(size, GetStringBoundingBox(GetString(STR_NETWORK_CONNECTING_WAITING, GetParamMaxValue(MAX_CLIENTS))));
 				/* We need some spacing for the 'border' */
 				size.height += WidgetDimensions::scaled.frametext.Horizontal();
 				size.width  += WidgetDimensions::scaled.frametext.Vertical();
 				break;
 
-			case WID_NJS_PROGRESS_TEXT:
+			case WID_NJS_PROGRESS_TEXT: {
 				/* Account for downloading ~ 10 MiB */
-				SetDParamMaxDigits(0, 8);
-				SetDParamMaxDigits(1, 8);
-				size = maxdim(size, GetStringBoundingBox(STR_NETWORK_CONNECTING_DOWNLOADING_1));
-				size = maxdim(size, GetStringBoundingBox(STR_NETWORK_CONNECTING_DOWNLOADING_1));
+				uint64_t max_digits = GetParamMaxDigits(8);
+				size = maxdim(size, GetStringBoundingBox(GetString(STR_NETWORK_CONNECTING_DOWNLOADING_1, max_digits, max_digits)));
+				size = maxdim(size, GetStringBoundingBox(GetString(STR_NETWORK_CONNECTING_DOWNLOADING_1, max_digits, max_digits)));
 				break;
+			}
 		}
 	}
 

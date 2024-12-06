@@ -285,8 +285,7 @@ protected:
 
 		/* Title lines */
 		height += GetCharacterHeight(FS_NORMAL); // Date always use exactly one line.
-		SetDParamStr(0, !page->title.empty() ? page->title : this->selected_generic_title);
-		height += GetStringHeight(STR_STORY_BOOK_TITLE, max_width);
+		height += GetStringHeight(GetString(STR_STORY_BOOK_TITLE, !page->title.empty() ? page->title : this->selected_generic_title), max_width);
 
 		return height;
 	}
@@ -322,8 +321,7 @@ protected:
 	{
 		switch (pe.type) {
 			case SPET_TEXT:
-				SetDParamStr(0, pe.text);
-				return GetStringHeight(STR_JUST_RAW_STRING, max_width);
+				return GetStringHeight(GetString(STR_JUST_RAW_STRING, pe.text), max_width);
 
 			case SPET_GOAL:
 			case SPET_LOCATION: {
@@ -697,14 +695,14 @@ public:
 
 		/* Date */
 		if (page->date != CalendarTime::INVALID_DATE) {
-			SetDParam(0, page->date);
-			DrawString(0, fr.right, y_offset, STR_JUST_DATE_LONG, TC_BLACK);
+			DrawString(0, fr.right, y_offset, GetString(STR_JUST_DATE_LONG, page->date), TC_BLACK);
 		}
 		y_offset += line_height;
 
 		/* Title */
-		SetDParamStr(0, !page->title.empty() ? page->title : this->selected_generic_title);
-		y_offset = DrawStringMultiLine(0, fr.right, y_offset, fr.bottom, STR_STORY_BOOK_TITLE, TC_BLACK, SA_TOP | SA_HOR_CENTER);
+		y_offset = DrawStringMultiLine(0, fr.right, y_offset, fr.bottom,
+				GetString(STR_STORY_BOOK_TITLE, !page->title.empty() ? page->title : this->selected_generic_title),
+				TC_BLACK, SA_TOP | SA_HOR_CENTER);
 
 		/* Page elements */
 		this->EnsureStoryPageElementLayout();
@@ -712,8 +710,9 @@ public:
 			y_offset = ce.bounds.top - scrollpos;
 			switch (ce.pe->type) {
 				case SPET_TEXT:
-					SetDParamStr(0, ce.pe->text);
-					y_offset = DrawStringMultiLine(ce.bounds.left, ce.bounds.right, ce.bounds.top - scrollpos, ce.bounds.bottom - scrollpos, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
+					y_offset = DrawStringMultiLine(ce.bounds.left, ce.bounds.right, ce.bounds.top - scrollpos, ce.bounds.bottom - scrollpos,
+							GetString(STR_JUST_RAW_STRING, ce.pe->text),
+							TC_BLACK, SA_TOP | SA_LEFT);
 					break;
 
 				case SPET_GOAL: {
@@ -738,8 +737,9 @@ public:
 
 					DrawFrameRect(ce.bounds.left, ce.bounds.top - scrollpos, ce.bounds.right, ce.bounds.bottom - scrollpos - 1, bgcolour, frame);
 
-					SetDParamStr(0, ce.pe->text);
-					DrawString(ce.bounds.left + WidgetDimensions::scaled.bevel.left, ce.bounds.right - WidgetDimensions::scaled.bevel.right, ce.bounds.top + tmargin - scrollpos, STR_JUST_RAW_STRING, TC_WHITE, SA_CENTER);
+					DrawString(ce.bounds.left + WidgetDimensions::scaled.bevel.left, ce.bounds.right - WidgetDimensions::scaled.bevel.right, ce.bounds.top + tmargin - scrollpos,
+							GetString(STR_JUST_RAW_STRING, ce.pe->text),
+							TC_WHITE, SA_CENTER);
 					break;
 				}
 
