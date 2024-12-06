@@ -1371,11 +1371,7 @@ static void ViewportAddTownStrings(DrawPixelInfo *dpi, const std::vector<const T
 	StringID stringid = !small && _settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN;
 	for (const auto *t : towns) {
 		std::string *str = ViewportAddString(dpi, &t->cache.sign, flags, INVALID_COLOUR);
-		if (str != nullptr) {
-			SetDParam(0, t->index);
-			SetDParam(1, t->cache.population);
-			*str = GetString(stringid);
-		}
+		if (str != nullptr) *str = GetString(stringid, t->index, t->cache.population);
 	}
 }
 
@@ -1401,10 +1397,7 @@ static void ViewportAddSignStrings(DrawPixelInfo *dpi, const std::vector<const S
 	for (const auto *si : signs) {
 		std::string *str = ViewportAddString(dpi, &si->sign, (si->owner == OWNER_DEITY) ? deity_flags : flags,
 			(si->owner == OWNER_NONE) ? COLOUR_GREY : (si->owner == OWNER_DEITY ? INVALID_COLOUR : _company_colours[si->owner]));
-		if (str != nullptr) {
-			SetDParam(0, si->index);
-			*str = GetString(STR_VIEWPORT_SIGN);
-		}
+		if (str != nullptr) *str = GetString(STR_VIEWPORT_SIGN, si->index);
 	}
 }
 
@@ -1429,18 +1422,11 @@ static void ViewportAddStationStrings(DrawPixelInfo *dpi, const std::vector<cons
 		if (Station::IsExpected(st)) {
 			/* Station */
 			std::string *str = ViewportAddString(dpi, &st->sign, flags, (st->owner == OWNER_NONE || !st->IsInUse()) ? COLOUR_GREY : _company_colours[st->owner]);
-			if (str != nullptr) {
-				SetDParam(0, st->index);
-				SetDParam(1, st->facilities);
-				*str = GetString(small ? STR_VIEWPORT_STATION_TINY : STR_VIEWPORT_STATION);
-			}
+			if (str != nullptr) *str = GetString(small ? STR_VIEWPORT_STATION_TINY : STR_VIEWPORT_STATION, st->index, st->facilities);
 		} else {
 			/* Waypoint */
 			std::string *str = ViewportAddString(dpi, &st->sign, flags, (st->owner == OWNER_NONE || !st->IsInUse()) ? COLOUR_GREY : _company_colours[st->owner]);
-			if (str != nullptr) {
-				SetDParam(0, st->index);
-				*str = GetString(STR_VIEWPORT_WAYPOINT);
-			}
+			if (str != nullptr) *str = GetString(STR_VIEWPORT_WAYPOINT, st->index);
 		}
 	}
 }
