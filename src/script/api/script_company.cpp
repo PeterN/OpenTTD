@@ -62,8 +62,7 @@
 	company = ResolveCompanyID(company);
 	if (company == COMPANY_INVALID) return std::nullopt;
 
-	::SetDParam(0, company);
-	return GetString(STR_COMPANY_NAME);
+	return ::StrMakeValid(::GetString(STR_COMPANY_NAME, company));
 }
 
 /* static */ bool ScriptCompany::SetPresidentName(Text *name)
@@ -84,8 +83,7 @@
 	company = ResolveCompanyID(company);
 	if (company == COMPANY_INVALID) return std::nullopt;
 
-	::SetDParam(0, company);
-	return GetString(STR_PRESIDENT_NAME);
+	return ::StrMakeValid(::GetString(STR_PRESIDENT_NAME, company));
 }
 
 /* static */ bool ScriptCompany::SetPresidentGender(Gender gender)

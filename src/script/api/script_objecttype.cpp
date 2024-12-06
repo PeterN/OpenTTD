@@ -27,7 +27,7 @@
 {
 	EnforcePrecondition(std::nullopt, IsValidObjectType(object_type));
 
-	return GetString(ObjectSpec::Get(object_type)->name);
+	return ::StrMakeValid(::GetString(ObjectSpec::Get(object_type)->name));
 }
 
 /* static */ SQInteger ScriptObjectType::GetViews(ObjectType object_type)
