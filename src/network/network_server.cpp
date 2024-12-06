@@ -1334,8 +1334,7 @@ void NetworkServerSendChat(NetworkAction action, DestType desttype, int dest, co
 			if (ci != nullptr && show_local) {
 				if (from_id == CLIENT_ID_SERVER) {
 					StringID str = Company::IsValidID(ci_to->client_playas) ? STR_COMPANY_NAME : STR_NETWORK_SPECTATORS;
-					SetDParam(0, ci_to->client_playas);
-					std::string name = GetString(str);
+					std::string name = GetString(str, ci_to->client_playas);
 					NetworkTextMessage(action, GetDrawStringCompanyColour(ci_own->client_playas), true, name, msg, data);
 				} else {
 					for (NetworkClientSocket *cs : NetworkClientSocket::Iterate()) {

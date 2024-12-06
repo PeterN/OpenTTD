@@ -2224,8 +2224,7 @@ std::tuple<CommandCost, Money, TownID> CmdFoundTown(DoCommandFlag flags, TileInd
 				SetDParam(0, t->index);
 				AddTileNewsItem(STR_NEWS_NEW_TOWN_UNSPONSORED, NT_INDUSTRY_OPEN, tile);
 			} else {
-				SetDParam(0, _current_company);
-				std::string company_name = GetString(STR_COMPANY_NAME);
+				std::string company_name = GetString(STR_COMPANY_NAME, _current_company);
 
 				SetDParamStr(0, company_name);
 				SetDParam(1, t->index);
@@ -3373,8 +3372,7 @@ static CommandCost TownActionRoadRebuild(Town *t, DoCommandFlag flags)
 	if (flags & DC_EXEC) {
 		t->road_build_months = 6;
 
-		SetDParam(0, _current_company);
-		std::string company_name = GetString(STR_COMPANY_NAME);
+		std::string company_name = GetString(STR_COMPANY_NAME, _current_company);
 
 		SetDParam(0, t->index);
 		SetDParamStr(1, company_name);
