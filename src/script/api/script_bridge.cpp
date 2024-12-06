@@ -134,7 +134,7 @@ static void _DoCommandReturnBuildBridge1(class ScriptInstance *instance)
 	EnforcePrecondition(std::nullopt, vehicle_type == ScriptVehicle::VT_ROAD || vehicle_type == ScriptVehicle::VT_RAIL || vehicle_type == ScriptVehicle::VT_WATER);
 	if (!IsValidBridge(bridge_id)) return std::nullopt;
 
-	return GetString(vehicle_type == ScriptVehicle::VT_WATER ? STR_LAI_BRIDGE_DESCRIPTION_AQUEDUCT : ::GetBridgeSpec(bridge_id)->transport_name[vehicle_type]);
+	return ::StrMakeValid(::GetString(vehicle_type == ScriptVehicle::VT_WATER ? STR_LAI_BRIDGE_DESCRIPTION_AQUEDUCT : ::GetBridgeSpec(bridge_id)->transport_name[vehicle_type]));
 }
 
 /* static */ SQInteger ScriptBridge::GetMaxSpeed(BridgeID bridge_id)

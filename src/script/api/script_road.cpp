@@ -29,7 +29,7 @@
 {
 	if (!IsRoadTypeAvailable(road_type)) return std::nullopt;
 
-	return GetString(GetRoadTypeInfo((::RoadType)road_type)->strings.name);
+	return ::StrMakeValid(::GetString(GetRoadTypeInfo((::RoadType)road_type)->strings.name));
 }
 
 /* static */ bool ScriptRoad::IsRoadTile(TileIndex tile)
