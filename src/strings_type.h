@@ -10,6 +10,7 @@
 #ifndef STRINGS_TYPE_H
 #define STRINGS_TYPE_H
 
+#include "core/overflowsafe_type.hpp"
 #include "core/strong_typedef_type.hpp"
 
 /**
@@ -72,5 +73,26 @@ static constexpr StringID SPECSTR_ANDCO_NAME = 0x70E6; ///< Special string for S
 static constexpr StringID SPECSTR_PRESIDENT_NAME = 0x70E7; ///< Special string for the president's name.
 
 using StringParameterData = std::variant<uint64_t, std::string>;
+
+/** The data required to format and validate a single parameter of a string. */
+struct StringParameter {
+	StringParameterData data; ///< The data of the parameter.
+	char32_t type; ///< The #StringControlCode to interpret this data with when it's the first parameter, otherwise '\0'.
+
+	StringParameter() = default;
+	inline StringParameter(StringParameterData &&data) : data(std::move(data)), type(0) {}
+
+	inline StringParameter(uint64_t data) : data(data), type(0) {}
+
+	inline StringParameter(const char *data) : data(std::string{data}), type(0) {}
+	inline StringParameter(std::string &&data) : data(std::move(data)), type(0) {}
+	inline StringParameter(const std::string &data) : data(data), type(0) {}
+
+	template <typename T, std::enable_if_t<std::is_base_of<StrongTypedefBase, T>::value, int> = 0>
+	inline StringParameter(const T &data) : data(static_cast<uint64_t>(data.base())), type(0) {}
+
+	template <typename T>
+	inline StringParameter(const OverflowSafeInt<T> &data) : data(static_cast<uint64_t>(static_cast<T>(data))), type(0) {}
+};
 
 #endif /* STRINGS_TYPE_H */
