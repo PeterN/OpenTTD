@@ -18,6 +18,7 @@
 #include "../settings_type.h"
 #include "network_content.h"
 
+#include "strings_func.h"
 #include "table/strings.h"
 
 #if defined(WITH_ZLIB)
@@ -492,7 +493,10 @@ bool ClientNetworkContentSocketHandler::Receive_SERVER_CONTENT(Packet &p)
 		size_t toRead = p.RemainingBytesToTransfer();
 		if (toRead != 0 && static_cast<size_t>(p.TransferOut(TransferOutFWrite, std::ref(this->curFile))) != toRead) {
 			CloseWindowById(WC_NETWORK_STATUS_WINDOW, WN_NETWORK_STATUS_WINDOW_CONTENT_DOWNLOAD);
-			ShowErrorMessage(STR_CONTENT_ERROR_COULD_NOT_DOWNLOAD, STR_CONTENT_ERROR_COULD_NOT_DOWNLOAD_FILE_NOT_WRITABLE, WL_ERROR);
+			ShowErrorMessage(
+				GetEncodedString(STR_CONTENT_ERROR_COULD_NOT_DOWNLOAD),
+				GetEncodedString(STR_CONTENT_ERROR_COULD_NOT_DOWNLOAD_FILE_NOT_WRITABLE),
+				WL_ERROR);
 			this->CloseConnection();
 			this->curFile.reset();
 
@@ -525,7 +529,10 @@ bool ClientNetworkContentSocketHandler::BeforeDownload()
 		if (filename.empty() || !(this->curFile = FileHandle::Open(filename, "wb")).has_value()) {
 			/* Unless that fails of course... */
 			CloseWindowById(WC_NETWORK_STATUS_WINDOW, WN_NETWORK_STATUS_WINDOW_CONTENT_DOWNLOAD);
-			ShowErrorMessage(STR_CONTENT_ERROR_COULD_NOT_DOWNLOAD, STR_CONTENT_ERROR_COULD_NOT_DOWNLOAD_FILE_NOT_WRITABLE, WL_ERROR);
+			ShowErrorMessage(
+				GetEncodedString(STR_CONTENT_ERROR_COULD_NOT_DOWNLOAD),
+				GetEncodedString(STR_CONTENT_ERROR_COULD_NOT_DOWNLOAD_FILE_NOT_WRITABLE),
+				WL_ERROR);
 			return false;
 		}
 	}
@@ -564,7 +571,7 @@ void ClientNetworkContentSocketHandler::AfterDownload()
 
 		this->OnDownloadComplete(this->curInfo->id);
 	} else {
-		ShowErrorMessage(STR_CONTENT_ERROR_COULD_NOT_EXTRACT, INVALID_STRING_ID, WL_ERROR);
+		ShowErrorMessage(GetEncodedString(STR_CONTENT_ERROR_COULD_NOT_EXTRACT), {}, WL_ERROR);
 	}
 }
 

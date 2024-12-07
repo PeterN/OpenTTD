@@ -729,8 +729,7 @@ static CommandCost ClearTile_Town(TileIndex tile, DoCommandFlag flags)
 	if (Company::IsValidID(_current_company)) {
 		if (rating > t->ratings[_current_company] && !(flags & DC_NO_TEST_TOWN_RATING) &&
 				!_cheats.magic_bulldozer.value && _settings_game.difficulty.town_council_tolerance != TOWN_COUNCIL_PERMISSIVE) {
-			SetDParam(0, t->index);
-			return CommandCost(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS);
+			return CommandCostWithArgs(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS, t->index);
 		}
 	}
 
@@ -1011,10 +1010,14 @@ bool CheckTownRoadTypes()
 	if (min_date <= TimerGameCalendar::date) return true;
 
 	if (min_date < INT32_MAX) {
-		SetDParam(0, min_date);
-		ShowErrorMessage(STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_YET, STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_YET_EXPLANATION, WL_CRITICAL);
+		ShowErrorMessage(
+			GetEncodedString(STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_YET),
+			GetEncodedString(STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_YET_EXPLANATION, min_date),
+			WL_CRITICAL);
 	} else {
-		ShowErrorMessage(STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_AT_ALL, STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_AT_ALL_EXPLANATION, WL_CRITICAL);
+		ShowErrorMessage(
+			GetEncodedString(STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_AT_ALL),
+			GetEncodedString(STR_ERROR_NO_TOWN_ROADTYPES_AVAILABLE_AT_ALL_EXPLANATION), WL_CRITICAL);
 	}
 	return false;
 }
@@ -2457,7 +2460,7 @@ bool GenerateTowns(TownLayout layout)
 
 	/* If there are no towns at all and we are generating new game, bail out */
 	if (Town::GetNumItems() == 0 && _game_mode != GM_EDITOR) {
-		ShowErrorMessage(STR_ERROR_COULD_NOT_CREATE_TOWN, INVALID_STRING_ID, WL_CRITICAL);
+		ShowErrorMessage(GetEncodedString(STR_ERROR_COULD_NOT_CREATE_TOWN), {}, WL_CRITICAL);
 	}
 
 	return false;  // we are still without a town? we failed, simply
@@ -3563,7 +3566,7 @@ static CommandCost TownActionBribe(Town *t, DoCommandFlag flags)
 
 			/* only show error message to the executing player. All errors are handled command.c
 			 * but this is special, because it can only 'fail' on a DC_EXEC */
-			if (IsLocalCompany()) ShowErrorMessage(STR_ERROR_BRIBE_FAILED, INVALID_STRING_ID, WL_INFO);
+			if (IsLocalCompany()) ShowErrorMessage(GetEncodedString(STR_ERROR_BRIBE_FAILED), {}, WL_INFO);
 
 			/* decrease by a lot!
 			 * ChangeTownRating is only for stuff in demolishing. Bribe failure should
@@ -3863,8 +3866,7 @@ CommandCost CheckIfAuthorityAllowsNewStation(TileIndex tile, DoCommandFlag flags
 
 	if (t->ratings[_current_company] > RATING_VERYPOOR) return CommandCost();
 
-	SetDParam(0, t->index);
-	return CommandCost(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS);
+	return CommandCostWithArgs(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS, t->index);
 }
 
 /**
@@ -4033,8 +4035,7 @@ CommandCost CheckforTownRating(DoCommandFlag flags, Town *t, TownRatingCheckType
 	int needed = needed_rating[_settings_game.difficulty.town_council_tolerance][type];
 
 	if (GetRating(t) < needed) {
-		SetDParam(0, t->index);
-		return CommandCost(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS);
+		return CommandCostWithArgs(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS, t->index);
 	}
 
 	return CommandCost();

@@ -7,6 +7,7 @@
 
 /** @file misc_cmd.cpp Some misc functions that are better fitted in other files, but never got moved there... */
 
+#include "command_type.h"
 #include "stdafx.h"
 #include "command_func.h"
 #include "economy_func.h"
@@ -41,8 +42,7 @@ CommandCost CmdIncreaseLoan(DoCommandFlag flags, LoanCommand cmd, Money amount)
 	Company *c = Company::Get(_current_company);
 	Money max_loan = c->GetMaxLoan();
 	if (c->current_loan >= max_loan) {
-		SetDParam(0, max_loan);
-		return CommandCost(STR_ERROR_MAXIMUM_PERMITTED_LOAN);
+		return CommandCostWithArgs(STR_ERROR_MAXIMUM_PERMITTED_LOAN, max_loan);
 	}
 
 	Money loan;
@@ -106,8 +106,7 @@ CommandCost CmdDecreaseLoan(DoCommandFlag flags, LoanCommand cmd, Money amount)
 	}
 
 	if (GetAvailableMoneyForCommand() < loan) {
-		SetDParam(0, loan);
-		return CommandCost(STR_ERROR_CURRENCY_REQUIRED);
+		return CommandCostWithArgs(STR_ERROR_CURRENCY_REQUIRED, loan);
 	}
 
 	if (flags & DC_EXEC) {

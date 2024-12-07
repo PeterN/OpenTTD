@@ -218,7 +218,9 @@ std::tuple<bool, bool, bool> CommandHelperBase::InternalPostBefore(Commands cmd,
 	bool only_sending = _networking && !network_command;
 
 	if (_pause_mode != PM_UNPAUSED && !IsCommandAllowedWhilePaused(cmd) && !estimate_only) {
-		ShowErrorMessage(err_message, STR_ERROR_NOT_ALLOWED_WHILE_PAUSED, WL_INFO, TileX(tile) * TILE_SIZE, TileY(tile) * TILE_SIZE);
+		ShowErrorMessage(GetEncodedString(err_message),
+			GetEncodedString(STR_ERROR_NOT_ALLOWED_WHILE_PAUSED),
+			WL_INFO, TileX(tile) * TILE_SIZE, TileY(tile) * TILE_SIZE);
 		return { true, estimate_only, only_sending };
 	} else {
 		return { false, estimate_only, only_sending };
@@ -242,7 +244,7 @@ void CommandHelperBase::InternalPostResult(const CommandCost &res, TileIndex til
 	if (res.Failed()) {
 		/* Only show the error when it's for us. */
 		if (estimate_only || (IsLocalCompany() && err_message != 0 && my_cmd)) {
-			ShowErrorMessage(err_message, x, y, res);
+			ShowErrorMessage(GetEncodedString(err_message), x, y, res);
 		}
 	} else if (estimate_only) {
 		ShowEstimatedCostOrIncome(res.GetCost(), x, y);
@@ -414,6 +416,10 @@ void CommandCost::AddCost(const CommandCost &ret)
  */
 uint32_t CommandCost::textref_stack[16];
 
+Owner CommandCost::error_owner;
+
+EncodedString CommandCost::detailed_message;
+
 /**
  * Activate usage of the NewGRF #TextRefStack for the error message.
  * @param grffile NewGRF that provides the #TextRefStack
@@ -429,4 +435,13 @@ void CommandCost::UseTextRefStack(const GRFFile *grffile, uint num_registers)
 	for (uint i = 0; i < num_registers; i++) {
 		textref_stack[i] = _temp_store.GetValue(0x100 + i);
 	}
+}
+
+CommandCost CommandCostWithArgs(StringID str, uint64_t value)
+{
+	CommandCost error = CommandCost(str);
+	if (IsLocalCompany()) {
+		error.SetDetailedMessage(GetEncodedString(str, value));
+	}
+	return error;
 }

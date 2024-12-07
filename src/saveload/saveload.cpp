@@ -42,6 +42,7 @@
 #include "../string_func.h"
 #include "../fios.h"
 #include "../error.h"
+#include "strings_type.h"
 #include <atomic>
 #ifdef __EMSCRIPTEN__
 #	include <emscripten.h>
@@ -2761,8 +2762,10 @@ static std::pair<const SaveLoadFormat &, uint8_t> GetSavegameFormat(const std::s
 					size_t processed;
 					long level = std::stol(complevel, &processed, 10);
 					if (processed == 0 || level != Clamp(level, slf.min_compression, slf.max_compression)) {
-						SetDParamStr(0, complevel);
-						ShowErrorMessage(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_SAVEGAME_COMPRESSION_LEVEL, WL_CRITICAL);
+						ShowErrorMessage(
+							GetEncodedString(STR_CONFIG_ERROR),
+							GetEncodedString(STR_CONFIG_ERROR_INVALID_SAVEGAME_COMPRESSION_LEVEL, complevel),
+							WL_CRITICAL);
 					} else {
 						return {slf, ClampTo<uint8_t>(level)};
 					}
@@ -2771,9 +2774,10 @@ static std::pair<const SaveLoadFormat &, uint8_t> GetSavegameFormat(const std::s
 			}
 		}
 
-		SetDParamStr(0, name);
-		SetDParamStr(1, def.name);
-		ShowErrorMessage(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_SAVEGAME_COMPRESSION_ALGORITHM, WL_CRITICAL);
+		ShowErrorMessage(
+			GetEncodedString(STR_CONFIG_ERROR),
+			GetEncodedString(STR_CONFIG_ERROR_INVALID_SAVEGAME_COMPRESSION_ALGORITHM, name, def.name),
+			WL_CRITICAL);
 	}
 	return {def, def.default_compression};
 }
@@ -2833,16 +2837,15 @@ void SetSaveLoadError(StringID str)
 }
 
 /** Return the appropriate initial string for an error depending on whether we are saving or loading. */
-StringID GetSaveLoadErrorType()
+EncodedString GetSaveLoadErrorType()
 {
-	return _sl.action == SLA_SAVE ? STR_ERROR_GAME_SAVE_FAILED : STR_ERROR_GAME_LOAD_FAILED;
+	return GetEncodedString(_sl.action == SLA_SAVE ? STR_ERROR_GAME_SAVE_FAILED : STR_ERROR_GAME_LOAD_FAILED);
 }
 
 /** Return the description of the error. **/
-StringID GetSaveLoadErrorMessage()
+EncodedString GetSaveLoadErrorMessage()
 {
-	SetDParamStr(0, _sl.extra_msg);
-	return _sl.error_str;
+	return GetEncodedString(_sl.error_str, _sl.extra_msg);
 }
 
 /** Show a gui message when saving has failed */
@@ -2882,7 +2885,7 @@ static SaveOrLoadResult SaveFileToDisk(bool threaded)
 		 * cancelled due to a client disconnecting. */
 		if (_sl.error_str != STR_NETWORK_ERROR_LOSTCONNECTION) {
 			/* Skip the "colour" character */
-			Debug(sl, 0, "{}", GetString(GetSaveLoadErrorType()).substr(3) + GetString(GetSaveLoadErrorMessage()));
+			Debug(sl, 0, "{}", GetSaveLoadErrorType().GetDecodedString().substr(3) + GetSaveLoadErrorMessage().GetDecodedString());
 			asfp = SaveFileError;
 		}
 
@@ -3130,7 +3133,7 @@ SaveOrLoadResult SaveOrLoad(const std::string &filename, SaveLoadOperation fop, 
 	/* An instance of saving is already active, so don't go saving again */
 	if (_sl.saveinprogress && fop == SLO_SAVE && dft == DFT_GAME_FILE && threaded) {
 		/* if not an autosave, but a user action, show error message */
-		if (!_do_autosave) ShowErrorMessage(STR_ERROR_SAVE_STILL_IN_PROGRESS, INVALID_STRING_ID, WL_ERROR);
+		if (!_do_autosave) ShowErrorMessage(GetEncodedString(STR_ERROR_SAVE_STILL_IN_PROGRESS), {}, WL_ERROR);
 		return SL_OK;
 	}
 	WaitTillSaved();
@@ -3204,7 +3207,7 @@ SaveOrLoadResult SaveOrLoad(const std::string &filename, SaveLoadOperation fop, 
 		ClearSaveLoadState();
 
 		/* Skip the "colour" character */
-		if (fop != SLO_CHECK) Debug(sl, 0, "{}", GetString(GetSaveLoadErrorType()).substr(3) + GetString(GetSaveLoadErrorMessage()));
+		if (fop != SLO_CHECK) Debug(sl, 0, "{}", GetSaveLoadErrorType().GetDecodedString().substr(3) + GetSaveLoadErrorMessage().GetDecodedString());
 
 		/* A saver/loader exception!! reinitialize all variables to prevent crash! */
 		return (fop == SLO_LOAD) ? SL_REINIT : SL_ERROR;
@@ -3228,7 +3231,7 @@ void DoAutoOrNetsave(FiosNumberedSaveName &counter)
 
 	Debug(sl, 2, "Autosaving to '{}'", filename);
 	if (SaveOrLoad(filename, SLO_SAVE, DFT_GAME_FILE, AUTOSAVE_DIR) != SL_OK) {
-		ShowErrorMessage(STR_ERROR_AUTOSAVE_FAILED, INVALID_STRING_ID, WL_ERROR);
+		ShowErrorMessage(GetEncodedString(STR_ERROR_AUTOSAVE_FAILED), {}, WL_ERROR);
 	}
 }
 
