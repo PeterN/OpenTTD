@@ -168,21 +168,21 @@ uint64_t GetDParam(size_t n)
 }
 
 /**
- * Set DParam n to some number that is suitable for string size computations.
- * @param n Index of the string parameter.
- * @param max_value The biggest value which shall be displayed.
- *                  For the result only the number of digits of \a max_value matter.
- * @param min_count Minimum number of digits independent of \a max.
+ * Get some number that is suitable for string size computations.
+ * @param count Number of digits which shall be displayable.
  * @param size  Font of the number
+ * @returns Number to use for string size computations.
  */
-void SetDParamMaxValue(size_t n, uint64_t max_value, uint min_count, FontSize size)
+uint64_t GetParamMaxDigits(uint count, FontSize size)
 {
-	uint num_digits = 1;
-	while (max_value >= 10) {
-		num_digits++;
-		max_value /= 10;
+	uint front = 0;
+	uint next = 0;
+	GetBroadestDigit(&front, &next, size);
+	uint64_t val = count > 1 ? front : next;
+	for (; count > 1; count--) {
+		val = 10 * val + next;
 	}
-	SetDParamMaxDigits(n, std::max(min_count, num_digits), size);
+	return val;
 }
 
 /**
@@ -193,14 +193,38 @@ void SetDParamMaxValue(size_t n, uint64_t max_value, uint min_count, FontSize si
  */
 void SetDParamMaxDigits(size_t n, uint count, FontSize size)
 {
-	uint front = 0;
-	uint next = 0;
-	GetBroadestDigit(&front, &next, size);
-	uint64_t val = count > 1 ? front : next;
-	for (; count > 1; count--) {
-		val = 10 * val + next;
+	SetDParam(n, GetParamMaxDigits(count, size));
+}
+
+/**
+ * Get some number that is suitable for string size computations.
+ * @param max_value The biggest value which shall be displayed.
+ *                  For the result only the number of digits of \a max_value matter.
+ * @param min_count Minimum number of digits independent of \a max.
+ * @param size  Font of the number
+ * @returns Number to use for string size computations.
+ */
+uint64_t GetParamMaxValue(uint64_t max_value, uint min_count, FontSize size)
+{
+	uint num_digits = 1;
+	while (max_value >= 10) {
+		num_digits++;
+		max_value /= 10;
 	}
-	SetDParam(n, val);
+	return GetParamMaxDigits(std::max(min_count, num_digits), size);
+}
+
+/**
+ * Set DParam n to some number that is suitable for string size computations.
+ * @param n Index of the string parameter.
+ * @param max_value The biggest value which shall be displayed.
+ *                  For the result only the number of digits of \a max_value matter.
+ * @param min_count Minimum number of digits independent of \a max.
+ * @param size  Font of the number
+ */
+void SetDParamMaxValue(size_t n, uint64_t max_value, uint min_count, FontSize size)
+{
+	SetDParam(n, GetParamMaxValue(max_value, min_count, size));
 }
 
 /**
