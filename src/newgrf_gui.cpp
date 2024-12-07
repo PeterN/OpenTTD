@@ -51,18 +51,19 @@ void ShowNewGRFError()
 		/* Only show Fatal and Error level messages */
 		if (!c->error.has_value() || (c->error->severity != STR_NEWGRF_ERROR_MSG_FATAL && c->error->severity != STR_NEWGRF_ERROR_MSG_ERROR)) continue;
 
-		SetDParamStr(0, c->GetName());
-		SetDParam   (1, c->error->message != STR_NULL ? c->error->message : STR_JUST_RAW_STRING);
-		SetDParamStr(2, c->error->custom_message);
-		SetDParamStr(3, c->filename);
-		SetDParamStr(4, c->error->data);
+		ArrayStringParametersWriter<7> params; /* 5 fixed parameters and up to 2 optional parameters. */
+		params.SetParam(0, c->GetName());
+		params.SetParam(1, c->error->message != STR_NULL ? c->error->message : STR_JUST_RAW_STRING);
+		params.SetParam(2, c->error->custom_message);
+		params.SetParam(3, c->filename);
+		params.SetParam(4, c->error->data);
 		for (uint i = 0; i < c->error->param_value.size(); i++) {
-			SetDParam(5 + i, c->error->param_value[i]);
+			params.SetParam(5 + i, c->error->param_value[i]);
 		}
 		if (c->error->severity == STR_NEWGRF_ERROR_MSG_FATAL) {
-			ShowErrorMessage(STR_NEWGRF_ERROR_FATAL_POPUP, INVALID_STRING_ID, WL_CRITICAL);
+			ShowErrorMessage(GetEncodedStringWithArgs(STR_NEWGRF_ERROR_FATAL_POPUP, params), {}, WL_CRITICAL);
 		} else {
-			ShowErrorMessage(STR_NEWGRF_ERROR_POPUP, INVALID_STRING_ID, WL_ERROR);
+			ShowErrorMessage(GetEncodedStringWithArgs(STR_NEWGRF_ERROR_POPUP, params), {}, WL_ERROR);
 		}
 		break;
 	}
@@ -1131,7 +1132,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			case WID_NS_CONTENT_DOWNLOAD:
 			case WID_NS_CONTENT_DOWNLOAD2:
 				if (!_network_available) {
-					ShowErrorMessage(STR_NETWORK_ERROR_NOTAVAILABLE, INVALID_STRING_ID, WL_ERROR);
+					ShowErrorMessage(GetEncodedString(STR_NETWORK_ERROR_NOTAVAILABLE), {}, WL_ERROR);
 				} else {
 					this->CloseChildWindows(WC_QUERY_STRING); // Remove the parameter query window
 
@@ -1487,13 +1488,13 @@ private:
 		/* Get number of non-static NewGRFs. */
 		size_t count = std::ranges::count_if(this->actives, [](const auto &gc) { return !HasBit(gc->flags, GCF_STATIC); });
 		if (count >= NETWORK_MAX_GRF_COUNT) {
-			ShowErrorMessage(STR_NEWGRF_TOO_MANY_NEWGRFS, INVALID_STRING_ID, WL_INFO);
+			ShowErrorMessage(GetEncodedString(STR_NEWGRF_TOO_MANY_NEWGRFS), {}, WL_INFO);
 			return false;
 		}
 
 		/* Check for duplicate GRF ID. */
 		if (std::ranges::any_of(this->actives, [&grfid = this->avail_sel->ident.grfid](const auto &gc)  { return gc->ident.grfid == grfid; })) {
-			ShowErrorMessage(STR_NEWGRF_DUPLICATE_GRFID, INVALID_STRING_ID, WL_INFO);
+			ShowErrorMessage(GetEncodedString(STR_NEWGRF_DUPLICATE_GRFID), {}, WL_INFO);
 			return false;
 		}
 

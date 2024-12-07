@@ -2580,8 +2580,7 @@ CommandCost CmdBuildAirport(DoCommandFlag flags, TileIndex tile, uint8_t airport
 	}
 
 	if (authority_refuse_message != STR_NULL) {
-		SetDParam(0, authority_refuse_town->index);
-		return CommandCost(authority_refuse_message);
+		return CommandCostWithParam(authority_refuse_message, authority_refuse_town->index);
 	}
 
 	Station *st = nullptr;
@@ -4707,8 +4706,7 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags)
 			case StationType::Buoy:     return CommandCost(STR_ERROR_BUOY_IN_THE_WAY);
 			case StationType::Dock:     return CommandCost(STR_ERROR_MUST_DEMOLISH_DOCK_FIRST);
 			case StationType::Oilrig:
-				SetDParam(1, STR_INDUSTRY_NAME_OIL_RIG);
-				return CommandCost(STR_ERROR_GENERIC_OBJECT_IN_THE_WAY);
+				return CommandCostWithParam(STR_ERROR_GENERIC_OBJECT_IN_THE_WAY, STR_INDUSTRY_NAME_OIL_RIG);
 		}
 	}
 

@@ -16,6 +16,7 @@
 #include "house.h"
 #include "industrytype.h"
 #include "newgrf_config.h"
+#include "company_func.h"
 #include "clear_map.h"
 #include "station_map.h"
 #include "tree_map.h"
@@ -489,8 +490,13 @@ CommandCost GetErrorMessageFromLocationCallbackResult(uint16_t cb_res, const GRF
 		}
 	}
 
+	/* If this error isn't for the local player then it won't be seen, so don't bother encoding anything. */
+	if (!IsLocalCompany()) return res;
+
 	/* Copy some parameters from the registers to the error message text ref. stack */
+	std::array<StringParameter, 20> params{};
 	res.UseTextRefStack(grffile, 4);
+	res.SetDetailedMessage(GetEncodedStringWithArgs(res.GetErrorMessage(), params));
 
 	return res;
 }
@@ -508,10 +514,9 @@ void ErrorUnknownCallbackResult(uint32_t grfid, uint16_t cbid, uint16_t cb_res)
 
 	if (!HasBit(grfconfig->grf_bugs, GBUG_UNKNOWN_CB_RESULT)) {
 		SetBit(grfconfig->grf_bugs, GBUG_UNKNOWN_CB_RESULT);
-		SetDParamStr(0, grfconfig->GetName());
-		SetDParam(1, cbid);
-		SetDParam(2, cb_res);
-		ShowErrorMessage(STR_NEWGRF_BUGGY, STR_NEWGRF_BUGGY_UNKNOWN_CALLBACK_RESULT, WL_CRITICAL);
+		ShowErrorMessage(GetEncodedString(STR_NEWGRF_BUGGY, grfconfig->GetName()),
+			GetEncodedString(STR_NEWGRF_BUGGY_UNKNOWN_CALLBACK_RESULT, std::monostate{}, cbid, cb_res),
+			WL_CRITICAL);
 	}
 
 	/* debug output */
