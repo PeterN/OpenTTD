@@ -45,6 +45,11 @@ add_files(
 )
 
 add_files(
+    soundresampler_soxr.cpp
+    CONDITION Soxr_FOUND
+)
+
+add_files(
     aircraft.h
     aircraft_cmd.cpp
     aircraft_cmd.h
