@@ -254,7 +254,7 @@ private:
 		this->tiny_step_height = std::max(this->tiny_step_height, this->column_size[VGC_PROFIT].height);
 
 		int num_vehicle = GetGroupNumVehicle(this->vli.company, ALL_GROUP, this->vli.vtype);
-		uint64_t max_value = GetParamMaxValue(num_vehicle, 3, FS_SMALL);
+		auto max_value = GetParamMaxValue(num_vehicle, 3, FS_SMALL);
 		this->column_size[VGC_NUMBER] = GetStringBoundingBox(GetString(STR_GROUP_COUNT_WITH_SUBGROUP, max_value, max_value));
 		this->tiny_step_height = std::max(this->tiny_step_height, this->column_size[VGC_NUMBER].height);
 
@@ -503,32 +503,32 @@ public:
 		this->SetDirty();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_GL_FILTER_BY_CARGO:
-				SetDParam(0, this->GetCargoFilterLabel(this->cargo_filter_criteria));
+				param.SetParam(0, this->GetCargoFilterLabel(this->cargo_filter_criteria));
 				break;
 
 			case WID_GL_AVAILABLE_VEHICLES:
-				SetDParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
+				param.SetParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
 				break;
 
 			case WID_GL_CAPTION:
 				/* If selected_group == DEFAULT_GROUP || ALL_GROUP, draw the standard caption
 				 * We list all vehicles or ungrouped vehicles */
 				if (IsDefaultGroupID(this->vli.index) || IsAllGroupID(this->vli.index)) {
-					SetDParam(0, STR_COMPANY_NAME);
-					SetDParam(1, this->vli.company);
-					SetDParam(2, this->vehicles.size());
-					SetDParam(3, this->vehicles.size());
+					param.SetParam(0, STR_COMPANY_NAME);
+					param.SetParam(1, this->vli.company);
+					param.SetParam(2, this->vehicles.size());
+					param.SetParam(3, this->vehicles.size());
 				} else {
 					uint num_vehicle = GetGroupNumVehicle(this->vli.company, this->vli.index, this->vli.vtype);
 
-					SetDParam(0, STR_GROUP_NAME);
-					SetDParam(1, this->vli.index);
-					SetDParam(2, num_vehicle);
-					SetDParam(3, num_vehicle);
+					param.SetParam(0, STR_GROUP_NAME);
+					param.SetParam(1, this->vli.index);
+					param.SetParam(2, num_vehicle);
+					param.SetParam(3, num_vehicle);
 				}
 				break;
 		}

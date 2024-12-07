@@ -500,30 +500,30 @@ struct FramerateWindow : Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_FRW_CAPTION:
 				/* When the window is shaded, the caption shows game loop rate and speed factor */
 				if (!this->small) break;
-				SetDParam(0, this->rate_gameloop.strid);
+				param.SetParam(0, this->rate_gameloop.strid);
 				this->rate_gameloop.InsertDParams(1);
 				this->speed_gameloop.InsertDParams(3);
 				break;
 
 			case WID_FRW_RATE_GAMELOOP:
-				SetDParam(0, this->rate_gameloop.strid);
+				param.SetParam(0, this->rate_gameloop.strid);
 				this->rate_gameloop.InsertDParams(1);
 				break;
 			case WID_FRW_RATE_DRAWING:
-				SetDParam(0, this->rate_drawing.strid);
+				param.SetParam(0, this->rate_drawing.strid);
 				this->rate_drawing.InsertDParams(1);
 				break;
 			case WID_FRW_RATE_FACTOR:
 				this->speed_gameloop.InsertDParams(0);
 				break;
 			case WID_FRW_INFO_DATA_POINTS:
-				SetDParam(0, NUM_FRAMERATE_POINTS);
+				param.SetParam(0, NUM_FRAMERATE_POINTS);
 				break;
 		}
 	}
@@ -742,16 +742,16 @@ struct FrametimeGraphWindow : Window {
 		this->UpdateScale();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_FGW_CAPTION:
 				if (this->element < PFE_AI0) {
-					SetDParam(0, STR_FRAMETIME_CAPTION_GAMELOOP + this->element);
+					param.SetParam(0, STR_FRAMETIME_CAPTION_GAMELOOP + this->element);
 				} else {
-					SetDParam(0, STR_FRAMETIME_CAPTION_AI);
-					SetDParam(1, this->element - PFE_AI0 + 1);
-					SetDParamStr(2, GetAIName(this->element - PFE_AI0));
+					param.SetParam(0, STR_FRAMETIME_CAPTION_AI);
+					param.SetParam(1, this->element - PFE_AI0 + 1);
+					param.SetParam(2, GetAIName(this->element - PFE_AI0));
 				}
 				break;
 		}

@@ -1003,9 +1003,9 @@ struct RefitWindow : public Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_VR_CAPTION) SetDParam(0, Vehicle::Get(this->window_number)->index);
+		if (widget == WID_VR_CAPTION) param.SetParam(0, Vehicle::Get(this->window_number)->index);
 	}
 
 	/**
@@ -2031,41 +2031,41 @@ public:
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_VL_AVAILABLE_VEHICLES:
-				SetDParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
+				param.SetParam(0, STR_VEHICLE_LIST_AVAILABLE_TRAINS + this->vli.vtype);
 				break;
 
 			case WID_VL_FILTER_BY_CARGO:
-				SetDParam(0, this->GetCargoFilterLabel(this->cargo_filter_criteria));
+				param.SetParam(0, this->GetCargoFilterLabel(this->cargo_filter_criteria));
 				break;
 
 			case WID_VL_CAPTION:
 			case WID_VL_CAPTION_SHARED_ORDERS: {
 				switch (this->vli.type) {
 					case VL_SHARED_ORDERS: // Shared Orders
-						SetDParam(0, this->vehicles.size());
+						param.SetParam(0, this->vehicles.size());
 						break;
 
 					case VL_STANDARD: // Company Name
-						SetDParam(0, STR_COMPANY_NAME);
-						SetDParam(1, this->vli.index);
-						SetDParam(3, this->vehicles.size());
+						param.SetParam(0, STR_COMPANY_NAME);
+						param.SetParam(1, this->vli.index);
+						param.SetParam(3, this->vehicles.size());
 						break;
 
 					case VL_STATION_LIST: // Station/Waypoint Name
-						SetDParam(0, Station::IsExpected(BaseStation::Get(this->vli.index)) ? STR_STATION_NAME : STR_WAYPOINT_NAME);
-						SetDParam(1, this->vli.index);
-						SetDParam(3, this->vehicles.size());
+						param.SetParam(0, Station::IsExpected(BaseStation::Get(this->vli.index)) ? STR_STATION_NAME : STR_WAYPOINT_NAME);
+						param.SetParam(1, this->vli.index);
+						param.SetParam(3, this->vehicles.size());
 						break;
 
 					case VL_DEPOT_LIST:
-						SetDParam(0, STR_DEPOT_CAPTION);
-						SetDParam(1, this->vli.vtype);
-						SetDParam(2, this->vli.index);
-						SetDParam(3, this->vehicles.size());
+						param.SetParam(0, STR_DEPOT_CAPTION);
+						param.SetParam(1, this->vli.vtype);
+						param.SetParam(2, this->vli.index);
+						param.SetParam(3, this->vehicles.size());
 						break;
 					default: NOT_REACHED();
 				}
@@ -2620,9 +2620,9 @@ struct VehicleDetailsWindow : Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_VD_CAPTION) SetDParam(0, Vehicle::Get(this->window_number)->index);
+		if (widget == WID_VD_CAPTION) param.SetParam(0, Vehicle::Get(this->window_number)->index);
 	}
 
 	void DrawWidget(const Rect &r, WidgetID widget) const override
@@ -3168,12 +3168,12 @@ public:
 		this->DrawWidgets();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_VV_CAPTION) return;
 
 		const Vehicle *v = Vehicle::Get(this->window_number);
-		SetDParam(0, v->index);
+		param.SetParam(0, v->index);
 	}
 
 	void DrawWidget(const Rect &r, WidgetID widget) const override

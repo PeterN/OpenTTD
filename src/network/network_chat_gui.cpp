@@ -362,12 +362,12 @@ struct NetworkChatWindow : public Window {
 		return pt;
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_NC_DESTINATION) return;
 
 		if (this->dtype == DESTTYPE_CLIENT) {
-			SetDParamStr(0, NetworkClientInfo::GetByClientID((ClientID)this->dest)->client_name);
+			param.SetParam(0, NetworkClientInfo::GetByClientID((ClientID)this->dest)->client_name);
 		}
 	}
 

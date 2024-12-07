@@ -297,10 +297,10 @@ public:
 		this->InitNested(table);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_SLT_CAPTION) return;
-		SetDParamStr(0, this->title);
+		param.SetParam(0, this->title);
 	}
 
 	void OnPaint() override

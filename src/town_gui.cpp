@@ -238,9 +238,9 @@ public:
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_TA_CAPTION) SetDParam(0, this->window_number);
+		if (widget == WID_TA_CAPTION) param.SetParam(0, this->window_number);
 	}
 
 	void DrawWidget(const Rect &r, WidgetID widget) const override
@@ -386,9 +386,9 @@ public:
 		this->Window::Close();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_TV_CAPTION) SetDParam(0, this->town->index);
+		if (widget == WID_TV_CAPTION) param.SetParam(0, this->town->index);
 	}
 
 	void OnPaint() override
@@ -806,20 +806,20 @@ public:
 		this->townname_editbox.cancel_button = QueryString::ACTION_CLEAR;
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_TD_CAPTION:
-				SetDParam(0, this->vscroll->GetCount());
-				SetDParam(1, Town::GetNumItems());
+				param.SetParam(0, this->vscroll->GetCount());
+				param.SetParam(1, Town::GetNumItems());
 				break;
 
 			case WID_TD_WORLD_POPULATION:
-				SetDParam(0, GetWorldPopulation());
+				param.SetParam(0, GetWorldPopulation());
 				break;
 
 			case WID_TD_SORT_CRITERIA:
-				SetDParam(0, TownDirectoryWindow::sorter_names[this->towns.SortType()]);
+				param.SetParam(0, TownDirectoryWindow::sorter_names[this->towns.SortType()]);
 				break;
 		}
 	}

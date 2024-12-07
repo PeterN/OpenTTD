@@ -350,7 +350,7 @@ struct NewGRFInspectWindow : Window {
 		this->OnInvalidateData(0, true);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_NGRFI_CAPTION) return;
 
@@ -834,32 +834,32 @@ struct SpriteAlignerWindow : Window {
 		this->InvalidateData(0, true);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		const Sprite *spr = GetSprite(this->current_sprite, SpriteType::Normal);
 		switch (widget) {
 			case WID_SA_CAPTION:
 				if (this->act5_type != nullptr) {
-					SetDParam(0, STR_SPRITE_ALIGNER_CAPTION_ACTION5);
-					SetDParam(1, this->act5_type - GetAction5Types().data());
-					SetDParam(2, this->current_sprite - this->act5_type->sprite_base);
-					SetDParamStr(3, GetOriginFile(this->current_sprite)->GetSimplifiedFilename());
-					SetDParam(4, GetSpriteLocalID(this->current_sprite));
+					param.SetParam(0, STR_SPRITE_ALIGNER_CAPTION_ACTION5);
+					param.SetParam(1, this->act5_type - GetAction5Types().data());
+					param.SetParam(2, this->current_sprite - this->act5_type->sprite_base);
+					param.SetParam(3, GetOriginFile(this->current_sprite)->GetSimplifiedFilename());
+					param.SetParam(4, GetSpriteLocalID(this->current_sprite));
 				} else if (this->current_sprite < SPR_OPENTTD_BASE) {
-					SetDParam(0, STR_SPRITE_ALIGNER_CAPTION_ACTIONA);
-					SetDParam(1, this->current_sprite);
-					SetDParamStr(2, GetOriginFile(this->current_sprite)->GetSimplifiedFilename());
-					SetDParam(3, GetSpriteLocalID(this->current_sprite));
+					param.SetParam(0, STR_SPRITE_ALIGNER_CAPTION_ACTIONA);
+					param.SetParam(1, this->current_sprite);
+					param.SetParam(2, GetOriginFile(this->current_sprite)->GetSimplifiedFilename());
+					param.SetParam(3, GetSpriteLocalID(this->current_sprite));
 				} else {
-					SetDParam(0, STR_SPRITE_ALIGNER_CAPTION_NO_ACTION);
-					SetDParamStr(1, GetOriginFile(this->current_sprite)->GetSimplifiedFilename());
-					SetDParam(2, GetSpriteLocalID(this->current_sprite));
+					param.SetParam(0, STR_SPRITE_ALIGNER_CAPTION_NO_ACTION);
+					param.SetParam(1, GetOriginFile(this->current_sprite)->GetSimplifiedFilename());
+					param.SetParam(2, GetSpriteLocalID(this->current_sprite));
 				}
 				break;
 
 			case WID_SA_OFFSETS_ABS:
-				SetDParam(0, UnScaleByZoom(spr->x_offs, SpriteAlignerWindow::zoom));
-				SetDParam(1, UnScaleByZoom(spr->y_offs, SpriteAlignerWindow::zoom));
+				param.SetParam(0, UnScaleByZoom(spr->x_offs, SpriteAlignerWindow::zoom));
+				param.SetParam(1, UnScaleByZoom(spr->y_offs, SpriteAlignerWindow::zoom));
 				break;
 
 			case WID_SA_OFFSETS_REL: {
@@ -868,11 +868,11 @@ struct SpriteAlignerWindow : Window {
 				 */
 				const auto key_offs_pair = this->offs_start_map.find(this->current_sprite);
 				if (key_offs_pair != this->offs_start_map.end()) {
-					SetDParam(0, UnScaleByZoom(spr->x_offs - key_offs_pair->second.first, SpriteAlignerWindow::zoom));
-					SetDParam(1, UnScaleByZoom(spr->y_offs - key_offs_pair->second.second, SpriteAlignerWindow::zoom));
+					param.SetParam(0, UnScaleByZoom(spr->x_offs - key_offs_pair->second.first, SpriteAlignerWindow::zoom));
+					param.SetParam(1, UnScaleByZoom(spr->y_offs - key_offs_pair->second.second, SpriteAlignerWindow::zoom));
 				} else {
-					SetDParam(0, 0);
-					SetDParam(1, 0);
+					param.SetParam(0, uint{0});
+					param.SetParam(1, uint{0});
 				}
 				break;
 			}

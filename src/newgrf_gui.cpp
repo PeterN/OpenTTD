@@ -247,11 +247,11 @@ struct NewGRFParametersWindow : public Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_NP_NUMPAR:
-				SetDParam(0, this->vscroll->GetCount());
+				param.SetParam(0, this->vscroll->GetCount());
 				break;
 		}
 	}
@@ -558,11 +558,11 @@ struct NewGRFTextfileWindow : public TextfileWindow {
 		this->LoadTextfile(textfile.value(), NEWGRF_DIR);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget == WID_TF_CAPTION) {
-			SetDParam(0, STR_CONTENT_TYPE_NEWGRF);
-			SetDParamStr(1, this->grf_config->GetName());
+			param.SetParam(0, STR_CONTENT_TYPE_NEWGRF);
+			param.SetParam(1, this->grf_config->GetName());
 		}
 	}
 };
@@ -791,15 +791,15 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 		this->vscroll2->SetCapacityFromWidget(this, WID_NS_AVAIL_LIST, WidgetDimensions::scaled.framerect.Vertical());
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_NS_PRESET_LIST:
 				if (this->preset == -1) {
-					SetDParam(0, STR_NUM_CUSTOM);
+					param.SetParam(0, STR_NUM_CUSTOM);
 				} else {
-					SetDParam(0, STR_JUST_RAW_STRING);
-					SetDParamStr(1, this->grf_presets[this->preset]);
+					param.SetParam(0, STR_JUST_RAW_STRING);
+					param.SetParam(1, this->grf_presets[this->preset]);
 				}
 				break;
 		}
@@ -2207,7 +2207,7 @@ struct ScanProgressWindow : public Window {
 	{
 		switch (widget) {
 			case WID_SP_PROGRESS_BAR: {
-				uint64_t max_value = GetParamMaxValue(100);
+				auto max_value = GetParamMaxValue(100);
 				size = GetStringBoundingBox(GetString(STR_GENERATION_PROGRESS, max_value));
 				/* We need some spacing for the 'border' */
 				size.height += WidgetDimensions::scaled.frametext.Horizontal();
@@ -2216,7 +2216,7 @@ struct ScanProgressWindow : public Window {
 			}
 
 			case WID_SP_PROGRESS_TEXT: {
-				uint64_t max_digits = GetParamMaxDigits(4);
+				auto max_digits = GetParamMaxDigits(4);
 				/* We really don't know the width. We could determine it by scanning the NewGRFs,
 				 * but this is the status window for scanning them... */
 				size.width = std::max<uint>(size.width, GetStringBoundingBox(GetString(STR_NEWGRF_SCAN_STATUS, max_digits, max_digits)).width + padding.width);

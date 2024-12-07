@@ -375,29 +375,29 @@ public:
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_RV_CAPTION:
-				SetDParam(0, STR_REPLACE_VEHICLE_TRAIN + this->window_number);
+				param.SetParam(0, STR_REPLACE_VEHICLE_TRAIN + this->window_number);
 				switch (this->sel_group) {
 					case ALL_GROUP:
-						SetDParam(1, STR_GROUP_ALL_TRAINS + this->window_number);
+						param.SetParam(1, STR_GROUP_ALL_TRAINS + this->window_number);
 						break;
 
 					case DEFAULT_GROUP:
-						SetDParam(1, STR_GROUP_DEFAULT_TRAINS + this->window_number);
+						param.SetParam(1, STR_GROUP_DEFAULT_TRAINS + this->window_number);
 						break;
 
 					default:
-						SetDParam(1, STR_GROUP_NAME);
-						SetDParam(2, sel_group);
+						param.SetParam(1, STR_GROUP_NAME);
+						param.SetParam(2, sel_group);
 						break;
 				}
 				break;
 
 			case WID_RV_SORT_DROPDOWN:
-				SetDParam(0, std::data(_engine_sort_listing[this->window_number])[this->sort_criteria]);
+				param.SetParam(0, std::data(_engine_sort_listing[this->window_number])[this->sort_criteria]);
 				break;
 
 			case WID_RV_TRAIN_WAGONREMOVE_TOGGLE: {
@@ -405,27 +405,27 @@ public:
 				const Group *g = Group::GetIfValid(this->sel_group);
 				if (g != nullptr) {
 					remove_wagon = HasBit(g->flags, GroupFlags::GF_REPLACE_WAGON_REMOVAL);
-					SetDParam(0, STR_GROUP_NAME);
-					SetDParam(1, sel_group);
+					param.SetParam(0, STR_GROUP_NAME);
+					param.SetParam(1, sel_group);
 				} else {
 					const Company *c = Company::Get(_local_company);
 					remove_wagon = c->settings.renew_keep_length;
-					SetDParam(0, STR_GROUP_DEFAULT_TRAINS + this->window_number);
+					param.SetParam(0, STR_GROUP_DEFAULT_TRAINS + this->window_number);
 				}
-				SetDParam(2, remove_wagon ? STR_CONFIG_SETTING_ON : STR_CONFIG_SETTING_OFF);
+				param.SetParam(2, remove_wagon ? STR_CONFIG_SETTING_ON : STR_CONFIG_SETTING_OFF);
 				break;
 			}
 
 			case WID_RV_TRAIN_ENGINEWAGON_DROPDOWN:
-				SetDParam(0, this->replace_engines ? STR_REPLACE_ENGINES : STR_REPLACE_WAGONS);
+				param.SetParam(0, this->replace_engines ? STR_REPLACE_ENGINES : STR_REPLACE_WAGONS);
 				break;
 
 			case WID_RV_RAIL_TYPE_DROPDOWN:
-				SetDParam(0, this->sel_railtype == INVALID_RAILTYPE ? STR_REPLACE_ALL_RAILTYPE : GetRailTypeInfo(this->sel_railtype)->strings.replace_text);
+				param.SetParam(0, this->sel_railtype == INVALID_RAILTYPE ? STR_REPLACE_ALL_RAILTYPE : GetRailTypeInfo(this->sel_railtype)->strings.replace_text);
 				break;
 
 			case WID_RV_ROAD_TYPE_DROPDOWN:
-				SetDParam(0, this->sel_roadtype == INVALID_ROADTYPE ? STR_REPLACE_ALL_ROADTYPE : GetRoadTypeInfo(this->sel_roadtype)->strings.replace_text);
+				param.SetParam(0, this->sel_roadtype == INVALID_ROADTYPE ? STR_REPLACE_ALL_ROADTYPE : GetRoadTypeInfo(this->sel_roadtype)->strings.replace_text);
 				break;
 		}
 	}

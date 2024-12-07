@@ -422,12 +422,12 @@ struct DepotWindow : Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_D_CAPTION) return;
 
-		SetDParam(0, this->type);
-		SetDParam(1, this->GetDepotIndex());
+		param.SetParam(0, this->type);
+		param.SetParam(1, this->GetDepotIndex());
 	}
 
 	struct GetDepotVehiclePtData {

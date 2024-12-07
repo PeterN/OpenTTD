@@ -348,45 +348,45 @@ struct CompanyFinancesWindow : Window {
 		this->InvalidateData();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_CF_CAPTION:
-				SetDParam(0, (CompanyID)this->window_number);
-				SetDParam(1, (CompanyID)this->window_number);
+				param.SetParam(0, (CompanyID)this->window_number);
+				param.SetParam(1, (CompanyID)this->window_number);
 				break;
 
 			case WID_CF_BALANCE_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
-				SetDParam(0, c->money);
+				param.SetParam(0, c->money);
 				break;
 			}
 
 			case WID_CF_LOAN_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
-				SetDParam(0, c->current_loan);
+				param.SetParam(0, c->current_loan);
 				break;
 			}
 
 			case WID_CF_OWN_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
-				SetDParam(0, c->money - c->current_loan);
+				param.SetParam(0, c->money - c->current_loan);
 				break;
 			}
 
 			case WID_CF_INTEREST_RATE:
-				SetDParam(0, _settings_game.difficulty.initial_interest);
+				param.SetParam(0, _settings_game.difficulty.initial_interest);
 				break;
 
 			case WID_CF_MAXLOAN_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
-				SetDParam(0, c->GetMaxLoan());
+				param.SetParam(0, c->GetMaxLoan());
 				break;
 			}
 
 			case WID_CF_INCREASE_LOAN:
 			case WID_CF_REPAY_LOAN:
-				SetDParam(0, LOAN_INTERVAL);
+				param.SetParam(0, LOAN_INTERVAL);
 				break;
 		}
 	}
@@ -806,11 +806,11 @@ public:
 		this->DrawWidgets();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_SCL_CAPTION:
-				SetDParam(0, (CompanyID)this->window_number);
+				param.SetParam(0, (CompanyID)this->window_number);
 				break;
 
 			case WID_SCL_PRI_COL_DROPDOWN:
@@ -840,7 +840,7 @@ public:
 						}
 					}
 				}
-				SetDParam(0, colour);
+				param.SetParam(0, colour);
 				break;
 			}
 		}
@@ -1342,19 +1342,19 @@ class SelectCompanyManagerFaceWindow : public Window
 	 * @param val            the value which will be displayed
 	 * @param is_bool_widget is it a bool button
 	 */
-	void SetFaceStringParameters(WidgetID widget_index, uint8_t val, bool is_bool_widget) const
+	void SetFaceStringParameters(WidgetID widget_index, WidgetStringParameters &param, uint8_t val, bool is_bool_widget) const
 	{
 		const NWidgetCore *nwi_widget = this->GetWidget<NWidgetCore>(widget_index);
 		if (nwi_widget->IsDisabled()) {
-			SetDParam(0, STR_EMPTY);
+			param.SetParam(0, STR_EMPTY);
 		} else {
 			if (is_bool_widget) {
 				/* if it a bool button write yes or no */
-				SetDParam(0, (val != 0) ? STR_FACE_YES : STR_FACE_NO);
+				param.SetParam(0, (val != 0) ? STR_FACE_YES : STR_FACE_NO);
 			} else {
 				/* else write the value + 1 */
-				SetDParam(0, STR_JUST_INT);
-				SetDParam(1, val + 1);
+				param.SetParam(0, STR_JUST_INT);
+				param.SetParam(1, val + 1);
 			}
 		}
 	}
@@ -1528,63 +1528,63 @@ public:
 		this->DrawWidgets();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_SCMF_HAS_MOUSTACHE_EARRING:
 				if (this->is_female) { // Only for female faces
-					this->SetFaceStringParameters(WID_SCMF_HAS_MOUSTACHE_EARRING, GetCompanyManagerFaceBits(this->face, CMFV_HAS_TIE_EARRING, this->ge), true);
+					this->SetFaceStringParameters(WID_SCMF_HAS_MOUSTACHE_EARRING, param, GetCompanyManagerFaceBits(this->face, CMFV_HAS_TIE_EARRING, this->ge), true);
 				} else { // Only for male faces
-					this->SetFaceStringParameters(WID_SCMF_HAS_MOUSTACHE_EARRING, GetCompanyManagerFaceBits(this->face, CMFV_HAS_MOUSTACHE,   this->ge), true);
+					this->SetFaceStringParameters(WID_SCMF_HAS_MOUSTACHE_EARRING, param, GetCompanyManagerFaceBits(this->face, CMFV_HAS_MOUSTACHE,   this->ge), true);
 				}
 				break;
 
 			case WID_SCMF_TIE_EARRING:
-				this->SetFaceStringParameters(WID_SCMF_TIE_EARRING, GetCompanyManagerFaceBits(this->face, CMFV_TIE_EARRING, this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_TIE_EARRING, param, GetCompanyManagerFaceBits(this->face, CMFV_TIE_EARRING, this->ge), false);
 				break;
 
 			case WID_SCMF_LIPS_MOUSTACHE:
 				if (this->is_moust_male) { // Only for male faces with moustache
-					this->SetFaceStringParameters(WID_SCMF_LIPS_MOUSTACHE, GetCompanyManagerFaceBits(this->face, CMFV_MOUSTACHE, this->ge), false);
+					this->SetFaceStringParameters(WID_SCMF_LIPS_MOUSTACHE, param, GetCompanyManagerFaceBits(this->face, CMFV_MOUSTACHE, this->ge), false);
 				} else { // Only for female faces or male faces without moustache
-					this->SetFaceStringParameters(WID_SCMF_LIPS_MOUSTACHE, GetCompanyManagerFaceBits(this->face, CMFV_LIPS,      this->ge), false);
+					this->SetFaceStringParameters(WID_SCMF_LIPS_MOUSTACHE, param, GetCompanyManagerFaceBits(this->face, CMFV_LIPS,      this->ge), false);
 				}
 				break;
 
 			case WID_SCMF_HAS_GLASSES:
-				this->SetFaceStringParameters(WID_SCMF_HAS_GLASSES, GetCompanyManagerFaceBits(this->face, CMFV_HAS_GLASSES, this->ge), true );
+				this->SetFaceStringParameters(WID_SCMF_HAS_GLASSES, param, GetCompanyManagerFaceBits(this->face, CMFV_HAS_GLASSES, this->ge), true );
 				break;
 
 			case WID_SCMF_HAIR:
-				this->SetFaceStringParameters(WID_SCMF_HAIR,        GetCompanyManagerFaceBits(this->face, CMFV_HAIR,        this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_HAIR, param,        GetCompanyManagerFaceBits(this->face, CMFV_HAIR,        this->ge), false);
 				break;
 
 			case WID_SCMF_EYEBROWS:
-				this->SetFaceStringParameters(WID_SCMF_EYEBROWS,    GetCompanyManagerFaceBits(this->face, CMFV_EYEBROWS,    this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_EYEBROWS, param,    GetCompanyManagerFaceBits(this->face, CMFV_EYEBROWS,    this->ge), false);
 				break;
 
 			case WID_SCMF_EYECOLOUR:
-				this->SetFaceStringParameters(WID_SCMF_EYECOLOUR,   GetCompanyManagerFaceBits(this->face, CMFV_EYE_COLOUR,  this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_EYECOLOUR, param,   GetCompanyManagerFaceBits(this->face, CMFV_EYE_COLOUR,  this->ge), false);
 				break;
 
 			case WID_SCMF_GLASSES:
-				this->SetFaceStringParameters(WID_SCMF_GLASSES,     GetCompanyManagerFaceBits(this->face, CMFV_GLASSES,     this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_GLASSES, param,     GetCompanyManagerFaceBits(this->face, CMFV_GLASSES,     this->ge), false);
 				break;
 
 			case WID_SCMF_NOSE:
-				this->SetFaceStringParameters(WID_SCMF_NOSE,        GetCompanyManagerFaceBits(this->face, CMFV_NOSE,        this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_NOSE, param,        GetCompanyManagerFaceBits(this->face, CMFV_NOSE,        this->ge), false);
 				break;
 
 			case WID_SCMF_CHIN:
-				this->SetFaceStringParameters(WID_SCMF_CHIN,        GetCompanyManagerFaceBits(this->face, CMFV_CHIN,        this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_CHIN, param,        GetCompanyManagerFaceBits(this->face, CMFV_CHIN,        this->ge), false);
 				break;
 
 			case WID_SCMF_JACKET:
-				this->SetFaceStringParameters(WID_SCMF_JACKET,      GetCompanyManagerFaceBits(this->face, CMFV_JACKET,      this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_JACKET, param,      GetCompanyManagerFaceBits(this->face, CMFV_JACKET,      this->ge), false);
 				break;
 
 			case WID_SCMF_COLLAR:
-				this->SetFaceStringParameters(WID_SCMF_COLLAR,      GetCompanyManagerFaceBits(this->face, CMFV_COLLAR,      this->ge), false);
+				this->SetFaceStringParameters(WID_SCMF_COLLAR, param,      GetCompanyManagerFaceBits(this->face, CMFV_COLLAR,      this->ge), false);
 				break;
 		}
 	}
@@ -1850,11 +1850,11 @@ struct CompanyInfrastructureWindow : Window
 		return total;
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_CI_CAPTION:
-				SetDParam(0, (CompanyID)this->window_number);
+				param.SetParam(0, (CompanyID)this->window_number);
 				break;
 		}
 	}
@@ -2403,27 +2403,27 @@ struct CompanyWindow : Window
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_C_CAPTION:
-				SetDParam(0, (CompanyID)this->window_number);
-				SetDParam(1, (CompanyID)this->window_number);
+				param.SetParam(0, (CompanyID)this->window_number);
+				param.SetParam(1, (CompanyID)this->window_number);
 				break;
 
 			case WID_C_DESC_INAUGURATION:
 				if (TimerGameEconomy::UsingWallclockUnits()) {
-					SetDParam(0, STR_COMPANY_VIEW_INAUGURATED_TITLE_WALLCLOCK);
-					SetDParam(1, Company::Get(static_cast<CompanyID>(this->window_number))->inaugurated_year_calendar);
-					SetDParam(2, Company::Get(static_cast<CompanyID>(this->window_number))->inaugurated_year);
+					param.SetParam(0, STR_COMPANY_VIEW_INAUGURATED_TITLE_WALLCLOCK);
+					param.SetParam(1, Company::Get(static_cast<CompanyID>(this->window_number))->inaugurated_year_calendar);
+					param.SetParam(2, Company::Get(static_cast<CompanyID>(this->window_number))->inaugurated_year);
 				} else {
-					SetDParam(0, STR_COMPANY_VIEW_INAUGURATED_TITLE);
-					SetDParam(1, Company::Get(static_cast<CompanyID>(this->window_number))->inaugurated_year);
+					param.SetParam(0, STR_COMPANY_VIEW_INAUGURATED_TITLE);
+					param.SetParam(1, Company::Get(static_cast<CompanyID>(this->window_number))->inaugurated_year);
 				}
 				break;
 
 			case WID_C_DESC_COMPANY_VALUE:
-				SetDParam(0, CalculateCompanyValue(Company::Get((CompanyID)this->window_number)));
+				param.SetParam(0, CalculateCompanyValue(Company::Get((CompanyID)this->window_number)));
 				break;
 		}
 	}
@@ -2618,11 +2618,11 @@ struct BuyCompanyWindow : Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_BC_CAPTION:
-				SetDParam(0, Company::Get((CompanyID)this->window_number)->index);
+				param.SetParam(0, Company::Get((CompanyID)this->window_number)->index);
 				break;
 		}
 	}

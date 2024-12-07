@@ -1672,35 +1672,35 @@ struct BuildVehicleWindow : Window {
 		this->eng_list.ForceRebuild();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_BV_CAPTION:
 				if (this->vehicle_type == VEH_TRAIN && !this->listview_mode) {
 					const RailTypeInfo *rti = GetRailTypeInfo(this->filter.railtype);
-					SetDParam(0, rti->strings.build_caption);
+					param.SetParam(0, rti->strings.build_caption);
 				} else if (this->vehicle_type == VEH_ROAD && !this->listview_mode) {
 					const RoadTypeInfo *rti = GetRoadTypeInfo(this->filter.roadtype);
-					SetDParam(0, rti->strings.build_caption);
+					param.SetParam(0, rti->strings.build_caption);
 				} else {
-					SetDParam(0, (this->listview_mode ? STR_VEHICLE_LIST_AVAILABLE_TRAINS : STR_BUY_VEHICLE_TRAIN_ALL_CAPTION) + this->vehicle_type);
+					param.SetParam(0, (this->listview_mode ? STR_VEHICLE_LIST_AVAILABLE_TRAINS : STR_BUY_VEHICLE_TRAIN_ALL_CAPTION) + this->vehicle_type);
 				}
 				break;
 
 			case WID_BV_SORT_DROPDOWN:
-				SetDParam(0, std::data(_engine_sort_listing[this->vehicle_type])[this->sort_criteria]);
+				param.SetParam(0, std::data(_engine_sort_listing[this->vehicle_type])[this->sort_criteria]);
 				break;
 
 			case WID_BV_CARGO_FILTER_DROPDOWN:
-				SetDParam(0, this->GetCargoFilterLabel(this->cargo_filter_criteria));
+				param.SetParam(0, this->GetCargoFilterLabel(this->cargo_filter_criteria));
 				break;
 
 			case WID_BV_SHOW_HIDE: {
 				const Engine *e = (this->sel_engine == INVALID_ENGINE) ? nullptr : Engine::Get(this->sel_engine);
 				if (e != nullptr && e->IsHidden(_local_company)) {
-					SetDParam(0, STR_BUY_VEHICLE_TRAIN_SHOW_TOGGLE_BUTTON + this->vehicle_type);
+					param.SetParam(0, STR_BUY_VEHICLE_TRAIN_SHOW_TOGGLE_BUTTON + this->vehicle_type);
 				} else {
-					SetDParam(0, STR_BUY_VEHICLE_TRAIN_HIDE_TOGGLE_BUTTON + this->vehicle_type);
+					param.SetParam(0, STR_BUY_VEHICLE_TRAIN_HIDE_TOGGLE_BUTTON + this->vehicle_type);
 				}
 				break;
 			}

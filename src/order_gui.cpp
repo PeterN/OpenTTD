@@ -1115,7 +1115,7 @@ public:
 
 		Rect ir = r.Shrink(WidgetDimensions::scaled.frametext, WidgetDimensions::scaled.framerect);
 		bool rtl = _current_text_dir == TD_RTL;
-		uint64_t max_value = GetParamMaxValue(this->vehicle->GetNumOrders(), 2);
+		auto max_value = GetParamMaxValue(this->vehicle->GetNumOrders(), 2);
 		int index_column_width = GetStringBoundingBox(GetString(STR_ORDER_INDEX, max_value)).width + 2 * GetSpriteSize(rtl ? SPR_ARROW_RIGHT : SPR_ARROW_LEFT).width + WidgetDimensions::scaled.hsep_normal;
 		int middle = rtl ? ir.right - index_column_width : ir.left + index_column_width;
 
@@ -1168,7 +1168,7 @@ public:
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_O_COND_VALUE: {
@@ -1178,13 +1178,13 @@ public:
 				if (order != nullptr && order->IsType(OT_CONDITIONAL)) {
 					uint value = order->GetConditionValue();
 					if (order->GetConditionVariable() == OCV_MAX_SPEED) value = ConvertSpeedToDisplaySpeed(value, this->vehicle->type);
-					SetDParam(0, value);
+					param.SetParam(0, value);
 				}
 				break;
 			}
 
 			case WID_O_CAPTION:
-				SetDParam(0, this->vehicle->index);
+				param.SetParam(0, this->vehicle->index);
 				break;
 
 			case WID_O_DEPOT_ACTION: {
@@ -1192,19 +1192,19 @@ public:
 				const Order *order = this->vehicle->GetOrder(sel);
 				if (order == nullptr || !order->IsType(OT_GOTO_DEPOT)) {
 					/* We can't leave this param unset or the undefined behavior can cause a crash. */
-					SetDParam(0, STR_EMPTY);
+					param.SetParam(0, STR_EMPTY);
 					break;
 				};
 
 				/* Select the current action selected in the dropdown. The flags don't match the dropdown so we can't just use an index. */
 				if (order->GetDepotOrderType() & ODTFB_SERVICE) {
-					SetDParam(0, STR_ORDER_DROP_SERVICE_DEPOT);
+					param.SetParam(0, STR_ORDER_DROP_SERVICE_DEPOT);
 				} else if (order->GetDepotActionType() & ODATFB_HALT) {
-					SetDParam(0, STR_ORDER_DROP_HALT_DEPOT);
+					param.SetParam(0, STR_ORDER_DROP_HALT_DEPOT);
 				} else if (order->GetDepotActionType() & ODATFB_UNBUNCH) {
-					SetDParam(0, STR_ORDER_DROP_UNBUNCH);
+					param.SetParam(0, STR_ORDER_DROP_UNBUNCH);
 				} else {
-					SetDParam(0, STR_ORDER_DROP_GO_ALWAYS_DEPOT);
+					param.SetParam(0, STR_ORDER_DROP_GO_ALWAYS_DEPOT);
 				}
 				break;
 			}

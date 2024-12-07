@@ -496,7 +496,7 @@ public:
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_DPI_FUND_WIDGET:
@@ -504,13 +504,13 @@ public:
 				 * In Editor, you just build, while ingame, or you fund or you prospect */
 				if (_game_mode == GM_EDITOR) {
 					/* We've chosen many random industries but no industries have been specified */
-					SetDParam(0, STR_FUND_INDUSTRY_BUILD_NEW_INDUSTRY);
+					param.SetParam(0, STR_FUND_INDUSTRY_BUILD_NEW_INDUSTRY);
 				} else {
 					if (this->selected_type != INVALID_INDUSTRYTYPE) {
 						const IndustrySpec *indsp = GetIndustrySpec(this->selected_type);
-						SetDParam(0, (_settings_game.construction.raw_industry_construction == 2 && indsp->IsRawIndustry()) ? STR_FUND_INDUSTRY_PROSPECT_NEW_INDUSTRY : STR_FUND_INDUSTRY_FUND_NEW_INDUSTRY);
+						param.SetParam(0, (_settings_game.construction.raw_industry_construction == 2 && indsp->IsRawIndustry()) ? STR_FUND_INDUSTRY_PROSPECT_NEW_INDUSTRY : STR_FUND_INDUSTRY_FUND_NEW_INDUSTRY);
 					} else {
-						SetDParam(0, STR_FUND_INDUSTRY_FUND_NEW_INDUSTRY);
+						param.SetParam(0, STR_FUND_INDUSTRY_FUND_NEW_INDUSTRY);
 					}
 				}
 				break;
@@ -1000,9 +1000,9 @@ public:
 		return ir.top - 1 + WidgetDimensions::scaled.framerect.bottom;
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_IV_CAPTION) SetDParam(0, this->window_number);
+		if (widget == WID_IV_CAPTION) param.SetParam(0, this->window_number);
 	}
 
 	void UpdateWidgetSize(WidgetID widget, Dimension &size, [[maybe_unused]] const Dimension &padding, [[maybe_unused]] Dimension &fill, [[maybe_unused]] Dimension &resize) override
@@ -1677,24 +1677,24 @@ public:
 		this->hscroll->SetCount(0);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_ID_CAPTION:
-				SetDParam(0, this->vscroll->GetCount());
-				SetDParam(1, Industry::GetNumItems());
+				param.SetParam(0, this->vscroll->GetCount());
+				param.SetParam(1, Industry::GetNumItems());
 				break;
 
 			case WID_ID_DROPDOWN_CRITERIA:
-				SetDParam(0, IndustryDirectoryWindow::sorter_names[this->industries.SortType()]);
+				param.SetParam(0, IndustryDirectoryWindow::sorter_names[this->industries.SortType()]);
 				break;
 
 			case WID_ID_FILTER_BY_ACC_CARGO:
-				SetDParam(0, this->GetCargoFilterLabel(this->accepted_cargo_filter_criteria));
+				param.SetParam(0, this->GetCargoFilterLabel(this->accepted_cargo_filter_criteria));
 				break;
 
 			case WID_ID_FILTER_BY_PROD_CARGO:
-				SetDParam(0, this->GetCargoFilterLabel(this->produced_cargo_filter_criteria));
+				param.SetParam(0, this->GetCargoFilterLabel(this->produced_cargo_filter_criteria));
 				break;
 		}
 	}
@@ -2657,16 +2657,16 @@ struct IndustryCargoesWindow : public Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_IC_CAPTION) return;
 
 		if (this->ind_cargo < NUM_INDUSTRYTYPES) {
 			const IndustrySpec *indsp = GetIndustrySpec(this->ind_cargo);
-			SetDParam(0, indsp->name);
+			param.SetParam(0, indsp->name);
 		} else {
 			const CargoSpec *csp = CargoSpec::Get(this->ind_cargo - NUM_INDUSTRYTYPES);
-			SetDParam(0, csp->name);
+			param.SetParam(0, csp->name);
 		}
 	}
 

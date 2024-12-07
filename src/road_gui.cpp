@@ -439,16 +439,16 @@ struct BuildRoadToolbarWindow : Window {
 		this->ReInit();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget == WID_ROT_CAPTION) {
 			const RoadTypeInfo *rti = GetRoadTypeInfo(this->roadtype);
 			if (rti->max_speed > 0) {
-				SetDParam(0, STR_TOOLBAR_RAILTYPE_VELOCITY);
-				SetDParam(1, rti->strings.toolbar_caption);
-				SetDParam(2, PackVelocity(rti->max_speed / 2, VEH_ROAD));
+				param.SetParam(0, STR_TOOLBAR_RAILTYPE_VELOCITY);
+				param.SetParam(1, rti->strings.toolbar_caption);
+				param.SetParam(2, PackVelocity(rti->max_speed / 2, VEH_ROAD));
 			} else {
-				SetDParam(0, rti->strings.toolbar_caption);
+				param.SetParam(0, rti->strings.toolbar_caption);
 			}
 		}
 	}

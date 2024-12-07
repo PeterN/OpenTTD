@@ -638,20 +638,20 @@ public:
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_SB_SEL_PAGE: {
 				StoryPage *page = this->GetSelPage();
-				SetDParamStr(0, page != nullptr && !page->title.empty() ? page->title : this->selected_generic_title);
+				param.SetParam(0, page != nullptr && !page->title.empty() ? page->title : this->selected_generic_title);
 				break;
 			}
 			case WID_SB_CAPTION:
 				if (this->window_number == INVALID_COMPANY) {
-					SetDParam(0, STR_STORY_BOOK_SPECTATOR_CAPTION);
+					param.SetParam(0, STR_STORY_BOOK_SPECTATOR_CAPTION);
 				} else {
-					SetDParam(0, STR_STORY_BOOK_CAPTION);
-					SetDParam(1, this->window_number);
+					param.SetParam(0, STR_STORY_BOOK_CAPTION);
+					param.SetParam(1, this->window_number);
 				}
 				break;
 		}

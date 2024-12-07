@@ -550,16 +550,16 @@ struct BuildRailToolbarWindow : Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget == WID_RAT_CAPTION) {
 			const RailTypeInfo *rti = GetRailTypeInfo(this->railtype);
 			if (rti->max_speed > 0) {
-				SetDParam(0, STR_TOOLBAR_RAILTYPE_VELOCITY);
-				SetDParam(1, rti->strings.toolbar_caption);
-				SetDParam(2, PackVelocity(rti->max_speed, VEH_TRAIN));
+				param.SetParam(0, STR_TOOLBAR_RAILTYPE_VELOCITY);
+				param.SetParam(1, rti->strings.toolbar_caption);
+				param.SetParam(2, PackVelocity(rti->max_speed, VEH_TRAIN));
 			} else {
-				SetDParam(0, rti->strings.toolbar_caption);
+				param.SetParam(0, rti->strings.toolbar_caption);
 			}
 		}
 	}
@@ -1517,11 +1517,11 @@ public:
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_BS_DRAG_SIGNALS_DENSITY_LABEL:
-				SetDParam(0, _settings_client.gui.drag_signals_density);
+				param.SetParam(0, _settings_client.gui.drag_signals_density);
 				break;
 		}
 	}

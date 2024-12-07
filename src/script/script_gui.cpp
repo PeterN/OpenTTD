@@ -97,11 +97,11 @@ struct ScriptListWindow : public Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_SCRL_CAPTION) return;
 
-		SetDParam(0, (this->slot == OWNER_DEITY) ? STR_AI_LIST_CAPTION_GAMESCRIPT : STR_AI_LIST_CAPTION_AI);
+		param.SetParam(0, (this->slot == OWNER_DEITY) ? STR_AI_LIST_CAPTION_GAMESCRIPT : STR_AI_LIST_CAPTION_AI);
 	}
 
 	void UpdateWidgetSize(WidgetID widget, Dimension &size, [[maybe_unused]] const Dimension &padding, [[maybe_unused]] Dimension &fill, [[maybe_unused]] Dimension &resize) override
@@ -329,11 +329,11 @@ struct ScriptSettingsWindow : public Window {
 		this->vscroll->SetCount(this->visible_settings.size());
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_SCRS_CAPTION) return;
 
-		SetDParam(0, (this->slot == OWNER_DEITY) ? STR_AI_SETTINGS_CAPTION_GAMESCRIPT : STR_AI_SETTINGS_CAPTION_AI);
+		param.SetParam(0, (this->slot == OWNER_DEITY) ? STR_AI_SETTINGS_CAPTION_GAMESCRIPT : STR_AI_SETTINGS_CAPTION_AI);
 	}
 
 	void UpdateWidgetSize(WidgetID widget, Dimension &size, [[maybe_unused]] const Dimension &padding, [[maybe_unused]] Dimension &fill, [[maybe_unused]] Dimension &resize) override
@@ -629,11 +629,11 @@ struct ScriptTextfileWindow : public TextfileWindow {
 		this->OnInvalidateData();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget == WID_TF_CAPTION) {
-			SetDParam(0, (slot == OWNER_DEITY) ? STR_CONTENT_TYPE_GAME_SCRIPT : STR_CONTENT_TYPE_AI);
-			SetDParamStr(1, GetConfig(slot)->GetInfo()->GetName());
+			param.SetParam(0, (slot == OWNER_DEITY) ? STR_CONTENT_TYPE_GAME_SCRIPT : STR_CONTENT_TYPE_AI);
+			param.SetParam(1, GetConfig(slot)->GetInfo()->GetName());
 		}
 	}
 
@@ -833,24 +833,24 @@ struct ScriptDebugWindow : public Window {
 		this->DrawWidgets();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_SCRD_NAME_TEXT) return;
 
 		if (this->filter.script_debug_company == OWNER_DEITY) {
 			const GameInfo *info = Game::GetInfo();
 			assert(info != nullptr);
-			SetDParam(0, STR_AI_DEBUG_NAME_AND_VERSION);
-			SetDParamStr(1, info->GetName());
-			SetDParam(2, info->GetVersion());
+			param.SetParam(0, STR_AI_DEBUG_NAME_AND_VERSION);
+			param.SetParam(1, info->GetName());
+			param.SetParam(2, info->GetVersion());
 		} else if (this->filter.script_debug_company == INVALID_COMPANY || !Company::IsValidAiID(this->filter.script_debug_company)) {
-			SetDParam(0, STR_EMPTY);
+			param.SetParam(0, STR_EMPTY);
 		} else {
 			const AIInfo *info = Company::Get(this->filter.script_debug_company)->ai_info;
 			assert(info != nullptr);
-			SetDParam(0, STR_AI_DEBUG_NAME_AND_VERSION);
-			SetDParamStr(1, info->GetName());
-			SetDParam(2, info->GetVersion());
+			param.SetParam(0, STR_AI_DEBUG_NAME_AND_VERSION);
+			param.SetParam(1, info->GetName());
+			param.SetParam(2, info->GetVersion());
 		}
 	}
 

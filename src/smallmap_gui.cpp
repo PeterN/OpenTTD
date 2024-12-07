@@ -1510,11 +1510,11 @@ public:
 		this->Window::Close();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_SM_CAPTION:
-				SetDParam(0, STR_SMALLMAP_TYPE_CONTOURS + this->map_type);
+				param.SetParam(0, STR_SMALLMAP_TYPE_CONTOURS + this->map_type);
 				break;
 		}
 	}

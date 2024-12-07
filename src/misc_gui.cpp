@@ -447,10 +447,10 @@ struct AboutWindow : public Window {
 		this->text_position = this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->pos_y + this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->current_y;
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_A_WEBSITE) SetDParamStr(0, "Website: https://www.openttd.org");
-		if (widget == WID_A_COPYRIGHT) SetDParamStr(0, _openttd_revision_year);
+		if (widget == WID_A_WEBSITE) param.SetParam(0, "Website: https://www.openttd.org");
+		if (widget == WID_A_COPYRIGHT) param.SetParam(0, _openttd_revision_year);
 	}
 
 	void UpdateWidgetSize(WidgetID widget, Dimension &size, [[maybe_unused]] const Dimension &padding, [[maybe_unused]] Dimension &fill, [[maybe_unused]] Dimension &resize) override
@@ -954,9 +954,9 @@ struct QueryStringWindow : public Window
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_QS_CAPTION) SetDParam(0, this->editbox.caption);
+		if (widget == WID_QS_CAPTION) param.SetParam(0, this->editbox.caption);
 	}
 
 	void OnOk()
@@ -1067,11 +1067,11 @@ struct QueryWindow : public Window {
 		this->SetDirty();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_Q_CAPTION:
-				SetDParamStr(0, this->caption.GetDecodedString());
+				param.SetParam(0, this->caption.GetDecodedString());
 				break;
 		}
 	}

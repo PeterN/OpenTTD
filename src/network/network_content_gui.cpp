@@ -66,11 +66,11 @@ struct ContentTextfileWindow : public TextfileWindow {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget == WID_TF_CAPTION) {
-			SetDParam(0, this->GetTypeString());
-			SetDParamStr(1, this->ci->name);
+			param.SetParam(0, this->GetTypeString());
+			param.SetParam(1, this->ci->name);
 		}
 	}
 };

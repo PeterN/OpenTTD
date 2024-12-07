@@ -554,22 +554,22 @@ public:
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget == WID_STL_CAPTION) {
-			SetDParam(0, this->window_number);
-			SetDParam(1, this->vscroll->GetCount());
+			param.SetParam(0, this->window_number);
+			param.SetParam(1, this->vscroll->GetCount());
 		}
 
 		if (widget == WID_STL_CARGODROPDOWN) {
 			if (this->filter.cargoes == 0) {
-				SetDParam(0, this->filter.include_no_rating ? STR_STATION_LIST_CARGO_FILTER_ONLY_NO_RATING : STR_STATION_LIST_CARGO_FILTER_NO_CARGO_TYPES);
+				param.SetParam(0, this->filter.include_no_rating ? STR_STATION_LIST_CARGO_FILTER_ONLY_NO_RATING : STR_STATION_LIST_CARGO_FILTER_NO_CARGO_TYPES);
 			} else if (this->filter.cargoes == _cargo_mask) {
-				SetDParam(0, this->filter.include_no_rating ? STR_STATION_LIST_CARGO_FILTER_ALL_AND_NO_RATING : STR_CARGO_TYPE_FILTER_ALL);
+				param.SetParam(0, this->filter.include_no_rating ? STR_STATION_LIST_CARGO_FILTER_ALL_AND_NO_RATING : STR_CARGO_TYPE_FILTER_ALL);
 			} else if (CountBits(this->filter.cargoes) == 1 && !this->filter.include_no_rating) {
-				SetDParam(0, CargoSpec::Get(FindFirstBit(this->filter.cargoes))->name);
+				param.SetParam(0, CargoSpec::Get(FindFirstBit(this->filter.cargoes))->name);
 			} else {
-				SetDParam(0, STR_STATION_LIST_CARGO_FILTER_MULTIPLE);
+				param.SetParam(0, STR_STATION_LIST_CARGO_FILTER_MULTIPLE);
 			}
 		}
 	}
@@ -1513,12 +1513,12 @@ struct StationViewWindow : public Window {
 		}
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget == WID_SV_CAPTION) {
 			const Station *st = Station::Get(this->window_number);
-			SetDParam(0, st->index);
-			SetDParam(1, st->facilities);
+			param.SetParam(0, st->index);
+			param.SetParam(1, st->facilities);
 		}
 	}
 

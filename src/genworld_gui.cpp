@@ -415,24 +415,24 @@ struct GenerateLandscapeWindow : public Window {
 	}
 
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
-			case WID_GL_START_DATE_TEXT:      SetDParam(0, TimerGameCalendar::ConvertYMDToDate(_settings_newgame.game_creation.starting_year, 0, 1)); break;
-			case WID_GL_MAPSIZE_X_PULLDOWN:   SetDParam(0, 1LL << _settings_newgame.game_creation.map_x); break;
-			case WID_GL_MAPSIZE_Y_PULLDOWN:   SetDParam(0, 1LL << _settings_newgame.game_creation.map_y); break;
-			case WID_GL_HEIGHTMAP_HEIGHT_TEXT: SetDParam(0, _settings_newgame.game_creation.heightmap_height); break;
-			case WID_GL_SNOW_COVERAGE_TEXT:   SetDParam(0, _settings_newgame.game_creation.snow_coverage); break;
-			case WID_GL_DESERT_COVERAGE_TEXT: SetDParam(0, _settings_newgame.game_creation.desert_coverage); break;
+			case WID_GL_START_DATE_TEXT:      param.SetParam(0, TimerGameCalendar::ConvertYMDToDate(_settings_newgame.game_creation.starting_year, 0, 1)); break;
+			case WID_GL_MAPSIZE_X_PULLDOWN:   param.SetParam(0, 1LL << _settings_newgame.game_creation.map_x); break;
+			case WID_GL_MAPSIZE_Y_PULLDOWN:   param.SetParam(0, 1LL << _settings_newgame.game_creation.map_y); break;
+			case WID_GL_HEIGHTMAP_HEIGHT_TEXT: param.SetParam(0, _settings_newgame.game_creation.heightmap_height); break;
+			case WID_GL_SNOW_COVERAGE_TEXT:   param.SetParam(0, _settings_newgame.game_creation.snow_coverage); break;
+			case WID_GL_DESERT_COVERAGE_TEXT: param.SetParam(0, _settings_newgame.game_creation.desert_coverage); break;
 
 			case WID_GL_TOWN_PULLDOWN:
 				if (_game_mode == GM_EDITOR) {
-					SetDParam(0, STR_CONFIG_SETTING_OFF);
+					param.SetParam(0, STR_CONFIG_SETTING_OFF);
 				} else if (_settings_newgame.difficulty.number_towns == CUSTOM_TOWN_NUMBER_DIFFICULTY) {
-					SetDParam(0, STR_NUM_CUSTOM_NUMBER);
-					SetDParam(1, _settings_newgame.game_creation.custom_town_number);
+					param.SetParam(0, STR_NUM_CUSTOM_NUMBER);
+					param.SetParam(1, _settings_newgame.game_creation.custom_town_number);
 				} else {
-					SetDParam(0, _num_towns[_settings_newgame.difficulty.number_towns]);
+					param.SetParam(0, _num_towns[_settings_newgame.difficulty.number_towns]);
 				}
 				break;
 
@@ -441,57 +441,57 @@ struct GenerateLandscapeWindow : public Window {
 				StringID name = gen < BUILTIN_TOWNNAME_GENERATOR_COUNT ?
 						STR_MAPGEN_TOWN_NAME_ORIGINAL_ENGLISH + gen :
 						GetGRFTownNameName(gen - BUILTIN_TOWNNAME_GENERATOR_COUNT);
-				SetDParam(0, name);
+				param.SetParam(0, name);
 				break;
 			}
 
 			case WID_GL_INDUSTRY_PULLDOWN:
 				if (_game_mode == GM_EDITOR) {
-					SetDParam(0, STR_CONFIG_SETTING_OFF);
+					param.SetParam(0, STR_CONFIG_SETTING_OFF);
 				} else if (_settings_newgame.difficulty.industry_density == ID_CUSTOM) {
-					SetDParam(0, STR_NUM_CUSTOM_NUMBER);
-					SetDParam(1, _settings_newgame.game_creation.custom_industry_number);
+					param.SetParam(0, STR_NUM_CUSTOM_NUMBER);
+					param.SetParam(1, _settings_newgame.game_creation.custom_industry_number);
 				} else {
-					SetDParam(0, _num_inds[_settings_newgame.difficulty.industry_density]);
+					param.SetParam(0, _num_inds[_settings_newgame.difficulty.industry_density]);
 				}
 				break;
 
 			case WID_GL_TERRAIN_PULLDOWN:
 				if (_settings_newgame.difficulty.terrain_type == CUSTOM_TERRAIN_TYPE_NUMBER_DIFFICULTY) {
-					SetDParam(0, STR_TERRAIN_TYPE_CUSTOM_VALUE);
-					SetDParam(1, _settings_newgame.game_creation.custom_terrain_type);
+					param.SetParam(0, STR_TERRAIN_TYPE_CUSTOM_VALUE);
+					param.SetParam(1, _settings_newgame.game_creation.custom_terrain_type);
 				} else {
-					SetDParam(0, _elevations[_settings_newgame.difficulty.terrain_type]); break;
+					param.SetParam(0, _elevations[_settings_newgame.difficulty.terrain_type]); break;
 				}
 				break;
 
 			case WID_GL_WATER_PULLDOWN:
 				if (_settings_newgame.difficulty.quantity_sea_lakes == CUSTOM_SEA_LEVEL_NUMBER_DIFFICULTY) {
-					SetDParam(0, STR_SEA_LEVEL_CUSTOM_PERCENTAGE);
-					SetDParam(1, _settings_newgame.game_creation.custom_sea_level);
+					param.SetParam(0, STR_SEA_LEVEL_CUSTOM_PERCENTAGE);
+					param.SetParam(1, _settings_newgame.game_creation.custom_sea_level);
 				} else {
-					SetDParam(0, _sea_lakes[_settings_newgame.difficulty.quantity_sea_lakes]);
+					param.SetParam(0, _sea_lakes[_settings_newgame.difficulty.quantity_sea_lakes]);
 				}
 				break;
 
-			case WID_GL_HEIGHTMAP_NAME_TEXT: SetDParamStr(0, this->name); break;
-			case WID_GL_RIVER_PULLDOWN:      SetDParam(0, _rivers[_settings_newgame.game_creation.amount_of_rivers]); break;
-			case WID_GL_SMOOTHNESS_PULLDOWN: SetDParam(0, _smoothness[_settings_newgame.game_creation.tgen_smoothness]); break;
-			case WID_GL_VARIETY_PULLDOWN:    SetDParam(0, _variety[_settings_newgame.game_creation.variety]); break;
-			case WID_GL_BORDERS_RANDOM:      SetDParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOMIZE : STR_MAPGEN_BORDER_MANUAL); break;
-			case WID_GL_WATER_NE: SetDParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOM : HasBit(_settings_newgame.game_creation.water_borders, BORDER_NE) ? STR_MAPGEN_BORDER_WATER : STR_MAPGEN_BORDER_FREEFORM); break;
-			case WID_GL_WATER_NW: SetDParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOM : HasBit(_settings_newgame.game_creation.water_borders, BORDER_NW) ? STR_MAPGEN_BORDER_WATER : STR_MAPGEN_BORDER_FREEFORM); break;
-			case WID_GL_WATER_SE: SetDParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOM : HasBit(_settings_newgame.game_creation.water_borders, BORDER_SE) ? STR_MAPGEN_BORDER_WATER : STR_MAPGEN_BORDER_FREEFORM); break;
-			case WID_GL_WATER_SW: SetDParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOM : HasBit(_settings_newgame.game_creation.water_borders, BORDER_SW) ? STR_MAPGEN_BORDER_WATER : STR_MAPGEN_BORDER_FREEFORM); break;
-			case WID_GL_HEIGHTMAP_ROTATION_PULLDOWN: SetDParam(0, _rotation[_settings_newgame.game_creation.heightmap_rotation]); break;
+			case WID_GL_HEIGHTMAP_NAME_TEXT: param.SetParam(0, this->name); break;
+			case WID_GL_RIVER_PULLDOWN:      param.SetParam(0, _rivers[_settings_newgame.game_creation.amount_of_rivers]); break;
+			case WID_GL_SMOOTHNESS_PULLDOWN: param.SetParam(0, _smoothness[_settings_newgame.game_creation.tgen_smoothness]); break;
+			case WID_GL_VARIETY_PULLDOWN:    param.SetParam(0, _variety[_settings_newgame.game_creation.variety]); break;
+			case WID_GL_BORDERS_RANDOM:      param.SetParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOMIZE : STR_MAPGEN_BORDER_MANUAL); break;
+			case WID_GL_WATER_NE: param.SetParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOM : HasBit(_settings_newgame.game_creation.water_borders, BORDER_NE) ? STR_MAPGEN_BORDER_WATER : STR_MAPGEN_BORDER_FREEFORM); break;
+			case WID_GL_WATER_NW: param.SetParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOM : HasBit(_settings_newgame.game_creation.water_borders, BORDER_NW) ? STR_MAPGEN_BORDER_WATER : STR_MAPGEN_BORDER_FREEFORM); break;
+			case WID_GL_WATER_SE: param.SetParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOM : HasBit(_settings_newgame.game_creation.water_borders, BORDER_SE) ? STR_MAPGEN_BORDER_WATER : STR_MAPGEN_BORDER_FREEFORM); break;
+			case WID_GL_WATER_SW: param.SetParam(0, (_settings_newgame.game_creation.water_borders == BORDERS_RANDOM) ? STR_MAPGEN_BORDER_RANDOM : HasBit(_settings_newgame.game_creation.water_borders, BORDER_SW) ? STR_MAPGEN_BORDER_WATER : STR_MAPGEN_BORDER_FREEFORM); break;
+			case WID_GL_HEIGHTMAP_ROTATION_PULLDOWN: param.SetParam(0, _rotation[_settings_newgame.game_creation.heightmap_rotation]); break;
 
 			case WID_GL_HEIGHTMAP_SIZE_TEXT:
 				if (_settings_newgame.game_creation.heightmap_rotation == HM_CLOCKWISE) {
-					SetDParam(0, this->y);
-					SetDParam(1, this->x);
+					param.SetParam(0, this->y);
+					param.SetParam(1, this->x);
 				} else {
-					SetDParam(0, this->x);
-					SetDParam(1, this->y);
+					param.SetParam(0, this->x);
+					param.SetParam(1, this->y);
 				}
 				break;
 		}
@@ -1061,23 +1061,23 @@ struct CreateScenarioWindow : public Window
 		this->LowerWidget(_settings_newgame.game_creation.landscape + WID_CS_TEMPERATE);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_CS_START_DATE_TEXT:
-				SetDParam(0, TimerGameCalendar::ConvertYMDToDate(_settings_newgame.game_creation.starting_year, 0, 1));
+				param.SetParam(0, TimerGameCalendar::ConvertYMDToDate(_settings_newgame.game_creation.starting_year, 0, 1));
 				break;
 
 			case WID_CS_MAPSIZE_X_PULLDOWN:
-				SetDParam(0, 1LL << _settings_newgame.game_creation.map_x);
+				param.SetParam(0, 1LL << _settings_newgame.game_creation.map_x);
 				break;
 
 			case WID_CS_MAPSIZE_Y_PULLDOWN:
-				SetDParam(0, 1LL << _settings_newgame.game_creation.map_y);
+				param.SetParam(0, 1LL << _settings_newgame.game_creation.map_y);
 				break;
 
 			case WID_CS_FLAT_LAND_HEIGHT_TEXT:
-				SetDParam(0, _settings_newgame.game_creation.se_flat_world_height);
+				param.SetParam(0, _settings_newgame.game_creation.se_flat_world_height);
 				break;
 		}
 	}

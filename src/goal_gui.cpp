@@ -51,15 +51,15 @@ struct GoalListWindow : public Window {
 		this->OnInvalidateData(0);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget != WID_GOAL_CAPTION) return;
 
 		if (this->window_number == INVALID_COMPANY) {
-			SetDParam(0, STR_GOALS_SPECTATOR_CAPTION);
+			param.SetParam(0, STR_GOALS_SPECTATOR_CAPTION);
 		} else {
-			SetDParam(0, STR_GOALS_CAPTION);
-			SetDParam(1, this->window_number);
+			param.SetParam(0, STR_GOALS_CAPTION);
+			param.SetParam(1, this->window_number);
 		}
 	}
 
@@ -348,19 +348,19 @@ struct GoalQuestionWindow : public Window {
 	}
 
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_GQ_BUTTON_1:
-				SetDParam(0, STR_GOAL_QUESTION_BUTTON_CANCEL + this->button[0]);
+				param.SetParam(0, STR_GOAL_QUESTION_BUTTON_CANCEL + this->button[0]);
 				break;
 
 			case WID_GQ_BUTTON_2:
-				SetDParam(0, STR_GOAL_QUESTION_BUTTON_CANCEL + this->button[1]);
+				param.SetParam(0, STR_GOAL_QUESTION_BUTTON_CANCEL + this->button[1]);
 				break;
 
 			case WID_GQ_BUTTON_3:
-				SetDParam(0, STR_GOAL_QUESTION_BUTTON_CANCEL + this->button[2]);
+				param.SetParam(0, STR_GOAL_QUESTION_BUTTON_CANCEL + this->button[2]);
 				break;
 		}
 	}

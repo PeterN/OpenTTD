@@ -75,10 +75,10 @@ struct GameManualTextfileWindow : public TextfileWindow {
 		this->OnClick({ 0, 0 }, WID_TF_WRAPTEXT, 1);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		if (widget == WID_TF_CAPTION) {
-			SetDParamStr(0, this->filename);
+			param.SetParam(0, this->filename);
 		}
 	}
 

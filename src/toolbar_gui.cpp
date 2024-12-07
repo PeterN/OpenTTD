@@ -2318,11 +2318,11 @@ struct ScenarioEditorToolbarWindow : Window {
 		this->DrawWidgets();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_TE_DATE:
-				SetDParam(0, TimerGameCalendar::ConvertYMDToDate(_settings_game.game_creation.starting_year, 0, 1));
+				param.SetParam(0, TimerGameCalendar::ConvertYMDToDate(_settings_game.game_creation.starting_year, 0, 1));
 				break;
 		}
 	}

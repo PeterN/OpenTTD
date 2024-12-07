@@ -109,9 +109,9 @@ public:
 		this->Window::Close();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_W_CAPTION) SetDParam(0, this->wp->index);
+		if (widget == WID_W_CAPTION) param.SetParam(0, this->wp->index);
 	}
 
 	void OnPaint() override

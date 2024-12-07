@@ -115,15 +115,15 @@ struct AIConfigWindow : public Window {
 		this->Window::Close();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_AIC_NUMBER:
-				SetDParam(0, GetGameSettings().difficulty.max_no_competitors);
+				param.SetParam(0, GetGameSettings().difficulty.max_no_competitors);
 				break;
 
 			case WID_AIC_INTERVAL:
-				SetDParam(0, GetGameSettings().difficulty.competitors_interval);
+				param.SetParam(0, GetGameSettings().difficulty.competitors_interval);
 				break;
 		}
 	}

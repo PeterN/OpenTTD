@@ -200,9 +200,9 @@ public:
 		if (this->face != INVALID_COMPANY && !Company::IsValidID(this->face)) this->Close();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_EM_CAPTION && this->face != INVALID_COMPANY) SetDParam(0, this->face);
+		if (widget == WID_EM_CAPTION && this->face != INVALID_COMPANY) param.SetParam(0, this->face);
 	}
 
 	void DrawWidget(const Rect &r, WidgetID widget) const override

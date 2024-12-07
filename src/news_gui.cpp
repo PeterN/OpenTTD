@@ -497,16 +497,16 @@ struct NewsWindow : Window {
 		size = maxdim(size, d);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
-		if (widget == WID_N_DATE) SetDParam(0, this->ni->date);
+		if (widget == WID_N_DATE) param.SetParam(0, this->ni->date);
 	}
 
 	void DrawWidget(const Rect &r, WidgetID widget) const override
 	{
 		switch (widget) {
 			case WID_N_CAPTION:
-				DrawCaption(r, COLOUR_LIGHT_BLUE, this->owner, TC_FROMSTRING, STR_NEWS_MESSAGE_CAPTION, SA_CENTER, FS_NORMAL);
+				DrawCaption(r, COLOUR_LIGHT_BLUE, this->owner, TC_FROMSTRING, GetString(STR_NEWS_MESSAGE_CAPTION), SA_CENTER, FS_NORMAL);
 				break;
 
 			case WID_N_PANEL:

@@ -994,19 +994,19 @@ struct NetworkStartServerWindow : public Window {
 		this->SetFocusedWidget(WID_NSS_GAMENAME);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_NSS_CONNTYPE_BTN:
-				SetDParam(0, STR_NETWORK_SERVER_VISIBILITY_LOCAL + _settings_client.network.server_game_type);
+				param.SetParam(0, STR_NETWORK_SERVER_VISIBILITY_LOCAL + _settings_client.network.server_game_type);
 				break;
 
 			case WID_NSS_CLIENTS_TXT:
-				SetDParam(0, _settings_client.network.max_clients);
+				param.SetParam(0, _settings_client.network.max_clients);
 				break;
 
 			case WID_NSS_COMPANIES_TXT:
-				SetDParam(0, _settings_client.network.max_companies);
+				param.SetParam(0, _settings_client.network.max_companies);
 				break;
 		}
 	}
@@ -1694,37 +1694,37 @@ public:
 		this->vscroll->SetCapacityFromWidget(this, WID_CL_MATRIX);
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_CL_SERVER_NAME:
-				SetDParamStr(0, _network_server ? _settings_client.network.server_name : _network_server_name);
+				param.SetParam(0, _network_server ? _settings_client.network.server_name : _network_server_name);
 				break;
 
 			case WID_CL_SERVER_VISIBILITY:
-				SetDParam(0, STR_NETWORK_SERVER_VISIBILITY_LOCAL + _settings_client.network.server_game_type);
+				param.SetParam(0, STR_NETWORK_SERVER_VISIBILITY_LOCAL + _settings_client.network.server_game_type);
 				break;
 
 			case WID_CL_SERVER_INVITE_CODE: {
 				static std::string empty = {};
-				SetDParamStr(0, _network_server_connection_type == CONNECTION_TYPE_UNKNOWN ? empty : _network_server_invite_code);
+				param.SetParam(0, _network_server_connection_type == CONNECTION_TYPE_UNKNOWN ? empty : _network_server_invite_code);
 				break;
 			}
 
 			case WID_CL_SERVER_CONNECTION_TYPE:
-				SetDParam(0, STR_NETWORK_CLIENT_LIST_SERVER_CONNECTION_TYPE_UNKNOWN + _network_server_connection_type);
+				param.SetParam(0, STR_NETWORK_CLIENT_LIST_SERVER_CONNECTION_TYPE_UNKNOWN + _network_server_connection_type);
 				break;
 
 			case WID_CL_CLIENT_NAME: {
 				const NetworkClientInfo *own_ci = NetworkClientInfo::GetByClientID(_network_own_client_id);
-				SetDParamStr(0, own_ci != nullptr ? own_ci->client_name : _settings_client.network.client_name);
+				param.SetParam(0, own_ci != nullptr ? own_ci->client_name : _settings_client.network.client_name);
 				break;
 			}
 
 			case WID_CL_CLIENT_COMPANY_COUNT:
-				SetDParam(0, NetworkClientInfo::GetNumItems());
-				SetDParam(1, Company::GetNumItems());
-				SetDParam(2, NetworkMaxCompaniesAllowed());
+				param.SetParam(0, NetworkClientInfo::GetNumItems());
+				param.SetParam(1, Company::GetNumItems());
+				param.SetParam(2, NetworkMaxCompaniesAllowed());
 				break;
 		}
 	}
@@ -2142,7 +2142,7 @@ struct NetworkJoinStatusWindow : Window {
 
 			case WID_NJS_PROGRESS_TEXT: {
 				/* Account for downloading ~ 10 MiB */
-				uint64_t max_digits = GetParamMaxDigits(8);
+				auto max_digits = GetParamMaxDigits(8);
 				size = maxdim(size, GetStringBoundingBox(GetString(STR_NETWORK_CONNECTING_DOWNLOADING_1, max_digits, max_digits)));
 				size = maxdim(size, GetStringBoundingBox(GetString(STR_NETWORK_CONNECTING_DOWNLOADING_1, max_digits, max_digits)));
 				break;
@@ -2249,12 +2249,12 @@ struct NetworkAskRelayWindow : public Window {
 		this->SetDirty();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_NAR_TEXT:
-				SetDParamStr(0, this->server_connection_string);
-				SetDParamStr(1, this->relay_connection_string);
+				param.SetParam(0, this->server_connection_string);
+				param.SetParam(1, this->relay_connection_string);
 				break;
 		}
 	}

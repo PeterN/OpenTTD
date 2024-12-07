@@ -121,20 +121,20 @@ public:
 		this->InvalidateData();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	void SetStringParameters(WidgetID widget, WidgetStringParameters &param) const override
 	{
 		switch (widget) {
 			case WID_BO_OBJECT_SIZE: {
 				ObjectClass *objclass = ObjectClass::Get(_object_gui.sel_class);
 				const ObjectSpec *spec = objclass->GetSpec(_object_gui.sel_type);
 				int size = spec == nullptr ? 0 : spec->size;
-				SetDParam(0, GB(size, HasBit(_object_gui.sel_view, 0) ? 4 : 0, 4));
-				SetDParam(1, GB(size, HasBit(_object_gui.sel_view, 0) ? 0 : 4, 4));
+				param.SetParam(0, GB(size, HasBit(_object_gui.sel_view, 0) ? 4 : 0, 4));
+				param.SetParam(1, GB(size, HasBit(_object_gui.sel_view, 0) ? 0 : 4, 4));
 				break;
 			}
 
 			default:
-				this->PickerWindow::SetStringParameters(widget);
+				this->PickerWindow::SetStringParameters(widget, param);
 				break;
 		}
 	}

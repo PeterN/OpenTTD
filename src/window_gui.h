@@ -10,6 +10,7 @@
 #ifndef WINDOW_GUI_H
 #define WINDOW_GUI_H
 
+#include "strings_func.h"
 #include "vehiclelist.h"
 #include "vehicle_type.h"
 #include "viewport_type.h"
@@ -133,7 +134,7 @@ inline void DrawFrameRect(const Rect &r, Colours colour, FrameFlags flags)
 	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, flags);
 }
 
-void DrawCaption(const Rect &r, Colours colour, Owner owner, TextColour text_colour, StringID str, StringAlignment align, FontSize fs);
+void DrawCaption(const Rect &r, Colours colour, Owner owner, TextColour text_colour, std::string_view str, StringAlignment align, FontSize fs);
 
 /* window.cpp */
 using WindowList = std::list<Window *>;
@@ -152,6 +153,8 @@ enum WindowPosition {
 Point GetToolbarAlignedWindowPosition(int window_width);
 
 struct HotkeyList;
+
+using WidgetStringParameters = ArrayStringParametersWriter<20>;
 
 /**
  * High level window description
@@ -629,7 +632,7 @@ public:
 	 * and while re-initializing the window. Only for widgets that render text initializing is requested.
 	 * @param widget  Widget number.
 	 */
-	virtual void SetStringParameters([[maybe_unused]] WidgetID widget) const {}
+	virtual void SetStringParameters([[maybe_unused]] WidgetID widget, [[maybe_unused]] WidgetStringParameters &params) const {}
 
 	/**
 	 * The window has gained focus.
