@@ -200,9 +200,11 @@ public:
 		if (this->face != INVALID_COMPANY && !Company::IsValidID(this->face)) this->Close();
 	}
 
-	void SetStringParameters(WidgetID widget) const override
+	std::string GetWidgetString(WidgetID widget, StringID stringid) const override
 	{
-		if (widget == WID_EM_CAPTION && this->face != INVALID_COMPANY) SetDParam(0, this->face);
+		if (widget == WID_EM_CAPTION && this->face != INVALID_COMPANY) return GetString(stringid, this->face);
+
+		return this->Window::GetWidgetString(widget, stringid);
 	}
 
 	void DrawWidget(const Rect &r, WidgetID widget) const override
