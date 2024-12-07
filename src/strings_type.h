@@ -96,4 +96,28 @@ struct StringParameter {
 	inline StringParameter(const OverflowSafeInt<T> &data) : data(static_cast<uint64_t>(static_cast<T>(data))), type(0) {}
 };
 
+/**
+ * Container for an encoded string, created by GetEncodedString.
+ */
+class EncodedString {
+public:
+	EncodedString() = default;
+
+	auto operator<=>(const EncodedString &) const = default;
+
+	std::string GetDecodedString() const;
+
+	inline void clear() { this->string.clear(); }
+	inline bool empty() const { return this->string.empty(); }
+
+private:
+	std::string string; ///< The encoded string.
+
+	/* An EncodedString can only be created by GetEncodedString(). */
+	explicit EncodedString(std::string &&string) : string(std::move(string)) {}
+
+	friend EncodedString GetEncodedString(StringID str);
+	friend EncodedString GetEncodedStringWithArgs(StringID str, std::span<const StringParameter> params);
+};
+
 #endif /* STRINGS_TYPE_H */
