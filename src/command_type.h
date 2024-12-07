@@ -10,7 +10,9 @@
 #ifndef COMMAND_TYPE_H
 #define COMMAND_TYPE_H
 
+#include "company_type.h"
 #include "economy_type.h"
+#include "strings_func.h"
 #include "strings_type.h"
 #include "tile_type.h"
 
@@ -25,11 +27,13 @@ class CommandCost {
 	StringID message;                           ///< Warning message for when success is unset
 	ExpensesType expense_type;                  ///< the type of expence as shown on the finances view
 	bool success;                               ///< Whether the command went fine up to this moment
+	Owner owner = INVALID_COMPANY; ///< Originator owner of error.
 	const GRFFile *textref_stack_grffile = nullptr; ///< NewGRF providing the #TextRefStack content.
 	uint textref_stack_size = 0; ///< Number of uint32_t values to put on the #TextRefStack for the error message.
 	StringID extra_message = INVALID_STRING_ID; ///< Additional warning message for when success is unset
 
 	static uint32_t textref_stack[16];
+	static EncodedString detailed_message;
 
 public:
 	/**
@@ -55,6 +59,41 @@ public:
 	 */
 	CommandCost(ExpensesType ex_t, const Money &cst) : cost(cst), message(INVALID_STRING_ID), expense_type(ex_t), success(true) {}
 
+	/**
+	 * Set the 'owner' of this error message. This is used to show a company owner's face if you attempt an action on
+	 * a tile owner by other company.
+	 */
+	inline void SetErrorOwner(Owner owner)
+	{
+		this->owner = owner;
+	}
+
+	/**
+	 * Set the detailed message string. If set, this is used by the error message window instead of the error StringID,
+	 * to allow more information to be displayed to the local player.
+	 * @note Do not set a detailed message if the error is not for the local player, as it will never be seen.
+	 * @param message Detailed message to set.
+	 */
+	inline void SetDetailedMessage(EncodedString &&message)
+	{
+		CommandCost::detailed_message = std::move(message);
+	}
+
+	/**
+	 * Get the last detailed error message. The detailed error message will be cleared.
+	 */
+	inline EncodedString GetDetailedMessage() const
+	{
+		return std::move(CommandCost::detailed_message);
+	}
+
+	/**
+	 * Get the last error owner. The error owner will be cleared.
+	 */
+	inline CompanyID GetErrorOwner() const
+	{
+		return this->owner;
+	}
 
 	/**
 	 * Adds the given cost to the cost of the command.
@@ -98,12 +137,12 @@ public:
 	 * Makes this #CommandCost behave like an error command.
 	 * @param message The error message.
 	 */
-	void MakeError(StringID message, StringID extra_message = INVALID_STRING_ID)
+	void MakeError(StringID message)
 	{
 		assert(message != INVALID_STRING_ID);
 		this->success = false;
 		this->message = message;
-		this->extra_message = extra_message;
+		this->extra_message = INVALID_STRING_ID;
 	}
 
 	void UseTextRefStack(const GRFFile *grffile, uint num_registers);
@@ -173,6 +212,8 @@ public:
 		return !this->success;
 	}
 };
+
+CommandCost CommandCostWithParam(StringID str, uint64_t value);
 
 /**
  * List of commands.
