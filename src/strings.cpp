@@ -40,6 +40,7 @@
 #include "gfx_layout.h"
 #include <stack>
 #include <charconv>
+#include <variant>
 
 #include "table/strings.h"
 #include "table/control_codes.h"
@@ -154,7 +155,7 @@ std::string EncodedString::GetDecodedString() const
  */
 void SetDParam(size_t n, uint64_t v)
 {
-	_global_string_params.SetParam(n, v);
+	// _global_string_params.SetParam(n, v);
 }
 
 /**
@@ -164,7 +165,9 @@ void SetDParam(size_t n, uint64_t v)
  */
 uint64_t GetDParam(size_t n)
 {
-	return std::get<uint64_t>(_global_string_params.GetParam(n));
+	// auto &data = _global_string_params.GetParam(n);
+	// if (std::holds_alternative<uint64_t>(data)) return std::get<uint64_t>(data);
+	return 0;
 }
 
 /**
