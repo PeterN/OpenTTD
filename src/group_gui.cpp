@@ -838,7 +838,10 @@ public:
 
 			case WID_GL_DELETE_GROUP: { // Delete the selected group
 				this->group_confirm = this->vli.index;
-				ShowQuery(STR_QUERY_GROUP_DELETE_CAPTION, STR_GROUP_DELETE_QUERY_TEXT, this, DeleteGroupCallback);
+				ShowQuery(
+					GetEncodedString(STR_QUERY_GROUP_DELETE_CAPTION),
+					GetEncodedString(STR_GROUP_DELETE_QUERY_TEXT),
+					this, DeleteGroupCallback);
 				break;
 			}
 
