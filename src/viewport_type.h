@@ -16,6 +16,14 @@
 
 class LinkGraphOverlay;
 
+enum StringSpriteToDrawFlag : uint8_t {
+	SSTDF_SMALL, ///< Draw using the small font.
+	SSTDF_SHADOW, ///< Draw an extra text shadow. Should only be used with SSTDF_SMALL, as normal font already has a shadow.
+	SSTDF_COLOUR_RECT, ///< Draw a colour rect around the sign.
+	SSTDF_TRANS_RECT, ///< Draw a transparent rect around the sign.
+	SSTDF_TEXT_COLOUR, ///< Draw text in colour.
+};
+
 /**
  * Data structure for viewport, display of a part of the world
  */
