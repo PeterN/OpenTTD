@@ -370,7 +370,7 @@ void NetworkHandlePauseChange(PauseMode prev_mode, PauseMode changed_mode)
 				if ((_pause_mode & PM_PAUSED_GAME_SCRIPT) != PM_UNPAUSED)    params.SetParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_GAME_SCRIPT);
 				if ((_pause_mode & PM_PAUSED_ACTIVE_CLIENTS) != PM_UNPAUSED) params.SetParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_NOT_ENOUGH_PLAYERS);
 				if ((_pause_mode & PM_PAUSED_LINK_GRAPH) != PM_UNPAUSED)     params.SetParam(++i, STR_NETWORK_SERVER_MESSAGE_GAME_REASON_LINK_GRAPH);
-				str = GetEncodedString(STR_NETWORK_SERVER_MESSAGE_GAME_STILL_PAUSED_1 + i, std::span{params});
+				str = GetEncodedStringWithArgs(STR_NETWORK_SERVER_MESSAGE_GAME_STILL_PAUSED_1 + i, params);
 			} else {
 				StringID reason;
 				switch (changed_mode) {
