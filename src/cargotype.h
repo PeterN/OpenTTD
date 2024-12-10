@@ -109,7 +109,7 @@ struct CargoSpec {
 	 */
 	inline CargoID Index() const
 	{
-		return this - CargoSpec::array;
+		return std::distance(static_cast<const CargoSpec *>(CargoSpec::array.data()), this);
 	}
 
 	/**
@@ -128,7 +128,13 @@ struct CargoSpec {
 	 */
 	static inline size_t Count()
 	{
-		return lengthof(CargoSpec::array);
+		return std::size(CargoSpec::array);
+	}
+
+	static inline void Resize(size_t n)
+	{
+		assert(n >= CargoSpec::Count());
+		CargoSpec::array.resize(n);
 	}
 
 	/**
@@ -138,7 +144,7 @@ struct CargoSpec {
 	 */
 	static inline CargoSpec *Get(size_t index)
 	{
-		assert(index < lengthof(CargoSpec::array));
+		assert(index < CargoSpec::Count());
 		return &CargoSpec::array[index];
 	}
 
@@ -198,7 +204,7 @@ struct CargoSpec {
 	static std::array<std::vector<const CargoSpec *>, NUM_TPE> town_production_cargoes;
 
 private:
-	static CargoSpec array[NUM_CARGO]; ///< Array holding all CargoSpecs
+	static std::vector<CargoSpec> array; ///< Array holding all CargoSpecs
 	static inline std::map<CargoLabel, CargoID> label_map{}; ///< Translation map from CargoLabel to Cargo ID.
 
 	friend void SetupCargoForClimate(LandscapeID l);
@@ -226,7 +232,7 @@ inline CargoID GetCargoIDByLabel(CargoLabel label)
 Dimension GetLargestCargoIconSize();
 
 void InitializeSortedCargoSpecs();
-extern std::array<uint8_t, NUM_CARGO> _sorted_cargo_types;
+extern std::vector<uint8_t> _sorted_cargo_types;
 extern std::vector<const CargoSpec *> _sorted_cargo_specs;
 extern std::span<const CargoSpec *> _sorted_standard_cargo_specs;
 
@@ -240,8 +246,6 @@ inline bool IsCargoInClass(CargoID c, CargoClass cc)
 {
 	return (CargoSpec::Get(c)->classes & cc) != 0;
 }
-
-using SetCargoBitIterator = SetBitIterator<CargoID, CargoTypes>;
 
 /** Comparator to sort CargoID by according to desired order. */
 struct CargoIDComparator {

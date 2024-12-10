@@ -461,13 +461,13 @@ static void AddAcceptedCargo_Industry(TileIndex tile, CargoArray &acceptance, Ca
 		acceptance[a] += cargo_acceptance[i];
 
 		/* Maybe set 'always accepted' bit (if it's not set already) */
-		if (HasBit(always_accepted, a)) continue;
+		if (HasCargo(always_accepted, a)) continue;
 
 		/* Test whether the industry itself accepts the cargo type */
 		if (ind->IsCargoAccepted(a)) continue;
 
 		/* If the industry itself doesn't accept this cargo, set 'always accepted' bit */
-		SetBit(always_accepted, a);
+		SetCargo(always_accepted, a);
 	}
 }
 

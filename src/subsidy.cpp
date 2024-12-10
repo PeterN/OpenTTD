@@ -247,7 +247,7 @@ CommandCost CmdCreateSubsidy(DoCommandFlag flags, CargoID cid, SourceType src_ty
 
 	if (_current_company != OWNER_DEITY) return CMD_ERROR;
 
-	if (cid >= NUM_CARGO || !::CargoSpec::Get(cid)->IsValid()) return CMD_ERROR;
+	if (cid >= CargoSpec::Count() || !::CargoSpec::Get(cid)->IsValid()) return CMD_ERROR;
 
 	switch (src_type) {
 		case SourceType::Town:

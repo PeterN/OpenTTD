@@ -55,7 +55,7 @@ struct HouseResolverObject : public ResolverObject {
 
 	HouseResolverObject(HouseID house_id, TileIndex tile, Town *town,
 			CallbackID callback = CBID_NO_CALLBACK, uint32_t param1 = 0, uint32_t param2 = 0,
-			bool not_yet_constructed = false, uint8_t initial_random_bits = 0, CargoTypes watched_cargo_triggers = 0, int view = 0);
+			bool not_yet_constructed = false, uint8_t initial_random_bits = 0, CargoTypes watched_cargo_triggers = {}, int view = 0);
 
 	ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, uint8_t relative = 0) override
 	{
@@ -102,7 +102,7 @@ void AnimateNewHouseTile(TileIndex tile);
 void AnimateNewHouseConstruction(TileIndex tile);
 
 uint16_t GetHouseCallback(CallbackID callback, uint32_t param1, uint32_t param2, HouseID house_id, Town *town, TileIndex tile,
-		bool not_yet_constructed = false, uint8_t initial_random_bits = 0, CargoTypes watched_cargo_triggers = 0, int view = 0);
+		bool not_yet_constructed = false, uint8_t initial_random_bits = 0, CargoTypes watched_cargo_triggers = {}, int view = 0);
 void WatchedCargoCallback(TileIndex tile, CargoTypes trigger_cargoes);
 
 bool CanDeleteHouse(TileIndex tile);

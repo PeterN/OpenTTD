@@ -106,9 +106,103 @@ inline bool IsValidCargoType(CargoLabel t) { return t != CT_INVALID; }
 /** Test whether cargo type is not INVALID_CARGO */
 inline bool IsValidCargoID(CargoID t) { return t != INVALID_CARGO; }
 
-typedef uint64_t CargoTypes;
+using CargoTypes = std::vector<CargoID>;
 
-static const CargoTypes ALL_CARGOTYPES = (CargoTypes)UINT64_MAX;
+inline bool HasCargo(const CargoTypes &types, CargoID cid)
+{
+	auto it = std::ranges::lower_bound(types, cid);
+	return (it != std::end(types) && *it == cid);
+}
+
+inline void SetCargo(CargoTypes &types, CargoID cid)
+{
+	auto it = std::ranges::lower_bound(types, cid);
+	if (it == std::end(types) || *it != cid) types.emplace(it, cid);
+}
+
+inline void ClrCargo(CargoTypes &types, CargoID cid)
+{
+	auto it = std::ranges::lower_bound(types, cid);
+	if (it == std::end(types) || *it != cid) return;
+	types.erase(it);
+}
+
+inline void ToggleCargo(CargoTypes &types, CargoID cid)
+{
+	auto it = std::ranges::lower_bound(types, cid);
+	if (it == std::end(types) || *it != cid) {
+		types.emplace(it, cid);
+	} else {
+		types.erase(it);
+	}
+}
+
+inline CargoTypes operator|=(CargoTypes &lhs, const CargoTypes &rhs)
+{
+	for (const CargoID &cid : rhs) {
+		SetCargo(lhs, cid);
+	}
+	return lhs;
+}
+
+inline CargoTypes operator|(const CargoTypes &lhs, const CargoTypes &rhs)
+{
+	CargoTypes types = lhs;
+	types |= rhs;
+	return types;
+}
+
+inline CargoTypes operator&=(CargoTypes &lhs, const CargoTypes &rhs)
+{
+	for (auto it = std::begin(lhs); it != std::end(lhs); /* nothing */) {
+		if (!HasCargo(rhs, *it)) {
+			it = lhs.erase(it);
+		} else {
+			++it;
+		}
+	}
+	return lhs;
+}
+
+inline CargoTypes operator&(const CargoTypes &lhs, const CargoTypes &rhs)
+{
+	CargoTypes types = lhs;
+	types &= rhs;
+	return types;
+}
+
+inline CargoTypes operator^=(CargoTypes &lhs, const CargoTypes &rhs)
+{
+	auto ita = std::begin(lhs);
+	auto itb = std::begin(rhs);
+
+	while (itb != std::end(rhs)) {
+		if (ita == std::end(lhs) || *ita > *itb) {
+			ita = lhs.emplace(ita, *itb);
+			++ita;
+			++itb;
+		} else if (*ita < *itb) {
+			++ita;
+		} else if (*ita == *itb) {
+			ita = lhs.erase(ita);
+			++itb;
+		} else {
+			NOT_REACHED();
+		}
+	}
+	return lhs;
+}
+
+inline CargoTypes operator^(const CargoTypes &lhs, const CargoTypes &rhs)
+{
+	CargoTypes types = lhs;
+	types ^= rhs;
+	return types;
+}
+
+CargoTypes operator~(const CargoTypes &other);
+
+void SetDParam(size_t n, const CargoTypes &v);
 
 /** Class for storing amounts of cargo */
 struct CargoArray {
