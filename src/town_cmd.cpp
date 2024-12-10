@@ -792,7 +792,7 @@ static void AddAcceptedCargoSetMask(CargoType cargo, uint amount, CargoArray &ac
 {
 	if (!IsValidCargoType(cargo) || amount == 0) return;
 	acceptance[cargo] += amount;
-	SetBit(always_accepted, cargo);
+	SetCargo(always_accepted, cargo);
 }
 
 /**

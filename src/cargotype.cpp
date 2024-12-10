@@ -24,7 +24,7 @@
 
 #include "safeguards.h"
 
-CargoSpec CargoSpec::array[NUM_CARGO];
+std::vector<CargoSpec> CargoSpec::array;
 std::array<std::vector<const CargoSpec *>, NUM_TPE> CargoSpec::town_production_cargoes{};
 
 /**
@@ -66,13 +66,14 @@ void SetupCargoForClimate(LandscapeType l)
 {
 	assert(to_underlying(l) < std::size(_default_climate_cargo));
 
-	_cargo_mask = 0;
+	_cargo_mask.clear();
 	_default_cargo_labels.clear();
 	_climate_dependent_cargo_labels.fill(CT_INVALID);
 	_climate_independent_cargo_labels.fill(CT_INVALID);
 
+	CargoSpec::array.clear();
+
 	/* Copy from default cargo by label or index. */
-	auto insert = std::begin(CargoSpec::array);
 	for (const auto &cl : _default_climate_cargo[to_underlying(l)]) {
 
 		struct visitor {
@@ -92,19 +93,14 @@ void SetupCargoForClimate(LandscapeType l)
 			}
 		};
 
-		*insert = std::visit(visitor{}, cl);
-
-		if (insert->IsValid()) {
-			SetBit(_cargo_mask, insert->Index());
-			_default_cargo_labels.push_back(insert->label);
-			_climate_dependent_cargo_labels[insert->Index()] = insert->label;
-			_climate_independent_cargo_labels[insert->bitnum] = insert->label;
+		CargoSpec &spec = CargoSpec::array.emplace_back(std::visit(visitor{}, cl));
+		if (spec.IsValid()) {
+			SetCargo(_cargo_mask, spec.Index());
+			_default_cargo_labels.push_back(spec.label);
+			_climate_dependent_cargo_labels[spec.Index()] = spec.label;
+			_climate_independent_cargo_labels[spec.bitnum] = spec.label;
 		}
-		++insert;
 	}
-
-	/* Reset and disable remaining cargo types. */
-	std::fill(insert, std::end(CargoSpec::array), CargoSpec{});
 
 	BuildCargoLabelMap();
 }
@@ -189,7 +185,7 @@ SpriteID CargoSpec::GetCargoIcon() const
 	return sprite;
 }
 
-std::array<uint8_t, NUM_CARGO> _sorted_cargo_types; ///< Sort order of cargoes by cargo type.
+std::vector<uint8_t> _sorted_cargo_types; ///< Sort order of cargoes by cargo type.
 std::vector<const CargoSpec *> _sorted_cargo_specs;   ///< Cargo specifications sorted alphabetically by name.
 std::span<const CargoSpec *> _sorted_standard_cargo_specs; ///< Standard cargo specifications sorted alphabetically by name.
 
@@ -235,20 +231,23 @@ void InitializeSortedCargoSpecs()
 	/* Sort cargo specifications by cargo class and name. */
 	std::sort(_sorted_cargo_specs.begin(), _sorted_cargo_specs.end(), &CargoSpecClassSorter);
 
+	_sorted_cargo_types.clear();
+	_sorted_cargo_types.resize(std::size(_sorted_cargo_specs));
+
 	/* Populate */
 	for (auto it = std::begin(_sorted_cargo_specs); it != std::end(_sorted_cargo_specs); ++it) {
 		_sorted_cargo_types[(*it)->Index()] = static_cast<uint8_t>(it - std::begin(_sorted_cargo_specs));
 	}
 
 	/* Count the number of standard cargos and fill the mask. */
-	_standard_cargo_mask = 0;
+	_standard_cargo_mask.clear();
 	uint8_t nb_standard_cargo = 0;
 	for (const auto &cargo : _sorted_cargo_specs) {
 		assert(cargo->town_production_effect != INVALID_TPE);
 		CargoSpec::town_production_cargoes[cargo->town_production_effect].push_back(cargo);
 		if (cargo->classes & CC_SPECIAL) break;
 		nb_standard_cargo++;
-		SetBit(_standard_cargo_mask, cargo->Index());
+		SetCargo(_standard_cargo_mask, cargo->Index());
 	}
 
 	/* _sorted_standard_cargo_specs is a subset of _sorted_cargo_specs. */
@@ -259,6 +258,16 @@ uint64_t CargoSpec::WeightOfNUnitsInTrain(uint32_t n) const
 {
 	if (this->is_freight) n *= _settings_game.vehicle.freight_trains;
 	return this->WeightOfNUnits(n);
+}
+
+CargoTypes operator~(const CargoTypes &other)
+{
+	CargoTypes types(CargoSpec::Count());
+	std::iota(std::begin(types), std::end(types), 0);
+	for (const CargoType &cargo_type : other) {
+		ClrCargo(types, cargo_type);
+	}
+	return types;
 }
 
 uint CargoArray::GetCount() const

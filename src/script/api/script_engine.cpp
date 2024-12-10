@@ -68,7 +68,7 @@
 	if (!IsValidEngine(engine_id)) return false;
 	if (!ScriptCargo::IsValidCargo(cargo_type)) return false;
 
-	return HasBit(::GetUnionOfArticulatedRefitMasks(engine_id, true), cargo_type);
+	return HasCargo(::GetUnionOfArticulatedRefitMasks(engine_id, true), cargo_type);
 }
 
 /* static */ bool ScriptEngine::CanPullCargo(EngineID engine_id, CargoType cargo_type)

@@ -77,7 +77,7 @@ using RoadWaypointTypeFilter = GenericWaypointTypeFilter<true, MP_ROAD>;
 int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageType sct, int rad, bool supplies)
 {
 	TileIndex tile = TileVirtXY(_thd.pos.x, _thd.pos.y);
-	CargoTypes cargo_mask = 0;
+	CargoTypes cargo_mask;
 	if (_thd.drawstyle == HT_RECT && tile < Map::Size()) {
 		CargoArray cargoes = supplies
 			? GetProductionAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad)
@@ -91,7 +91,7 @@ int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageTyp
 				case SCT_ALL: break;
 				default: NOT_REACHED();
 			}
-			if (amount >= (supplies ? 1U : 8U)) SetBit(cargo_mask, cargo_type);
+			if (amount >= (supplies ? 1U : 8U)) SetCargo(cargo_mask, cargo_type);
 		}
 	}
 	SetDParam(0, cargo_mask);
@@ -271,7 +271,7 @@ protected:
 		{false, 0},
 		FACIL_TRAIN | FACIL_TRUCK_STOP | FACIL_BUS_STOP | FACIL_AIRPORT | FACIL_DOCK,
 		true,
-		ALL_CARGOTYPES,
+		{},
 	};
 
 	/* Constants for sorting stations */
@@ -290,7 +290,7 @@ protected:
 	Scrollbar *vscroll;
 	uint rating_width;
 	bool filter_expanded;
-	std::array<uint16_t, NUM_CARGO> stations_per_cargo_type; ///< Number of stations with a rating for each cargo type.
+	std::vector<uint16_t> stations_per_cargo_type; ///< Number of stations with a rating for each cargo type.
 	uint16_t stations_per_cargo_type_no_rating; ///< Number of stations without a rating.
 
 	/**
@@ -305,7 +305,8 @@ protected:
 		Debug(misc, 3, "Building station list for company {}", owner);
 
 		this->stations.clear();
-		this->stations_per_cargo_type.fill(0);
+		this->stations_per_cargo_type.clear();
+		this->stations_per_cargo_type.resize(CargoSpec::Count());
 		this->stations_per_cargo_type_no_rating = 0;
 
 		for (const Station *st : Station::Iterate()) {
@@ -313,13 +314,13 @@ protected:
 				if (st->owner == owner || (st->owner == OWNER_NONE && HasStationInUse(st->index, true, owner))) {
 					bool has_rating = false;
 					/* Add to the station/cargo counts. */
-					for (CargoType j = 0; j < NUM_CARGO; j++) {
+					for (CargoType j = 0; j < CargoSpec::Count(); j++) {
 						if (st->goods[j].HasRating()) this->stations_per_cargo_type[j]++;
 					}
-					for (CargoType j = 0; j < NUM_CARGO; j++) {
+					for (CargoType j = 0; j < CargoSpec::Count(); j++) {
 						if (st->goods[j].HasRating()) {
 							has_rating = true;
-							if (HasBit(this->filter.cargoes, j)) {
+							if (HasCargo(this->filter.cargoes, j)) {
 								this->stations.push_back(st);
 								break;
 							}
@@ -358,7 +359,7 @@ protected:
 	{
 		int diff = 0;
 
-		for (CargoType j : SetCargoBitIterator(cargo_filter)) {
+		for (const CargoType &j : cargo_filter) {
 			diff += (a->goods[j].HasData() ? a->goods[j].GetData().cargo.TotalCount() : 0) - (b->goods[j].HasData() ? b->goods[j].GetData().cargo.TotalCount() : 0);
 		}
 
@@ -370,7 +371,7 @@ protected:
 	{
 		int diff = 0;
 
-		for (CargoType j : SetCargoBitIterator(cargo_filter)) {
+		for (const CargoType &j : cargo_filter) {
 			diff += (a->goods[j].HasData() ? a->goods[j].GetData().cargo.AvailableCount() : 0) - (b->goods[j].HasData() ? b->goods[j].GetData().cargo.AvailableCount() : 0);
 		}
 
@@ -383,7 +384,7 @@ protected:
 		uint8_t maxr1 = 0;
 		uint8_t maxr2 = 0;
 
-		for (CargoType j : SetCargoBitIterator(cargo_filter)) {
+		for (const CargoType &j : cargo_filter) {
 			if (a->goods[j].HasRating()) maxr1 = std::max(maxr1, a->goods[j].rating);
 			if (b->goods[j].HasRating()) maxr2 = std::max(maxr2, b->goods[j].rating);
 		}
@@ -397,7 +398,7 @@ protected:
 		uint8_t minr1 = 255;
 		uint8_t minr2 = 255;
 
-		for (CargoType j : SetCargoBitIterator(cargo_filter)) {
+		for (const CargoType &j : cargo_filter) {
 			if (a->goods[j].HasRating()) minr1 = std::min(minr1, a->goods[j].rating);
 			if (b->goods[j].HasRating()) minr2 = std::min(minr2, b->goods[j].rating);
 		}
@@ -419,7 +420,7 @@ public:
 	{
 		/* Load initial filter state. */
 		this->filter = CompanyStationsWindow::initial_state;
-		if (this->filter.cargoes == ALL_CARGOTYPES) this->filter.cargoes = _cargo_mask;
+		if (this->filter.cargoes == ~CargoTypes{}) this->filter.cargoes = _cargo_mask;
 
 		this->stations.SetListing(this->filter.last_sorting);
 		this->stations.SetSortFuncs(CompanyStationsWindow::sorter_funcs);
@@ -432,7 +433,7 @@ public:
 		this->FinishInitNested(window_number);
 		this->owner = (Owner)this->window_number;
 
-		if (this->filter.cargoes == ALL_CARGOTYPES) this->filter.cargoes = _cargo_mask;
+		if (this->filter.cargoes == ~CargoTypes{}) this->filter.cargoes = _cargo_mask;
 
 		for (uint i = 0; i < 5; i++) {
 			if (HasBit(this->filter.facilities, i)) this->LowerWidget(i + WID_STL_TRAIN);
@@ -560,12 +561,12 @@ public:
 		}
 
 		if (widget == WID_STL_CARGODROPDOWN) {
-			if (this->filter.cargoes == 0) {
+			if (this->filter.cargoes.empty()) {
 				SetDParam(0, this->filter.include_no_rating ? STR_STATION_LIST_CARGO_FILTER_ONLY_NO_RATING : STR_STATION_LIST_CARGO_FILTER_NO_CARGO_TYPES);
 			} else if (this->filter.cargoes == _cargo_mask) {
 				SetDParam(0, this->filter.include_no_rating ? STR_STATION_LIST_CARGO_FILTER_ALL_AND_NO_RATING : STR_CARGO_TYPE_FILTER_ALL);
-			} else if (CountBits(this->filter.cargoes) == 1 && !this->filter.include_no_rating) {
-				SetDParam(0, CargoSpec::Get(FindFirstBit(this->filter.cargoes))->name);
+			} else if (this->filter.cargoes.size() == 1 && !this->filter.include_no_rating) {
+				SetDParam(0, CargoSpec::Get(this->filter.cargoes.front())->name);
 			} else {
 				SetDParam(0, STR_STATION_LIST_CARGO_FILTER_MULTIPLE);
 			}
@@ -596,7 +597,7 @@ public:
 			if (count == 0 && !expanded) {
 				any_hidden = true;
 			} else {
-				list.push_back(std::make_unique<DropDownListCargoItem>(HasBit(this->filter.cargoes, cs->Index()), fmt::format("{}", count), d, cs->GetCargoIcon(), PAL_NONE, cs->name, cs->Index(), false, count == 0));
+				list.push_back(std::make_unique<DropDownListCargoItem>(HasCargo(this->filter.cargoes, cs->Index()), fmt::format("{}", count), d, cs->GetCargoIcon(), PAL_NONE, cs->name, cs->Index(), false, count == 0));
 			}
 		}
 
@@ -688,11 +689,12 @@ public:
 		if (widget == WID_STL_CARGODROPDOWN) {
 			FilterState oldstate = this->filter;
 
-			if (index >= 0 && index < NUM_CARGO) {
+			if (index >= 0 && index < static_cast<int>(CargoSpec::Count())) {
 				if (_ctrl_pressed) {
-					ToggleBit(this->filter.cargoes, index);
+					ToggleCargo(this->filter.cargoes, index);
 				} else {
-					this->filter.cargoes = 1ULL << index;
+					this->filter.cargoes.clear();
+					SetCargo(this->filter.cargoes, index);
 					this->filter.include_no_rating = false;
 				}
 			} else if (index == CargoFilterCriteria::CF_NO_RATING) {
@@ -700,7 +702,7 @@ public:
 					this->filter.include_no_rating = !this->filter.include_no_rating;
 				} else {
 					this->filter.include_no_rating = true;
-					this->filter.cargoes = 0;
+					this->filter.cargoes.clear();
 				}
 			} else if (index == CargoFilterCriteria::CF_SELECT_ALL) {
 				this->filter.cargoes = _cargo_mask;
@@ -1679,7 +1681,7 @@ struct StationViewWindow : public Window {
 	 */
 	void BuildCargoList(CargoDataEntry *cargo, const Station *st)
 	{
-		for (CargoType i = 0; i < NUM_CARGO; i++) {
+		for (CargoType i = 0; i < CargoSpec::Count(); i++) {
 
 			if (this->cached_destinations.Retrieve(CargoTypeTag{i}) == nullptr) {
 				this->RecalcDestinations(i);
@@ -2152,7 +2154,7 @@ struct StationViewWindow : public Window {
 	void OnInvalidateData([[maybe_unused]] int data = 0, [[maybe_unused]] bool gui_scope = true) override
 	{
 		if (gui_scope) {
-			if (data >= 0 && data < NUM_CARGO) {
+			if (data >= 0 && data < static_cast<int>(CargoSpec::Count())) {
 				this->cached_destinations.Remove(CargoTypeTag{static_cast<CargoType>(data)});
 			} else {
 				this->ReInit();

@@ -873,7 +873,7 @@ struct DepotWindow : Window {
 		/* loop through vehicle chain and collect cargoes */
 		uint num = 0;
 		for (const Vehicle *w = v; w != nullptr; w = w->Next()) {
-			if (w->cargo_cap > 0 && w->cargo_type < NUM_CARGO) {
+			if (w->cargo_cap > 0 && IsValidCargoType(w->cargo_type)) {
 				capacity[w->cargo_type] += w->cargo_cap;
 				loaded  [w->cargo_type] += w->cargo.StoredCount();
 			}

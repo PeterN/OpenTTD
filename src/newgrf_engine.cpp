@@ -435,7 +435,7 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 
 		case 0x42: { // Consist cargo information
 			if (!HasBit(v->grf_cache.cache_valid, NCVV_CONSIST_CARGO_INFORMATION)) {
-				std::array<uint8_t, NUM_CARGO> common_cargoes{};
+				auto common_cargoes = std::make_unique<uint8_t[]>(CargoSpec::Count());
 				uint8_t cargo_classes = 0;
 				uint8_t user_def_data = 0;
 
@@ -450,9 +450,9 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 				}
 
 				/* Pick the most common cargo type */
-				auto cargo_it = std::max_element(std::begin(common_cargoes), std::end(common_cargoes));
+				auto cargo_it = std::max_element(common_cargoes.get(), common_cargoes.get() + CargoSpec::Count());
 				/* Return INVALID_CARGO if nothing is carried */
-				CargoType common_cargo_type = (*cargo_it == 0) ? INVALID_CARGO : static_cast<CargoType>(std::distance(std::begin(common_cargoes), cargo_it));
+				CargoType common_cargo_type = (*cargo_it == 0) ? INVALID_CARGO : static_cast<CargoType>(std::distance(common_cargoes.get(), cargo_it));
 
 				/* Count subcargo types of common_cargo_type */
 				std::array<uint8_t, UINT8_MAX + 1> common_subtypes{};

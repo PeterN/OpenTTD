@@ -106,6 +106,11 @@ void SetDParam(size_t n, uint64_t v)
 	_global_string_params.SetParam(n, v);
 }
 
+void SetDParam(size_t n, const CargoTypes &v)
+{
+	_global_string_params.SetParam(n, v);
+}
+
 /**
  * Get the current string parameter at index \a n from the global string parameter array.
  * @param n Index of the string parameter.
@@ -1331,12 +1336,12 @@ static void FormatString(StringBuilder &builder, const char *str_arg, StringPara
 				}
 
 				case SCC_CARGO_LIST: { // {CARGO_LIST}
-					CargoTypes cmask = args.GetNextParameter<CargoTypes>();
+					const CargoTypes &types = args.GetNextParameterCargoTypes();
 					bool first = true;
 
 					std::string_view list_separator = GetListSeparator();
 					for (const auto &cs : _sorted_cargo_specs) {
-						if (!HasBit(cmask, cs->Index())) continue;
+						if (!HasCargo(types, cs->Index())) continue;
 
 						if (first) {
 							first = false;

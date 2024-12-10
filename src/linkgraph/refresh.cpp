@@ -74,7 +74,7 @@ LinkRefresher::LinkRefresher(Vehicle *vehicle, HopSet *seen_hops, bool allow_mer
 	for (Vehicle *v = this->vehicle; v != nullptr; v = v->Next()) {
 		this->refit_capacities.push_back(RefitDesc(v->cargo_type, v->cargo_cap, v->refit_cap));
 		if (v->refit_cap > 0) {
-			assert(v->cargo_type < NUM_CARGO);
+			assert(v->cargo_type < CargoSpec::Count());
 			this->capacities[v->cargo_type] += v->refit_cap;
 		}
 	}
@@ -92,7 +92,7 @@ bool LinkRefresher::HandleRefit(CargoType refit_cargo)
 	bool any_refit = false;
 	for (Vehicle *v = this->vehicle; v != nullptr; v = v->Next()) {
 		const Engine *e = Engine::Get(v->engine_type);
-		if (!HasBit(e->info.refit_mask, this->cargo)) {
+		if (!HasCargo(e->info.refit_mask, this->cargo)) {
 			++refit_it;
 			continue;
 		}
@@ -270,7 +270,7 @@ void LinkRefresher::RefreshLinks(const Order *cur, const Order *next, uint8_t fl
 			} else if (!HasBit(flags, IN_AUTOREFIT)) {
 				SetBit(flags, IN_AUTOREFIT);
 				LinkRefresher backup(*this);
-				for (CargoType c = 0; c != NUM_CARGO; ++c) {
+				for (CargoType c = 0; c != CargoSpec::Count(); ++c) {
 					if (CargoSpec::Get(c)->IsValid() && this->HandleRefit(c)) {
 						this->RefreshLinks(cur, next, flags, num_hops);
 						*this = backup;

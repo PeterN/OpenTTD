@@ -94,10 +94,23 @@ public:
 		struct visitor {
 			uint64_t operator()(const uint64_t &arg) { return arg; }
 			uint64_t operator()(const std::string &) { throw std::out_of_range("Attempt to read string parameter as integer"); }
+			uint64_t operator()(const std::vector<CargoType> &) { throw std::out_of_range("Attempt to read cargo list parameter as integer"); }
 		};
 
 		const auto &param = GetNextParameterReference();
 		return static_cast<T>(std::visit(visitor{}, param.data));
+	}
+
+	const std::vector<CargoType> &GetNextParameterCargoTypes()
+	{
+		struct visitor {
+			const std::vector<CargoType> &operator()(const uint64_t &) { throw std::out_of_range("Attempt to read integer parameter as cargo list"); }
+			const std::vector<CargoType> &operator()(const std::string &) { throw std::out_of_range("Attempt to read string parameter as cargo list"); }
+			const std::vector<CargoType> &operator()(const std::vector<CargoType> &arg) { return arg; }
+		};
+
+		const auto &param = GetNextParameterReference();
+		return std::visit(visitor{}, param.data);
 	}
 
 	/**
@@ -111,6 +124,7 @@ public:
 		struct visitor {
 			const char *operator()(const uint64_t &) { throw std::out_of_range("Attempt to read integer parameter as string"); }
 			const char *operator()(const std::string &arg) { return arg.c_str(); }
+			const char *operator()(const std::vector<CargoType> &) { throw std::out_of_range("Attempt to read cargo list parameter as string"); }
 		};
 
 		const auto &param = GetNextParameterReference();

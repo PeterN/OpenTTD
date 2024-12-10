@@ -71,6 +71,7 @@ static constexpr StringID SPECSTR_SILLY_NAME = 0x70E5; ///< Special string for s
 static constexpr StringID SPECSTR_ANDCO_NAME = 0x70E6; ///< Special string for Surname & Co company names.
 static constexpr StringID SPECSTR_PRESIDENT_NAME = 0x70E7; ///< Special string for the president's name.
 
-using StringParameterData = std::variant<uint64_t, std::string>;
+using CargoType = uint8_t;
+using StringParameterData = std::variant<uint64_t, std::string, std::vector<CargoType>>;
 
 #endif /* STRINGS_TYPE_H */

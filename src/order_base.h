@@ -114,7 +114,7 @@ public:
 	 * @pre IsType(OT_GOTO_DEPOT) || IsType(OT_GOTO_STATION)
 	 * @return true if a refit should happen.
 	 */
-	inline bool IsRefit() const { return this->refit_cargo < NUM_CARGO || this->refit_cargo == CARGO_AUTO_REFIT; }
+	inline bool IsRefit() const { return this->refit_cargo == CARGO_AUTO_REFIT || this->refit_cargo < CargoSpec::Count(); }
 
 	/**
 	 * Is this order a auto-refit order.

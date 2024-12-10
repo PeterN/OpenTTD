@@ -962,10 +962,10 @@ static bool ReadSpriteLayout(ByteReader &buf, uint num_building_sprites, bool us
  */
 static CargoTypes TranslateRefitMask(uint32_t refit_mask)
 {
-	CargoTypes result = 0;
+	CargoTypes result;
 	for (uint8_t bit : SetBitIterator(refit_mask)) {
 		CargoType cargo = GetCargoTranslation(bit, _cur.grffile, true);
-		if (IsValidCargoType(cargo)) SetBit(result, cargo);
+		if (IsValidCargoType(cargo)) SetCargo(result, cargo);
 	}
 	return result;
 }
@@ -1323,10 +1323,10 @@ static ChangeInfoResult RailVehicleChangeInfo(uint first, uint last, int prop, B
 				_gted[e->index].UpdateRefittability(prop == 0x2C && count != 0);
 				if (prop == 0x2C) _gted[e->index].defaultcargo_grf = _cur.grffile;
 				CargoTypes &ctt = prop == 0x2C ? _gted[e->index].ctt_include_mask : _gted[e->index].ctt_exclude_mask;
-				ctt = 0;
+				ctt.clear();
 				while (count--) {
 					CargoType ctype = GetCargoTranslation(buf.ReadByte(), _cur.grffile);
-					if (IsValidCargoType(ctype)) SetBit(ctt, ctype);
+					if (IsValidCargoType(ctype)) SetCargo(ctt, ctype);
 				}
 				break;
 			}
@@ -1538,10 +1538,10 @@ static ChangeInfoResult RoadVehicleChangeInfo(uint first, uint last, int prop, B
 				_gted[e->index].UpdateRefittability(prop == 0x24 && count != 0);
 				if (prop == 0x24) _gted[e->index].defaultcargo_grf = _cur.grffile;
 				CargoTypes &ctt = prop == 0x24 ? _gted[e->index].ctt_include_mask : _gted[e->index].ctt_exclude_mask;
-				ctt = 0;
+				ctt.clear();
 				while (count--) {
 					CargoType ctype = GetCargoTranslation(buf.ReadByte(), _cur.grffile);
-					if (IsValidCargoType(ctype)) SetBit(ctt, ctype);
+					if (IsValidCargoType(ctype)) SetCargo(ctt, ctype);
 				}
 				break;
 			}
@@ -1727,10 +1727,10 @@ static ChangeInfoResult ShipVehicleChangeInfo(uint first, uint last, int prop, B
 				_gted[e->index].UpdateRefittability(prop == 0x1E && count != 0);
 				if (prop == 0x1E) _gted[e->index].defaultcargo_grf = _cur.grffile;
 				CargoTypes &ctt = prop == 0x1E ? _gted[e->index].ctt_include_mask : _gted[e->index].ctt_exclude_mask;
-				ctt = 0;
+				ctt.clear();
 				while (count--) {
 					CargoType ctype = GetCargoTranslation(buf.ReadByte(), _cur.grffile);
-					if (IsValidCargoType(ctype)) SetBit(ctt, ctype);
+					if (IsValidCargoType(ctype)) SetCargo(ctt, ctype);
 				}
 				break;
 			}
@@ -1906,10 +1906,10 @@ static ChangeInfoResult AircraftVehicleChangeInfo(uint first, uint last, int pro
 				_gted[e->index].UpdateRefittability(prop == 0x1D && count != 0);
 				if (prop == 0x1D) _gted[e->index].defaultcargo_grf = _cur.grffile;
 				CargoTypes &ctt = prop == 0x1D ? _gted[e->index].ctt_include_mask : _gted[e->index].ctt_exclude_mask;
-				ctt = 0;
+				ctt.clear();
 				while (count--) {
 					CargoType ctype = GetCargoTranslation(buf.ReadByte(), _cur.grffile);
-					if (IsValidCargoType(ctype)) SetBit(ctt, ctype);
+					if (IsValidCargoType(ctype)) SetCargo(ctt, ctype);
 				}
 				break;
 			}
@@ -2661,7 +2661,7 @@ static ChangeInfoResult TownHouseChangeInfo(uint first, uint last, int prop, Byt
 				uint8_t count = buf.ReadByte();
 				for (uint8_t j = 0; j < count; j++) {
 					CargoType cargo = GetCargoTranslation(buf.ReadByte(), _cur.grffile);
-					if (IsValidCargoType(cargo)) SetBit(housespec->watched_cargoes, cargo);
+					if (IsValidCargoType(cargo)) SetCargo(housespec->watched_cargoes, cargo);
 				}
 				break;
 			}
@@ -3091,6 +3091,8 @@ static ChangeInfoResult CargoChangeInfo(uint first, uint last, int prop, ByteRea
 		return CIR_INVALID_ID;
 	}
 
+	if (last >= CargoSpec::Count()) CargoSpec::Resize(last);
+
 	for (uint id = first; id < last; ++id) {
 		CargoSpec *cs = CargoSpec::Get(id);
 
@@ -3099,9 +3101,9 @@ static ChangeInfoResult CargoChangeInfo(uint first, uint last, int prop, ByteRea
 				cs->bitnum = buf.ReadByte();
 				if (cs->IsValid()) {
 					cs->grffile = _cur.grffile;
-					SetBit(_cargo_mask, id);
+					SetCargo(_cargo_mask, id);
 				} else {
-					ClrBit(_cargo_mask, id);
+					ClrCargo(_cargo_mask, id);
 				}
 				BuildCargoLabelMap();
 				break;
@@ -8919,7 +8921,8 @@ void ResetPersistentNewGRFData()
  */
 static void BuildCargoTranslationMap()
 {
-	_cur.grffile->cargo_map.fill(UINT8_MAX);
+	_cur.grffile->cargo_map.resize(CargoSpec::Count());
+	std::ranges::fill(_cur.grffile->cargo_map, UINT8_MAX);
 
 	auto cargo_list = GetCargoTranslationTable(*_cur.grffile);
 
@@ -9028,9 +9031,9 @@ static CargoLabel GetActiveCargoLabel(const std::variant<CargoLabel, MixedCargoT
  */
 static void CalculateRefitMasks()
 {
-	CargoTypes original_known_cargoes = 0;
-	for (CargoType cargo_type = 0; cargo_type != NUM_CARGO; ++cargo_type) {
-		if (IsDefaultCargo(cargo_type)) SetBit(original_known_cargoes, cargo_type);
+	CargoTypes original_known_cargoes;
+	for (CargoType cargo_type = 0; cargo_type != CargoSpec::Count(); ++cargo_type) {
+		if (IsDefaultCargo(cargo_type)) SetCargo(original_known_cargoes, cargo_type);
 	}
 
 	for (Engine *e : Engine::Iterate()) {
@@ -9125,13 +9128,13 @@ static void CalculateRefitMasks()
 			}
 			_gted[engine].UpdateRefittability(_gted[engine].cargo_allowed != 0);
 
-			if (IsValidCargoType(ei->cargo_type)) ClrBit(_gted[engine].ctt_exclude_mask, ei->cargo_type);
+			if (IsValidCargoType(ei->cargo_type)) ClrCargo(_gted[engine].ctt_exclude_mask, ei->cargo_type);
 		}
 
 		/* Compute refittability */
 		{
-			CargoTypes mask = 0;
-			CargoTypes not_mask = 0;
+			CargoTypes mask;
+			CargoTypes not_mask;
 			CargoTypes xor_mask = ei->refit_mask;
 
 			/* If the original masks set by the grf are zero, the vehicle shall only carry the default cargo.
@@ -9141,8 +9144,8 @@ static void CalculateRefitMasks()
 			if (_gted[engine].cargo_allowed != 0) {
 				/* Build up the list of cargo types from the set cargo classes. */
 				for (const CargoSpec *cs : CargoSpec::Iterate()) {
-					if ((_gted[engine].cargo_allowed & cs->classes) != 0 && (_gted[engine].cargo_allowed_required & cs->classes) == _gted[engine].cargo_allowed_required) SetBit(mask, cs->Index());
-					if (_gted[engine].cargo_disallowed & cs->classes) SetBit(not_mask, cs->Index());
+					if ((_gted[engine].cargo_allowed & cs->classes) != 0 && (_gted[engine].cargo_allowed_required & cs->classes) == _gted[engine].cargo_allowed_required) SetCargo(mask, cs->Index());
+					if (_gted[engine].cargo_disallowed & cs->classes) SetCargo(not_mask, cs->Index());
 				}
 			}
 
@@ -9163,8 +9166,8 @@ static void CalculateRefitMasks()
 						case CALLBACK_FAILED:
 						case 0:
 							break; // Do nothing.
-						case 1: SetBit(ei->refit_mask, cs->Index()); break;
-						case 2: ClrBit(ei->refit_mask, cs->Index()); break;
+						case 1: SetCargo(ei->refit_mask, cs->Index()); break;
+						case 2: ClrCargo(ei->refit_mask, cs->Index()); break;
 
 						default: ErrorUnknownCallbackResult(file->grfid, CBID_VEHICLE_CUSTOM_REFIT, callback);
 					}
@@ -9173,24 +9176,24 @@ static void CalculateRefitMasks()
 		}
 
 		/* Clear invalid cargoslots (from default vehicles or pre-NewCargo GRFs) */
-		if (IsValidCargoType(ei->cargo_type) && !HasBit(_cargo_mask, ei->cargo_type)) ei->cargo_type = INVALID_CARGO;
+		if (IsValidCargoType(ei->cargo_type) && !HasCargo(_cargo_mask, ei->cargo_type)) ei->cargo_type = INVALID_CARGO;
 
 		/* Ensure that the vehicle is either not refittable, or that the default cargo is one of the refittable cargoes.
 		 * Note: Vehicles refittable to no cargo are handle differently to vehicle refittable to a single cargo. The latter might have subtypes. */
-		if (!only_defaultcargo && (e->type != VEH_SHIP || e->u.ship.old_refittable) && IsValidCargoType(ei->cargo_type) && !HasBit(ei->refit_mask, ei->cargo_type)) {
+		if (!only_defaultcargo && (e->type != VEH_SHIP || e->u.ship.old_refittable) && IsValidCargoType(ei->cargo_type) && !HasCargo(ei->refit_mask, ei->cargo_type)) {
 			ei->cargo_type = INVALID_CARGO;
 		}
 
 		/* Check if this engine's cargo type is valid. If not, set to the first refittable
 		 * cargo type. Finally disable the vehicle, if there is still no cargo. */
-		if (!IsValidCargoType(ei->cargo_type) && ei->refit_mask != 0) {
+		if (!IsValidCargoType(ei->cargo_type) && !ei->refit_mask.empty()) {
 			/* Figure out which CTT to use for the default cargo, if it is 'first refittable'. */
 			const GRFFile *file = _gted[engine].defaultcargo_grf;
 			if (file == nullptr) file = e->GetGRF();
 			if (file != nullptr && file->grf_version >= 8 && !file->cargo_list.empty()) {
 				/* Use first refittable cargo from cargo translation table */
 				uint8_t best_local_slot = UINT8_MAX;
-				for (CargoType cargo_type : SetCargoBitIterator(ei->refit_mask)) {
+				for (const CargoType &cargo_type : ei->refit_mask) {
 					uint8_t local_slot = file->cargo_map[cargo_type];
 					if (local_slot < best_local_slot) {
 						best_local_slot = local_slot;
@@ -9201,7 +9204,7 @@ static void CalculateRefitMasks()
 
 			if (!IsValidCargoType(ei->cargo_type)) {
 				/* Use first refittable cargo slot */
-				ei->cargo_type = (CargoType)FindFirstBit(ei->refit_mask);
+				ei->cargo_type = ei->refit_mask.front();
 			}
 		}
 		if (!IsValidCargoType(ei->cargo_type) && e->type == VEH_TRAIN && e->u.rail.railveh_type != RAILVEH_WAGON && e->u.rail.capacity == 0) {
@@ -9209,14 +9212,14 @@ static void CalculateRefitMasks()
 			 * Fallback to the first available instead, if the cargo type has not been changed (as indicated by
 			 * cargo_label not being CT_INVALID). */
 			if (GetActiveCargoLabel(ei->cargo_label) != CT_INVALID) {
-				ei->cargo_type = static_cast<CargoType>(FindFirstBit(_standard_cargo_mask));
+				ei->cargo_type = _standard_cargo_mask.front();
 			}
 		}
 		if (!IsValidCargoType(ei->cargo_type)) ei->climates = {};
 
 		/* Clear refit_mask for not refittable ships */
 		if (e->type == VEH_SHIP && !e->u.ship.old_refittable) {
-			ei->refit_mask = 0;
+			ei->refit_mask.clear();
 		}
 	}
 }

@@ -633,7 +633,7 @@ static void AddAcceptedCargo_Object(TileIndex tile, CargoArray &acceptance, Carg
 	CargoType pass = GetCargoTypeByLabel(CT_PASSENGERS);
 	if (IsValidCargoType(pass)) {
 		acceptance[pass] += std::max(1U, level);
-		SetBit(always_accepted, pass);
+		SetCargo(always_accepted, pass);
 	}
 
 	/* Top town building generates 4, HQ can make up to 8. The
@@ -643,7 +643,7 @@ static void AddAcceptedCargo_Object(TileIndex tile, CargoArray &acceptance, Carg
 	CargoType mail = GetCargoTypeByLabel(CT_MAIL);
 	if (IsValidCargoType(mail)) {
 		acceptance[mail] += std::max(1U, level / 2);
-		SetBit(always_accepted, mail);
+		SetCargo(always_accepted, mail);
 	}
 }
 

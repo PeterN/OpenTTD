@@ -95,7 +95,7 @@ std::tuple<CommandCost, VehicleID, uint, uint16_t, CargoArray> CmdBuildVehicle(D
 	if (!IsEngineBuildable(eid, type, _current_company)) return { CommandCost(STR_ERROR_RAIL_VEHICLE_NOT_AVAILABLE + type), INVALID_VEHICLE, 0, 0, {} };
 
 	/* Validate the cargo type. */
-	if (cargo >= NUM_CARGO && IsValidCargoType(cargo)) return { CMD_ERROR, INVALID_VEHICLE, 0, 0, {} };
+	if (cargo >= CargoSpec::Count() && IsValidCargoType(cargo)) return { CMD_ERROR, INVALID_VEHICLE, 0, 0, {} };
 
 	const Engine *e = Engine::Get(eid);
 	CommandCost value(EXPENSES_NEW_VEHICLES, e->GetCost());
@@ -386,7 +386,7 @@ static std::tuple<CommandCost, uint, uint16_t, CargoArray> RefitVehicle(Vehicle 
 
 		/* If the vehicle is not refittable, or does not allow automatic refitting,
 		 * count its capacity nevertheless if the cargo matches */
-		bool refittable = HasBit(e->info.refit_mask, new_cargo_type) && (!auto_refit || e->info.misc_flags.Test(EngineMiscFlag::AutoRefit));
+		bool refittable = HasCargo(e->info.refit_mask, new_cargo_type) && (!auto_refit || e->info.misc_flags.Test(EngineMiscFlag::AutoRefit));
 		if (!refittable && v->cargo_type != new_cargo_type) {
 			uint amount = e->DetermineCapacity(v, nullptr);
 			if (amount > 0) cargo_capacities[v->cargo_type] += amount;

@@ -20,7 +20,7 @@
 
 /* static */ bool ScriptCargo::IsValidCargo(CargoType cargo_type)
 {
-	return (cargo_type < NUM_CARGO && ::CargoSpec::Get(cargo_type)->IsValid());
+	return (cargo_type < ::CargoSpec::Count() && ::CargoSpec::Get(cargo_type)->IsValid());
 }
 
 /* static */ bool ScriptCargo::IsValidTownEffect(TownEffect towneffect_type)
@@ -32,7 +32,9 @@
 {
 	if (!IsValidCargo(cargo_type)) return std::nullopt;
 
-	::SetDParam(0, 1ULL << cargo_type);
+	CargoTypes cargo;
+	SetCargo(cargo, cargo_type);
+	::SetDParam(0, cargo);
 	return GetString(STR_JUST_CARGO_LIST);
 }
 

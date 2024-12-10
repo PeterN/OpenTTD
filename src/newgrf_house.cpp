@@ -466,7 +466,7 @@ static uint32_t GetDistanceFromNearbyHouse(uint8_t parameter, TileIndex tile, Ho
 			}
 
 			/* Cargo triggered CB 148? */
-			if (HasBit(this->watched_cargo_triggers, cargo_type)) SetBit(res, 4);
+			if (HasCargo(this->watched_cargo_triggers, cargo_type)) SetBit(res, 4);
 
 			return res;
 		}
@@ -759,7 +759,7 @@ void WatchedCargoCallback(TileIndex tile, CargoTypes trigger_cargoes)
 
 	trigger_cargoes &= hs->watched_cargoes;
 	/* None of the trigger cargoes is watched? */
-	if (trigger_cargoes == 0) return;
+	if (trigger_cargoes.empty()) return;
 
 	/* Same random value for all tiles of a multi-tile house. */
 	uint16_t r = Random();

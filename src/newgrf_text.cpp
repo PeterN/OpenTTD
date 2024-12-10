@@ -925,7 +925,7 @@ char32_t RemapNewGRFStringControlCode(char32_t scc, const char **str, StringPara
 
 			case SCC_NEWGRF_PRINT_WORD_CARGO_NAME: {
 				CargoType cargo = GetCargoTranslation(_newgrf_textrefstack.PopUnsignedWord(), _newgrf_textrefstack.grffile);
-				parameters.SetParam(0, cargo < NUM_CARGO ? 1ULL << cargo : 0);
+				parameters.SetParam(0, cargo < CargoSpec::Count() ? 1ULL << cargo : 0);
 				break;
 			}
 		}

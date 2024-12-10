@@ -225,10 +225,10 @@ void BaseVehicleListWindow::BuildVehicleList()
 
 	GenerateVehicleSortList(&this->vehicles, this->vli);
 
-	CargoTypes used = 0;
+	CargoTypes used;
 	for (const Vehicle *v : this->vehicles) {
 		for (const Vehicle *u = v; u != nullptr; u = u->Next()) {
-			if (u->cargo_cap > 0) SetBit(used, u->cargo_type);
+			if (u->cargo_cap > 0) SetCargo(used, u->cargo_type);
 		}
 	}
 	this->used_cargoes = used;
@@ -508,8 +508,8 @@ DropDownList BaseVehicleListWindow::BuildCargoDropDownList(bool full) const
 	/* Add cargos */
 	Dimension d = GetLargestCargoIconSize();
 	for (const CargoSpec *cs : _sorted_cargo_specs) {
-		if (!full && !HasBit(this->used_cargoes, cs->Index())) continue;
-		list.push_back(MakeDropDownListIconItem(d, cs->GetCargoIcon(), PAL_NONE, cs->name, cs->Index(), false, !HasBit(this->used_cargoes, cs->Index())));
+		if (!full && !HasCargo(this->used_cargoes, cs->Index())) continue;
+		list.push_back(MakeDropDownListIconItem(d, cs->GetCargoIcon(), PAL_NONE, cs->name, cs->Index(), false, !HasCargo(this->used_cargoes, cs->Index())));
 	}
 
 	return list;
@@ -617,7 +617,7 @@ uint8_t GetBestFittingSubType(Vehicle *v_from, Vehicle *v_for, CargoType dest_ca
 		for (Vehicle *v = v_for; v != nullptr; v = v->HasArticulatedPart() ? v->GetNextArticulatedPart() : nullptr) {
 			const Engine *e = v->GetEngine();
 			if (!e->CanCarryCargo() || !e->info.callback_mask.Test(VehicleCallbackMask::CargoSuffix)) continue;
-			if (!HasBit(e->info.refit_mask, dest_cargo_type) && v->cargo_type != dest_cargo_type) continue;
+			if (!HasCargo(e->info.refit_mask, dest_cargo_type) && v->cargo_type != dest_cargo_type) continue;
 
 			CargoType old_cargo_type = v->cargo_type;
 			uint8_t old_cargo_subtype = v->cargo_subtype;
@@ -801,7 +801,7 @@ struct RefitWindow : public Window {
 			for (const auto &cs : _sorted_cargo_specs) {
 				CargoType cargo_type = cs->Index();
 				/* Skip cargo type if it's not listed */
-				if (!HasBit(cmask, cargo_type)) continue;
+				if (!HasCargo(cmask, cargo_type)) continue;
 
 				auto &list = this->refit_list[cargo_type];
 				bool first_vehicle = list.empty();
@@ -1381,7 +1381,7 @@ uint ShowRefitOptionsList(int left, int right, int y, EngineID engine)
 	CargoTypes lmask = _cargo_mask;
 
 	/* Draw nothing if the engine is not refittable */
-	if (HasAtMostOneBit(cmask)) return y;
+	if (cmask.size() == 1) return y;
 
 	if (cmask == lmask) {
 		/* Engine can be refitted to all types in this climate */
@@ -1389,13 +1389,14 @@ uint ShowRefitOptionsList(int left, int right, int y, EngineID engine)
 	} else {
 		/* Check if we are able to refit to more cargo types and unable to. If
 		 * so, invert the cargo types to list those that we can't refit to. */
-		if (CountBits(cmask ^ lmask) < CountBits(cmask) && CountBits(cmask ^ lmask) <= 7) {
-			cmask ^= lmask;
+		CargoTypes xmask = cmask ^ lmask;
+		if (xmask.size() < cmask.size() && xmask.size() <= 7) {
 			SetDParam(0, STR_PURCHASE_INFO_ALL_BUT);
+			SetDParam(1, xmask);
 		} else {
 			SetDParam(0, STR_JUST_CARGO_LIST);
+			SetDParam(1, cmask);
 		}
-		SetDParam(1, cmask);
 	}
 
 	return DrawStringMultiLine(left, right, y, INT32_MAX, STR_PURCHASE_INFO_REFITTABLE_TO);
@@ -1818,12 +1819,12 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 
 				if (_settings_client.gui.show_cargo_in_vehicle_lists) {
 					/* Get the cargoes the vehicle can carry */
-					CargoTypes vehicle_cargoes = 0;
+					CargoTypes vehicle_cargoes;
 
 					for (auto u = v; u != nullptr; u = u->Next()) {
 						if (u->cargo_cap == 0) continue;
 
-						SetBit(vehicle_cargoes, u->cargo_type);
+						SetCargo(vehicle_cargoes, u->cargo_type);
 					}
 
 					if (!v->name.empty()) {

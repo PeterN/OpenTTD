@@ -500,10 +500,10 @@ void ClearAllStationCachedNames()
  */
 CargoTypes GetAcceptanceMask(const Station *st)
 {
-	CargoTypes mask = 0;
+	CargoTypes mask;
 
 	for (auto it = std::begin(st->goods); it != std::end(st->goods); ++it) {
-		if (HasBit(it->status, GoodsEntry::GES_ACCEPTANCE)) SetBit(mask, std::distance(std::begin(st->goods), it));
+		if (HasBit(it->status, GoodsEntry::GES_ACCEPTANCE)) SetCargo(mask, std::distance(std::begin(st->goods), it));
 	}
 	return mask;
 }
@@ -515,10 +515,10 @@ CargoTypes GetAcceptanceMask(const Station *st)
  */
 CargoTypes GetEmptyMask(const Station *st)
 {
-	CargoTypes mask = 0;
+	CargoTypes mask;
 
 	for (auto it = std::begin(st->goods); it != std::end(st->goods); ++it) {
-		if (!it->HasData() || it->GetData().cargo.TotalCount() == 0) SetBit(mask, std::distance(std::begin(st->goods), it));
+		if (!it->HasData() || it->GetData().cargo.TotalCount() == 0) SetCargo(mask, std::distance(std::begin(st->goods), it));
 	}
 	return mask;
 }
@@ -585,7 +585,7 @@ CargoArray GetProductionAroundTiles(TileIndex north_tile, int w, int h, int rad)
 CargoArray GetAcceptanceAroundTiles(TileIndex center_tile, int w, int h, int rad, CargoTypes *always_accepted)
 {
 	CargoArray acceptance{};
-	if (always_accepted != nullptr) *always_accepted = 0;
+	if (always_accepted != nullptr) always_accepted->clear();
 
 	TileArea ta = TileArea(center_tile, w, h).Expand(rad);
 
@@ -607,7 +607,7 @@ CargoArray GetAcceptanceAroundTiles(TileIndex center_tile, int w, int h, int rad
 static CargoArray GetAcceptanceAroundStation(const Station *st, CargoTypes *always_accepted)
 {
 	CargoArray acceptance{};
-	if (always_accepted != nullptr) *always_accepted = 0;
+	if (always_accepted != nullptr) always_accepted->clear();
 
 	BitmapTileIterator it(st->catchment_tiles);
 	for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
@@ -660,8 +660,8 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 		CargoTypes rejects = ~new_acc & old_acc;
 
 		/* Show news message if there are any changes */
-		if (accepts != 0) ShowRejectOrAcceptNews(st, accepts, false);
-		if (rejects != 0) ShowRejectOrAcceptNews(st, rejects, true);
+		if (!accepts.empty()) ShowRejectOrAcceptNews(st, accepts, false);
+		if (!rejects.empty()) ShowRejectOrAcceptNews(st, rejects, true);
 	}
 
 	/* redraw the station view since acceptance changed */
@@ -3756,13 +3756,13 @@ static VehicleEnterTileStatus VehicleEnter_Station(Vehicle *v, TileIndex tile, i
 void TriggerWatchedCargoCallbacks(Station *st)
 {
 	/* Collect cargoes accepted since the last big tick. */
-	CargoTypes cargoes = 0;
-	for (CargoType cargo_type = 0; cargo_type < NUM_CARGO; cargo_type++) {
-		if (HasBit(st->goods[cargo_type].status, GoodsEntry::GES_ACCEPTED_BIGTICK)) SetBit(cargoes, cargo_type);
+	CargoTypes cargoes;
+	for (CargoType cargo_type = 0; cargo_type < CargoSpec::Count(); cargo_type++) {
+		if (HasBit(st->goods[cargo_type].status, GoodsEntry::GES_ACCEPTED_BIGTICK)) SetCargo(cargoes, cargo_type);
 	}
 
 	/* Anything to do? */
-	if (cargoes == 0) return;
+	if (cargoes.empty()) return;
 
 	/* Loop over all houses in the catchment. */
 	BitmapTileIterator it(st->catchment_tiles);
@@ -4023,7 +4023,7 @@ void RerouteCargo(Station *st, CargoType c, StationID avoid, StationID avoid2)
  */
 void DeleteStaleLinks(Station *from)
 {
-	for (CargoType c = 0; c < NUM_CARGO; ++c) {
+	for (CargoType c = 0; c < CargoSpec::Count(); ++c) {
 		const bool auto_distributed = (_settings_game.linkgraph.GetDistributionType(c) != DT_MANUAL);
 		GoodsEntry &ge = from->goods[c];
 		LinkGraph *lg = LinkGraph::GetIfValid(ge.link_graph);
@@ -4527,6 +4527,7 @@ void BuildOilRig(TileIndex tile)
 	st->airport.Add(tile);
 	st->ship_station.Add(tile);
 	st->facilities = FACIL_AIRPORT | FACIL_DOCK;
+	st->goods.resize(CargoSpec::Count());
 	st->build_date = TimerGameCalendar::date;
 	UpdateStationDockingTiles(st);
 

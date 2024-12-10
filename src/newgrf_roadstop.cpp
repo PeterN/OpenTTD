@@ -417,15 +417,15 @@ void TriggerRoadStopRandomisation(Station *st, TileIndex tile, RoadStopRandomTri
 
 	/* Check the cached cargo trigger bitmask to see if we need
 	 * to bother with any further processing. */
-	if (st->cached_roadstop_cargo_triggers == 0) return;
-	if (IsValidCargoType(cargo_type) && !HasBit(st->cached_roadstop_cargo_triggers, cargo_type)) return;
+	if (st->cached_roadstop_cargo_triggers.empty()) return;
+	if (IsValidCargoType(cargo_type) && !HasCargo(st->cached_roadstop_cargo_triggers, cargo_type)) return;
 
 	SetBit(st->waiting_triggers, trigger);
 
 	uint32_t whole_reseed = 0;
 
 	/* Bitmask of completely empty cargo types to be matched. */
-	CargoTypes empty_mask = (trigger == RSRT_CARGO_TAKEN) ? GetEmptyMask(st) : 0;
+	CargoTypes empty_mask = (trigger == RSRT_CARGO_TAKEN) ? GetEmptyMask(st) : CargoTypes{};
 
 	uint32_t used_triggers = 0;
 	auto process_tile = [&](TileIndex cur_tile) {
@@ -435,10 +435,10 @@ void TriggerRoadStopRandomisation(Station *st, TileIndex tile, RoadStopRandomTri
 		/* Cargo taken "will only be triggered if all of those
 		 * cargo types have no more cargo waiting." */
 		if (trigger == RSRT_CARGO_TAKEN) {
-			if ((ss->cargo_triggers & ~empty_mask) != 0) return;
+			if (!(ss->cargo_triggers & ~empty_mask).empty()) return;
 		}
 
-		if (!IsValidCargoType(cargo_type) || HasBit(ss->cargo_triggers, cargo_type)) {
+		if (!IsValidCargoType(cargo_type) || HasCargo(ss->cargo_triggers, cargo_type)) {
 			RoadStopResolverObject object(ss, st, cur_tile, INVALID_ROADTYPE, GetStationType(cur_tile), GetStationGfx(cur_tile));
 			object.waiting_triggers = st->waiting_triggers;
 
@@ -614,7 +614,7 @@ void DeallocateSpecFromRoadStop(BaseStation *st, uint8_t specindex)
 		} else {
 			st->roadstop_speclist.clear();
 			st->cached_roadstop_anim_triggers = 0;
-			st->cached_roadstop_cargo_triggers = 0;
+			st->cached_roadstop_cargo_triggers.clear();
 			return;
 		}
 	}
@@ -629,7 +629,7 @@ void DeallocateSpecFromRoadStop(BaseStation *st, uint8_t specindex)
 void RoadStopUpdateCachedTriggers(BaseStation *st)
 {
 	st->cached_roadstop_anim_triggers = 0;
-	st->cached_roadstop_cargo_triggers = 0;
+	st->cached_roadstop_cargo_triggers.clear();
 
 	/* Combine animation trigger bitmask for all road stop specs
 	 * of this station. */

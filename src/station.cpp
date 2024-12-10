@@ -48,6 +48,27 @@ void RebuildStationKdtree()
 }
 
 
+GoodsEntry::GoodsEntry(GoodsEntry &&other)
+{
+	*this = std::move(other);
+}
+
+GoodsEntry &GoodsEntry::operator=(GoodsEntry &&other)
+{
+	this->data = std::move(other.data);
+	this->max_waiting_cargo = other.max_waiting_cargo;
+	this->node = other.node;
+	this->link_graph = other.link_graph;
+	this->status = other.status;
+	this->time_since_pickup = other.time_since_pickup;
+	this->rating = other.rating;
+	this->last_speed = other.last_speed;
+	this->last_age = other.last_age;
+	this->amount_fract = other.amount_fract;
+	return *this;
+}
+
+
 BaseStation::~BaseStation()
 {
 	if (CleaningPool()) return;
@@ -99,7 +120,7 @@ Station::~Station()
 		if (a->targetairport == this->index) a->targetairport = INVALID_STATION;
 	}
 
-	for (CargoType c = 0; c < NUM_CARGO; ++c) {
+	for (CargoType c = 0; c < CargoSpec::Count(); ++c) {
 		LinkGraph *lg = LinkGraph::GetIfValid(this->goods[c].link_graph);
 		if (lg == nullptr) continue;
 
@@ -231,6 +252,7 @@ void Station::AddFacility(StationFacility new_facility_bit, TileIndex facil_xy)
 	if (this->facilities == FACIL_NONE) {
 		this->MoveSign(facil_xy);
 		this->random_bits = Random();
+		this->goods.resize(CargoSpec::Count());
 	}
 	this->facilities |= new_facility_bit;
 	this->owner = _current_company;

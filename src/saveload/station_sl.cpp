@@ -9,6 +9,7 @@
 
 #include "../stdafx.h"
 
+#include "core/bitmath_func.hpp"
 #include "saveload.h"
 #include "compat/station_sl_compat.h"
 
@@ -377,14 +378,14 @@ public:
 		if (IsSavegameVersionBefore(SLV_EXTEND_CARGOTYPES)) return 32;
 		if (IsSavegameVersionBefore(SLV_SAVELOAD_LIST_LENGTH)) return NUM_CARGO;
 		/* Read from the savegame how long the list is. */
-		return SlGetStructListLength(NUM_CARGO);
+		return SlGetStructListLength(UINT_MAX);
 	}
 
 	void Save(BaseStation *bst) const override
 	{
 		Station *st = Station::From(bst);
 
-		SlSetStructListLength(NUM_CARGO);
+		SlSetStructListLength(std::size(st->goods));
 
 		for (GoodsEntry &ge : st->goods) {
 			SlStationGoods::cargo_reserved_count = ge.HasData() ? ge.GetData().cargo.reserved_count : 0;
@@ -404,9 +405,11 @@ public:
 			std::copy(std::begin(_old_st_persistent_storage.storage), std::end(_old_st_persistent_storage.storage), std::begin(st->airport.psa->storage));
 		}
 
-		auto end = std::next(std::begin(st->goods), std::min(this->GetNumCargo(), std::size(st->goods)));
-		for (auto it = std::begin(st->goods); it != end; ++it) {
-			GoodsEntry &ge = *it;
+		uint num = this->GetNumCargo();
+		st->goods.clear();
+		st->goods.reserve(num);
+		while (num-- > 0) {
+			GoodsEntry &ge = st->goods.emplace_back();
 			SlObject(&ge, this->GetLoadDescription());
 			if (!IsSavegameVersionBefore(SLV_181) && SlStationGoods::cargo_reserved_count != 0) {
 				ge.GetOrCreateData().cargo.reserved_count = SlStationGoods::cargo_reserved_count;
@@ -589,6 +592,8 @@ public:
  */
 class SlStationNormal : public DefaultSaveLoadHandler<SlStationNormal, BaseStation> {
 public:
+	static inline uint64_t always_accepted;
+
 	inline static const SaveLoad description[] = {
 		SLEG_STRUCT("base", SlStationBase),
 		    SLE_VAR(Station, train_station.tile,         SLE_UINT32),
@@ -620,8 +625,8 @@ public:
 		    SLE_VAR(Station, last_vehicle_type,          SLE_UINT8),
 		    SLE_VAR(Station, had_vehicle_of_type,        SLE_UINT8),
 		SLE_REFLIST(Station, loading_vehicles,           REF_VEHICLE),
-		SLE_CONDVAR(Station, always_accepted,            SLE_FILE_U32 | SLE_VAR_U64, SLV_127, SLV_EXTEND_CARGOTYPES),
-		SLE_CONDVAR(Station, always_accepted,            SLE_UINT64,                 SLV_EXTEND_CARGOTYPES, SL_MAX_VERSION),
+		SLEG_CONDVAR("always_accepted", always_accepted, SLE_FILE_U32 | SLE_VAR_U64, SLV_127, SLV_EXTEND_CARGOTYPES),
+		SLEG_CONDVAR("always_accepted", always_accepted, SLE_UINT64,                 SLV_EXTEND_CARGOTYPES, SL_MAX_VERSION),
 		SLEG_CONDSTRUCTLIST("speclist", SlRoadStopTileData,                          SLV_NEWGRF_ROAD_STOPS, SLV_ROAD_STOP_TILE_DATA),
 		SLEG_STRUCTLIST("goods", SlStationGoods),
 	};
@@ -635,8 +640,14 @@ public:
 
 	void Load(BaseStation *bst) const override
 	{
+		always_accepted = 0;
+
 		if ((bst->facilities & FACIL_WAYPOINT) != 0) return;
 		SlObject(bst, this->GetLoadDescription());
+
+		for (CargoType cargo_type : SetBitIterator<CargoType>(always_accepted)) {
+			SetCargo(static_cast<Station *>(bst)->always_accepted, cargo_type);
+		}
 	}
 
 	void FixPointers(BaseStation *bst) const override

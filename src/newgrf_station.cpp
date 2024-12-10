@@ -408,7 +408,10 @@ uint32_t Station::GetNewGRFVariable(const ResolverObject &object, uint8_t variab
 {
 	switch (variable) {
 		case 0x48: { // Accepted cargo types
-			uint32_t value = GetAcceptanceMask(this);
+			uint32_t value = 0;
+			for (const CargoType &cargo_type : GetAcceptanceMask(this)) {
+				SetBit(value, cargo_type);
+			}
 			return value;
 		}
 
@@ -764,7 +767,7 @@ void DeallocateSpecFromStation(BaseStation *st, uint8_t specindex)
 		} else {
 			st->speclist.clear();
 			st->cached_anim_triggers = 0;
-			st->cached_cargo_triggers = 0;
+			st->cached_cargo_triggers.clear();
 			return;
 		}
 	}
@@ -938,14 +941,14 @@ void TriggerStationRandomisation(Station *st, TileIndex trigger_tile, StationRan
 
 	/* Check the cached cargo trigger bitmask to see if we need
 	 * to bother with any further processing. */
-	if (st->cached_cargo_triggers == 0) return;
-	if (IsValidCargoType(cargo_type) && !HasBit(st->cached_cargo_triggers, cargo_type)) return;
+	if (st->cached_cargo_triggers.empty()) return;
+	if (IsValidCargoType(cargo_type) && !HasCargo(st->cached_cargo_triggers, cargo_type)) return;
 
 	uint32_t whole_reseed = 0;
 	ETileArea area = ETileArea(st, trigger_tile, tas[trigger]);
 
 	/* Bitmask of completely empty cargo types to be matched. */
-	CargoTypes empty_mask = (trigger == SRT_CARGO_TAKEN) ? GetEmptyMask(st) : 0;
+	CargoTypes empty_mask = (trigger == SRT_CARGO_TAKEN) ? GetEmptyMask(st) : CargoTypes{};
 
 	/* Store triggers now for var 5F */
 	SetBit(st->waiting_triggers, trigger);
@@ -960,10 +963,10 @@ void TriggerStationRandomisation(Station *st, TileIndex trigger_tile, StationRan
 			/* Cargo taken "will only be triggered if all of those
 			 * cargo types have no more cargo waiting." */
 			if (trigger == SRT_CARGO_TAKEN) {
-				if ((ss->cargo_triggers & ~empty_mask) != 0) continue;
+				if (!(ss->cargo_triggers & ~empty_mask).empty()) continue;
 			}
 
-			if (!IsValidCargoType(cargo_type) || HasBit(ss->cargo_triggers, cargo_type)) {
+			if (!IsValidCargoType(cargo_type) || HasCargo(ss->cargo_triggers, cargo_type)) {
 				StationResolverObject object(ss, st, tile, CBID_RANDOM_TRIGGER, 0);
 				object.waiting_triggers = st->waiting_triggers;
 
@@ -1004,7 +1007,7 @@ void TriggerStationRandomisation(Station *st, TileIndex trigger_tile, StationRan
 void StationUpdateCachedTriggers(BaseStation *st)
 {
 	st->cached_anim_triggers = 0;
-	st->cached_cargo_triggers = 0;
+	st->cached_cargo_triggers.clear();
 
 	/* Combine animation trigger bitmask for all station specs
 	 * of this station. */

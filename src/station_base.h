@@ -164,6 +164,16 @@ public:
  * Stores station stats for a single cargo.
  */
 struct GoodsEntry {
+	GoodsEntry() = default;
+
+	/* Do not allow copying. */
+	GoodsEntry(const GoodsEntry &) = delete;
+	GoodsEntry &operator=(const GoodsEntry &) = delete;
+
+	/* Allow moving. */
+	GoodsEntry(GoodsEntry &&other);
+	GoodsEntry &operator=(GoodsEntry &&other);
+
 	/** Status of this cargo for the station. */
 	enum GoodsEntryStatus : uint8_t {
 		/**
@@ -522,7 +532,7 @@ public:
 
 	uint8_t last_vehicle_type;
 	std::list<Vehicle *> loading_vehicles;
-	GoodsEntry goods[NUM_CARGO];  ///< Goods at this station
+	std::vector<GoodsEntry> goods; ///< Goods at this station
 	CargoTypes always_accepted;       ///< Bitmask of always accepted cargo types (by houses, HQs, industry tiles when industry doesn't accept cargo)
 
 	IndustryList industries_near; ///< Cached list of industries near the station that can accept cargo, @see DeliverGoodsToIndustry()

@@ -148,7 +148,7 @@ struct RoadStopSpec : NewGRFSpecBase<RoadStopClassID> {
 	RoadStopCallbackMasks callback_mask{};
 	uint16_t flags = 0;
 
-	CargoTypes cargo_triggers = 0; ///< Bitmask of cargo types which cause trigger re-randomizing
+	CargoTypes cargo_triggers; ///< Bitmask of cargo types which cause trigger re-randomizing
 
 	AnimationInfo animation;
 
