@@ -56,19 +56,18 @@ void DrawRoadVehDetails(const Vehicle *v, const Rect &r)
 		bool first = true;
 		for (const CargoSpec *cs : _sorted_cargo_specs) {
 			CargoType cargo_type = cs->Index();
-			if (max_cargo[cargo_type] > 0) {
-				if (!first) capacity += list_separator;
+			if (!max_cargo.Contains(cargo_type)) continue;
+			if (!first) capacity += list_separator;
 
-				SetDParam(0, cargo_type);
-				SetDParam(1, max_cargo[cargo_type]);
-				AppendStringInPlace(capacity, STR_JUST_CARGO);
+			SetDParam(0, cargo_type);
+			SetDParam(1, max_cargo[cargo_type]);
+			AppendStringInPlace(capacity, STR_JUST_CARGO);
 
-				if (subtype_text[cargo_type] != STR_NULL) {
-					AppendStringInPlace(capacity, subtype_text[cargo_type]);
-				}
-
-				first = false;
+			if (subtype_text[cargo_type] != STR_NULL) {
+				AppendStringInPlace(capacity, subtype_text[cargo_type]);
 			}
+
+			first = false;
 		}
 
 		DrawString(r.left, r.right, y, capacity, TC_BLUE);

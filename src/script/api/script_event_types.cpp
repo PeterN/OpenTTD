@@ -42,10 +42,10 @@ CargoType ScriptEventEnginePreview::GetCargoType()
 	if (!this->IsEngineValid()) return INVALID_CARGO;
 	CargoArray cap = ::GetCapacityOfArticulatedParts(this->engine);
 
-	auto it = std::max_element(std::cbegin(cap), std::cend(cap));
-	if (*it == 0) return INVALID_CARGO;
+	auto it = std::ranges::max_element(cap.amounts, std::less{}, &CargoArray::ElementType::second);
+	if (it == std::end(cap.amounts) || it->second == 0) return INVALID_CARGO;
 
-	return CargoType(std::distance(std::cbegin(cap), it));
+	return it->first;
 }
 
 int32_t ScriptEventEnginePreview::GetCapacity()
@@ -56,7 +56,7 @@ int32_t ScriptEventEnginePreview::GetCapacity()
 		case VEH_ROAD:
 		case VEH_TRAIN: {
 			CargoArray capacities = GetCapacityOfArticulatedParts(this->engine);
-			for (uint &cap : capacities) {
+			for (const auto &[_, cap] : capacities.amounts) {
 				if (cap != 0) return cap;
 			}
 			return -1;

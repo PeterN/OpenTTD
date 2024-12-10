@@ -79,22 +79,19 @@ int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageTyp
 	TileIndex tile = TileVirtXY(_thd.pos.x, _thd.pos.y);
 	CargoTypes cargo_mask = 0;
 	if (_thd.drawstyle == HT_RECT && tile < Map::Size()) {
-		CargoArray cargoes;
-		if (supplies) {
-			cargoes = GetProductionAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
-		} else {
-			cargoes = GetAcceptanceAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
-		}
+		CargoArray cargoes = supplies
+			? GetProductionAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad)
+			: GetAcceptanceAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
 
 		/* Convert cargo counts to a set of cargo bits, and draw the result. */
-		for (CargoType i = 0; i < NUM_CARGO; i++) {
+		for (const auto &[cargo_type, amount] : cargoes.amounts) {
 			switch (sct) {
-				case SCT_PASSENGERS_ONLY: if (!IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-				case SCT_NON_PASSENGERS_ONLY: if (IsCargoInClass(i, CC_PASSENGERS)) continue; break;
+				case SCT_PASSENGERS_ONLY: if (!IsCargoInClass(cargo_type, CC_PASSENGERS)) continue; break;
+				case SCT_NON_PASSENGERS_ONLY: if (IsCargoInClass(cargo_type, CC_PASSENGERS)) continue; break;
 				case SCT_ALL: break;
 				default: NOT_REACHED();
 			}
-			if (cargoes[i] >= (supplies ? 1U : 8U)) SetBit(cargo_mask, i);
+			if (amount >= (supplies ? 1U : 8U)) SetBit(cargo_mask, cargo_type);
 		}
 	}
 	SetDParam(0, cargo_mask);

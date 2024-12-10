@@ -1506,7 +1506,7 @@ static bool VehicleCargoSorter(const Vehicle * const &a, const Vehicle * const &
 	for (v = b; v != nullptr; v = v->Next()) diff[v->cargo_type] -= v->cargo_cap;
 
 	int r = 0;
-	for (uint d : diff) {
+	for (const auto &[cargo_type, d] : diff.amounts) {
 		r = d;
 		if (r != 0) break;
 	}

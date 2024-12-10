@@ -634,20 +634,18 @@ void UpdateStationAcceptance(Station *st, bool show_msg)
 	}
 
 	/* Adjust in case our station only accepts fewer kinds of goods */
-	for (CargoType i = 0; i < NUM_CARGO; i++) {
-		uint amt = acceptance[i];
-
+	for (auto &[cargo_type, amount] : acceptance.amounts) {
 		/* Make sure the station can accept the goods type. */
-		bool is_passengers = IsCargoInClass(i, CC_PASSENGERS);
+		bool is_passengers = IsCargoInClass(cargo_type, CC_PASSENGERS);
 		if ((!is_passengers && !(st->facilities & ~FACIL_BUS_STOP)) ||
 				(is_passengers && !(st->facilities & ~FACIL_TRUCK_STOP))) {
-			amt = 0;
+			amount = 0;
 		}
 
-		GoodsEntry &ge = st->goods[i];
-		SB(ge.status, GoodsEntry::GES_ACCEPTANCE, 1, amt >= 8);
+		GoodsEntry &ge = st->goods[cargo_type];
+		SB(ge.status, GoodsEntry::GES_ACCEPTANCE, 1, amount >= 8);
 		if (LinkGraph::IsValidID(ge.link_graph)) {
-			(*LinkGraph::Get(ge.link_graph))[ge.node].SetDemand(amt / 8);
+			(*LinkGraph::Get(ge.link_graph))[ge.node].SetDemand(amount / 8);
 		}
 	}
 

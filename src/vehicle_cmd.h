@@ -47,16 +47,22 @@ void CcStartStopVehicle(Commands cmd, const CommandCost &result, VehicleID veh_i
 template <typename Tcont, typename Titer>
 inline EndianBufferWriter<Tcont, Titer> &operator <<(EndianBufferWriter<Tcont, Titer> &buffer, const CargoArray &cargo_array)
 {
-	for (const uint &amt : cargo_array) {
-		buffer << amt;
+	buffer << static_cast<uint8_t>(cargo_array.amounts.size());
+	for (const auto &[cargo_type, amount] : cargo_array.amounts) {
+		buffer << cargo_type << amount;
 	}
 	return buffer;
 }
 
 inline EndianBufferReader &operator >>(EndianBufferReader &buffer, CargoArray &cargo_array)
 {
-	for (uint &amt : cargo_array) {
-		buffer >> amt;
+	uint8_t num;
+	buffer >> num;
+
+	cargo_array.amounts.reserve(num);
+	while (num-- > 0) {
+		auto &[cargo_type, amount] = cargo_array.amounts.emplace_back();
+		buffer >> cargo_type >> amount;
 	}
 	return buffer;
 }

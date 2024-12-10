@@ -8,6 +8,7 @@
 /** @file cargotype.cpp Implementation of cargoes. */
 
 #include "stdafx.h"
+#include "debug.h"
 #include "cargotype.h"
 #include "core/geometry_func.hpp"
 #include "newgrf_cargo.h"
@@ -260,6 +261,24 @@ uint64_t CargoSpec::WeightOfNUnitsInTrain(uint32_t n) const
 	return this->WeightOfNUnits(n);
 }
 
+uint CargoArray::GetCount() const
+{
+	return std::ranges::count_if(this->amounts, [](const ElementType &e) { return e.second != 0; });
+}
+
+uint &CargoArray::operator[](CargoType cargo_type)
+{
+	auto it = std::ranges::lower_bound(this->amounts, cargo_type, std::less{}, &ElementType::first);
+	if (it == std::end(this->amounts) || it->first != cargo_type) it = this->amounts.emplace(it, cargo_type, 0);
+	return it->second;
+}
+
+bool CargoArray::Contains(CargoType cargo_type) const
+{
+	auto it = std::ranges::lower_bound(this->amounts, cargo_type, std::less{}, &ElementType::first);
+	return it != std::end(this->amounts) && it->first == cargo_type && it->second != 0;
+}
+
 /**
  * Build comma-separated cargo acceptance string.
  * @param acceptance CargoArray filled with accepted cargo.
@@ -277,19 +296,21 @@ std::optional<std::string> BuildCargoAcceptanceString(const CargoArray &acceptan
 	bool found = false;
 	for (const CargoSpec *cs : _sorted_cargo_specs) {
 		CargoType cargo_type = cs->Index();
-		if (acceptance[cargo_type] > 0) {
-			/* Add a comma between each item. */
-			if (found) line << list_separator;
-			found = true;
 
-			/* If the accepted value is less than 8, show it in 1/8:ths */
-			if (acceptance[cargo_type] < 8) {
-				SetDParam(0, acceptance[cargo_type]);
-				SetDParam(1, cs->name);
-				line << GetString(STR_LAND_AREA_INFORMATION_CARGO_EIGHTS);
-			} else {
-				line << GetString(cs->name);
-			}
+		auto it = std::ranges::lower_bound(acceptance.amounts, cargo_type, std::less{}, &CargoArray::ElementType::first);
+		if (it == std::end(acceptance.amounts) || it->first != cargo_type || it->second == 0) continue;
+
+		/* Add a comma between each item. */
+		if (found) line << list_separator;
+		found = true;
+
+		/* If the accepted value is less than 8, show it in 1/8:ths */
+		if (it->second < 8) {
+			SetDParam(0, it->second);
+			SetDParam(1, cs->name);
+			line << GetString(STR_LAND_AREA_INFORMATION_CARGO_EIGHTS);
+		} else {
+			line << GetString(cs->name);
 		}
 	}
 

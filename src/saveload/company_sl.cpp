@@ -317,8 +317,24 @@ public:
 	void LoadCheck(CompanyProperties *c) const override { this->Load(c); }
 };
 
+class SlCompanyEconomyDeliveredCargo : public VectorSaveLoadHandler<SlCompanyEconomyDeliveredCargo, CompanyEconomyEntry, CargoArray::ElementType> {
+public:
+	inline static const SaveLoad description[] = {
+		SLE_VAR(CargoArray::ElementType, first, SLE_UINT8),
+		SLE_VAR(CargoArray::ElementType, second, SLE_UINT32),
+	};
+	inline const static SaveLoadCompatTable compat_description = {};
+
+	std::vector<CargoArray::ElementType> &GetVector(CompanyEconomyEntry *cee) const override { return cee->delivered_cargo.amounts; }
+
+	void LoadCheck(CompanyEconomyEntry *cee) const override { this->Load(cee); }
+};
+
 class SlCompanyEconomy : public DefaultSaveLoadHandler<SlCompanyEconomy, CompanyProperties> {
 public:
+	static constexpr uint OLD_NUM_CARGO = 64;
+	static inline uint _old_delivered_cargo[64];
+
 	inline static const SaveLoad description[] = {
 		SLE_CONDVAR(CompanyEconomyEntry, income,              SLE_FILE_I32 | SLE_VAR_I64, SL_MIN_VERSION, SLV_2),
 		SLE_CONDVAR(CompanyEconomyEntry, income,              SLE_INT64,                  SLV_2, SL_MAX_VERSION),
@@ -327,9 +343,10 @@ public:
 		SLE_CONDVAR(CompanyEconomyEntry, company_value,       SLE_FILE_I32 | SLE_VAR_I64, SL_MIN_VERSION, SLV_2),
 		SLE_CONDVAR(CompanyEconomyEntry, company_value,       SLE_INT64,                  SLV_2, SL_MAX_VERSION),
 
-		SLE_CONDVAR(CompanyEconomyEntry, delivered_cargo[NUM_CARGO - 1], SLE_INT32,       SL_MIN_VERSION, SLV_170),
-		SLE_CONDARR(CompanyEconomyEntry, delivered_cargo,     SLE_UINT32, 32,           SLV_170, SLV_EXTEND_CARGOTYPES),
-		SLE_CONDARR(CompanyEconomyEntry, delivered_cargo,     SLE_UINT32, NUM_CARGO,    SLV_EXTEND_CARGOTYPES, SL_MAX_VERSION),
+		SLEG_CONDVAR("delivered_cargo[NUM_CARGO - 1]", _old_delivered_cargo[OLD_NUM_CARGO - 1], SLE_INT32,       SL_MIN_VERSION, SLV_170),
+		SLEG_CONDARR("delivered_cargo", _old_delivered_cargo,     SLE_UINT32, 32,           SLV_170, SLV_EXTEND_CARGOTYPES),
+		SLEG_CONDARR("delivered_cargo", _old_delivered_cargo,     SLE_UINT32, OLD_NUM_CARGO,    SLV_EXTEND_CARGOTYPES, SLV_VARIABLE_CARGO_ARRAY),
+		SLEG_CONDSTRUCTLIST("delivered_cargo", SlCompanyEconomyDeliveredCargo, SLV_VARIABLE_CARGO_ARRAY, SL_MAX_VERSION),
 		    SLE_VAR(CompanyEconomyEntry, performance_history, SLE_INT32),
 	};
 	inline const static SaveLoadCompatTable compat_description = _company_economy_compat;
@@ -342,6 +359,13 @@ public:
 	void Load(CompanyProperties *c) const override
 	{
 		SlObject(&c->cur_economy, this->GetLoadDescription());
+
+		for (CargoType cargo_type = 0; const uint &amount : _old_delivered_cargo) {
+			if (amount > 0) {
+				c->cur_economy.delivered_cargo.amounts.emplace_back(cargo_type, amount);
+			}
+			++cargo_type;
+		}
 	}
 
 	void FixPointers(CompanyProperties *c) const override

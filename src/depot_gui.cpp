@@ -890,7 +890,7 @@ struct DepotWindow : Window {
 
 		for (const CargoSpec *cs : _sorted_cargo_specs) {
 			CargoType cargo_type = cs->Index();
-			if (capacity[cargo_type] == 0) continue;
+			if (!capacity.Contains(cargo_type)) continue;
 
 			SetDParam(0, cargo_type);           // {CARGO} #1
 			SetDParam(1, loaded[cargo_type]);   // {CARGO} #2

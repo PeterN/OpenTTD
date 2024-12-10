@@ -9,6 +9,7 @@
 
 #include "../../stdafx.h"
 #include "script_engine.hpp"
+#include "cargo_type.h"
 #include "script_cargo.hpp"
 #include "../../company_base.h"
 #include "../../strings_func.h"
@@ -56,10 +57,10 @@
 
 	CargoArray cap = ::GetCapacityOfArticulatedParts(engine_id);
 
-	auto it = std::max_element(std::cbegin(cap), std::cend(cap));
-	if (*it == 0) return INVALID_CARGO;
+	auto it = std::ranges::max_element(cap.amounts, std::less{}, &CargoArray::ElementType::second);
+	if (it == std::end(cap.amounts) || it->second == 0) return INVALID_CARGO;
 
-	return CargoType(std::distance(std::cbegin(cap), it));
+	return it->first;
 }
 
 /* static */ bool ScriptEngine::CanRefitCargo(EngineID engine_id, CargoType cargo_type)
@@ -89,7 +90,7 @@
 		case VEH_ROAD:
 		case VEH_TRAIN: {
 			CargoArray capacities = GetCapacityOfArticulatedParts(engine_id);
-			for (uint &cap : capacities) {
+			for (const auto &[_, cap] : capacities.amounts) {
 				if (cap != 0) return cap;
 			}
 			return -1;

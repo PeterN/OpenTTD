@@ -202,10 +202,9 @@ void LinkRefresher::RefreshStats(const Order *cur, const Order *next)
 	Station *st = Station::GetIfValid(cur->GetDestination());
 	if (st != nullptr && next_station != INVALID_STATION && next_station != st->index) {
 		Station *st_to = Station::Get(next_station);
-		for (CargoType c = 0; c < NUM_CARGO; c++) {
+		for (const auto &[c, cargo_quantity] : this->capacities.amounts) {
 			/* Refresh the link and give it a minimum capacity. */
 
-			uint cargo_quantity = this->capacities[c];
 			if (cargo_quantity == 0) continue;
 
 			if (this->vehicle->GetDisplayMaxSpeed() == 0) continue;

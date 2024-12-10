@@ -326,33 +326,27 @@ bool FindSubsidyTownCargoRoute()
 	if (src_town->cache.population < SUBSIDY_CARGO_MIN_POPULATION) return false;
 
 	/* Calculate the produced cargo of houses around town center. */
-	CargoArray town_cargo_produced{};
+	CargoArray tcp{};
 	TileArea ta = TileArea(src_town->xy, 1, 1).Expand(SUBSIDY_TOWN_CARGO_RADIUS);
 	for (TileIndex tile : ta) {
 		if (IsTileType(tile, MP_HOUSE)) {
-			AddProducedCargo(tile, town_cargo_produced);
+			AddProducedCargo(tile, tcp);
 		}
 	}
 
 	/* Passenger subsidies are not handled here. */
 	for (const CargoSpec *cs : CargoSpec::town_production_cargoes[TPE_PASSENGERS]) {
-		town_cargo_produced[cs->Index()] = 0;
+		tcp[cs->Index()] = 0;
 	}
 
-	uint8_t cargo_count = town_cargo_produced.GetCount();
+	/* Remove zero values. */
+	tcp.amounts.erase(std::remove_if(std::begin(tcp.amounts), std::end(tcp.amounts), [](const auto &el) { return el.second == 0; }), std::end(tcp.amounts));
 
 	/* No cargo produced at all? */
-	if (cargo_count == 0) return false;
+	if (tcp.amounts.empty()) return false;
 
 	/* Choose a random cargo that is produced in the town. */
-	uint8_t cargo_number = RandomRange(cargo_count);
-	CargoType cargo_type;
-	for (cargo_type = 0; cargo_type < NUM_CARGO; cargo_type++) {
-		if (town_cargo_produced[cargo_type] > 0) {
-			if (cargo_number == 0) break;
-			cargo_number--;
-		}
-	}
+	CargoType cargo_type = tcp.amounts[RandomRange(std::size(tcp.amounts))].first;
 
 	/* Avoid using invalid NewGRF cargoes. */
 	if (!CargoSpec::Get(cargo_type)->IsValid() ||
@@ -444,7 +438,7 @@ bool FindSubsidyCargoDestination(CargoType cargo_type, SourceType src_type, Sour
 			}
 
 			/* Check if the town can accept this cargo. */
-			if (town_cargo_accepted[cargo_type] < 8) return false;
+			if (!town_cargo_accepted.Contains(cargo_type) || town_cargo_accepted[cargo_type] < 8) return false;
 
 			dst = dst_town->index;
 			break;
