@@ -319,7 +319,7 @@ void CheckConsistencyOfArticulatedVehicle(const Vehicle *v)
 	/* Check whether the vehicle carries more cargoes than expected */
 	bool carries_more = false;
 	for (CargoID cid : SetCargoBitIterator(real_default_cargoes)) {
-		if (purchase_default_capacity[cid] == 0) {
+		if (!purchase_default_capacity.Contains(cid)) {
 			carries_more = true;
 			break;
 		}

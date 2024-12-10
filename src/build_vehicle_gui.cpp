@@ -553,13 +553,11 @@ static GUIEngineList::FilterFunction * const _engine_filter_funcs[] = {
 static uint GetCargoWeight(const CargoArray &cap, VehicleType vtype)
 {
 	uint weight = 0;
-	for (CargoID c = 0; c < NUM_CARGO; c++) {
-		if (cap[c] != 0) {
-			if (vtype == VEH_TRAIN) {
-				weight += CargoSpec::Get(c)->WeightOfNUnitsInTrain(cap[c]);
-			} else {
-				weight += CargoSpec::Get(c)->WeightOfNUnits(cap[c]);
-			}
+	for (const auto &[c, amount] : cap.amounts) {
+		if (vtype == VEH_TRAIN) {
+			weight += CargoSpec::Get(c)->WeightOfNUnitsInTrain(amount);
+		} else {
+			weight += CargoSpec::Get(c)->WeightOfNUnits(amount);
 		}
 	}
 	return weight;
@@ -569,7 +567,7 @@ static int DrawCargoCapacityInfo(int left, int right, int y, TestedEngineDetails
 {
 	for (const CargoSpec *cs : _sorted_cargo_specs) {
 		CargoID cid = cs->Index();
-		if (te.all_capacities[cid] == 0) continue;
+		if (!te.all_capacities.Contains(cid) || te.all_capacities[cid] == 0) continue;
 
 		SetDParam(0, cid);
 		SetDParam(1, te.all_capacities[cid]);
