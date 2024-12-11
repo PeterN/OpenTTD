@@ -126,7 +126,7 @@ struct CargoSpec {
 	 * Total number of cargospecs, both valid and invalid
 	 * @return length of CargoSpec::array
 	 */
-	static inline size_t GetArraySize()
+	static inline size_t Count()
 	{
 		return lengthof(CargoSpec::array);
 	}
@@ -173,7 +173,7 @@ struct CargoSpec {
 
 	private:
 		size_t index;
-		void ValidateIndex() { while (this->index < CargoSpec::GetArraySize() && !(CargoSpec::Get(this->index)->IsValid())) this->index++; }
+		void ValidateIndex() { while (this->index < CargoSpec::Count() && !(CargoSpec::Get(this->index)->IsValid())) this->index++; }
 	};
 
 	/*
@@ -183,7 +183,7 @@ struct CargoSpec {
 		size_t from;
 		IterateWrapper(size_t from = 0) : from(from) {}
 		Iterator begin() { return Iterator(this->from); }
-		Iterator end() { return Iterator(CargoSpec::GetArraySize()); }
+		Iterator end() { return Iterator(CargoSpec::Count()); }
 		bool empty() { return this->begin() == this->end(); }
 	};
 

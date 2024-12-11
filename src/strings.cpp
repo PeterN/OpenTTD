@@ -1263,7 +1263,7 @@ static void FormatString(StringBuilder &builder, const char *str_arg, StringPara
 					 * param 1: cargo type
 					 * param 2: cargo count */
 					CargoID cargo = args.GetNextParameter<CargoID>();
-					if (cargo >= CargoSpec::GetArraySize()) break;
+					if (cargo >= CargoSpec::Count()) break;
 
 					StringID cargo_str = CargoSpec::Get(cargo)->units_volume;
 					int64_t amount = 0;
@@ -1291,7 +1291,7 @@ static void FormatString(StringBuilder &builder, const char *str_arg, StringPara
 					 * param 1: cargo type
 					 * param 2: cargo count */
 					CargoID cargo = args.GetNextParameter<CargoID>();
-					if (cargo >= CargoSpec::GetArraySize()) break;
+					if (cargo >= CargoSpec::Count()) break;
 
 					StringID cargo_str = CargoSpec::Get(cargo)->units_volume;
 					switch (cargo_str) {
@@ -1323,7 +1323,7 @@ static void FormatString(StringBuilder &builder, const char *str_arg, StringPara
 				case SCC_CARGO_LONG: { // {CARGO_LONG}
 					/* First parameter is cargo type, second parameter is cargo count */
 					CargoID cargo = args.GetNextParameter<CargoID>();
-					if (IsValidCargoID(cargo) && cargo >= CargoSpec::GetArraySize()) break;
+					if (IsValidCargoID(cargo) && cargo >= CargoSpec::Count()) break;
 
 					StringID cargo_str = !IsValidCargoID(cargo) ? STR_QUANTITY_N_A : CargoSpec::Get(cargo)->quantifier;
 					auto tmp_args = MakeParameters(args.GetNextParameter<int64_t>());

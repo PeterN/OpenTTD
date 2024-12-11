@@ -587,7 +587,7 @@ StationResolverObject::StationResolverObject(const StationSpec *statspec, BaseSt
 		const Station *st = Station::From(this->station_scope.st);
 		/* Pick the first cargo that we have waiting */
 		for (const auto &[cargo, spritegroup] : statspec->grf_prop.spritegroups) {
-			if (cargo < NUM_CARGO && st->goods[cargo].HasData() && st->goods[cargo].GetData().cargo.TotalCount() > 0) {
+			if (cargo < CargoSpec::Count() && st->goods[cargo].HasData() && st->goods[cargo].GetData().cargo.TotalCount() > 0) {
 				ctype = cargo;
 				this->root_spritegroup = spritegroup;
 				break;
