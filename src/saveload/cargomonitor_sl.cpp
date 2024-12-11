@@ -19,12 +19,22 @@
 /** Temporary storage of cargo monitoring data for loading or saving it. */
 struct TempStorage {
 	CargoMonitorID number;
+	bool is_industry;
+	TownID town;
+	IndustryID industry;
+	CargoType cargo;
+	CompanyID company;
 	uint32_t amount;
 };
 
 /** Description of the #TempStorage structure for the purpose of load and save. */
 static const SaveLoad _cargomonitor_pair_desc[] = {
-	SLE_VAR(TempStorage, number, SLE_UINT32),
+	SLE_CONDVAR(TempStorage, is_industry, SLE_BOOL, SLV_VARIABLE_CARGO_ARRAY, SL_MAX_VERSION),
+	SLE_CONDVAR(TempStorage, town, SLE_UINT16, SLV_VARIABLE_CARGO_ARRAY, SL_MAX_VERSION),
+	SLE_CONDVAR(TempStorage, industry, SLE_UINT16, SLV_VARIABLE_CARGO_ARRAY, SL_MAX_VERSION),
+	SLE_CONDVAR(TempStorage, cargo, SLE_UINT8, SLV_VARIABLE_CARGO_ARRAY, SL_MAX_VERSION),
+	SLE_CONDVAR(TempStorage, company, SLE_UINT8, SLV_VARIABLE_CARGO_ARRAY, SL_MAX_VERSION),
+	SLE_CONDVAR(TempStorage, number, SLE_UINT32, SL_MIN_VERSION, SLV_VARIABLE_CARGO_ARRAY),
 	SLE_VAR(TempStorage, amount, SLE_UINT32),
 };
 
@@ -56,7 +66,11 @@ struct CMDLChunkHandler : ChunkHandler {
 		int i = 0;
 		CargoMonitorMap::const_iterator iter = _cargo_deliveries.begin();
 		while (iter != _cargo_deliveries.end()) {
-			storage.number = iter->first;
+			storage.is_industry = MonitorMonitorsIndustry(iter->first);
+			storage.town = DecodeMonitorTown(iter->first);
+			storage.industry = DecodeMonitorIndustry(iter->first);
+			storage.cargo = DecodeMonitorCargoType(iter->first);
+			storage.company = DecodeMonitorCompany(iter->first);
 			storage.amount = iter->second;
 
 			SlSetArrayIndex(i);
@@ -73,6 +87,7 @@ struct CMDLChunkHandler : ChunkHandler {
 
 		TempStorage storage;
 		bool fix = IsSavegameVersionBefore(SLV_FIX_CARGO_MONITOR);
+		bool decode = IsSavegameVersionBefore(SLV_VARIABLE_CARGO_ARRAY);
 
 		ClearCargoDeliveryMonitoring();
 		for (;;) {
@@ -80,6 +95,29 @@ struct CMDLChunkHandler : ChunkHandler {
 			SlObject(&storage, slt);
 
 			if (fix) storage.number = FixupCargoMonitor(storage.number);
+
+			if (decode) {
+				/* Bit-fields encoded into the cargo monitor before it was unpacked. */
+				constexpr uint8_t OLD_CCB_TOWN_IND_NUMBER_START = 0; ///< Start bit of the town or industry number.
+				constexpr uint8_t OLD_CCB_TOWN_IND_NUMBER_LENGTH = 16; ///< Number of bits of the town or industry number.
+				constexpr uint8_t OLD_CCB_IS_INDUSTRY_BIT = 16; ///< Bit indicating the town/industry number is an industry.
+				constexpr uint8_t OLD_CCB_CARGO_TYPE_START = 19; ///< Start bit of the cargo type field.
+				constexpr uint8_t OLD_CCB_CARGO_TYPE_LENGTH = 6; ///< Number of bits of the cargo type field.
+				constexpr uint8_t OLD_CCB_COMPANY_START = 25; ///< Start bit of the company field.
+				constexpr uint8_t OLD_CCB_COMPANY_LENGTH = 4; ///< Number of bits of the company field.
+
+				storage.is_industry = HasBit(storage.number, OLD_CCB_IS_INDUSTRY_BIT);
+				storage.town = storage.is_industry ? INVALID_TOWN : static_cast<TownID>(GB(storage.number, OLD_CCB_TOWN_IND_NUMBER_START, OLD_CCB_TOWN_IND_NUMBER_LENGTH));
+				storage.industry = storage.is_industry ? static_cast<IndustryID>(GB(storage.number, OLD_CCB_TOWN_IND_NUMBER_START, OLD_CCB_TOWN_IND_NUMBER_LENGTH)) : INVALID_INDUSTRY;
+				storage.cargo = static_cast<CargoType>(GB(storage.number, OLD_CCB_CARGO_TYPE_START, OLD_CCB_CARGO_TYPE_LENGTH));
+				storage.company = static_cast<CompanyID>(GB(storage.number, OLD_CCB_COMPANY_START, OLD_CCB_COMPANY_LENGTH));
+			}
+
+			if (storage.is_industry) {
+				storage.number = EncodeCargoIndustryMonitor(storage.company, storage.cargo, storage.industry);
+			} else {
+				storage.number = EncodeCargoTownMonitor(storage.company, storage.cargo, storage.town);
+			}
 
 			_cargo_deliveries.emplace(storage.number, storage.amount);
 		}
