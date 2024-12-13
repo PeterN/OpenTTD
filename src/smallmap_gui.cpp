@@ -164,7 +164,7 @@ static LegendAndColour _legend_land_owners[NUM_NO_COMPANY_ENTRIES + MAX_COMPANIE
 #undef MKEND
 
 /** Legend entries for the link stats view. */
-static LegendAndColour _legend_linkstats[NUM_CARGO + lengthof(_linkstat_colours_in_legenda) + 1];
+static LegendAndColour _legend_linkstats[MAX_CARGO + lengthof(_linkstat_colours_in_legenda) + 1];
 /**
  * Allow room for all industries, plus a terminator entry
  * This is required in order to have the industry slots all filled up

@@ -31,7 +31,7 @@ void SetWagonOverrideSprites(EngineID engine, CargoID cargo, const SpriteGroup *
 {
 	Engine *e = Engine::Get(engine);
 
-	assert(cargo < NUM_CARGO + 2); // Include SpriteGroupCargo::SG_DEFAULT and SpriteGroupCargo::SG_PURCHASE pseudo cargoes.
+	assert(cargo < MAX_CARGO + 2); // Include SpriteGroupCargo::SG_DEFAULT and SpriteGroupCargo::SG_PURCHASE pseudo cargoes.
 
 	WagonOverride *wo = &e->overrides.emplace_back();
 	wo->group = group;

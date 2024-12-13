@@ -129,9 +129,9 @@ public:
 	size_t GetNumCargo() const
 	{
 		if (IsSavegameVersionBefore(SLV_EXTEND_CARGOTYPES)) return 32;
-		if (IsSavegameVersionBefore(SLV_SAVELOAD_LIST_LENGTH)) return NUM_CARGO;
+		if (IsSavegameVersionBefore(SLV_SAVELOAD_LIST_LENGTH)) return 64;
 		/* Read from the savegame how long the list is. */
-		return SlGetStructListLength(NUM_CARGO);
+		return SlGetStructListLength(64);
 	}
 
 	void Save(Town *t) const override

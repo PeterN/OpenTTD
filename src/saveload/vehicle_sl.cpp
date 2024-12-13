@@ -674,7 +674,8 @@ public:
 		SLE_CONDVAR(Vehicle, last_station_visited,  SLE_UINT16,                   SLV_5, SL_MAX_VERSION),
 		SLE_CONDVAR(Vehicle, last_loading_station,  SLE_UINT16,                 SLV_182, SL_MAX_VERSION),
 
-		    SLE_VAR(Vehicle, cargo_type,            SLE_UINT8),
+		SLE_CONDVAR(Vehicle, cargo_type,            SLE_FILE_U8 | SLE_VAR_U16, SL_MIN_VERSION, SLV_EXTEND_CARGOTYPES_MORE),
+		SLE_CONDVAR(Vehicle, cargo_type,            SLE_UINT16, SLV_EXTEND_CARGOTYPES_MORE, SL_MAX_VERSION),
 		SLE_CONDVAR(Vehicle, cargo_subtype,         SLE_UINT8,                   SLV_35, SL_MAX_VERSION),
 		SLEG_CONDVAR("cargo_days", _cargo_periods,  SLE_UINT8,                    SL_MIN_VERSION,  SLV_68),
 		SLEG_CONDVAR("cargo_source", _cargo_source, SLE_FILE_U8  | SLE_VAR_U16,   SL_MIN_VERSION,   SLV_7),
@@ -706,7 +707,8 @@ public:
 		SLE_CONDVAR(Vehicle, current_order.dest,    SLE_UINT16,                   SLV_5, SL_MAX_VERSION),
 
 		/* Refit in current order */
-		SLE_CONDVAR(Vehicle, current_order.refit_cargo,   SLE_UINT8,             SLV_36, SL_MAX_VERSION),
+		SLE_CONDVAR(Vehicle, current_order.refit_cargo,   SLE_FILE_U8 | SLE_VAR_U16, SLV_36, SLV_EXTEND_CARGOTYPES_MORE),
+		SLE_CONDVAR(Vehicle, current_order.refit_cargo,   SLE_UINT16, SLV_EXTEND_CARGOTYPES_MORE, SL_MAX_VERSION),
 
 		/* Timetable in current order */
 		SLE_CONDVAR(Vehicle, current_order.wait_time,     SLE_UINT16,            SLV_67, SL_MAX_VERSION),
@@ -1115,6 +1117,7 @@ struct VEHSChunkHandler : ChunkHandler {
 	{
 		const std::vector<SaveLoad> slt = SlCompatTableHeader(_vehicle_desc, _vehicle_sl_compat);
 
+		bool convert_cargo = IsSavegameVersionBefore(SLV_EXTEND_CARGOTYPES_MORE);
 		int index;
 
 		_cargo_count = 0;
@@ -1135,6 +1138,15 @@ struct VEHSChunkHandler : ChunkHandler {
 			}
 
 			SlObject(v, slt);
+
+			if (convert_cargo) {
+				if (v->cargo_type == 0xFF) v->cargo_type = INVALID_CARGO;
+				switch (v->current_order.refit_cargo) {
+					case 0xFF: v->current_order.refit_cargo = INVALID_CARGO; break;
+					case 0xFE: v->current_order.refit_cargo = CARGO_NO_REFIT; break;
+					case 0xFD: v->current_order.refit_cargo = CARGO_AUTO_REFIT; break;
+				}
+			}
 
 			if (_cargo_count != 0 && IsCompanyBuildableVehicleType(v) && CargoPacket::CanAllocateItem()) {
 				/* Don't construct the packet with station here, because that'll fail with old savegames */

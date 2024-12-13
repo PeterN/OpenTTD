@@ -320,7 +320,8 @@ public:
 class SlCompanyEconomyDeliveredCargo : public VectorSaveLoadHandler<SlCompanyEconomyDeliveredCargo, CompanyEconomyEntry, CargoArray::ElementType> {
 public:
 	inline static const SaveLoad description[] = {
-		SLE_VAR(CargoArray::ElementType, first, SLE_UINT8),
+		SLE_CONDVAR(CargoArray::ElementType, first, SLE_FILE_U8 | SLE_VAR_U16, SL_MIN_VERSION, SLV_EXTEND_CARGOTYPES_MORE),
+		SLE_CONDVAR(CargoArray::ElementType, first, SLE_UINT16, SLV_EXTEND_CARGOTYPES_MORE, SL_MAX_VERSION),
 		SLE_VAR(CargoArray::ElementType, second, SLE_UINT32),
 	};
 	inline const static SaveLoadCompatTable compat_description = {};

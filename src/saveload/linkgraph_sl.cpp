@@ -138,7 +138,8 @@ SaveLoadTable GetLinkGraphDesc()
 	static const SaveLoad link_graph_desc[] = {
 		 SLE_VAR(LinkGraph, last_compression, SLE_INT32),
 		SLEG_CONDVAR("num_nodes", _num_nodes, SLE_UINT16, SL_MIN_VERSION, SLV_SAVELOAD_LIST_LENGTH),
-		 SLE_VAR(LinkGraph, cargo,            SLE_UINT8),
+		 SLE_CONDVAR(LinkGraph, cargo,            SLE_FILE_U8 | SLE_VAR_U16, SL_MIN_VERSION, SLV_EXTEND_CARGOTYPES_MORE),
+		 SLE_CONDVAR(LinkGraph, cargo,            SLE_UINT16, SLV_EXTEND_CARGOTYPES_MORE, SL_MAX_VERSION),
 		SLEG_STRUCTLIST("nodes", SlLinkgraphNode),
 	};
 	return link_graph_desc;

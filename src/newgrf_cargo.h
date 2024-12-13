@@ -20,9 +20,9 @@
  * e.g. in purchase lists, or if no specific cargo type sprite group is supplied.
  */
 namespace SpriteGroupCargo {
-	static constexpr CargoID SG_DEFAULT    = NUM_CARGO;     ///< Default type used when no more-specific cargo matches.
-	static constexpr CargoID SG_PURCHASE   = NUM_CARGO + 1; ///< Used in purchase lists before an item exists.
-	static constexpr CargoID SG_DEFAULT_NA = NUM_CARGO + 2; ///< Used only by stations and roads when no more-specific cargo matches.
+	static constexpr CargoID SG_DEFAULT    = MAX_CARGO;     ///< Default type used when no more-specific cargo matches.
+	static constexpr CargoID SG_PURCHASE   = MAX_CARGO + 1; ///< Used in purchase lists before an item exists.
+	static constexpr CargoID SG_DEFAULT_NA = MAX_CARGO + 2; ///< Used only by stations and roads when no more-specific cargo matches.
 };
 
 /* Forward declarations of structs used */

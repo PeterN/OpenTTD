@@ -354,7 +354,7 @@ static std::vector<GRFTempEngineData> _gted;  ///< Temporary engine data used du
 static uint32_t _grm_engines[256];
 
 /** Contains the GRF ID of the owner of a cargo if it has been reserved */
-static uint32_t _grm_cargoes[NUM_CARGO * 2];
+static uint32_t _grm_cargoes[32];
 
 struct GRFLocation {
 	uint32_t grfid;
@@ -3052,8 +3052,8 @@ static ChangeInfoResult CargoChangeInfo(uint cid, int numinfo, int prop, ByteRea
 {
 	ChangeInfoResult ret = CIR_SUCCESS;
 
-	if (cid + numinfo > NUM_CARGO) {
-		GrfMsg(2, "CargoChangeInfo: Cargo type {} out of range (max {})", cid + numinfo, NUM_CARGO - 1);
+	if (cid + numinfo > MAX_CARGO) {
+		GrfMsg(2, "CargoChangeInfo: Cargo type {} out of range (max {})", cid + numinfo, MAX_CARGO - 1);
 		return CIR_INVALID_ID;
 	}
 
@@ -5919,7 +5919,7 @@ static void CargoMapSpriteGroup(ByteReader &buf, uint8_t idcount)
 	if (!IsValidGroupID(groupid, "CargoMapSpriteGroup")) return;
 
 	for (auto &cid : cargoes) {
-		if (cid >= NUM_CARGO) {
+		if (cid >= MAX_CARGO) {
 			GrfMsg(1, "CargoMapSpriteGroup: Cargo ID {} out of range, skipping", cid);
 			continue;
 		}
@@ -7572,7 +7572,7 @@ static void ParamSet(ByteReader &buf)
 
 						case 0x0B: // Cargo
 							/* There are two ranges: one for cargo IDs and one for cargo bitmasks */
-							src1 = PerformGRM(_grm_cargoes, NUM_CARGO * 2, count, op, target, "cargoes");
+							src1 = PerformGRM(_grm_cargoes, 32 * 2, count, op, target, "cargoes");
 							if (_cur.skip_sprites == -1) return;
 							break;
 

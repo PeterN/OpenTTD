@@ -397,6 +397,8 @@ enum SaveLoadVersion : uint16_t {
 	SLV_INCREASE_HOUSE_LIMIT,               ///< 348  PR#12288 Increase house limit to 4096.
 	SLV_VARIABLE_CARGO_ARRAY,               ///< 349  PR#..... Variable length cargo arrays.
 
+	SLV_EXTEND_CARGOTYPES_MORE,             ///< 350  PR#..... More cargotypes
+
 	SL_MAX_VERSION,                         ///< Highest possible saveload version
 };
 

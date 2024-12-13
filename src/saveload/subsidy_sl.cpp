@@ -17,7 +17,8 @@
 #include "../safeguards.h"
 
 static const SaveLoad _subsidies_desc[] = {
-	    SLE_VAR(Subsidy, cargo_type, SLE_UINT8),
+	SLE_CONDVAR(Subsidy, cargo_type, SLE_FILE_U8 | SLE_VAR_U16, SL_MIN_VERSION, SLV_EXTEND_CARGOTYPES_MORE),
+	SLE_CONDVAR(Subsidy, cargo_type, SLE_UINT16, SLV_EXTEND_CARGOTYPES_MORE, SL_MAX_VERSION),
 	SLE_CONDVAR(Subsidy, remaining,  SLE_FILE_U8 | SLE_VAR_U16, SL_MIN_VERSION, SLV_CUSTOM_SUBSIDY_DURATION),
 	SLE_CONDVAR(Subsidy, remaining,  SLE_UINT16,                SLV_CUSTOM_SUBSIDY_DURATION, SL_MAX_VERSION),
 	SLE_CONDVAR(Subsidy, awarded,    SLE_UINT8,                                     SLV_125, SL_MAX_VERSION),
@@ -46,10 +47,12 @@ struct SUBSChunkHandler : ChunkHandler {
 	{
 		const std::vector<SaveLoad> slt = SlCompatTableHeader(_subsidies_desc, _subsidies_sl_compat);
 
+		bool convert_cargo = IsSavegameVersionBefore(SLV_EXTEND_CARGOTYPES_MORE);
 		int index;
 		while ((index = SlIterateArray()) != -1) {
 			Subsidy *s = new (index) Subsidy();
 			SlObject(s, slt);
+			if (convert_cargo && s->cargo_type == 0xFF) s->cargo_type = INVALID_CARGO;
 		}
 	}
 };

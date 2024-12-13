@@ -22,7 +22,8 @@ static OldPersistentStorage _old_ind_persistent_storage;
 class SlIndustryAccepted : public VectorSaveLoadHandler<SlIndustryAccepted, Industry, Industry::AcceptedCargo, INDUSTRY_NUM_INPUTS> {
 public:
 	inline static const SaveLoad description[] = {
-		 SLE_VAR(Industry::AcceptedCargo, cargo, SLE_UINT8),
+		 SLE_CONDVAR(Industry::AcceptedCargo, cargo, SLE_FILE_U8 | SLE_VAR_U16, SL_MIN_VERSION, SLV_EXTEND_CARGOTYPES_MORE),
+		 SLE_CONDVAR(Industry::AcceptedCargo, cargo, SLE_UINT16, SLV_EXTEND_CARGOTYPES_MORE, SL_MAX_VERSION),
 		 SLE_VAR(Industry::AcceptedCargo, waiting, SLE_UINT16),
 		 SLE_VAR(Industry::AcceptedCargo, last_accepted, SLE_INT32),
 	};
@@ -80,7 +81,8 @@ public:
 class SlIndustryProduced : public VectorSaveLoadHandler<SlIndustryProduced, Industry, Industry::ProducedCargo, INDUSTRY_NUM_OUTPUTS> {
 public:
 	inline static const SaveLoad description[] = {
-		 SLE_VAR(Industry::ProducedCargo, cargo, SLE_UINT8),
+		 SLE_CONDVAR(Industry::ProducedCargo, cargo, SLE_FILE_U8 | SLE_VAR_U16, SL_MIN_VERSION, SLV_EXTEND_CARGOTYPES_MORE),
+		 SLE_CONDVAR(Industry::ProducedCargo, cargo, SLE_UINT16, SLV_EXTEND_CARGOTYPES_MORE, SL_MAX_VERSION),
 		 SLE_VAR(Industry::ProducedCargo, waiting, SLE_UINT16),
 		 SLE_VAR(Industry::ProducedCargo, rate, SLE_UINT8),
 		SLEG_STRUCTLIST("history", SlIndustryProducedHistory),
@@ -207,6 +209,7 @@ struct INDYChunkHandler : ChunkHandler {
 	{
 		const std::vector<SaveLoad> slt = SlCompatTableHeader(_industry_desc, _industry_sl_compat);
 
+		bool convert_cargo = IsSavegameVersionBefore(SLV_EXTEND_CARGOTYPES_MORE);
 		int index;
 
 		SlIndustryAccepted::ResetOldStructure();
@@ -228,6 +231,12 @@ struct INDYChunkHandler : ChunkHandler {
 			} else if (IsSavegameVersionBefore(SLV_INDUSTRY_CARGO_REORGANISE)) {
 				LoadMoveAcceptsProduced(i, INDUSTRY_NUM_INPUTS, INDUSTRY_NUM_OUTPUTS);
 			}
+
+			if (convert_cargo) {
+				for (auto &a : i->accepted) if (a.cargo == 0xFF) a.cargo = INVALID_CARGO;
+				for (auto &p : i->produced) if (p.cargo == 0xFF) p.cargo = INVALID_CARGO;
+			}
+
 			Industry::industries[i->type].push_back(i->index); // Assume savegame indices are sorted.
 		}
 	}

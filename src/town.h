@@ -76,7 +76,7 @@ struct Town : TownPool::PoolItem<&_town_pool> {
 	uint8_t exclusive_counter;       ///< months till the exclusivity expires
 	int16_t ratings[MAX_COMPANIES];  ///< ratings of each company for this town
 
-	TransportedCargoStat<uint32_t> supplied[NUM_CARGO]; ///< Cargo statistics about supplied cargo.
+	TransportedCargoStat<uint32_t> supplied[MAX_CARGO]; ///< Cargo statistics about supplied cargo.
 	TransportedCargoStat<uint16_t> received[NUM_TAE]; ///< Cargo statistics about received cargotypes.
 	uint32_t goal[NUM_TAE]; ///< Amount of cargo required for the town to grow.
 

@@ -64,6 +64,7 @@
 #include "../timer/timer_game_economy.h"
 #include "../timer/timer_game_tick.h"
 
+#include "saveload/saveload.h"
 #include "saveload_internal.h"
 
 #include <signal.h>
@@ -3323,6 +3324,17 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_COMPANY_INAUGURATED_PERIOD)) {
 		for (Company *c : Company::Iterate()) {
 			c->inaugurated_year_calendar = _settings_game.game_creation.starting_year;
+		}
+	}
+
+	if (IsSavegameVersionBefore(SLV_EXTEND_CARGOTYPES_MORE)) {
+		for (Order *order : Order::Iterate()) {
+			switch (order->GetRefitCargo()) {
+				case 0xFF: order->SetRefit(INVALID_CARGO); break;
+				case 0xFE: order->SetRefit(CARGO_NO_REFIT); break;
+				case 0xFD: order->SetRefit(CARGO_AUTO_REFIT); break;
+				break;
+			}
 		}
 	}
 

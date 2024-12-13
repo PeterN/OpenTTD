@@ -39,12 +39,12 @@ extern CargoMonitorMap _cargo_deliveries;
 constexpr uint8_t CCB_TOWN_IND_NUMBER_START = 0; ///< Start bit of the town or industry number.
 constexpr uint8_t CCB_TOWN_IND_NUMBER_LENGTH = 16; ///< Number of bits of the town or industry number.
 constexpr uint8_t CCB_IS_INDUSTRY_BIT = 16; ///< Bit indicating the town/industry number is an industry.
-constexpr uint8_t CCB_CARGO_TYPE_START = 20; ///< Start bit of the cargo type field.
-constexpr uint8_t CCB_CARGO_TYPE_LENGTH = 8; ///< Number of bits of the cargo type field.
+constexpr uint8_t CCB_CARGO_TYPE_START = 17; ///< Start bit of the cargo type field.
+constexpr uint8_t CCB_CARGO_TYPE_LENGTH = 11; ///< Number of bits of the cargo type field.
 constexpr uint8_t CCB_COMPANY_START = 28; ///< Start bit of the company field.
 constexpr uint8_t CCB_COMPANY_LENGTH = 4; ///< Number of bits of the company field.
 
-static_assert(NUM_CARGO     <= (1 << CCB_CARGO_TYPE_LENGTH));
+static_assert(MAX_CARGO     <= (1 << CCB_CARGO_TYPE_LENGTH));
 static_assert(MAX_COMPANIES <= (1 << CCB_COMPANY_LENGTH));
 
 

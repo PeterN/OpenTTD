@@ -517,7 +517,7 @@ std::tuple<CommandCost, uint, uint16_t, CargoArray> CmdRefitVehicle(DoCommandFla
 	if (front->vehstatus & VS_CRASHED) return { CommandCost(STR_ERROR_VEHICLE_IS_DESTROYED), 0, 0, {} };
 
 	/* Check cargo */
-	if (new_cid >= NUM_CARGO) return { CMD_ERROR, 0, 0, {} };
+	if (new_cid >= CargoSpec::Count()) return { CMD_ERROR, 0, 0, {} };
 
 	/* For ships and aircraft there is always only one. */
 	only_this |= front->type == VEH_SHIP || front->type == VEH_AIRCRAFT;

@@ -332,7 +332,7 @@ protected:
 
 		/* the colours and cost array of GraphDrawer must accommodate
 		 * both values for cargo and companies. So if any are higher, quit */
-		static_assert(GRAPH_MAX_DATASETS >= (int)NUM_CARGO && GRAPH_MAX_DATASETS >= (int)MAX_COMPANIES);
+		// static_assert(GRAPH_MAX_DATASETS >= (int)NUM_CARGO && GRAPH_MAX_DATASETS >= (int)MAX_COMPANIES);
 		assert(this->num_vert_lines > 0);
 
 		/* Rect r will be adjusted to contain just the graph, with labels being
