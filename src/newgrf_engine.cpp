@@ -53,12 +53,11 @@ const SpriteGroup *GetWagonOverrideSpriteSet(EngineID engine, CargoID cargo, Eng
 void SetCustomEngineSprites(EngineID engine, uint8_t cargo, const SpriteGroup *group)
 {
 	Engine *e = Engine::Get(engine);
-	assert(cargo < std::size(e->grf_prop.spritegroup));
 
-	if (e->grf_prop.spritegroup[cargo] != nullptr) {
+	if (e->grf_prop.GetSpriteGroup(cargo) != nullptr) {
 		GrfMsg(6, "SetCustomEngineSprites: engine {} cargo {} already has group -- replacing", engine, cargo);
 	}
-	e->grf_prop.spritegroup[cargo] = group;
+	e->grf_prop.SetSpriteGroup(cargo, group);
 }
 
 
@@ -1063,8 +1062,9 @@ VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle
 		if (this->root_spritegroup == nullptr) {
 			const Engine *e = Engine::Get(engine_type);
 			CargoID cargo = v != nullptr ? v->cargo_type : SpriteGroupCargo::SG_PURCHASE;
-			assert(cargo < std::size(e->grf_prop.spritegroup));
-			this->root_spritegroup = e->grf_prop.spritegroup[cargo] != nullptr ? e->grf_prop.spritegroup[cargo] : e->grf_prop.spritegroup[SpriteGroupCargo::SG_DEFAULT];
+
+			this->root_spritegroup = e->grf_prop.GetSpriteGroup(cargo);
+			if (this->root_spritegroup == nullptr) e->grf_prop.GetSpriteGroup(SpriteGroupCargo::SG_DEFAULT);
 		}
 	}
 }
