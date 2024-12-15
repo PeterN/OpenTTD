@@ -15,11 +15,11 @@
 #include "station_type.h"
 #include "industry_type.h"
 
-void AddNewsItem(StringID string, NewsType type, NewsFlag flags, NewsReferenceType reftype1 = NR_NONE, uint32_t ref1 = UINT32_MAX, NewsReferenceType reftype2 = NR_NONE, uint32_t ref2 = UINT32_MAX, std::unique_ptr<NewsAllocatedData> &&data = nullptr, AdviceType advice_type = AdviceType::Invalid);
+void AddNewsItem(EncodedString &&headline, NewsType type, NewsFlag flags, NewsReferenceType reftype1 = NR_NONE, uint32_t ref1 = UINT32_MAX, NewsReferenceType reftype2 = NR_NONE, uint32_t ref2 = UINT32_MAX, std::unique_ptr<NewsAllocatedData> &&data = nullptr, AdviceType advice_type = AdviceType::Invalid);
 
-inline void AddCompanyNewsItem(StringID string, std::unique_ptr<CompanyNewsInformation> cni)
+inline void AddCompanyNewsItem(EncodedString &&headline, std::unique_ptr<CompanyNewsInformation> cni)
 {
-	AddNewsItem(string, NT_COMPANY_INFO, NF_COMPANY, NR_NONE, UINT32_MAX, NR_NONE, UINT32_MAX, std::move(cni));
+	AddNewsItem(std::move(headline), NT_COMPANY_INFO, NF_COMPANY, NR_NONE, UINT32_MAX, NR_NONE, UINT32_MAX, std::move(cni));
 }
 
 /**
@@ -27,9 +27,9 @@ inline void AddCompanyNewsItem(StringID string, std::unique_ptr<CompanyNewsInfor
  *
  * @warning The DParams may not reference the vehicle due to autoreplace stuff. See AddVehicleAdviceNewsItem for how that can be done.
  */
-inline void AddVehicleNewsItem(StringID string, NewsType type, VehicleID vehicle, StationID station = INVALID_STATION)
+inline void AddVehicleNewsItem(EncodedString &&headline, NewsType type, VehicleID vehicle, StationID station = INVALID_STATION)
 {
-	AddNewsItem(string, type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_VEHICLE, vehicle, station == INVALID_STATION ? NR_NONE : NR_STATION, station);
+	AddNewsItem(std::move(headline), type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_VEHICLE, vehicle, station == INVALID_STATION ? NR_NONE : NR_STATION, station);
 }
 
 /**
@@ -37,19 +37,19 @@ inline void AddVehicleNewsItem(StringID string, NewsType type, VehicleID vehicle
  *
  * @warning DParam 0 must reference the vehicle!
  */
-inline void AddVehicleAdviceNewsItem(AdviceType advice_type, StringID string, VehicleID vehicle)
+inline void AddVehicleAdviceNewsItem(AdviceType advice_type, EncodedString &&headline, VehicleID vehicle)
 {
-	AddNewsItem(string, NT_ADVICE, NF_INCOLOUR | NF_SMALL | NF_VEHICLE_PARAM0, NR_VEHICLE, vehicle, NR_NONE, {}, nullptr, advice_type);
+	AddNewsItem(std::move(headline), NT_ADVICE, NF_INCOLOUR | NF_SMALL | NF_VEHICLE_PARAM0, NR_VEHICLE, vehicle, NR_NONE, {}, nullptr, advice_type);
 }
 
-inline void AddTileNewsItem(StringID string, NewsType type, TileIndex tile, std::unique_ptr<NewsAllocatedData> &&data = nullptr, StationID station = INVALID_STATION)
+inline void AddTileNewsItem(EncodedString &&headline, NewsType type, TileIndex tile, std::unique_ptr<NewsAllocatedData> &&data = nullptr, StationID station = INVALID_STATION)
 {
-	AddNewsItem(string, type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_TILE, tile.base(), station == INVALID_STATION ? NR_NONE : NR_STATION, station, std::move(data));
+	AddNewsItem(std::move(headline), type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_TILE, tile.base(), station == INVALID_STATION ? NR_NONE : NR_STATION, station, std::move(data));
 }
 
-inline void AddIndustryNewsItem(StringID string, NewsType type, IndustryID industry, std::unique_ptr<NewsAllocatedData> &&data = nullptr)
+inline void AddIndustryNewsItem(EncodedString &&headline, NewsType type, IndustryID industry, std::unique_ptr<NewsAllocatedData> &&data = nullptr)
 {
-	AddNewsItem(string, type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_INDUSTRY, industry, NR_NONE, UINT32_MAX, std::move(data));
+	AddNewsItem(std::move(headline), type, NF_NO_TRANSPARENT | NF_SHADE | NF_THIN, NR_INDUSTRY, industry, NR_NONE, UINT32_MAX, std::move(data));
 }
 
 void NewsLoop();

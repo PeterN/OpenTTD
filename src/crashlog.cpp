@@ -58,8 +58,8 @@ static void SurveyRecentNews(nlohmann::json &json)
 	int i = 0;
 	for (const auto &news : GetNews()) {
 		TimerGameCalendar::YearMonthDay ymd = TimerGameCalendar::ConvertDateToYMD(news.date);
-		json.push_back(fmt::format("({}-{:02}-{:02}) StringID: {}, Type: {}, Ref1: {}, {}, Ref2: {}, {}",
-		               ymd.year, ymd.month + 1, ymd.day, news.string_id, news.type,
+		json.push_back(fmt::format("({}-{:02}-{:02}) String: {}, Type: {}, Ref1: {}, {}, Ref2: {}, {}",
+		               ymd.year, ymd.month + 1, ymd.day, news.GetStatusText(), news.type,
 		               news.reftype1, news.ref1, news.reftype2, news.ref2));
 		if (++i > 32) break;
 	}

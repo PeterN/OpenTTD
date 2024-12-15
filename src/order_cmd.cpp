@@ -1767,8 +1767,7 @@ void CheckOrders(const Vehicle *v)
 		/* We don't have a problem */
 		if (message == INVALID_STRING_ID) return;
 
-		SetDParam(0, v->index);
-		AddVehicleAdviceNewsItem(AdviceType::Order, message, v->index);
+		AddVehicleAdviceNewsItem(AdviceType::Order, GetEncodedString(message, v->index), v->index);
 	}
 }
 
