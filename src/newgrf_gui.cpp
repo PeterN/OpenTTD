@@ -392,7 +392,7 @@ struct NewGRFParametersWindow : public Window {
 
 							DropDownList list;
 							for (uint32_t i = par_info.min_value; i <= par_info.max_value; i++) {
-								list.push_back(MakeDropDownListStringItem(GetGRFStringFromGRFText(par_info.value_names.find(i)->second), i));
+								list.push_back(MakeDropDownListStringItem(GetString(STR_JUST_RAW_STRING, GetGRFStringFromGRFText(par_info.value_names.find(i)->second)), i));
 							}
 
 							ShowDropDownListAt(this, std::move(list), old_val, WID_NP_SETTING_DROPDOWN, wi_rect, COLOUR_ORANGE);
@@ -952,7 +952,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 				list.push_back(MakeDropDownListStringItem(STR_NONE, -1));
 
 				for (uint i = 0; i < this->grf_presets.size(); i++) {
-					list.push_back(MakeDropDownListStringItem(this->grf_presets[i], i));
+					list.push_back(MakeDropDownListStringItem(GetString(STR_JUST_RAW_STRING, this->grf_presets[i]), i));
 				}
 
 				this->CloseChildWindows(WC_QUERY_STRING); // Remove the parameter query window
