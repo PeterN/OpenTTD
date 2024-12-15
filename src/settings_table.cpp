@@ -20,6 +20,7 @@
 #include "pathfinder/aystar.h"
 #include "linkgraph/linkgraphschedule.h"
 #include "genworld.h"
+#include "strings_func.h"
 #include "train.h"
 #include "news_func.h"
 #include "window_func.h"
@@ -96,29 +97,28 @@ static StringID SettingHelpWallclock(const IntSettingDesc &sd)
 }
 
 /** Setting values for velocity unit localisation */
-static void SettingsValueVelocityUnit(const IntSettingDesc &, uint first_param, int32_t value)
+static std::string SettingsValueVelocityUnit(const IntSettingDesc &, int32_t value)
 {
-	StringID val;
+	StringID str;
 	switch (value) {
-		case 0: val = STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_IMPERIAL; break;
-		case 1: val = STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_METRIC; break;
-		case 2: val = STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_SI; break;
-		case 3: val = TimerGameEconomy::UsingWallclockUnits(_game_mode == GM_MENU) ? STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_GAMEUNITS_SECS : STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_GAMEUNITS_DAYS; break;
-		case 4: val = STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_KNOTS; break;
+		case 0: str = STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_IMPERIAL; break;
+		case 1: str = STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_METRIC; break;
+		case 2: str = STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_SI; break;
+		case 3: str = TimerGameEconomy::UsingWallclockUnits(_game_mode == GM_MENU) ? STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_GAMEUNITS_SECS : STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_GAMEUNITS_DAYS; break;
+		case 4: str = STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_KNOTS; break;
 		default: NOT_REACHED();
 	}
-	SetDParam(first_param, val);
+	return GetString(str);
 }
 
 /** A negative value has another string (the one after "strval"). */
-static void SettingsValueAbsolute(const IntSettingDesc &sd, uint first_param, int32_t value)
+static std::string SettingsValueAbsolute(const IntSettingDesc &sd, int32_t value)
 {
-	SetDParam(first_param, sd.str_val + ((value >= 0) ? 1 : 0));
-	SetDParam(first_param + 1, abs(value));
+	return GetString(sd.str_val + ((value >= 0) ? 1 : 0), abs(value));
 }
 
 /** Service Interval Settings Default Value displays the correct units or as a percentage */
-static void ServiceIntervalSettingsValueText(const IntSettingDesc &sd, uint first_param, int32_t value)
+static std::string ServiceIntervalSettingsValueText(const IntSettingDesc &sd, int32_t value)
 {
 	VehicleDefaultSettings *vds;
 	if (_game_mode == GM_MENU || !Company::IsValidID(_current_company)) {
@@ -127,16 +127,17 @@ static void ServiceIntervalSettingsValueText(const IntSettingDesc &sd, uint firs
 		vds = &Company::Get(_current_company)->settings.vehicle;
 	}
 
+	StringID str;
 	if (value == 0) {
-		SetDParam(first_param, sd.str_val + 3);
+		str = sd.str_val + 3;
 	} else if (vds->servint_ispercent) {
-		SetDParam(first_param, sd.str_val + 2);
+		str = sd.str_val + 2;
 	} else if (TimerGameEconomy::UsingWallclockUnits(_game_mode == GM_MENU)) {
-		SetDParam(first_param, sd.str_val + 1);
+		str = sd.str_val + 1;
 	} else {
-		SetDParam(first_param, sd.str_val);
+		str = sd.str_val;
 	}
-	SetDParam(first_param + 1, value);
+	return GetString(str, value);
 }
 
 /** Reposition the main toolbar as the setting changed. */

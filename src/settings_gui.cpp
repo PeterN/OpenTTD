@@ -1612,9 +1612,8 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 		DrawArrowButtons(buttons_left, button_y, COLOUR_YELLOW, state,
 				editable && value != (sd->flags & SF_GUI_0_IS_SPECIAL ? 0 : min_val), editable && static_cast<uint32_t>(value) != max_val);
 	}
-	SetDParam(0, STR_CONFIG_SETTING_VALUE);
-	sd->SetValueDParams(1, value);
-	DrawString(text_left, text_right, y + (SETTING_HEIGHT - GetCharacterHeight(FS_NORMAL)) / 2, sd->GetTitle(), highlight ? TC_WHITE : TC_LIGHT_BLUE);
+
+	DrawString(text_left, text_right, y + (SETTING_HEIGHT - GetCharacterHeight(FS_NORMAL)) / 2, GetString(sd->GetTitle(), STR_CONFIG_SETTING_VALUE, sd->GetValueString(value)), highlight ? TC_WHITE : TC_LIGHT_BLUE);
 }
 
 /* == SettingsContainer methods == */
@@ -2489,8 +2488,7 @@ struct GameSettingsWindow : Window {
 					DrawString(tr, GetString(STR_CONFIG_SETTING_TYPE, str));
 					tr.top += GetCharacterHeight(FS_NORMAL);
 
-					sd->SetValueDParams(0, sd->GetDefaultValue());
-					DrawString(tr, STR_CONFIG_SETTING_DEFAULT_VALUE);
+					DrawString(tr, GetString(STR_CONFIG_SETTING_DEFAULT_VALUE, sd->GetValueString(sd->GetDefaultValue())));
 					tr.top += GetCharacterHeight(FS_NORMAL) + WidgetDimensions::scaled.vsep_normal;
 
 					DrawStringMultiLine(tr, sd->GetHelp(), TC_WHITE);
@@ -2621,8 +2619,7 @@ struct GameSettingsWindow : Window {
 
 					DropDownList list;
 					for (int32_t i = min_val; i <= static_cast<int32_t>(max_val); i++) {
-						sd->SetValueDParams(0, i);
-						list.push_back(MakeDropDownListStringItem(STR_JUST_STRING2, i));
+						list.push_back(MakeDropDownListStringItem(sd->GetValueString(i), i));
 					}
 
 					ShowDropDownListAt(this, std::move(list), value, WID_GS_SETTING_DROPDOWN, wi_rect, COLOUR_ORANGE);

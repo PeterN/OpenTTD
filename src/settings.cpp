@@ -455,20 +455,17 @@ StringID IntSettingDesc::GetHelp() const
  * @param first_param First DParam to use
  * @param value Setting value to set params for.
  */
-void IntSettingDesc::SetValueDParams(uint first_param, int32_t value) const
+std::string IntSettingDesc::GetValueString(int32_t value) const
 {
 	auto [min_val, _] = this->GetRange();
-	if (this->set_value_dparams_cb != nullptr) {
-		this->set_value_dparams_cb(*this, first_param, value);
+	if (this->get_value_string_cb != nullptr) {
+		return this->get_value_string_cb(*this, value);
 	} else if (this->IsBoolSetting()) {
-		SetDParam(first_param++, value != 0 ? STR_CONFIG_SETTING_ON : STR_CONFIG_SETTING_OFF);
+		return GetString(value != 0 ? STR_CONFIG_SETTING_ON : STR_CONFIG_SETTING_OFF);
+	} else if ((this->flags & SF_GUI_DROPDOWN) != 0) {
+		return GetString(this->str_val - min_val + value, value);
 	} else {
-		if ((this->flags & SF_GUI_DROPDOWN) != 0) {
-			SetDParam(first_param++, this->str_val - min_val + value);
-		} else {
-			SetDParam(first_param++, this->str_val + ((value == 0 && (this->flags & SF_GUI_0_IS_SPECIAL) != 0) ? 1 : 0));
-		}
-		SetDParam(first_param++, value);
+		return GetString(this->str_val + ((value == 0 && (this->flags & SF_GUI_0_IS_SPECIAL) != 0) ? 1 : 0), value);
 	}
 }
 
