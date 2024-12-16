@@ -1042,7 +1042,7 @@ uint ConvertDisplaySpeedToKmhishSpeed(uint speed, VehicleType type)
  */
 static const char *DecodeEncodedString(const char *str, bool game_script, StringBuilder &builder)
 {
-	ArrayStringParameters<20> sub_args;
+	std::vector<StringParameter> sub_args;
 
 	char *p;
 	StringIndexInTab id(std::strtoul(str, &p, 16));
@@ -1057,8 +1057,7 @@ static const char *DecodeEncodedString(const char *str, bool game_script, String
 		return p;
 	}
 
-	int i = 0;
-	while (*p != '\0' && i < 20) {
+	while (*p != '\0') {
 		uint64_t param;
 		const char *s = ++p;
 
@@ -1089,7 +1088,7 @@ static const char *DecodeEncodedString(const char *str, bool game_script, String
 		}
 
 		if (s == p) {
-			sub_args.SetParam(i++, std::monostate{});
+			sub_args.emplace_back(std::monostate{});
 		} else if (*s != '"') {
 			/* Check if we want to look up another string */
 			char32_t l;
@@ -1108,10 +1107,10 @@ static const char *DecodeEncodedString(const char *str, bool game_script, String
 				param = MakeStringID(TEXT_TAB_GAMESCRIPT_START, StringIndexInTab(param));
 			}
 
-			sub_args.SetParam(i++, param);
+			sub_args.emplace_back(param);
 		} else {
 			s++; // skip the leading \"
-			sub_args.SetParam(i++, std::string(s, p - s - 1)); // also skip the trailing \".
+			sub_args.emplace_back(std::string(s, p - s - 1)); // also skip the trailing \".
 		}
 	}
 
