@@ -18,6 +18,7 @@
 #include "company_func.h"
 #include "vehicle_gui.h"
 #include "newgrf_badge.h"
+#include "newgrf_badge_config.h"
 #include "newgrf_engine.h"
 #include "newgrf_text.h"
 #include "group.h"
@@ -73,8 +74,11 @@ static constexpr NWidgetPart _nested_build_vehicle_widgets[] = {
 			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BV_SHOW_HIDDEN_ENGINES),
 			NWidget(WWT_DROPDOWN, COLOUR_GREY, WID_BV_CARGO_FILTER_DROPDOWN), SetResize(1, 0), SetFill(1, 0), SetStringTip(STR_JUST_STRING, STR_TOOLTIP_FILTER_CRITERIA),
 		EndContainer(),
-		NWidget(WWT_PANEL, COLOUR_GREY),
-			NWidget(WWT_EDITBOX, COLOUR_GREY, WID_BV_FILTER), SetResize(1, 0), SetFill(1, 0), SetPadding(2), SetStringTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
+		NWidget(NWID_HORIZONTAL),
+			NWidget(WWT_PANEL, COLOUR_GREY),
+				NWidget(WWT_EDITBOX, COLOUR_GREY, WID_BV_FILTER), SetResize(1, 0), SetFill(1, 0), SetPadding(2), SetStringTip(STR_LIST_FILTER_OSKTITLE, STR_LIST_FILTER_TOOLTIP),
+			EndContainer(),
+			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BV_CONFIGURE_BADGES), SetResize(0, 0), SetFill(0, 1), SetStringTip(STR_JUST_STRING),
 		EndContainer(),
 	EndContainer(),
 	/* Vehicle list. */
@@ -1226,6 +1230,8 @@ struct BuildVehicleWindow : Window {
 	TestedEngineDetails te;                     ///< Tested cost and capacity after refit.
 	GUIBadgeClasses badge_classes;
 
+	static constexpr int BADGE_COLUMNS = 3; ///< Number of columns available for badges (0 = left of image, 1 = between image and name, 2 = after name)
+
 	StringFilter string_filter;                 ///< Filter for vehicle name
 	QueryString vehicle_editbox;                ///< Filter editbox
 
@@ -1246,6 +1252,7 @@ struct BuildVehicleWindow : Window {
 	void BuildBadgeClasses()
 	{
 		this->badge_classes = GUIBadgeClasses(static_cast<GrfSpecFeature>(GSF_TRAINS + this->vehicle_type));
+		this->SetWidgetDisabledState(WID_BV_CONFIGURE_BADGES, this->badge_classes.GetClasses().empty());
 	}
 
 	BuildVehicleWindow(WindowDesc &desc, TileIndex tile, VehicleType type) : Window(desc), vehicle_editbox(MAX_LENGTH_VEHICLE_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_VEHICLE_NAME_CHARS)
@@ -1260,11 +1267,10 @@ struct BuildVehicleWindow : Window {
 		this->descending_sort_order = _engine_sort_last_order[type];
 		this->show_hidden_engines   = _engine_sort_show_hidden_engines[type];
 
-		this->BuildBadgeClasses();
-
 		this->UpdateFilterByTile();
 
 		this->CreateNestedTree();
+		this->BuildBadgeClasses();
 
 		this->vscroll = this->GetScrollbar(WID_BV_SCROLLBAR);
 
@@ -1661,6 +1667,12 @@ struct BuildVehicleWindow : Window {
 		return list;
 	}
 
+	DropDownList BuildBadgeConfigurationList() const
+	{
+		static const auto separators = { STR_BADGE_CONFIG_PREVIEW, STR_BADGE_CONFIG_NAME };
+		return BuildBadgeClassConfigurationList(this->badge_classes, BADGE_COLUMNS, separators);
+	}
+
 	void BuildVehicle()
 	{
 		EngineID sel_eng = this->sel_engine;
@@ -1744,6 +1756,10 @@ struct BuildVehicleWindow : Window {
 				ShowDropDownList(this, this->BuildCargoDropDownList(), this->cargo_filter_criteria, widget);
 				break;
 
+			case WID_BV_CONFIGURE_BADGES:
+				ShowDropDownList(this, this->BuildBadgeConfigurationList(), -1, widget, 0, false, true);
+				break;
+
 			case WID_BV_SHOW_HIDE: {
 				const Engine *e = (this->sel_engine == INVALID_ENGINE) ? nullptr : Engine::Get(this->sel_engine);
 				if (e != nullptr) {
@@ -1818,6 +1834,10 @@ struct BuildVehicleWindow : Window {
 				}
 				break;
 			}
+
+			case WID_BV_CONFIGURE_BADGES:
+				SetDParam(0, STR_BADGES);
+				break;
 		}
 	}
 
@@ -1941,6 +1961,40 @@ struct BuildVehicleWindow : Window {
 					this->SelectEngine(this->sel_engine);
 				}
 				break;
+
+			case WID_BV_CONFIGURE_BADGES: {
+				if (index < 0) return;
+
+				GrfSpecFeature feature = static_cast<GrfSpecFeature>(GSF_TRAINS + this->vehicle_type);
+				if (index == INT_MAX) {
+					ResetBadgeClassConfiguration(feature);
+					this->BuildBadgeClasses();
+					this->SetDirty();
+
+					this->CloseChildWindows(WC_DROPDOWN_MENU);
+					return;
+				}
+
+				int w = NWidgetScrollbar::GetVerticalDimension().width;
+
+				extern Point _dropdown_hit;
+				if (_dropdown_hit.y - _dropdown_hit.x < w) {
+					/* Move down */
+					BadgeClassMoveNext(feature, BadgeClassID(index), BADGE_COLUMNS);
+				} else if (_dropdown_hit.y - _dropdown_hit.x < w * 2) {
+					/* Move up */
+					BadgeClassMovePrevious(feature, BadgeClassID(index));
+				} else {
+					/* Toggle */
+					BadgeClassToggleVisibility(feature, BadgeClassID(index));
+				}
+
+				this->BuildBadgeClasses();
+				this->SetDirty();
+
+				ReplaceDropDownList(this, this->BuildBadgeConfigurationList(), -1);
+				break;
+			}
 		}
 		this->SetDirty();
 	}
