@@ -2010,13 +2010,6 @@ bool AfterLoadGame()
 		}
 	}
 
-	/* Reserve all tracks trains are currently on. */
-	if (IsSavegameVersionBefore(SLV_101)) {
-		for (const Train *t : Train::Iterate()) {
-			if (t->First() == t) t->ReserveTrackUnderConsist();
-		}
-	}
-
 	if (IsSavegameVersionBefore(SLV_103)) {
 		/* Non-town-owned roads now store the closest town */
 		UpdateNearestTownForRoadTiles(false);
@@ -2624,6 +2617,13 @@ bool AfterLoadGame()
 					default: NOT_REACHED();
 				}
 			}
+		}
+	}
+
+	/* Reserve all tracks trains are currently on. */
+	if (IsSavegameVersionBefore(SLV_101)) {
+		for (const Train *t : Train::Iterate()) {
+			if (t->First() == t) t->ReserveTrackUnderConsist();
 		}
 	}
 
