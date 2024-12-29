@@ -442,9 +442,7 @@ public:
 	{
 		Station *st = Station::From(bst);
 
-		size_t num_cargo = IsSavegameVersionBefore(SLV_55) ? 12 : IsSavegameVersionBefore(SLV_EXTEND_CARGOTYPES) ? 32 : 64;
-		auto end = std::next(std::begin(st->goods), std::min(num_cargo, std::size(st->goods)));
-		for (auto it = std::begin(st->goods); it != end; ++it) {
+		for (auto it = std::begin(st->goods); it != std::end(st->goods); ++it) {
 			GoodsEntry &ge = *it;
 			if (IsSavegameVersionBefore(SLV_183)) {
 				SwapPackets(&ge); // We have to swap back again to be in the format pre-183 expects.
