@@ -891,6 +891,18 @@ enum class CargoSortType : uint8_t {
 	CargoID,       ///< by cargo id
 };
 
+/** StationID wrapper to ensure that type is unique. */
+struct StationIDTag {
+	StationID value;
+	constexpr StationIDTag(StationID station) : value(station) {}
+};
+
+/** CargoID wrapper to ensure that type is unique. */
+struct CargoIDTag {
+	CargoID value;
+	constexpr CargoIDTag(CargoID cargo) : value(cargo) {}
+};
+
 class CargoSorter {
 public:
 	CargoSorter(CargoSortType t = CargoSortType::StationID, SortOrder o = SO_ASCENDING) : type(t), order(o) {}
@@ -904,7 +916,7 @@ private:
 	template <class Tid>
 	bool SortId(Tid st1, Tid st2) const;
 	bool SortCount(const CargoDataEntry *cd1, const CargoDataEntry *cd2) const;
-	bool SortStation (StationID st1, StationID st2) const;
+	bool SortStation(StationIDTag st1, StationIDTag st2) const;
 };
 
 typedef std::set<CargoDataEntry *, CargoSorter> CargoDataSet;
@@ -924,9 +936,9 @@ public:
 	 * @param station ID of the station for which an entry shall be created or retrieved
 	 * @return a child entry associated with the given station.
 	 */
-	CargoDataEntry *InsertOrRetrieve(StationID station)
+	CargoDataEntry *InsertOrRetrieve(StationIDTag station)
 	{
-		return this->InsertOrRetrieve<StationID>(station);
+		return this->InsertOrRetrieve<StationIDTag>(station);
 	}
 
 	/**
@@ -934,9 +946,9 @@ public:
 	 * @param cargo ID of the cargo for which an entry shall be created or retrieved
 	 * @return a child entry associated with the given cargo.
 	 */
-	CargoDataEntry *InsertOrRetrieve(CargoID cargo)
+	CargoDataEntry *InsertOrRetrieve(CargoIDTag cargo)
 	{
-		return this->InsertOrRetrieve<CargoID>(cargo);
+		return this->InsertOrRetrieve<CargoIDTag>(cargo);
 	}
 
 	void Update(uint count);
@@ -945,7 +957,7 @@ public:
 	 * Remove a child associated with the given station.
 	 * @param station ID of the station for which the child should be removed.
 	 */
-	void Remove(StationID station)
+	void Remove(StationIDTag station)
 	{
 		CargoDataEntry t(station);
 		this->Remove(&t);
@@ -955,7 +967,7 @@ public:
 	 * Remove a child associated with the given cargo.
 	 * @param cargo ID of the cargo for which the child should be removed.
 	 */
-	void Remove(CargoID cargo)
+	void Remove(CargoIDTag cargo)
 	{
 		CargoDataEntry t(cargo);
 		this->Remove(&t);
@@ -966,7 +978,7 @@ public:
 	 * @param station ID of the station the child we're looking for is associated with.
 	 * @return a child entry for the given station or nullptr.
 	 */
-	CargoDataEntry *Retrieve(StationID station) const
+	CargoDataEntry *Retrieve(StationIDTag station) const
 	{
 		CargoDataEntry t(station);
 		return this->Retrieve(this->children->find(&t));
@@ -977,7 +989,7 @@ public:
 	 * @param cargo ID of the cargo the child we're looking for is associated with.
 	 * @return a child entry for the given cargo or nullptr.
 	 */
-	CargoDataEntry *Retrieve(CargoID cargo) const
+	CargoDataEntry *Retrieve(CargoIDTag cargo) const
 	{
 		CargoDataEntry t(cargo);
 		return this->Retrieve(this->children->find(&t));
@@ -988,12 +1000,12 @@ public:
 	/**
 	 * Get the station ID for this entry.
 	 */
-	StationID GetStation() const { return this->station; }
+	StationID GetStation() const { return this->station.value; }
 
 	/**
 	 * Get the cargo ID for this entry.
 	 */
-	CargoID GetCargo() const { return this->cargo; }
+	CargoID GetCargo() const { return this->cargo.value; }
 
 	/**
 	 * Get the cargo count for this entry.
@@ -1033,10 +1045,10 @@ public:
 	void Clear();
 private:
 
-	CargoDataEntry(StationID st, uint c, CargoDataEntry *p);
-	CargoDataEntry(CargoID car, uint c, CargoDataEntry *p);
-	CargoDataEntry(StationID st);
-	CargoDataEntry(CargoID car);
+	CargoDataEntry(StationIDTag st, uint c, CargoDataEntry *p);
+	CargoDataEntry(CargoIDTag car, uint c, CargoDataEntry *p);
+	CargoDataEntry(StationIDTag st);
+	CargoDataEntry(CargoIDTag car);
 
 	CargoDataEntry *Retrieve(CargoDataSet::iterator i) const;
 
@@ -1048,9 +1060,9 @@ private:
 
 	CargoDataEntry *parent;   ///< the parent of this entry.
 	const union {
-		StationID station;    ///< ID of the station this entry is associated with.
+		StationIDTag station;    ///< ID of the station this entry is associated with.
 		struct {
-			CargoID cargo;    ///< ID of the cargo this entry is associated with.
+			CargoIDTag cargo;    ///< ID of the cargo this entry is associated with.
 			bool transfers;   ///< If there are transfers for this cargo.
 		};
 	};
@@ -1067,7 +1079,7 @@ CargoDataEntry::CargoDataEntry() :
 	children(new CargoDataSet(CargoSorter(CargoSortType::CargoID)))
 {}
 
-CargoDataEntry::CargoDataEntry(CargoID cargo, uint count, CargoDataEntry *parent) :
+CargoDataEntry::CargoDataEntry(CargoIDTag cargo, uint count, CargoDataEntry *parent) :
 	parent(parent),
 	cargo(cargo),
 	num_children(0),
@@ -1075,7 +1087,7 @@ CargoDataEntry::CargoDataEntry(CargoID cargo, uint count, CargoDataEntry *parent
 	children(new CargoDataSet)
 {}
 
-CargoDataEntry::CargoDataEntry(StationID station, uint count, CargoDataEntry *parent) :
+CargoDataEntry::CargoDataEntry(StationIDTag station, uint count, CargoDataEntry *parent) :
 	parent(parent),
 	station(station),
 	num_children(0),
@@ -1083,7 +1095,7 @@ CargoDataEntry::CargoDataEntry(StationID station, uint count, CargoDataEntry *pa
 	children(new CargoDataSet)
 {}
 
-CargoDataEntry::CargoDataEntry(StationID station) :
+CargoDataEntry::CargoDataEntry(StationIDTag station) :
 	parent(nullptr),
 	station(station),
 	num_children(0),
@@ -1091,7 +1103,7 @@ CargoDataEntry::CargoDataEntry(StationID station) :
 	children(nullptr)
 {}
 
-CargoDataEntry::CargoDataEntry(CargoID cargo) :
+CargoDataEntry::CargoDataEntry(CargoIDTag cargo) :
 	parent(nullptr),
 	cargo(cargo),
 	num_children(0),
@@ -1199,9 +1211,9 @@ bool CargoSorter::operator()(const CargoDataEntry *cd1, const CargoDataEntry *cd
 {
 	switch (this->type) {
 		case CargoSortType::StationID:
-			return this->SortId<StationID>(cd1->GetStation(), cd2->GetStation());
+			return this->SortId<StationIDTag>(cd1->GetStation(), cd2->GetStation());
 		case CargoSortType::CargoID:
-			return this->SortId<CargoID>(cd1->GetCargo(), cd2->GetCargo());
+			return this->SortId<CargoIDTag>(cd1->GetCargo(), cd2->GetCargo());
 		case CargoSortType::Count:
 			return this->SortCount(cd1, cd2);
 		case CargoSortType::StationString:
@@ -1214,7 +1226,7 @@ bool CargoSorter::operator()(const CargoDataEntry *cd1, const CargoDataEntry *cd
 template <class Tid>
 bool CargoSorter::SortId(Tid st1, Tid st2) const
 {
-	return (this->order == SO_ASCENDING) ? st1 < st2 : st2 < st1;
+	return (this->order == SO_ASCENDING) ? st1.value < st2.value : st2.value < st1.value;
 }
 
 bool CargoSorter::SortCount(const CargoDataEntry *cd1, const CargoDataEntry *cd2) const
@@ -1230,15 +1242,15 @@ bool CargoSorter::SortCount(const CargoDataEntry *cd1, const CargoDataEntry *cd2
 	}
 }
 
-bool CargoSorter::SortStation(StationID st1, StationID st2) const
+bool CargoSorter::SortStation(const StationIDTag st1, const StationIDTag st2) const
 {
-	if (!Station::IsValidID(st1)) {
-		return Station::IsValidID(st2) ? this->order == SO_ASCENDING : this->SortId(st1, st2);
-	} else if (!Station::IsValidID(st2)) {
+	if (!Station::IsValidID(st1.value)) {
+		return Station::IsValidID(st2.value) ? this->order == SO_ASCENDING : this->SortId(st1, st2);
+	} else if (!Station::IsValidID(st2.value)) {
 		return order == SO_DESCENDING;
 	}
 
-	int res = StrNaturalCompare(Station::Get(st1)->GetCachedName(), Station::Get(st2)->GetCachedName()); // Sort by name (natural sorting).
+	int res = StrNaturalCompare(Station::Get(st1.value)->GetCachedName(), Station::Get(st2.value)->GetCachedName()); // Sort by name (natural sorting).
 	if (res == 0) {
 		return this->SortId(st1, st2);
 	} else {
@@ -1254,8 +1266,8 @@ struct StationViewWindow : public Window {
 	 * A row being displayed in the cargo view (as opposed to being "hidden" behind a plus sign).
 	 */
 	struct RowDisplay {
-		RowDisplay(CargoDataEntry *f, StationID n) : filter(f), next_station(n) {}
-		RowDisplay(CargoDataEntry *f, CargoID n) : filter(f), next_cargo(n) {}
+		RowDisplay(CargoDataEntry *f, StationIDTag n) : filter(f), next_station(n) {}
+		RowDisplay(CargoDataEntry *f, CargoIDTag n) : filter(f), next_cargo(n) {}
 
 		/**
 		 * Parent of the cargo entry belonging to the row.
@@ -1265,12 +1277,12 @@ struct StationViewWindow : public Window {
 			/**
 			 * ID of the station belonging to the entry actually displayed if it's to/from/via.
 			 */
-			StationID next_station;
+			StationIDTag next_station;
 
 			/**
 			 * ID of the cargo belonging to the entry actually displayed if it's cargo.
 			 */
-			CargoID next_cargo;
+			CargoIDTag next_cargo;
 		};
 	};
 
@@ -1400,26 +1412,26 @@ struct StationViewWindow : public Window {
 			switch (groupings[i]) {
 				case GR_CARGO:
 					assert(i == 0);
-					data = data->InsertOrRetrieve(cargo);
+					data = data->InsertOrRetrieve(CargoIDTag{cargo});
 					data->SetTransfers(source != this->window_number);
-					expand = expand->Retrieve(cargo);
+					expand = expand->Retrieve(CargoIDTag{cargo});
 					break;
 				case GR_SOURCE:
 					if (auto_distributed || source != this->window_number) {
-						data = data->InsertOrRetrieve(source);
-						expand = expand->Retrieve(source);
+						data = data->InsertOrRetrieve(StationIDTag{source});
+						expand = expand->Retrieve(StationIDTag{source});
 					}
 					break;
 				case GR_NEXT:
 					if (auto_distributed) {
-						data = data->InsertOrRetrieve(next);
-						expand = expand->Retrieve(next);
+						data = data->InsertOrRetrieve(StationIDTag{next});
+						expand = expand->Retrieve(StationIDTag{next});
 					}
 					break;
 				case GR_DESTINATION:
 					if (auto_distributed) {
-						data = data->InsertOrRetrieve(dest);
-						expand = expand->Retrieve(dest);
+						data = data->InsertOrRetrieve(StationIDTag{dest});
+						expand = expand->Retrieve(StationIDTag{dest});
 					}
 					break;
 			}
@@ -1528,20 +1540,20 @@ struct StationViewWindow : public Window {
 	void RecalcDestinations(CargoID i)
 	{
 		const Station *st = Station::Get(this->window_number);
-		CargoDataEntry *cargo_entry = cached_destinations.InsertOrRetrieve(i);
+		CargoDataEntry *cargo_entry = cached_destinations.InsertOrRetrieve(CargoIDTag{i});
 		cargo_entry->Clear();
 
 		if (!st->goods[i].HasData()) return;
 
 		for (const auto &it : st->goods[i].GetData().flows) {
 			StationID from = it.first;
-			CargoDataEntry *source_entry = cargo_entry->InsertOrRetrieve(from);
+			CargoDataEntry *source_entry = cargo_entry->InsertOrRetrieve(StationIDTag{from});
 			uint32_t prev_count = 0;
 			for (const auto &flow_it : *it.second.GetShares()) {
 				StationID via = flow_it.second;
-				CargoDataEntry *via_entry = source_entry->InsertOrRetrieve(via);
+				CargoDataEntry *via_entry = source_entry->InsertOrRetrieve(StationIDTag{via});
 				if (via == this->window_number) {
-					via_entry->InsertOrRetrieve(via)->Update(flow_it.first - prev_count);
+					via_entry->InsertOrRetrieve(StationIDTag{via})->Update(flow_it.first - prev_count);
 				} else {
 					EstimateDestinations(i, from, via, flow_it.first - prev_count, via_entry);
 				}
@@ -1572,13 +1584,13 @@ struct StationViewWindow : public Window {
 				const FlowStat::SharesMap *shares = map_it->second.GetShares();
 				uint32_t prev_count = 0;
 				for (FlowStat::SharesMap::const_iterator i = shares->begin(); i != shares->end(); ++i) {
-					tmp.InsertOrRetrieve(i->second)->Update(i->first - prev_count);
+					tmp.InsertOrRetrieve(StationIDTag{i->second})->Update(i->first - prev_count);
 					prev_count = i->first;
 				}
 			}
 
 			if (tmp.GetCount() == 0) {
-				dest->InsertOrRetrieve(INVALID_STATION)->Update(count);
+				dest->InsertOrRetrieve(StationIDTag{INVALID_STATION})->Update(count);
 			} else {
 				uint sum_estimated = 0;
 				while (sum_estimated < count) {
@@ -1595,7 +1607,7 @@ struct StationViewWindow : public Window {
 
 						if (estimate > 0) {
 							if (child->GetStation() == next) {
-								dest->InsertOrRetrieve(next)->Update(estimate);
+								dest->InsertOrRetrieve(StationIDTag{next})->Update(estimate);
 							} else {
 								EstimateDestinations(cargo, source, child->GetStation(), estimate, dest);
 							}
@@ -1605,7 +1617,7 @@ struct StationViewWindow : public Window {
 				}
 			}
 		} else {
-			dest->InsertOrRetrieve(INVALID_STATION)->Update(count);
+			dest->InsertOrRetrieve(StationIDTag{INVALID_STATION})->Update(count);
 		}
 	}
 
@@ -1617,13 +1629,13 @@ struct StationViewWindow : public Window {
 	 */
 	void BuildFlowList(CargoID i, const FlowStatMap &flows, CargoDataEntry *cargo)
 	{
-		const CargoDataEntry *source_dest = this->cached_destinations.Retrieve(i);
+		const CargoDataEntry *source_dest = this->cached_destinations.Retrieve(CargoIDTag{i});
 		for (FlowStatMap::const_iterator it = flows.begin(); it != flows.end(); ++it) {
 			StationID from = it->first;
-			const CargoDataEntry *source_entry = source_dest->Retrieve(from);
+			const CargoDataEntry *source_entry = source_dest->Retrieve(StationIDTag{from});
 			const FlowStat::SharesMap *shares = it->second.GetShares();
 			for (FlowStat::SharesMap::const_iterator flow_it = shares->begin(); flow_it != shares->end(); ++flow_it) {
-				const CargoDataEntry *via_entry = source_entry->Retrieve(flow_it->second);
+				const CargoDataEntry *via_entry = source_entry->Retrieve(StationIDTag{flow_it->second});
 				for (CargoDataSet::iterator dest_it = via_entry->Begin(); dest_it != via_entry->End(); ++dest_it) {
 					CargoDataEntry *dest_entry = *dest_it;
 					ShowCargo(cargo, i, from, flow_it->second, dest_entry->GetStation(), dest_entry->GetCount());
@@ -1640,18 +1652,18 @@ struct StationViewWindow : public Window {
 	 */
 	void BuildCargoList(CargoID i, const StationCargoList &packets, CargoDataEntry *cargo)
 	{
-		const CargoDataEntry *source_dest = this->cached_destinations.Retrieve(i);
+		const CargoDataEntry *source_dest = this->cached_destinations.Retrieve(CargoIDTag{i});
 		for (StationCargoList::ConstIterator it = packets.Packets()->begin(); it != packets.Packets()->end(); it++) {
 			const CargoPacket *cp = *it;
 			StationID next = it.GetKey();
 
-			const CargoDataEntry *source_entry = source_dest->Retrieve(cp->GetFirstStation());
+			const CargoDataEntry *source_entry = source_dest->Retrieve(StationIDTag{cp->GetFirstStation()});
 			if (source_entry == nullptr) {
 				this->ShowCargo(cargo, i, cp->GetFirstStation(), next, INVALID_STATION, cp->Count());
 				continue;
 			}
 
-			const CargoDataEntry *via_entry = source_entry->Retrieve(next);
+			const CargoDataEntry *via_entry = source_entry->Retrieve(StationIDTag{next});
 			if (via_entry == nullptr) {
 				this->ShowCargo(cargo, i, cp->GetFirstStation(), next, INVALID_STATION, cp->Count());
 				continue;
@@ -1689,7 +1701,7 @@ struct StationViewWindow : public Window {
 	{
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
 
-			if (this->cached_destinations.Retrieve(i) == nullptr) {
+			if (this->cached_destinations.Retrieve(CargoIDTag{i}) == nullptr) {
 				this->RecalcDestinations(i);
 			}
 
@@ -1713,7 +1725,7 @@ struct StationViewWindow : public Window {
 		std::list<StationID> stations;
 		const CargoDataEntry *parent = data->GetParent();
 		if (parent->GetParent() == nullptr) {
-			this->displayed_rows.push_back(RowDisplay(&this->expanded_rows, data->GetCargo()));
+			this->displayed_rows.push_back(RowDisplay(&this->expanded_rows, CargoIDTag{data->GetCargo()}));
 			return;
 		}
 
@@ -1724,13 +1736,13 @@ struct StationViewWindow : public Window {
 		}
 
 		CargoID cargo = parent->GetCargo();
-		CargoDataEntry *filter = this->expanded_rows.Retrieve(cargo);
+		CargoDataEntry *filter = this->expanded_rows.Retrieve(CargoIDTag{cargo});
 		while (!stations.empty()) {
-			filter = filter->Retrieve(stations.back());
+			filter = filter->Retrieve(StationIDTag{stations.back()});
 			stations.pop_back();
 		}
 
-		this->displayed_rows.push_back(RowDisplay(filter, next));
+		this->displayed_rows.push_back(RowDisplay(filter, StationIDTag{next}));
 	}
 
 	/**
@@ -1958,9 +1970,9 @@ struct StationViewWindow : public Window {
 		} else {
 			RowDisplay &display = this->displayed_rows[row];
 			if (display.filter == &this->expanded_rows) {
-				this->HandleCargoWaitingClick<CargoID>(display.filter, display.next_cargo);
+				this->HandleCargoWaitingClick<CargoIDTag>(display.filter, display.next_cargo);
 			} else {
-				this->HandleCargoWaitingClick<StationID>(display.filter, display.next_station);
+				this->HandleCargoWaitingClick<StationIDTag>(display.filter, display.next_station);
 			}
 		}
 		this->SetWidgetDirty(WID_SV_WAITING);
@@ -2161,7 +2173,7 @@ struct StationViewWindow : public Window {
 	{
 		if (gui_scope) {
 			if (data >= 0 && data < NUM_CARGO) {
-				this->cached_destinations.Remove((CargoID)data);
+				this->cached_destinations.Remove(CargoIDTag{static_cast<CargoID>(data)});
 			} else {
 				this->ReInit();
 			}
