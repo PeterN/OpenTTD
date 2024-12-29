@@ -131,7 +131,7 @@ public:
 		if (IsSavegameVersionBefore(SLV_EXTEND_CARGOTYPES)) return 32;
 		if (IsSavegameVersionBefore(SLV_SAVELOAD_LIST_LENGTH)) return 64;
 		/* Read from the savegame how long the list is. */
-		return SlGetStructListLength(64);
+		return SlGetStructListLength(MAX_CARGO);
 	}
 
 	void Save(Town *t) const override
