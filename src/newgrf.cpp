@@ -101,6 +101,7 @@ public:
 	/* Global state */
 	GrfLoadingStage stage;    ///< Current loading stage
 	SpriteID spriteid;        ///< First available SpriteID for loading realsprites.
+	uint8_t grf_version; ///< GRF version
 
 	/* Local state in the file */
 	SpriteFile *file;         ///< File of currently processed GRF file.
@@ -2099,7 +2100,7 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 			}
 
 			case 0x12: // Cargo types for random triggers
-				if (_cur.grffile->grf_version >= 7) {
+				if (_cur.grf_version >= 7) {
 					statspec->cargo_triggers = TranslateRefitMask(buf.ReadDWord());
 				} else {
 					statspec->cargo_triggers = (CargoTypes)buf.ReadDWord();
@@ -2878,7 +2879,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 					for (uint i = 0; i < SNOW_LINE_MONTHS; i++) {
 						for (uint j = 0; j < SNOW_LINE_DAYS; j++) {
 							table[i][j] = buf.ReadByte();
-							if (_cur.grffile->grf_version >= 8) {
+							if (_cur.grf_version >= 8) {
 								if (table[i][j] != 0xFF) table[i][j] = table[i][j] * (1 + _settings_game.construction.map_height_limit) / 256;
 							} else {
 								if (table[i][j] >= 128) {
@@ -3705,7 +3706,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 							 * Since GRF version 8 the position is interpreted as pair of independent int8.
 							 * For GRF version < 8 we need to emulate the old shifting behaviour.
 							 */
-							if (_cur.grffile->grf_version < 8 && it.ti.x < 0) it.ti.y += 1;
+							if (_cur.grf_version < 8 && it.ti.x < 0) it.ti.y += 1;
 						}
 					}
 
@@ -4289,7 +4290,7 @@ static ChangeInfoResult RailTypeChangeInfo(uint id, int numinfo, int prop, ByteR
 			case 0x09: { // Toolbar caption of railtype (sets name as well for backwards compatibility for grf ver < 8)
 				GRFStringID str{buf.ReadWord()};
 				AddStringForMapping(str, &rti->strings.toolbar_caption);
-				if (_cur.grffile->grf_version < 8) {
+				if (_cur.grf_version < 8) {
 					AddStringForMapping(str, &rti->strings.name);
 				}
 				break;
@@ -5158,7 +5159,7 @@ static const SpriteGroup *GetCallbackResultGroup(uint16_t value)
 {
 	/* Old style callback results (only valid for version < 8) have the highest byte 0xFF to signify it is a callback result.
 	 * New style ones only have the highest bit set (allows 15-bit results, instead of just 8) */
-	if (_cur.grffile->grf_version < 8 && GB(value, 8, 8) == 0xFF) {
+	if (_cur.grf_version < 8 && GB(value, 8, 8) == 0xFF) {
 		value &= ~0xFF00;
 	} else {
 		value &= ~0x8000;
@@ -6304,7 +6305,7 @@ static void FeatureNewName(ByteReader &buf)
 	 * S data          new texts, each of them zero-terminated, after
 	 *                 which the next name begins. */
 
-	bool new_scheme = _cur.grffile->grf_version >= 7;
+	bool new_scheme = _cur.grf_version >= 7;
 
 	uint8_t feature  = buf.ReadByte();
 	if (feature >= GSF_END && feature != 0x48) {
@@ -7060,6 +7061,8 @@ static void ScanInfo(ByteReader &buf)
 		Debug(grf, 0, "{}: NewGRF \"{}\" (GRFID {:08X}) uses GRF version {}, which is incompatible with this version of OpenTTD.", _cur.grfconfig->filename, StrMakeValid(name), BSWAP32(grfid), grf_version);
 	}
 
+	_cur.grf_version = grf_version;
+
 	/* GRF IDs starting with 0xFF are reserved for internal TTDPatch use */
 	if (GB(grfid, 0, 8) == 0xFF) SetBit(_cur.grfconfig->flags, GCF_SYSTEM);
 
@@ -7072,6 +7075,13 @@ static void ScanInfo(ByteReader &buf)
 
 	/* GLS_INFOSCAN only looks for the action 8, so we can skip the rest of the file */
 	_cur.skip_sprites = -1;
+}
+
+/* Skip Action 0x08 */
+static void SkipGRFInfo(ByteReader &buf)
+{
+	/* Even though we are skipping the Action 8 information, we still need to switch to the correct GRF version. */
+	_cur.grf_version = buf.ReadByte();
 }
 
 /* Action 0x08 */
@@ -7098,6 +7108,7 @@ static void GRFInfo(ByteReader &buf)
 		_cur.grffile->grfid = grfid;
 	}
 
+	_cur.grf_version = version;
 	_cur.grffile->grf_version = version;
 	_cur.grfconfig->status = _cur.stage < GLS_RESERVE ? GCS_INITIALISED : GCS_ACTIVATED;
 
@@ -7222,7 +7233,7 @@ static void GRFLoadError(ByteReader &buf)
 	uint8_t message_id = buf.ReadByte();
 
 	/* Skip the error if it isn't valid for the current language. */
-	if (!CheckGrfLangID(lang, _cur.grffile->grf_version)) return;
+	if (!CheckGrfLangID(lang, _cur.grf_version)) return;
 
 	/* Skip the error until the activation stage unless bit 7 of the severity
 	 * is set. */
@@ -7818,7 +7829,7 @@ static void FeatureTownName(ByteReader &buf)
 	if (HasBit(id, 7)) {
 		/* Final definition */
 		ClrBit(id, 7);
-		bool new_scheme = _cur.grffile->grf_version >= 7;
+		bool new_scheme = _cur.grf_version >= 7;
 
 		uint8_t lang = buf.ReadByte();
 		StringID style = STR_UNDEFINED;
@@ -8135,7 +8146,7 @@ static void TranslateGRFStrings(ByteReader &buf)
 	 * new_scheme has to be true as well, which will also be implicitly the case for version 8
 	 * and higher. A language id of 0x7F will be overridden by a non-generic id, so this will
 	 * not change anything if a string has been provided specifically for this language. */
-	uint8_t language = _cur.grffile->grf_version >= 8 ? buf.ReadByte() : 0x7F;
+	uint8_t language = _cur.grf_version >= 8 ? buf.ReadByte() : 0x7F;
 	uint8_t num_strings = buf.ReadByte();
 	uint16_t first_id  = buf.ReadWord();
 
@@ -9611,7 +9622,7 @@ static void DecodeSpecialSprite(uint8_t *buf, uint num, GrfLoadingStage stage)
 		/* 0x05 */ { SkipAct5,      SkipAct5,       SkipAct5,        SkipAct5,        SkipAct5,          GraphicsNew, },
 		/* 0x06 */ { nullptr,       nullptr,        nullptr,         CfgApply,        CfgApply,          CfgApply, },
 		/* 0x07 */ { nullptr,       nullptr,        nullptr,         nullptr,         SkipIf,            SkipIf, },
-		/* 0x08 */ { ScanInfo,      nullptr,        nullptr,         GRFInfo,         GRFInfo,           GRFInfo, },
+		/* 0x08 */ { ScanInfo,      SkipGRFInfo,    SkipGRFInfo,     GRFInfo,         GRFInfo,           GRFInfo, },
 		/* 0x09 */ { nullptr,       nullptr,        nullptr,         SkipIf,          SkipIf,            SkipIf, },
 		/* 0x0A */ { SkipActA,      SkipActA,       SkipActA,        SkipActA,        SkipActA,          SpriteReplace, },
 		/* 0x0B */ { nullptr,       nullptr,        nullptr,         GRFLoadError,    GRFLoadError,      GRFLoadError, },
@@ -9675,6 +9686,7 @@ static void LoadNewGRFFileFromFile(GRFConfig *config, GrfLoadingStage stage, Spr
 {
 	_cur.file = &file;
 	_cur.grfconfig = config;
+	_cur.grf_version = 2;
 
 	Debug(grf, 2, "LoadNewGRFFile: Reading NewGRF-file '{}'", config->filename);
 
