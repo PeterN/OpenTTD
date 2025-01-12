@@ -1014,6 +1014,7 @@ enum ChangeInfoResult {
 	CIR_DISABLED,   ///< GRF was disabled due to error
 	CIR_UNHANDLED,  ///< Variable was parsed but unread
 	CIR_UNKNOWN,    ///< Variable is unknown
+	CIR_REMOVED, ///< Property did exist but has been removed.
 	CIR_INVALID_ID, ///< Attempt to modify an invalid ID
 };
 
@@ -1247,6 +1248,7 @@ static ChangeInfoResult RailVehicleChangeInfo(uint engine, int numinfo, int prop
 				break;
 
 			case 0x1D: { // Refit cargo
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				uint32_t mask = buf.ReadDWord();
 				_gted[e->index].UpdateRefittability(mask != 0);
 				ei->refit_mask = TranslateRefitMask(mask);
@@ -1468,6 +1470,7 @@ static ChangeInfoResult RoadVehicleChangeInfo(uint engine, int numinfo, int prop
 				break;
 
 			case 0x16: { // Cargoes available for refitting
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				uint32_t mask = buf.ReadDWord();
 				_gted[e->index].UpdateRefittability(mask != 0);
 				ei->refit_mask = TranslateRefitMask(mask);
@@ -1656,6 +1659,7 @@ static ChangeInfoResult ShipVehicleChangeInfo(uint engine, int numinfo, int prop
 				break;
 
 			case 0x11: { // Cargoes available for refitting
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				uint32_t mask = buf.ReadDWord();
 				_gted[e->index].UpdateRefittability(mask != 0);
 				ei->refit_mask = TranslateRefitMask(mask);
@@ -1847,6 +1851,7 @@ static ChangeInfoResult AircraftVehicleChangeInfo(uint engine, int numinfo, int 
 				break;
 
 			case 0x13: { // Cargoes available for refitting
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				uint32_t mask = buf.ReadDWord();
 				_gted[e->index].UpdateRefittability(mask != 0);
 				ei->refit_mask = TranslateRefitMask(mask);
@@ -2378,12 +2383,15 @@ static ChangeInfoResult IgnoreTownHouseProperty(int prop, ByteReader &buf)
 	ChangeInfoResult ret = CIR_SUCCESS;
 
 	switch (prop) {
-		case 0x09:
-		case 0x0B:
-		case 0x0C:
 		case 0x0D:
 		case 0x0E:
 		case 0x0F:
+			if (_cur.grf_version >= 9) return CIR_REMOVED;
+			[[fallthrough]];
+
+		case 0x09:
+		case 0x0B:
+		case 0x0C:
 		case 0x11:
 		case 0x14:
 		case 0x15:
@@ -2408,6 +2416,7 @@ static ChangeInfoResult IgnoreTownHouseProperty(int prop, ByteReader &buf)
 			break;
 
 		case 0x1E:
+			if (_cur.grf_version >= 9) return CIR_REMOVED;
 			buf.ReadDWord();
 			break;
 
@@ -2536,10 +2545,12 @@ static ChangeInfoResult TownHouseChangeInfo(uint hid, int numinfo, int prop, Byt
 
 			case 0x0D: // Passenger acceptance
 			case 0x0E: // Mail acceptance
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				housespec->cargo_acceptance[prop - 0x0D] = buf.ReadByte();
 				break;
 
 			case 0x0F: { // Goods/candy, food/fizzy drinks acceptance
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				int8_t goods = buf.ReadByte();
 
 				/* If value of goods is negative, it means in fact food or, if in toyland, fizzy_drink acceptance.
@@ -2624,6 +2635,7 @@ static ChangeInfoResult TownHouseChangeInfo(uint hid, int numinfo, int prop, Byt
 				break;
 
 			case 0x1E: { // Accepted cargo types
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				uint32_t cargotypes = buf.ReadDWord();
 
 				/* Check if the cargo types should not be changed */
@@ -3301,6 +3313,9 @@ static ChangeInfoResult IgnoreIndustryTileProperty(int prop, ByteReader &buf)
 		case 0x0A:
 		case 0x0B:
 		case 0x0C:
+			if (_cur.grf_version >= 9) return CIR_REMOVED;
+			[[fallthrough]];
+
 		case 0x0F:
 			buf.ReadWord();
 			break;
@@ -3396,6 +3411,8 @@ static ChangeInfoResult IndustrytilesChangeInfo(uint indtid, int numinfo, int pr
 			case 0x0A: // Tile acceptance
 			case 0x0B:
 			case 0x0C: {
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
+
 				uint16_t acctp = buf.ReadWord();
 				tsp->accepts_cargo[prop - 0x0A] = GetCargoTranslation(GB(acctp, 0, 8), _cur.grffile);
 				tsp->acceptance[prop - 0x0A] = Clamp(GB(acctp, 8, 8), 0, 16);
@@ -3469,10 +3486,13 @@ static ChangeInfoResult IgnoreIndustryProperty(int prop, ByteReader &buf)
 	ChangeInfoResult ret = CIR_SUCCESS;
 
 	switch (prop) {
+		case 0x12:
+			if (_cur.grf_version >= 9) return CIR_REMOVED;
+			[[fallthrough]];
+
 		case 0x09:
 		case 0x0B:
 		case 0x0F:
-		case 0x12:
 		case 0x13:
 		case 0x14:
 		case 0x17:
@@ -3483,10 +3503,13 @@ static ChangeInfoResult IgnoreIndustryProperty(int prop, ByteReader &buf)
 			buf.ReadByte();
 			break;
 
+		case 0x10: // INDUSTRY_ORIGINAL_NUM_OUTPUTS bytes
+			if (_cur.grf_version >= 9) return CIR_REMOVED;
+			[[fallthrough]];
+
 		case 0x0C:
 		case 0x0D:
 		case 0x0E:
-		case 0x10: // INDUSTRY_ORIGINAL_NUM_OUTPUTS bytes
 		case 0x1B:
 		case 0x1F:
 		case 0x24:
@@ -3494,10 +3517,13 @@ static ChangeInfoResult IgnoreIndustryProperty(int prop, ByteReader &buf)
 			break;
 
 		case 0x11: // INDUSTRY_ORIGINAL_NUM_INPUTS bytes + 1
-		case 0x1A:
 		case 0x1C:
 		case 0x1D:
 		case 0x1E:
+			if (_cur.grf_version >= 9) return CIR_REMOVED;
+			[[fallthrough]];
+
+		case 0x1A:
 		case 0x20:
 		case 0x23:
 			buf.ReadDWord();
@@ -3784,6 +3810,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 				break;
 
 			case 0x10: // Production cargo types
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				for (uint8_t j = 0; j < INDUSTRY_ORIGINAL_NUM_OUTPUTS; j++) {
 					indsp->produced_cargo[j] = GetCargoTranslation(buf.ReadByte(), _cur.grffile);
 					indsp->produced_cargo_label[j] = CT_INVALID;
@@ -3791,6 +3818,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 				break;
 
 			case 0x11: // Acceptance cargo types
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				for (uint8_t j = 0; j < INDUSTRY_ORIGINAL_NUM_INPUTS; j++) {
 					indsp->accepts_cargo[j] = GetCargoTranslation(buf.ReadByte(), _cur.grffile);
 					indsp->accepts_cargo_label[j] = CT_INVALID;
@@ -3800,6 +3828,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 
 			case 0x12: // Production multipliers
 			case 0x13:
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
 				indsp->production_rate[prop - 0x12] = buf.ReadByte();
 				break;
 
@@ -3847,11 +3876,12 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 			case 0x1C: // Input cargo multipliers for the three input cargo types
 			case 0x1D:
 			case 0x1E: {
-					uint32_t multiples = buf.ReadDWord();
-					indsp->input_cargo_multiplier[prop - 0x1C][0] = GB(multiples, 0, 16);
-					indsp->input_cargo_multiplier[prop - 0x1C][1] = GB(multiples, 16, 16);
-					break;
-				}
+				if (_cur.grf_version >= 9) return CIR_REMOVED;
+				uint32_t multiples = buf.ReadDWord();
+				indsp->input_cargo_multiplier[prop - 0x1C][0] = GB(multiples, 0, 16);
+				indsp->input_cargo_multiplier[prop - 0x1C][1] = GB(multiples, 16, 16);
+				break;
+			}
 
 			case 0x1F: // Industry name
 				AddStringForMapping(GRFStringID{buf.ReadWord()}, &indsp->name);
@@ -4963,6 +4993,10 @@ static bool HandleChangeInfoResult(const char *caller, ChangeInfoResult cir, uin
 		case CIR_UNHANDLED:
 			GrfMsg(1, "{}: Ignoring property 0x{:02X} of feature 0x{:02X} (not implemented)", caller, property, feature);
 			return false;
+
+		case CIR_REMOVED:
+			GrfMsg(0, "{}: Ignoring property 0x{:02X} of feature 0x{:02X} (removed)", caller, property, feature);
+			return true;
 
 		case CIR_UNKNOWN:
 			GrfMsg(0, "{}: Unknown property 0x{:02X} of feature 0x{:02X}, disabling", caller, property, feature);
