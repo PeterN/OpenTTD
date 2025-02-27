@@ -695,7 +695,7 @@ void ClientNetworkCoordinatorSocketHandler::CloseAllConnections()
 		this->CloseTurnHandler(token);
 		it.second->SetFailure();
 
-		/* Inform the Game Coordinator he can stop trying to connect us to the server. */
+		/* Inform the Game Coordinator it can stop trying to connect us to the server. */
 		this->ConnectFailure(token, 0);
 	}
 	this->stun_handlers.clear();

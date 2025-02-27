@@ -2189,7 +2189,7 @@ void ShowNetworkNeedPassword(std::shared_ptr<NetworkAuthenticationPasswordReques
 }
 
 /**
- * Window used for asking the user if he is okay using a relay server.
+ * Window used for asking the user if they are okay using a relay server.
  */
 struct NetworkAskRelayWindow : public Window {
 	std::string server_connection_string{}; ///< The game server we want to connect to.
