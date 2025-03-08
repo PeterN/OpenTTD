@@ -87,7 +87,7 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
 				[[fallthrough]];
 
 			case MP_CLEAR:
-				MakeClear(tile, CLEAR_ROCKS, 3);
+				SetClearGroundType(tile, GroundType::Rocks, true);
 				break;
 
 			default:

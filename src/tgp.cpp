@@ -965,7 +965,7 @@ static void TgenSetTileHeight(TileIndex tile, int height)
 
 	/* Only clear the tiles within the map area. */
 	if (IsInnerTile(tile)) {
-		MakeClear(tile, CLEAR_GRASS, 3);
+		MakeClear(tile, {}, 3);
 	}
 }
 

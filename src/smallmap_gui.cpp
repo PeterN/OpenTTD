@@ -527,14 +527,14 @@ static inline uint32_t GetSmallMapLinkStatsPixels(TileIndex tile, TileType t)
 }
 
 static const uint32_t _vegetation_clear_bits[] = {
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
+	// MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
 	MKCOLOUR_XXXX(PC_ROUGH_LAND), ///< rough land
 	MKCOLOUR_XXXX(PC_GREY),       ///< rocks
 	MKCOLOUR_XXXX(PC_FIELDS),     ///< fields
 	MKCOLOUR_XXXX(PC_LIGHT_BLUE), ///< snow
 	MKCOLOUR_XXXX(PC_ORANGE),     ///< desert
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
+	// MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
+	// MKCOLOUR_XXXX(PC_GRASS_LAND), ///< unused
 };
 
 /**
@@ -547,12 +547,14 @@ static const uint32_t _vegetation_clear_bits[] = {
 static inline uint32_t GetSmallMapVegetationPixels(TileIndex tile, TileType t)
 {
 	switch (t) {
-		case MP_CLEAR:
-			if (IsClearGround(tile, CLEAR_GRASS)) {
+		case MP_CLEAR: {
+			GroundTypes groundtypes = GetClearGroundTypes(tile);
+			if (groundtypes.None()) {
 				if (GetClearDensity(tile) < 3) return MKCOLOUR_XXXX(PC_BARE_LAND);
 				if (GetTropicZone(tile) == TROPICZONE_RAINFOREST) return MKCOLOUR_XXXX(PC_RAINFOREST);
 			}
-			return _vegetation_clear_bits[GetClearGround(tile)];
+			return _vegetation_clear_bits[FindFirstBit(groundtypes.base())];
+		}
 
 		case MP_INDUSTRY:
 			return IsTileForestIndustry(tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);

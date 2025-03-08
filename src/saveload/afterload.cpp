@@ -470,7 +470,7 @@ static void FixOwnerOfRailTrack(Tile t)
 	}
 
 	/* if it's not a crossing, make it clean land */
-	MakeClear(t, CLEAR_GRASS, 0);
+	MakeClear(t, {}, 0);
 }
 
 /**
@@ -1247,7 +1247,7 @@ bool AfterLoadGame()
 						}
 					} else {
 						if (GB(t.m5(), 3, 2) == 0) {
-							MakeClear(t, CLEAR_GRASS, 3);
+							MakeClear(t, {}, 3);
 						} else {
 							if (!IsTileFlat(t)) {
 								MakeShore(t);
@@ -1471,10 +1471,11 @@ bool AfterLoadGame()
 	 *  To give this prettiness to old savegames, we remove all farmfields and
 	 *  plant new ones. */
 	if (IsSavegameVersionBefore(SLV_32)) {
-		for (const auto t : Map::Iterate()) {
-			if (IsTileType(t, MP_CLEAR) && IsClearGround(t, CLEAR_FIELDS)) {
+		for (auto t : Map::Iterate()) {
+			if (IsTileType(t, MP_CLEAR) && GB(t.m5(), 2, 3) == 3) {
 				/* remove fields */
-				MakeClear(t, CLEAR_GRASS, 3);
+				SB(t.m5(), 2, 3, 0);
+				SetClearDensity(t, 3);
 			}
 		}
 
@@ -2389,8 +2390,8 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_135)) {
 		for (auto t : Map::Iterate()) {
 			if (IsTileType(t, MP_CLEAR)) {
-				if (GetClearGround(t) == CLEAR_SNOW) { // CLEAR_SNOW becomes CLEAR_GRASS with IsSnowTile() set.
-					SetClearGroundDensity(t, CLEAR_GRASS, GetClearDensity(t));
+				if (GB(t.m5(), 2, 3) == 4) { // CLEAR_SNOW becomes CLEAR_GRASS with IsSnowTile() set.
+					SB(t.m5(), 2, 3, 0);
 					SetBit(t.m3(), 4);
 				} else {
 					ClrBit(t.m3(), 4);
@@ -2400,6 +2401,25 @@ bool AfterLoadGame()
 				uint density = GB(t.m2(), 6, 2);
 				uint ground = GB(t.m2(), 4, 2);
 				t.m2() = ground << 6 | density << 4;
+			}
+		}
+	}
+
+	/* Convert from ClearGround to GroundTypes */
+	if (IsSavegameVersionBefore(SL_MAX_VERSION)) {
+		for (auto t : Map::Iterate()) {
+			if (!IsTileType(t, MP_CLEAR)) continue;
+			t.m7() = 0;
+			switch (GB(t.m5(), 2, 3)) {
+				case 0: break;
+				case 1: SetClearGroundType(t, GroundType::Rough, true); break;
+				case 2: SetClearGroundType(t, GroundType::Rocks, true); break;
+				case 3: SetClearGroundType(t, GroundType::Fields, true); break;
+				case 5: SetClearGroundType(t, GroundType::Desert, true); break;
+			}
+			if (HasBit(t.m3(), 4)) {
+				SetClearGroundType(t, GroundType::Snow, true);
+				ClrBit(t.m3(), 4);
 			}
 		}
 	}
@@ -2870,13 +2890,13 @@ bool AfterLoadGame()
 		/* We store 4 fences in the field tiles instead of only SE and SW. */
 		for (auto t : Map::Iterate()) {
 			if (!IsTileType(t, MP_CLEAR) && !IsTileType(t, MP_TREES)) continue;
-			if (IsTileType(t, MP_CLEAR) && IsClearGround(t, CLEAR_FIELDS)) continue;
+			if (IsTileType(t, MP_CLEAR) && GetClearGroundTypes(t).Test(GroundType::Fields)) continue;
 			uint fence = GB(t.m4(), 5, 3);
-			if (fence != 0 && IsTileType(TileAddXY(t, 1, 0), MP_CLEAR) && IsClearGround(TileAddXY(t, 1, 0), CLEAR_FIELDS)) {
+			if (fence != 0 && IsTileType(TileAddXY(t, 1, 0), MP_CLEAR) && GetClearGroundTypes(TileAddXY(t, 1, 0)).Test(GroundType::Fields)) {
 				SetFence(TileAddXY(t, 1, 0), DIAGDIR_NE, fence);
 			}
 			fence = GB(t.m4(), 2, 3);
-			if (fence != 0 && IsTileType(TileAddXY(t, 0, 1), MP_CLEAR) && IsClearGround(TileAddXY(t, 0, 1), CLEAR_FIELDS)) {
+			if (fence != 0 && IsTileType(TileAddXY(t, 0, 1), MP_CLEAR) && GetClearGroundTypes(TileAddXY(t, 0, 1)).Test(GroundType::Fields)) {
 				SetFence(TileAddXY(t, 0, 1), DIAGDIR_NW, fence);
 			}
 			SB(t.m4(), 2, 3, 0);

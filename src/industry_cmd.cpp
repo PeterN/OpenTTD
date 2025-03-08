@@ -176,7 +176,7 @@ Industry::~Industry()
 
 		/* Remove the farmland and convert it to regular tiles over time. */
 		for (TileIndex tile_cur : ta) {
-			if (IsTileType(tile_cur, MP_CLEAR) && IsClearGround(tile_cur, CLEAR_FIELDS) &&
+			if (IsTileType(tile_cur, MP_CLEAR) && GetClearGroundTypes(tile_cur).Test(GroundType::Fields) &&
 					GetIndustryIndexOfField(tile_cur) == this->index) {
 				SetIndustryIndexOfField(tile_cur, IndustryID::Invalid());
 			}
@@ -1004,7 +1004,10 @@ static const uint8_t _plantfarmfield_type[] = {1, 1, 1, 1, 1, 3, 3, 4, 4, 4, 5, 
 static bool IsSuitableForFarmField(TileIndex tile, bool allow_fields)
 {
 	switch (GetTileType(tile)) {
-		case MP_CLEAR: return !IsSnowTile(tile) && !IsClearGround(tile, CLEAR_DESERT) && (allow_fields || !IsClearGround(tile, CLEAR_FIELDS));
+		case MP_CLEAR: {
+			GroundTypes groundtypes = GetClearGroundTypes(tile);
+			return !groundtypes.Any({GroundType::Snow, GroundType::Desert}) && (allow_fields || !groundtypes.Test(GroundType::Fields));
+		}
 		case MP_TREES: return GetTreeGround(tile) != TREE_GROUND_SHORE;
 		default:       return false;
 	}
@@ -1025,9 +1028,9 @@ static void SetupFarmFieldFence(TileIndex tile, int size, uint8_t type, DiagDire
 	do {
 		tile = Map::WrapToMap(tile);
 
-		if (IsTileType(tile, MP_CLEAR) && IsClearGround(tile, CLEAR_FIELDS)) {
+		if (IsTileType(tile, MP_CLEAR) && GetClearGroundTypes(tile).Test(GroundType::Fields)) {
 			TileIndex neighbour = tile + neighbour_diff;
-			if (!IsTileType(neighbour, MP_CLEAR) || !IsClearGround(neighbour, CLEAR_FIELDS) || GetFence(neighbour, ReverseDiagDir(side)) == 0) {
+			if (!IsTileType(neighbour, MP_CLEAR) || !GetClearGroundTypes(neighbour).Test(GroundType::Fields) || GetFence(neighbour, ReverseDiagDir(side)) == 0) {
 				/* Add fence as long as neighbouring tile does not already have a fence in the same position. */
 				uint8_t or_ = type;
 
