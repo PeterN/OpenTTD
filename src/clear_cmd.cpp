@@ -121,6 +121,7 @@ static void DrawTile_Clear(TileInfo *ti)
 		DrawClearLandFence(ti);
 	} else if (groundtypes.Test(GroundType::Desert)) {
 		DrawGroundSprite(_clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+		if (groundtypes.Test(GroundType::Rocks)) DrawGroundSprite(SPR_OVERLAY_ROCKS_BASE + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 	} else if (groundtypes.Test(GroundType::Rough)) {
 		DrawHillyLandTile(ti);
 	} else if (groundtypes.Test(GroundType::Rocks)) {
@@ -314,7 +315,7 @@ void GenerateClearTile()
 		tile = RandomTileSeed(r);
 
 		IncreaseGeneratingWorldProgress(GWP_ROUGH_ROCKY);
-		if (IsTileType(tile, MP_CLEAR) && !GetClearGroundTypes(tile).Test(GroundType::Desert)) {
+		if (IsTileType(tile, MP_CLEAR)) {
 			uint j = GB(r, 16, 4) + 5;
 			for (;;) {
 				TileIndex tile_new;
@@ -325,7 +326,7 @@ void GenerateClearTile()
 				do {
 					if (--j == 0) goto get_out;
 					tile_new = tile + TileOffsByDiagDir((DiagDirection)GB(Random(), 0, 2));
-				} while (!IsTileType(tile_new, MP_CLEAR) || GetClearGroundTypes(tile_new).Test(GroundType::Desert));
+				} while (!IsTileType(tile_new, MP_CLEAR));
 				tile = tile_new;
 			}
 get_out:;
