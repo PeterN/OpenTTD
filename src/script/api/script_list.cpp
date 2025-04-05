@@ -8,6 +8,7 @@
 /** @file script_list.cpp Implementation of ScriptList. */
 
 #include "../../stdafx.h"
+#include <ranges>
 #include "script_list.hpp"
 #include "../../debug.h"
 #include "../../script/squirrel.hpp"
@@ -49,13 +50,15 @@ public:
 	 */
 	bool IsEnd()
 	{
-		return this->list->buckets.empty() || this->has_no_more_items;
+		return this->list->items.empty() || this->has_no_more_items;
 	}
 
 	/**
 	 * Callback from the list if an item gets removed.
 	 */
-	virtual void Remove(SQInteger item) = 0;
+	virtual void Invalidate(std::optional<SQInteger> item = {}) = 0;
+
+	virtual void FixIterator() = 0;
 
 	/**
 	 * Attach the sorter to a new list. This assumes the content of the old list has been moved to
@@ -69,35 +72,55 @@ public:
 	}
 };
 
-/**
- * Sort by value, ascending.
- */
-class ScriptListSorterValueAscending : public ScriptListSorter {
-private:
-	ScriptList::ScriptListBucket::iterator bucket_iter;    ///< The iterator over the list to find the buckets.
-	ScriptList::ScriptItemList *bucket_list;               ///< The current bucket list we're iterator over.
-	ScriptList::ScriptItemList::iterator bucket_list_iter; ///< The iterator over the bucket list.
+class ScriptListSorterIndexed : public ScriptListSorter {
+protected:
+	using IndexType = uint32_t;
 
-public:
-	/**
-	 * Create a new sorter.
-	 * @param list The list to sort.
-	 */
-	ScriptListSorterValueAscending(ScriptList *list)
+	std::vector<IndexType> indexes;
+	IndexType cur_index;
+	SQInteger value_next;
+
+	ScriptListSorterIndexed(ScriptList *list)
 	{
 		this->list = list;
-		this->End();
+		this->ScriptListSorterIndexed::End();
 	}
 
+	virtual void SortIndexes() = 0;
+
+	inline bool IsCurrentIndexValid() const { return this->cur_index < std::size(this->indexes); }
+
+	void SetNextItem()
+	{
+		if (!this->IsCurrentIndexValid()) return;
+
+		IndexType index = this->indexes[this->cur_index];
+		this->item_next = this->list->items[index].first;
+		this->value_next = this->list->items[index].second;
+	}
+
+	/**
+	 * Fill the index table and sort it.
+	 */
+	void PrepareIndexes()
+	{
+		this->indexes.resize(std::size(this->list->items));
+		std::iota(std::begin(this->indexes), std::end(this->indexes), 0);
+		this->SortIndexes();
+	}
+
+public:
 	SQInteger Begin() override
 	{
-		if (this->list->buckets.empty()) return 0;
+		this->indexes.clear();
+
+		if (this->list->items.empty()) return 0;
 		this->has_no_more_items = false;
 
-		this->bucket_iter = this->list->buckets.begin();
-		this->bucket_list = &this->bucket_iter->second;
-		this->bucket_list_iter = this->bucket_list->begin();
-		this->item_next = *this->bucket_list_iter;
+		this->PrepareIndexes();
+
+		this->cur_index = 0;
+		this->SetNextItem();
 
 		SQInteger item_current = this->item_next;
 		this->FindNext();
@@ -106,9 +129,37 @@ public:
 
 	void End() override
 	{
-		this->bucket_list = nullptr;
+		this->indexes.clear();
 		this->has_no_more_items = true;
 		this->item_next = 0;
+	}
+
+	void Invalidate(std::optional<SQInteger> item) override
+	{
+		if (this->IsEnd()) return;
+
+		/* If the current item is changed, move on to the next. */
+		if (item.has_value() && *item == this->item_next) {
+			++this->cur_index;
+
+			/* Check if we moved past the end of the list. */
+			if (!this->IsCurrentIndexValid()) {
+				this->End();
+				return;
+			}
+
+			this->SetNextItem();
+		}
+
+		this->PrepareIndexes();
+		this->FixIterator();
+
+		if (!this->IsCurrentIndexValid()) {
+			this->End();
+			return;
+		}
+
+		this->SetNextItem();
 	}
 
 	/**
@@ -116,41 +167,57 @@ public:
 	 */
 	void FindNext()
 	{
-		if (this->bucket_list == nullptr) {
+		if (!this->IsCurrentIndexValid()) {
 			this->has_no_more_items = true;
 			return;
 		}
 
-		++this->bucket_list_iter;
-		if (this->bucket_list_iter == this->bucket_list->end()) {
-			++this->bucket_iter;
-			if (this->bucket_iter == this->list->buckets.end()) {
-				this->bucket_list = nullptr;
-				return;
-			}
-			this->bucket_list = &this->bucket_iter->second;
-			this->bucket_list_iter = this->bucket_list->begin();
-		}
-		this->item_next = *this->bucket_list_iter;
+		++this->cur_index;
+		this->SetNextItem();
 	}
 
 	SQInteger Next() override
 	{
-		if (this->IsEnd()) return 0;
+		if (this->IsEnd()) {
+			this->item_next = 0;
+			return 0;
+		}
 
 		SQInteger item_current = this->item_next;
 		this->FindNext();
 		return item_current;
 	}
+};
 
-	void Remove(SQInteger item) override
+/**
+ * Sort by value, ascending.
+ */
+class ScriptListSorterValueAscending : public ScriptListSorterIndexed {
+public:
+	/**
+	 * Create a new sorter.
+	 * @param list The list to sort.
+	 */
+	ScriptListSorterValueAscending(ScriptList *list) : ScriptListSorterIndexed(list) { }
+
+private:
+	void SortIndexes() override
 	{
-		if (this->IsEnd()) return;
+		std::ranges::sort(this->indexes, [this](const IndexType lhs, const IndexType rhs) {
+			const auto &p1 = this->list->items[lhs];
+			const auto &p2 = this->list->items[rhs];
+			return std::tie(p1.second, p1.first) < std::tie(p2.second, p2.first);
+		});
+	}
 
-		/* If we remove the 'next' item, skip to the next */
-		if (item == this->item_next) {
-			this->FindNext();
-			return;
+	void FixIterator() override
+	{
+		auto it = std::ranges::lower_bound(this->indexes, this->value_next, std::less{}, [this](const IndexType &index) { return this->list->items[index].second; });
+		if (it != std::end(this->indexes)) {
+			it = std::ranges::lower_bound(it, std::end(this->indexes), this->item_next, std::less{}, [this](const IndexType &index) { return this->list->items[index].first; });
+			if (it != std::end(this->indexes)) {
+				this->cur_index = static_cast<IndexType>(std::distance(std::begin(this->indexes), it));
+			}
 		}
 	}
 };
@@ -158,94 +225,32 @@ public:
 /**
  * Sort by value, descending.
  */
-class ScriptListSorterValueDescending : public ScriptListSorter {
-private:
-	/* Note: We cannot use reverse_iterator.
-	 *       The iterators must only be invalidated when the element they are pointing to is removed.
-	 *       This only holds for forward iterators. */
-	ScriptList::ScriptListBucket::iterator bucket_iter;    ///< The iterator over the list to find the buckets.
-	ScriptList::ScriptItemList *bucket_list;               ///< The current bucket list we're iterator over.
-	ScriptList::ScriptItemList::iterator bucket_list_iter; ///< The iterator over the bucket list.
-
+class ScriptListSorterValueDescending : public ScriptListSorterIndexed {
 public:
 	/**
 	 * Create a new sorter.
 	 * @param list The list to sort.
 	 */
-	ScriptListSorterValueDescending(ScriptList *list)
+	ScriptListSorterValueDescending(ScriptList *list) : ScriptListSorterIndexed(list) { }
+
+private:
+	void SortIndexes() override
 	{
-		this->list = list;
-		this->End();
+		std::ranges::sort(this->indexes, [this](const IndexType lhs, const IndexType rhs) {
+			const auto &p1 = this->list->items[lhs];
+			const auto &p2 = this->list->items[rhs];
+			return std::tie(p1.second, p1.first) > std::tie(p2.second, p2.first);
+		});
 	}
 
-	SQInteger Begin() override
+	void FixIterator() override
 	{
-		if (this->list->buckets.empty()) return 0;
-		this->has_no_more_items = false;
-
-		/* Go to the end of the bucket-list */
-		this->bucket_iter = this->list->buckets.end();
-		--this->bucket_iter;
-		this->bucket_list = &this->bucket_iter->second;
-
-		/* Go to the end of the items in the bucket */
-		this->bucket_list_iter = this->bucket_list->end();
-		--this->bucket_list_iter;
-		this->item_next = *this->bucket_list_iter;
-
-		SQInteger item_current = this->item_next;
-		this->FindNext();
-		return item_current;
-	}
-
-	void End() override
-	{
-		this->bucket_list = nullptr;
-		this->has_no_more_items = true;
-		this->item_next = 0;
-	}
-
-	/**
-	 * Find the next item, and store that information.
-	 */
-	void FindNext()
-	{
-		if (this->bucket_list == nullptr) {
-			this->has_no_more_items = true;
-			return;
-		}
-
-		if (this->bucket_list_iter == this->bucket_list->begin()) {
-			if (this->bucket_iter == this->list->buckets.begin()) {
-				this->bucket_list = nullptr;
-				return;
+		auto it = std::ranges::upper_bound(this->indexes, this->value_next, std::greater{}, [this](const IndexType &index) { return this->list->items[index].second; });
+		if (it != std::end(this->indexes)) {
+			it = std::ranges::upper_bound(it, std::end(this->indexes), this->item_next, std::greater{}, [this](const IndexType &index) { return this->list->items[index].first; });
+			if (it != std::end(this->indexes)) {
+				this->cur_index = static_cast<IndexType>(std::distance(std::begin(this->indexes), it));
 			}
-			--this->bucket_iter;
-			this->bucket_list = &this->bucket_iter->second;
-			/* Go to the end of the items in the bucket */
-			this->bucket_list_iter = this->bucket_list->end();
-		}
-		--this->bucket_list_iter;
-		this->item_next = *this->bucket_list_iter;
-	}
-
-	SQInteger Next() override
-	{
-		if (this->IsEnd()) return 0;
-
-		SQInteger item_current = this->item_next;
-		this->FindNext();
-		return item_current;
-	}
-
-	void Remove(SQInteger item) override
-	{
-		if (this->IsEnd()) return;
-
-		/* If we remove the 'next' item, skip to the next */
-		if (item == this->item_next) {
-			this->FindNext();
-			return;
 		}
 	}
 };
@@ -253,69 +258,25 @@ public:
 /**
  * Sort by item, ascending.
  */
-class ScriptListSorterItemAscending : public ScriptListSorter {
-private:
-	ScriptList::ScriptListMap::iterator item_iter; ///< The iterator over the items in the map.
-
+class ScriptListSorterItemAscending : public ScriptListSorterIndexed {
 public:
 	/**
 	 * Create a new sorter.
 	 * @param list The list to sort.
 	 */
-	ScriptListSorterItemAscending(ScriptList *list)
+	ScriptListSorterItemAscending(ScriptList *list) : ScriptListSorterIndexed(list) { }
+
+private:
+	void SortIndexes() override
 	{
-		this->list = list;
-		this->End();
+		/* Elements are sorted by item already, so we don't need to do anything here. */
 	}
 
-	SQInteger Begin() override
+	void FixIterator() override
 	{
-		if (this->list->items.empty()) return 0;
-		this->has_no_more_items = false;
-
-		this->item_iter = this->list->items.begin();
-		this->item_next = this->item_iter->first;
-
-		SQInteger item_current = this->item_next;
-		this->FindNext();
-		return item_current;
-	}
-
-	void End() override
-	{
-		this->has_no_more_items = true;
-	}
-
-	/**
-	 * Find the next item, and store that information.
-	 */
-	void FindNext()
-	{
-		if (this->item_iter == this->list->items.end()) {
-			this->has_no_more_items = true;
-			return;
-		}
-		++this->item_iter;
-		if (this->item_iter != this->list->items.end()) this->item_next = this->item_iter->first;
-	}
-
-	SQInteger Next() override
-	{
-		if (this->IsEnd()) return 0;
-
-		SQInteger item_current = this->item_next;
-		this->FindNext();
-		return item_current;
-	}
-
-	void Remove(SQInteger item) override
-	{
-		if (this->IsEnd()) return;
-
-		/* If we remove the 'next' item, skip to the next */
-		if (item == this->item_next) {
-			this->FindNext();
-			return;
+		auto it = std::ranges::lower_bound(this->indexes, this->item_next, std::less{}, [this](const IndexType &index) { return this->list->items[index].first; });
+		if (it != std::end(this->indexes)) {
+			this->cur_index = static_cast<IndexType>(std::distance(std::begin(this->indexes), it));
 		}
 	}
 };
@@ -323,82 +284,29 @@ public:
 /**
  * Sort by item, descending.
  */
-class ScriptListSorterItemDescending : public ScriptListSorter {
-private:
-	/* Note: We cannot use reverse_iterator.
-	 *       The iterators must only be invalidated when the element they are pointing to is removed.
-	 *       This only holds for forward iterators. */
-	ScriptList::ScriptListMap::iterator item_iter; ///< The iterator over the items in the map.
-
+class ScriptListSorterItemDescending : public ScriptListSorterIndexed {
 public:
 	/**
 	 * Create a new sorter.
 	 * @param list The list to sort.
 	 */
-	ScriptListSorterItemDescending(ScriptList *list)
+	ScriptListSorterItemDescending(ScriptList *list) : ScriptListSorterIndexed(list) { }
+
+private:
+	void SortIndexes() override
 	{
-		this->list = list;
-		this->End();
+		/* Elements are sorted by item already, so we can simply reverse the list instead of sorting. */
+		std::ranges::reverse(this->indexes);
 	}
 
-	SQInteger Begin() override
+	void FixIterator() override
 	{
-		if (this->list->items.empty()) return 0;
-		this->has_no_more_items = false;
-
-		this->item_iter = this->list->items.end();
-		--this->item_iter;
-		this->item_next = this->item_iter->first;
-
-		SQInteger item_current = this->item_next;
-		this->FindNext();
-		return item_current;
-	}
-
-	void End() override
-	{
-		this->has_no_more_items = true;
-	}
-
-	/**
-	 * Find the next item, and store that information.
-	 */
-	void FindNext()
-	{
-		if (this->item_iter == this->list->items.end()) {
-			this->has_no_more_items = true;
-			return;
-		}
-		if (this->item_iter == this->list->items.begin()) {
-			/* Use 'end' as marker for 'beyond begin' */
-			this->item_iter = this->list->items.end();
-		} else {
-			--this->item_iter;
-		}
-		if (this->item_iter != this->list->items.end()) this->item_next = this->item_iter->first;
-	}
-
-	SQInteger Next() override
-	{
-		if (this->IsEnd()) return 0;
-
-		SQInteger item_current = this->item_next;
-		this->FindNext();
-		return item_current;
-	}
-
-	void Remove(SQInteger item) override
-	{
-		if (this->IsEnd()) return;
-
-		/* If we remove the 'next' item, skip to the next */
-		if (item == this->item_next) {
-			this->FindNext();
-			return;
+		auto it = std::ranges::upper_bound(this->indexes, this->item_next, std::greater{}, [this](const IndexType &index) { return this->list->items[index].first; });
+		if (it != std::end(this->indexes)) {
+			this->cur_index = static_cast<IndexType>(std::distance(std::begin(this->indexes), it));
 		}
 	}
 };
-
 
 
 bool ScriptList::SaveObject(HSQUIRRELVM vm)
@@ -410,9 +318,9 @@ bool ScriptList::SaveObject(HSQUIRRELVM vm)
 	sq_pushbool(vm, this->sort_ascending ? SQTrue : SQFalse);
 	sq_arrayappend(vm, -2);
 	sq_newtable(vm);
-	for (const auto &item : this->items) {
-		sq_pushinteger(vm, item.first);
-		sq_pushinteger(vm, item.second);
+	for (const auto &[key, value] : this->items) {
+		sq_pushinteger(vm, key);
+		sq_pushinteger(vm, value);
 		sq_rawset(vm, -3);
 	}
 	sq_arrayappend(vm, -2);
@@ -481,7 +389,8 @@ ScriptList::~ScriptList()
 
 bool ScriptList::HasItem(SQInteger item)
 {
-	return this->items.count(item) == 1;
+	auto it = std::ranges::lower_bound(this->items, item, std::less{}, &ElementType::first);
+	return it != std::end(this->items) && it->first == item;
 }
 
 void ScriptList::Clear()
@@ -489,7 +398,6 @@ void ScriptList::Clear()
 	this->modifications++;
 
 	this->items.clear();
-	this->buckets.clear();
 	this->sorter->End();
 }
 
@@ -497,27 +405,22 @@ void ScriptList::AddItem(SQInteger item, SQInteger value)
 {
 	this->modifications++;
 
-	if (this->HasItem(item)) return;
-
-	this->items[item] = value;
-	this->buckets[value].insert(item);
+	auto it = std::ranges::lower_bound(this->items, item, std::less{}, &ElementType::first);
+	if (it == std::end(this->items) || it->first != item) {
+		it = this->items.emplace(it, item, value);
+		this->sorter->Invalidate();
+	}
 }
 
 void ScriptList::RemoveItem(SQInteger item)
 {
 	this->modifications++;
 
-	auto item_iter = this->items.find(item);
-	if (item_iter == this->items.end()) return;
+	auto it = std::ranges::lower_bound(this->items, item, std::less{}, &ElementType::first);
+	if (it == std::end(this->items) || it->first != item) return;
 
-	SQInteger value = item_iter->second;
-
-	this->sorter->Remove(item);
-	auto bucket_iter = this->buckets.find(value);
-	assert(bucket_iter != this->buckets.end());
-	bucket_iter->second.erase(item);
-	if (bucket_iter->second.empty()) this->buckets.erase(bucket_iter);
-	this->items.erase(item_iter);
+	it = this->items.erase(it);
+	this->sorter->Invalidate();
 }
 
 SQInteger ScriptList::Begin()
@@ -556,28 +459,22 @@ SQInteger ScriptList::Count()
 
 SQInteger ScriptList::GetValue(SQInteger item)
 {
-	auto item_iter = this->items.find(item);
-	return item_iter == this->items.end() ? 0 : item_iter->second;
+	auto it = std::ranges::lower_bound(this->items, item, std::less{}, &ElementType::first);
+	return it == std::end(this->items) || it->first != item ? 0 : it->second;
 }
 
 bool ScriptList::SetValue(SQInteger item, SQInteger value)
 {
 	this->modifications++;
 
-	auto item_iter = this->items.find(item);
-	if (item_iter == this->items.end()) return false;
+	auto it = std::ranges::lower_bound(this->items, item, std::less{}, &ElementType::first);
+	if (it == std::end(this->items) || it->first != item) return false;
 
-	SQInteger value_old = item_iter->second;
+	SQInteger value_old = it->second;
 	if (value_old == value) return true;
 
-	this->sorter->Remove(item);
-	auto bucket_iter = this->buckets.find(value_old);
-	assert(bucket_iter != this->buckets.end());
-	bucket_iter->second.erase(item);
-	if (bucket_iter->second.empty()) this->buckets.erase(bucket_iter);
-	item_iter->second = value;
-	this->buckets[value].insert(item);
-
+	it->second = value;
+	this->sorter->Invalidate(item);
 	return true;
 }
 
@@ -619,13 +516,18 @@ void ScriptList::AddList(ScriptList *list)
 	if (this->IsEmpty()) {
 		/* If this is empty, we can just take the items of the other list as is. */
 		this->items = list->items;
-		this->buckets = list->buckets;
 		this->modifications++;
 	} else {
-		for (const auto &item : list->items) {
-			this->AddItem(item.first);
-			this->SetValue(item.first, item.second);
+		for (const auto &[item, value] : list->items) {
+			auto it = std::ranges::lower_bound(this->items, item, std::less{}, &ElementType::first);
+			if (it == std::end(this->items) || it->first != item) {
+				this->items.emplace(it, item, value);
+			} else {
+				/* Item exists, replace existing value. */
+				it->second = value;
+			}
 		}
+		this->sorter->Invalidate();
 	}
 }
 
@@ -634,7 +536,6 @@ void ScriptList::SwapList(ScriptList *list)
 	if (list == this) return;
 
 	this->items.swap(list->items);
-	this->buckets.swap(list->buckets);
 	std::swap(this->sorter, list->sorter);
 	std::swap(this->sorter_type, list->sorter_type);
 	std::swap(this->sort_ascending, list->sort_ascending);
@@ -648,40 +549,36 @@ void ScriptList::RemoveAboveValue(SQInteger value)
 {
 	this->modifications++;
 
-	for (ScriptListMap::iterator next_iter, iter = this->items.begin(); iter != this->items.end(); iter = next_iter) {
-		next_iter = std::next(iter);
-		if (iter->second > value) this->RemoveItem(iter->first);
-	}
+	auto it = std::remove_if(std::begin(this->items), std::end(this->items), [value](const auto &pair) { return pair.second > value; });
+	this->items.erase(it, std::end(this->items));
+	this->sorter->Invalidate();
 }
 
 void ScriptList::RemoveBelowValue(SQInteger value)
 {
 	this->modifications++;
 
-	for (ScriptListMap::iterator next_iter, iter = this->items.begin(); iter != this->items.end(); iter = next_iter) {
-		next_iter = std::next(iter);
-		if (iter->second < value) this->RemoveItem(iter->first);
-	}
+	auto it = std::remove_if(std::begin(this->items), std::end(this->items), [value](const auto &pair) { return pair.second < value; });
+	this->items.erase(it, std::end(this->items));
+	this->sorter->Invalidate();
 }
 
 void ScriptList::RemoveBetweenValue(SQInteger start, SQInteger end)
 {
 	this->modifications++;
 
-	for (ScriptListMap::iterator next_iter, iter = this->items.begin(); iter != this->items.end(); iter = next_iter) {
-		next_iter = std::next(iter);
-		if (iter->second > start && iter->second < end) this->RemoveItem(iter->first);
-	}
+	auto it = std::remove_if(std::begin(this->items), std::end(this->items), [start, end](const auto &pair) { return pair.second > start && pair.second < end; });
+	this->items.erase(it, std::end(this->items));
+	this->sorter->Invalidate();
 }
 
 void ScriptList::RemoveValue(SQInteger value)
 {
 	this->modifications++;
 
-	for (ScriptListMap::iterator next_iter, iter = this->items.begin(); iter != this->items.end(); iter = next_iter) {
-		next_iter = std::next(iter);
-		if (iter->second == value) this->RemoveItem(iter->first);
-	}
+	auto it = std::remove_if(std::begin(this->items), std::end(this->items), [value](const auto &pair) { return pair.second == value; });
+	this->items.erase(it, std::end(this->items));
+	this->sorter->Invalidate();
 }
 
 void ScriptList::RemoveTop(SQInteger count)
@@ -695,28 +592,22 @@ void ScriptList::RemoveTop(SQInteger count)
 		return;
 	}
 
+	size_t num = std::min<size_t>(count, std::size(this->items));
 	switch (this->sorter_type) {
 		default: NOT_REACHED();
-		case SORT_BY_VALUE:
-			for (auto iter = this->buckets.begin(); iter != this->buckets.end(); iter = this->buckets.begin()) {
-				ScriptItemList *items = &iter->second;
-				size_t size = items->size();
-				for (auto iter = items->begin(); iter != items->end(); iter = items->begin()) {
-					if (--count < 0) return;
-					this->RemoveItem(*iter);
-					/* When the last item is removed from the bucket, the bucket itself is removed.
-					 * This means that the iterators can be invalid after a call to RemoveItem.
-					 */
-					if (--size == 0) break;
-				}
-			}
+		case SORT_BY_VALUE: {
+			/* Actually sort by value temporarily. */
+			std::ranges::sort(this->items, [](const auto &p1, const auto &p2) { return std::tie(p1.second, p1.first) < std::tie(p2.second, p2.first); });
+			this->items.erase(std::begin(this->items), std::next(std::begin(this->items), num));
+			/* Sort by item. */
+			std::ranges::sort(this->items);
+			this->sorter->Invalidate();
 			break;
+		}
 
 		case SORT_BY_ITEM:
-			for (auto iter = this->items.begin(); iter != this->items.end(); iter = this->items.begin()) {
-				if (--count < 0) return;
-				this->RemoveItem(iter->first);
-			}
+			this->items.erase(std::begin(this->items), std::next(std::begin(this->items), num));
+			this->sorter->Invalidate();
 			break;
 	}
 }
@@ -732,28 +623,21 @@ void ScriptList::RemoveBottom(SQInteger count)
 		return;
 	}
 
+	size_t num = std::min<size_t>(count, std::size(this->items));
 	switch (this->sorter_type) {
 		default: NOT_REACHED();
 		case SORT_BY_VALUE:
-			for (auto iter = this->buckets.rbegin(); iter != this->buckets.rend(); iter = this->buckets.rbegin()) {
-				ScriptItemList *items = &iter->second;
-				size_t size = items->size();
-				for (auto iter = items->rbegin(); iter != items->rend(); iter = items->rbegin()) {
-					if (--count < 0) return;
-					this->RemoveItem(*iter);
-					/* When the last item is removed from the bucket, the bucket itself is removed.
-					 * This means that the iterators can be invalid after a call to RemoveItem.
-					 */
-					if (--size == 0) break;
-				}
-			}
+			/* Actually sort by value temporarily. */
+			std::ranges::sort(this->items, [](const auto &p1, const auto &p2) { return std::tie(p1.second, p1.first) < std::tie(p2.second, p2.first); });
+			this->items.erase(std::prev(std::end(this->items), num), std::end(this->items));
+			/* Sort by item. */
+			std::ranges::sort(this->items);
+			this->sorter->Invalidate();
 			break;
 
 		case SORT_BY_ITEM:
-			for (auto iter = this->items.rbegin(); iter != this->items.rend(); iter = this->items.rbegin()) {
-				if (--count < 0) return;
-				this->RemoveItem(iter->first);
-			}
+			this->items.erase(std::prev(std::end(this->items), num), std::end(this->items));
+			this->sorter->Invalidate();
 			break;
 	}
 }
@@ -765,9 +649,13 @@ void ScriptList::RemoveList(ScriptList *list)
 	if (list == this) {
 		this->Clear();
 	} else {
-		for (const auto &item : list->items) {
-			this->RemoveItem(item.first);
-		}
+		auto remove = std::remove_if(std::begin(this->items), std::end(this->items), [list](const auto &pair)
+		{
+			auto it = std::ranges::lower_bound(list->items, pair.first, std::less{}, &ElementType::first);
+			return it != std::end(list->items) && it->first == pair.first;
+		});
+		this->items.erase(remove, std::end(this->items));
+		this->sorter->Invalidate();
 	}
 }
 
@@ -775,40 +663,36 @@ void ScriptList::KeepAboveValue(SQInteger value)
 {
 	this->modifications++;
 
-	for (ScriptListMap::iterator next_iter, iter = this->items.begin(); iter != this->items.end(); iter = next_iter) {
-		next_iter = std::next(iter);
-		if (iter->second <= value) this->RemoveItem(iter->first);
-	}
+	auto it = std::remove_if(std::begin(this->items), std::end(this->items), [value](const auto &pair) { return pair.second <= value; });
+	this->items.erase(it, std::end(this->items));
+	this->sorter->Invalidate();
 }
 
 void ScriptList::KeepBelowValue(SQInteger value)
 {
 	this->modifications++;
 
-	for (ScriptListMap::iterator next_iter, iter = this->items.begin(); iter != this->items.end(); iter = next_iter) {
-		next_iter = std::next(iter);
-		if (iter->second >= value) this->RemoveItem(iter->first);
-	}
+	auto it = std::remove_if(std::begin(this->items), std::end(this->items), [value](const auto &pair) { return pair.second >= value; });
+	this->items.erase(it, std::end(this->items));
+	this->sorter->Invalidate();
 }
 
 void ScriptList::KeepBetweenValue(SQInteger start, SQInteger end)
 {
 	this->modifications++;
 
-	for (ScriptListMap::iterator next_iter, iter = this->items.begin(); iter != this->items.end(); iter = next_iter) {
-		next_iter = std::next(iter);
-		if (iter->second <= start || iter->second >= end) this->RemoveItem(iter->first);
-	}
+	auto it = std::remove_if(std::begin(this->items), std::end(this->items), [start, end](const auto &pair) { return pair.second <= start || pair.second >= end; });
+	this->items.erase(it, std::end(this->items));
+	this->sorter->Invalidate();
 }
 
 void ScriptList::KeepValue(SQInteger value)
 {
 	this->modifications++;
 
-	for (ScriptListMap::iterator next_iter, iter = this->items.begin(); iter != this->items.end(); iter = next_iter) {
-		next_iter = std::next(iter);
-		if (iter->second != value) this->RemoveItem(iter->first);
-	}
+	auto it = std::remove_if(std::begin(this->items), std::end(this->items), [value](const auto &pair) { return pair.second != value; });
+	this->items.erase(it, std::end(this->items));
+	this->sorter->Invalidate();
 }
 
 void ScriptList::KeepTop(SQInteger count)
@@ -844,10 +728,10 @@ SQInteger ScriptList::_get(HSQUIRRELVM vm)
 	SQInteger idx;
 	sq_getinteger(vm, 2, &idx);
 
-	auto item_iter = this->items.find(idx);
-	if (item_iter == this->items.end()) return SQ_ERROR;
+	auto it = std::ranges::lower_bound(this->items, idx, std::less{}, &ElementType::first);
+	if (it == std::end(this->items) || it->first != idx) return SQ_ERROR;
 
-	sq_pushinteger(vm, item_iter->second);
+	sq_pushinteger(vm, it->second);
 	return 1;
 }
 
@@ -942,14 +826,14 @@ SQInteger ScriptList::Valuate(HSQUIRRELVM vm)
 	/* Push the function to call */
 	sq_push(vm, 2);
 
-	for (const auto &item : this->items) {
+	for (auto &[key, _] : this->items) {
 		/* Check for changing of items. */
 		int previous_modification_count = this->modifications;
 
 		/* Push the root table as instance object, this is what squirrel does for meta-functions. */
 		sq_pushroottable(vm);
 		/* Push all arguments for the valuator function. */
-		sq_pushinteger(vm, item.first);
+		sq_pushinteger(vm, key);
 		for (int i = 0; i < nparam - 1; i++) {
 			sq_push(vm, i + 3);
 		}
@@ -990,7 +874,7 @@ SQInteger ScriptList::Valuate(HSQUIRRELVM vm)
 			return sq_throwerror(vm, "modifying valuated list outside of valuator function");
 		}
 
-		this->SetValue(item.first, value);
+		this->SetValue(key, value);
 
 		/* Pop the return value. */
 		sq_poptop(vm);
