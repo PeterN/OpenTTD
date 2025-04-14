@@ -128,7 +128,7 @@ struct CargoSpec {
 	 */
 	static inline size_t GetArraySize()
 	{
-		return lengthof(CargoSpec::array);
+		return std::size(CargoSpec::array);
 	}
 
 	/**
@@ -138,7 +138,7 @@ struct CargoSpec {
 	 */
 	static inline CargoSpec *Get(size_t index)
 	{
-		assert(index < lengthof(CargoSpec::array));
+		assert(index < CargoSpec::GetArraySize());
 		return &CargoSpec::array[index];
 	}
 
