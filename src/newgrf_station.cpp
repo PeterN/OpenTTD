@@ -699,39 +699,40 @@ CommandCost PerformStationTileSlopeCheck(TileIndex north_tile, TileIndex cur_til
  */
 std::optional<uint8_t> AllocateSpecToStation(const StationSpec *statspec, BaseStation *st, bool exec)
 {
-	uint i;
-
 	if (statspec == nullptr || st == nullptr) return 0;
 
-	for (i = 1; i < st->speclist.size() && i < NUM_STATIONSSPECS_PER_STATION; i++) {
-		if (st->speclist[i].spec == nullptr && st->speclist[i].grfid == 0) break;
-	}
+	auto &speclist = GetStationSpecList<StationSpec>(st);
+	if (speclist.empty()) speclist.emplace_back(); // First entry must always be blank.
 
-	if (i == NUM_STATIONSSPECS_PER_STATION) {
-		/* As final effort when the spec list is already full...
-		 * try to find the same spec and return that one. This might
-		 * result in slightly "wrong" (as per specs) looking stations,
-		 * but it's fairly unlikely that one reaches the limit anyways.
-		 */
-		for (i = 1; i < st->speclist.size() && i < NUM_STATIONSSPECS_PER_STATION; i++) {
-			if (st->speclist[i].spec == statspec) return i;
+	auto first = std::next(std::begin(speclist));
+	auto last = std::end(speclist);
+
+	/* Find an unused slot. */
+	auto it = std::ranges::find(first, last, 0, &SpecMapping<StationSpec>::grfid);
+	if (it == last) {
+		if (speclist.size() >= NUM_STATIONSSPECS_PER_STATION) {
+			/* As final effort when the spec list is already full...
+			 * try to find the same spec and return that one. This might
+			 * result in slightly "wrong" (as per specs) looking stations,
+			 * but it's fairly unlikely that one reaches the limit anyways.
+			 */
+			it = std::ranges::find(first, last, statspec, &SpecMapping<StationSpec>::spec);
+			if (it != last) return static_cast<uint8_t>(std::distance(std::begin(speclist), it));
+			return std::nullopt;
 		}
 
-		return std::nullopt;
+		if (exec) it = speclist.emplace(it);
 	}
 
 	if (exec) {
-		if (i >= st->speclist.size()) st->speclist.resize(i + 1);
-		st->speclist[i].spec     = statspec;
-		st->speclist[i].grfid    = statspec->grf_prop.grfid;
-		st->speclist[i].localidx = statspec->grf_prop.local_id;
-
+		it->spec = statspec;
+		it->grfid = statspec->grf_prop.grfid;
+		it->localidx = statspec->grf_prop.local_id;
 		StationUpdateCachedTriggers(st);
 	}
 
-	return i;
+	return static_cast<uint8_t>(std::distance(std::begin(speclist), it));
 }
-
 
 /**
  * Deallocate a StationSpec from a Station. Called when removing a single station tile.
@@ -751,26 +752,13 @@ void DeallocateSpecFromStation(BaseStation *st, uint8_t specindex)
 	}
 
 	/* This specindex is no longer in use, so deallocate it */
-	st->speclist[specindex].spec     = nullptr;
-	st->speclist[specindex].grfid    = 0;
-	st->speclist[specindex].localidx = 0;
+	auto &speclist = GetStationSpecList<StationSpec>(st);
+	speclist[specindex] = {};
 
-	/* If this was the highest spec index, reallocate */
-	if (specindex == st->speclist.size() - 1) {
-		size_t num_specs;
-		for (num_specs = st->speclist.size() - 1; num_specs > 0; num_specs--) {
-			if (st->speclist[num_specs].grfid != 0) break;
-		}
-
-		if (num_specs > 0) {
-			st->speclist.resize(num_specs + 1);
-		} else {
-			st->speclist.clear();
-			st->cached_anim_triggers = {};
-			st->cached_cargo_triggers = 0;
-			return;
-		}
-	}
+	/* Erase trailing unused slots. */
+	auto it = speclist.rbegin();
+	while (it != speclist.rend() && it->grfid == 0) ++it;
+	speclist.erase(it.base(), speclist.end());
 
 	StationUpdateCachedTriggers(st);
 }

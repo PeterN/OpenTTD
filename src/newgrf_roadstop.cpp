@@ -568,35 +568,37 @@ const RoadStopSpec *GetRoadStopSpec(TileIndex t)
  */
 std::optional<uint8_t> AllocateSpecToRoadStop(const RoadStopSpec *statspec, BaseStation *st, bool exec)
 {
-	uint i;
-
 	if (statspec == nullptr || st == nullptr) return 0;
 
+	auto &speclist = GetStationSpecList<RoadStopSpec>(st);
+	if (speclist.empty()) speclist.emplace_back(); // First entry must always be blank.
+
+	auto first = std::next(std::begin(speclist));
+	auto last = std::end(speclist);
+
 	/* Try to find the same spec and return that one */
-	for (i = 1; i < st->roadstop_speclist.size() && i < NUM_ROADSTOPSPECS_PER_STATION; i++) {
-		if (st->roadstop_speclist[i].spec == statspec) return i;
-	}
+	auto it = std::ranges::find(first, last, statspec, &SpecMapping<RoadStopSpec>::spec);
+	if (it != last) return static_cast<uint8_t>(std::distance(std::begin(speclist), it));
 
 	/* Try to find an unused spec slot */
-	for (i = 1; i < st->roadstop_speclist.size() && i < NUM_ROADSTOPSPECS_PER_STATION; i++) {
-		if (st->roadstop_speclist[i].spec == nullptr && st->roadstop_speclist[i].grfid == 0) break;
-	}
+	it = std::ranges::find(first, last, 0, &SpecMapping<RoadStopSpec>::grfid);
+	if (it == last) {
+		if (speclist.size() >= NUM_ROADSTOPSPECS_PER_STATION) {
+			/* Full, give up */
+			return std::nullopt;
+		}
 
-	if (i == NUM_ROADSTOPSPECS_PER_STATION) {
-		/* Full, give up */
-		return std::nullopt;
+		if (exec) it = speclist.emplace(it);
 	}
 
 	if (exec) {
-		if (i >= st->roadstop_speclist.size()) st->roadstop_speclist.resize(i + 1);
-		st->roadstop_speclist[i].spec     = statspec;
-		st->roadstop_speclist[i].grfid    = statspec->grf_prop.grfid;
-		st->roadstop_speclist[i].localidx = statspec->grf_prop.local_id;
-
+		it->spec = statspec;
+		it->grfid = statspec->grf_prop.grfid;
+		it->localidx = statspec->grf_prop.local_id;
 		RoadStopUpdateCachedTriggers(st);
 	}
 
-	return i;
+	return static_cast<uint8_t>(std::distance(std::begin(speclist), it));
 }
 
 /**
@@ -617,26 +619,13 @@ void DeallocateSpecFromRoadStop(BaseStation *st, uint8_t specindex)
 	}
 
 	/* This specindex is no longer in use, so deallocate it */
-	st->roadstop_speclist[specindex].spec     = nullptr;
-	st->roadstop_speclist[specindex].grfid    = 0;
-	st->roadstop_speclist[specindex].localidx = 0;
+	auto &speclist = GetStationSpecList<RoadStopSpec>(st);
+	speclist[specindex] = {};
 
-	/* If this was the highest spec index, reallocate */
-	if (specindex == st->roadstop_speclist.size() - 1) {
-		size_t num_specs;
-		for (num_specs = st->roadstop_speclist.size() - 1; num_specs > 0; num_specs--) {
-			if (st->roadstop_speclist[num_specs].grfid != 0) break;
-		}
-
-		if (num_specs > 0) {
-			st->roadstop_speclist.resize(num_specs + 1);
-		} else {
-			st->roadstop_speclist.clear();
-			st->cached_roadstop_anim_triggers = {};
-			st->cached_roadstop_cargo_triggers = 0;
-			return;
-		}
-	}
+	/* Erase trailing unused slots. */
+	auto it = speclist.rbegin();
+	while (it != speclist.rend() && it->grfid == 0) ++it;
+	speclist.erase(it.base(), speclist.end());
 
 	RoadStopUpdateCachedTriggers(st);
 }
