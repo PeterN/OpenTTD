@@ -55,86 +55,86 @@ static const DrawTileSpriteSpan _shipdepot_display_data[][DEPOT_PART_END] = {
 	},
 };
 
-static const DrawTileSeqStruct _lock_display_seq_0[] = {
+static const DrawTileSeqStruct _lock_middle_ne_seq[] = {
 	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 0 + 1)
 	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 4 + 1)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_1[] = {
+static const DrawTileSeqStruct _lock_middle_se_seq[] = {
 	TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 0)
 	TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 4)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_2[] = {
+static const DrawTileSeqStruct _lock_middle_sw_seq[] = {
 	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 0 + 2)
 	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 4 + 2)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_3[] = {
+static const DrawTileSeqStruct _lock_middle_nw_seq[] = {
 	TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 0 + 3)
 	TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 4 + 3)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_0b[] = {
+static const DrawTileSeqStruct _lock_lower_ne_seq[] = {
 	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 8 + 1)
 	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 12 + 1)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_1b[] = {
+static const DrawTileSeqStruct _lock_lower_se_seq[] = {
 	TILE_SEQ_LINE(   0, 0, 0, 0x1, 0x10, 0x14, 8)
 	TILE_SEQ_LINE( 0xF, 0, 0, 0x1, 0x10, 0x14, 12)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_2b[] = {
+static const DrawTileSeqStruct _lock_lower_sw_seq[] = {
 	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 8 + 2)
 	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 12 + 2)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_3b[] = {
+static const DrawTileSeqStruct _lock_lower_nw_seq[] = {
 	TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 8 + 3)
 	TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 12 + 3)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_0t[] = {
+static const DrawTileSeqStruct _lock_upper_ne_seq[] = {
 	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 16 + 1)
 	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 20 + 1)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_1t[] = {
+static const DrawTileSeqStruct _lock_upper_se_seq[] = {
 	TILE_SEQ_LINE(   0, 0, 0, 0x1, 0x10, 0x14, 16)
 	TILE_SEQ_LINE( 0xF, 0, 0, 0x1, 0x10, 0x14, 20)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_2t[] = {
+static const DrawTileSeqStruct _lock_upper_sw_seq[] = {
 	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 16 + 2)
 	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 20 + 2)
 };
 
-static const DrawTileSeqStruct _lock_display_seq_3t[] = {
+static const DrawTileSeqStruct _lock_upper_nw_seq[] = {
 	TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 16 + 3)
 	TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 20 + 3)
 };
 
 static const DrawTileSpriteSpan _lock_display_data[][DIAGDIR_END] = {
 	{ // LOCK_PART_MIDDLE
-		TILE_SPRITE_LINE(1, _lock_display_seq_0) // NE
-		TILE_SPRITE_LINE(0, _lock_display_seq_1) // SE
-		TILE_SPRITE_LINE(2, _lock_display_seq_2) // SW
-		TILE_SPRITE_LINE(3, _lock_display_seq_3) // NW
+		TILE_SPRITE_LINE(1, _lock_middle_ne_seq) // NE
+		TILE_SPRITE_LINE(0, _lock_middle_se_seq) // SE
+		TILE_SPRITE_LINE(2, _lock_middle_sw_seq) // SW
+		TILE_SPRITE_LINE(3, _lock_middle_nw_seq) // NW
 	},
 
 	{ // LOCK_PART_LOWER
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_0b) // NE
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_1b) // SE
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_2b) // SW
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_3b) // NW
+		TILE_SPRITE_LINE(0xFDD, _lock_lower_ne_seq) // NE
+		TILE_SPRITE_LINE(0xFDD, _lock_lower_se_seq) // SE
+		TILE_SPRITE_LINE(0xFDD, _lock_lower_sw_seq) // SW
+		TILE_SPRITE_LINE(0xFDD, _lock_lower_nw_seq) // NW
 	},
 
 	{ // LOCK_PART_UPPER
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_0t) // NE
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_1t) // SE
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_2t) // SW
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_3t) // NW
+		TILE_SPRITE_LINE(0xFDD, _lock_upper_ne_seq) // NE
+		TILE_SPRITE_LINE(0xFDD, _lock_upper_se_seq) // SE
+		TILE_SPRITE_LINE(0xFDD, _lock_upper_sw_seq) // SW
+		TILE_SPRITE_LINE(0xFDD, _lock_upper_nw_seq) // NW
 	},
 };
 
