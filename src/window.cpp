@@ -594,6 +594,9 @@ EventState Window::OnHotkey(int hotkey)
  */
 void Window::HandleButtonClick(WidgetID widget)
 {
+	/* Button click for this widget may already have been handled. */
+	if (this->IsWidgetLowered(widget) && this->timeout_timer == TIMEOUT_DURATION) return;
+
 	this->LowerWidget(widget);
 	this->SetTimeout();
 	this->SetWidgetDirty(widget);
@@ -1806,7 +1809,7 @@ void Window::InitNested(WindowNumber window_number)
  * Empty constructor, initialization has been moved to #InitNested() called from the constructor of the derived class.
  * @param desc The description of the window.
  */
-Window::Window(WindowDesc &desc) : window_desc(desc), scale(_gui_scale), mouse_capture_widget(-1)
+Window::Window(WindowDesc &desc) : window_desc(desc), scale(_gui_scale), mouse_capture_widget(INVALID_WIDGET)
 {
 	this->z_position = _z_windows.insert(_z_windows.end(), this);
 }
@@ -1888,7 +1891,7 @@ static void DecreaseWindowCounters()
 					NWidgetScrollbar *sb = static_cast<NWidgetScrollbar*>(nwid);
 					if (sb->disp_flags.Any({NWidgetDisplayFlag::ScrollbarUp, NWidgetDisplayFlag::ScrollbarDown})) {
 						sb->disp_flags.Reset({NWidgetDisplayFlag::ScrollbarUp, NWidgetDisplayFlag::ScrollbarDown});
-						w->mouse_capture_widget = -1;
+						w->mouse_capture_widget = INVALID_WIDGET;
 						sb->SetDirty(w);
 					}
 				}
@@ -2387,7 +2390,7 @@ static EventState HandleActiveWidget()
 			/* Abort if no button is clicked any more. */
 			if (!_left_button_down) {
 				w->SetWidgetDirty(w->mouse_capture_widget);
-				w->mouse_capture_widget = -1;
+				w->mouse_capture_widget = INVALID_WIDGET;
 				return ES_HANDLED;
 			}
 
