@@ -32,9 +32,13 @@ static const uint8_t MAX_STATION_RATING = 255;
  */
 class FlowStat {
 public:
-	typedef std::map<uint32_t, StationID> SharesMap;
+	struct Share {
+		uint32_t count;
+		StationID via;
+	};
+	using Shares = std::vector<Share>;
 
-	static const SharesMap empty_sharesmap;
+	static const Shares empty_shares;
 
 	/**
 	 * Invalid constructor. This can't be called as a FlowStat must not be
@@ -52,7 +56,7 @@ public:
 	inline FlowStat(StationID st, uint flow, bool restricted = false)
 	{
 		assert(flow > 0);
-		this->shares[flow] = st;
+		this->shares.emplace_back(flow, st);
 		this->unrestricted = restricted ? 0 : flow;
 	}
 
@@ -67,7 +71,7 @@ public:
 	inline void AppendShare(StationID st, uint flow, bool restricted = false)
 	{
 		assert(flow > 0);
-		this->shares[(--this->shares.end())->first + flow] = st;
+		this->shares.emplace_back(this->shares.back().count + flow, st);
 		if (!restricted) this->unrestricted += flow;
 	}
 
@@ -86,7 +90,7 @@ public:
 	 * over.
 	 * @return Actual shares.
 	 */
-	inline const SharesMap *GetShares() const { return &this->shares; }
+	inline const Shares &GetShares() const { return this->shares; }
 
 	/**
 	 * Return total amount of unrestricted shares.
@@ -116,9 +120,9 @@ public:
 	inline StationID GetViaWithRestricted(bool &is_restricted) const
 	{
 		assert(!this->shares.empty());
-		uint rand = RandomRange((--this->shares.end())->first);
+		uint rand = RandomRange(this->shares.back().count);
 		is_restricted = rand >= this->unrestricted;
-		return this->shares.upper_bound(rand)->second;
+		return std::ranges::upper_bound(this->shares, rand, std::less{}, &Share::count)->via;
 	}
 
 	/**
@@ -132,7 +136,7 @@ public:
 	{
 		assert(!this->shares.empty());
 		return this->unrestricted > 0 ?
-				this->shares.upper_bound(RandomRange(this->unrestricted))->second :
+				std::ranges::upper_bound(this->shares, RandomRange(this->unrestricted), std::less{}, &Share::count)->via:
 				StationID::Invalid();
 	}
 
@@ -141,7 +145,7 @@ public:
 	void Invalidate();
 
 private:
-	SharesMap shares{}; ///< Shares of flow to be sent via specified station (or consumed locally).
+	Shares shares{}; ///< Shares of flow to be sent via specified station (or consumed locally).
 	uint unrestricted = 0; ///< Limit for unrestricted shares.
 };
 

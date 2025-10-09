@@ -1503,19 +1503,17 @@ struct StationViewWindow : public Window {
 
 		if (!st->goods[cargo].HasData()) return;
 
-		for (const auto &it : st->goods[cargo].GetData().flows) {
-			StationID from = it.first;
-			CargoDataEntry &source_entry = entry.InsertOrRetrieve(from);
-			uint32_t prev_count = 0;
-			for (const auto &flow_it : *it.second.GetShares()) {
-				StationID via = flow_it.second;
-				CargoDataEntry &via_entry = source_entry.InsertOrRetrieve(via);
-				if (via == this->window_number) {
-					via_entry.InsertOrRetrieve(via).Update(flow_it.first - prev_count);
+		for (const auto &[source, flowstat] : st->goods[cargo].GetData().flows) {
+			CargoDataEntry &source_entry = entry.InsertOrRetrieve(source);
+			uint prev_count = 0;
+			for (const FlowStat::Share &share : flowstat.GetShares()) {
+				CargoDataEntry &via_entry = source_entry.InsertOrRetrieve(share.via);
+				if (share.via == this->window_number) {
+					via_entry.InsertOrRetrieve(share.via).Update(share.count - prev_count);
 				} else {
-					EstimateDestinations(cargo, from, via, flow_it.first - prev_count, via_entry);
+					EstimateDestinations(cargo, source, share.via, share.count - prev_count, via_entry);
 				}
-				prev_count = flow_it.first;
+				prev_count = share.count;
 			}
 		}
 	}
@@ -1537,13 +1535,13 @@ struct StationViewWindow : public Window {
 
 			CargoDataEntry tmp;
 			const FlowStatMap &flowmap = ge.GetData().flows;
-			FlowStatMap::const_iterator map_it = flowmap.find(source);
+			auto map_it = flowmap.find(source);
 			if (map_it != flowmap.end()) {
-				const FlowStat::SharesMap *shares = map_it->second.GetShares();
-				uint32_t prev_count = 0;
-				for (FlowStat::SharesMap::const_iterator i = shares->begin(); i != shares->end(); ++i) {
-					tmp.InsertOrRetrieve(i->second).Update(i->first - prev_count);
-					prev_count = i->first;
+				const auto &[_, flowstat] = *map_it;
+				uint prev_count = 0;
+				for (const FlowStat::Share &share : flowstat.GetShares()) {
+					tmp.InsertOrRetrieve(share.via).Update(share.count - prev_count);
+					prev_count = share.count;
 				}
 			}
 
@@ -1588,15 +1586,13 @@ struct StationViewWindow : public Window {
 	void BuildFlowList(CargoType cargo, const FlowStatMap &flows, CargoDataEntry *entry)
 	{
 		const CargoDataEntry *source_dest = this->cached_destinations.Retrieve(cargo);
-		for (FlowStatMap::const_iterator it = flows.begin(); it != flows.end(); ++it) {
-			StationID from = it->first;
-			const CargoDataEntry *source_entry = source_dest->Retrieve(from);
-			const FlowStat::SharesMap *shares = it->second.GetShares();
-			for (FlowStat::SharesMap::const_iterator flow_it = shares->begin(); flow_it != shares->end(); ++flow_it) {
-				const CargoDataEntry *via_entry = source_entry->Retrieve(flow_it->second);
-				for (CargoDataSet::iterator dest_it = via_entry->Begin(); dest_it != via_entry->End(); ++dest_it) {
+		for (const auto &[source, flowstat] : flows) {
+			const CargoDataEntry *source_entry = source_dest->Retrieve(source);
+			for (const FlowStat::Share &share : flowstat.GetShares()) {
+				const CargoDataEntry *via_entry = source_entry->Retrieve(share.via);
+				for (auto dest_it = via_entry->Begin(); dest_it != via_entry->End(); ++dest_it) {
 					CargoDataEntry &dest_entry = **dest_it;
-					ShowCargo(entry, cargo, from, flow_it->second, dest_entry.GetStation(), dest_entry.GetCount());
+					ShowCargo(entry, cargo, source, share.via, dest_entry.GetStation(), dest_entry.GetCount());
 				}
 			}
 		}

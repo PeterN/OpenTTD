@@ -136,11 +136,11 @@ private:
 	/** Lookup table for getting NodeIDs from StationIDs. */
 	TypedIndexContainer<std::vector<NodeID>, StationID> station_to_node;
 
-	/** Current iterator in the shares map. */
-	FlowStat::SharesMap::const_iterator it;
+	/** Current iterator in the shares. */
+	FlowStat::Shares::const_iterator it;
 
-	/** End of the shares map. */
-	FlowStat::SharesMap::const_iterator end;
+	/** End of the shares. */
+	FlowStat::Shares::const_iterator end;
 public:
 
 	/**
@@ -168,11 +168,11 @@ public:
 		const FlowStatMap &flows = this->job[node].flows;
 		FlowStatMap::const_iterator it = flows.find(this->job[source].base.station);
 		if (it != flows.end()) {
-			this->it = it->second.GetShares()->begin();
-			this->end = it->second.GetShares()->end();
+			this->it = it->second.GetShares().begin();
+			this->end = it->second.GetShares().end();
 		} else {
-			this->it = FlowStat::empty_sharesmap.begin();
-			this->end = FlowStat::empty_sharesmap.end();
+			this->it = FlowStat::empty_shares.begin();
+			this->end = FlowStat::empty_shares.end();
 		}
 	}
 
@@ -183,7 +183,7 @@ public:
 	NodeID Next()
 	{
 		if (this->it == this->end) return INVALID_NODE;
-		return this->station_to_node[(this->it++)->second];
+		return this->station_to_node[(this->it++)->via];
 	}
 };
 

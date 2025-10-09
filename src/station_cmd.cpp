@@ -80,11 +80,11 @@
 #include "safeguards.h"
 
 /**
- * Static instance of FlowStat::SharesMap.
+ * Static instance of FlowStat::Shares.
  * Note: This instance is created on task start.
  *       Lazy creation on first usage results in a data race between the CDist threads.
  */
-/* static */ const FlowStat::SharesMap FlowStat::empty_sharesmap;
+/* static */ const FlowStat::Shares FlowStat::empty_shares;
 
 /**
  * Check whether the given tile is a hangar.
@@ -3940,12 +3940,13 @@ static void TruncateCargo(const CargoSpec *cs, GoodsEntry *ge, uint amount = UIN
 
 	StationCargoAmountMap waiting_per_source;
 	ge->GetData().cargo.Truncate(amount, &waiting_per_source);
-	for (StationCargoAmountMap::iterator i(waiting_per_source.begin()); i != waiting_per_source.end(); ++i) {
-		Station *source_station = Station::GetIfValid(i->first);
+
+	for (const auto &[source, waiting] : waiting_per_source) {
+		Station *source_station = Station::GetIfValid(source);
 		if (source_station == nullptr) continue;
 
 		GoodsEntry &source_ge = source_station->goods[cs->Index()];
-		source_ge.max_waiting_cargo = std::max(source_ge.max_waiting_cargo, i->second);
+		source_ge.max_waiting_cargo = std::max(source_ge.max_waiting_cargo, waiting);
 	}
 }
 
@@ -4915,13 +4916,10 @@ static CommandCost TerraformTile_Station(TileIndex tile, DoCommandFlags flags, i
  */
 uint FlowStat::GetShare(StationID st) const
 {
-	uint32_t prev = 0;
-	for (const auto &it : this->shares) {
-		if (it.second == st) {
-			return it.first - prev;
-		} else {
-			prev = it.first;
-		}
+	uint prev_count = 0;
+	for (const Share &share : this->shares) {
+		if (share.via == st) return share.count - prev_count;
+		prev_count = share.count;
 	}
 	return 0;
 }
@@ -4936,29 +4934,28 @@ StationID FlowStat::GetVia(StationID excluded, StationID excluded2) const
 {
 	if (this->unrestricted == 0) return StationID::Invalid();
 	assert(!this->shares.empty());
-	SharesMap::const_iterator it = this->shares.upper_bound(RandomRange(this->unrestricted));
-	assert(it != this->shares.end() && it->first <= this->unrestricted);
-	if (it->second != excluded && it->second != excluded2) return it->second;
+	auto it = std::ranges::upper_bound(this->shares, RandomRange(this->unrestricted), std::less{}, &Share::count);
+	assert(it != this->shares.end() && it->count <= this->unrestricted);
+	if (it->via != excluded && it->via != excluded2) return it->via;
 
 	/* We've hit one of the excluded stations.
 	 * Draw another share, from outside its range. */
 
-	uint end = it->first;
-	uint begin = (it == this->shares.begin() ? 0 : (--it)->first);
+	uint end = it->count;
+	uint begin = (it == this->shares.begin() ? 0 : (--it)->count);
 	uint interval = end - begin;
 	if (interval >= this->unrestricted) return StationID::Invalid(); // Only one station in the map.
 	uint new_max = this->unrestricted - interval;
 	uint rand = RandomRange(new_max);
-	SharesMap::const_iterator it2 = (rand < begin) ? this->shares.upper_bound(rand) :
-			this->shares.upper_bound(rand + interval);
-	assert(it2 != this->shares.end() && it2->first <= this->unrestricted);
-	if (it2->second != excluded && it2->second != excluded2) return it2->second;
+	auto it2 = std::ranges::upper_bound(this->shares, (rand < begin) ? rand : rand + interval, std::less{}, &Share::count);
+	assert(it2 != this->shares.end() && it2->count <= this->unrestricted);
+	if (it2->via != excluded && it2->via != excluded2) return it2->via;
 
 	/* We've hit the second excluded station.
 	 * Same as before, only a bit more complicated. */
 
-	uint end2 = it2->first;
-	uint begin2 = (it2 == this->shares.begin() ? 0 : (--it2)->first);
+	uint end2 = it2->count;
+	uint begin2 = (it2 == this->shares.begin() ? 0 : (--it2)->count);
 	uint interval2 = end2 - begin2;
 	if (interval2 >= new_max) return StationID::Invalid(); // Only the two excluded stations in the map.
 	new_max -= interval2;
@@ -4968,16 +4965,16 @@ StationID FlowStat::GetVia(StationID excluded, StationID excluded2) const
 		std::swap(interval, interval2);
 	}
 	rand = RandomRange(new_max);
-	SharesMap::const_iterator it3 = this->shares.upper_bound(this->unrestricted);
+	Shares::const_iterator it3;
 	if (rand < begin) {
-		it3 = this->shares.upper_bound(rand);
+		it3 = std::ranges::upper_bound(this->shares, rand, std::less{}, &Share::count);
 	} else if (rand < begin2 - interval) {
-		it3 = this->shares.upper_bound(rand + interval);
+		it3 = std::ranges::upper_bound(this->shares, rand + interval, std::less{}, &Share::count);
 	} else {
-		it3 = this->shares.upper_bound(rand + interval + interval2);
+		it3 = std::ranges::upper_bound(this->shares, rand + interval + interval2, std::less{}, &Share::count);
 	}
-	assert(it3 != this->shares.end() && it3->first <= this->unrestricted);
-	return it3->second;
+	assert(it3 != this->shares.end() && it3->count <= this->unrestricted);
+	return it3->via;
 }
 
 /**
@@ -4988,14 +4985,14 @@ StationID FlowStat::GetVia(StationID excluded, StationID excluded2) const
 void FlowStat::Invalidate()
 {
 	assert(!this->shares.empty());
-	SharesMap new_shares;
+	Shares new_shares;
 	uint i = 0;
-	for (const auto &it : this->shares) {
-		new_shares[++i] = it.second;
-		if (it.first == this->unrestricted) this->unrestricted = i;
+	for (const Share &share : this->shares) {
+		new_shares.emplace_back(++i, share.via);
+		if (share.count == this->unrestricted) this->unrestricted = i;
 	}
 	this->shares.swap(new_shares);
-	assert(!this->shares.empty() && this->unrestricted <= (--this->shares.end())->first);
+	assert(!this->shares.empty() && this->unrestricted <= this->shares.back().count);
 }
 
 /**
@@ -5012,35 +5009,35 @@ void FlowStat::ChangeShare(StationID st, int flow)
 
 	uint removed_shares = 0;
 	uint added_shares = 0;
-	uint last_share = 0;
-	SharesMap new_shares;
-	for (const auto &it : this->shares) {
-		if (it.second == st) {
+	uint last_count = 0;
+	Shares new_shares;
+	for (const Share &share : this->shares) {
+		if (share.via == st) {
 			if (flow < 0) {
-				uint share = it.first - last_share;
-				if (flow == INT_MIN || (uint)(-flow) >= share) {
-					removed_shares += share;
-					if (it.first <= this->unrestricted) this->unrestricted -= share;
-					if (flow != INT_MIN) flow += share;
-					last_share = it.first;
+				uint shares = share.count - last_count;
+				if (flow == INT_MIN || (uint)(-flow) >= shares) {
+					removed_shares += shares;
+					if (share.count <= this->unrestricted) this->unrestricted -= shares;
+					if (flow != INT_MIN) flow += shares;
+					last_count = share.count;
 					continue; // remove the whole share
 				}
 				removed_shares += (uint)(-flow);
 			} else {
 				added_shares += (uint)(flow);
 			}
-			if (it.first <= this->unrestricted) this->unrestricted += flow;
+			if (share.count <= this->unrestricted) this->unrestricted += flow;
 
 			/* If we don't continue above the whole flow has been added or
 			 * removed. */
 			flow = 0;
 		}
-		new_shares[it.first + added_shares - removed_shares] = it.second;
-		last_share = it.first;
+		new_shares.emplace_back(share.count + added_shares - removed_shares, share.via);
+		last_count = share.count;
 	}
 	if (flow > 0) {
-		new_shares[last_share + (uint)flow] = st;
-		if (this->unrestricted < last_share) {
+		new_shares.emplace_back(last_count + flow, st);
+		if (this->unrestricted < last_count) {
 			this->ReleaseShare(st);
 		} else {
 			this->unrestricted += flow;
@@ -5058,24 +5055,24 @@ void FlowStat::RestrictShare(StationID st)
 {
 	assert(!this->shares.empty());
 	uint flow = 0;
-	uint last_share = 0;
-	SharesMap new_shares;
-	for (auto &it : this->shares) {
+	uint last_count = 0;
+	Shares new_shares;
+	for (const Share &share : this->shares) {
 		if (flow == 0) {
-			if (it.first > this->unrestricted) return; // Not present or already restricted.
-			if (it.second == st) {
-				flow = it.first - last_share;
+			if (share.count > this->unrestricted) return; // Not present or already restricted.
+			if (share.via == st) {
+				flow = share.count - last_count;
 				this->unrestricted -= flow;
 			} else {
-				new_shares[it.first] = it.second;
+				new_shares.emplace_back(share.count, share.via);
 			}
 		} else {
-			new_shares[it.first - flow] = it.second;
+			new_shares.emplace_back(share.count - flow, share.via);
 		}
-		last_share = it.first;
+		last_count = share.count;
 	}
 	if (flow == 0) return;
-	new_shares[last_share + flow] = st;
+	new_shares.emplace_back(last_count + flow, st);
 	this->shares.swap(new_shares);
 	assert(!this->shares.empty());
 }
@@ -5089,26 +5086,29 @@ void FlowStat::ReleaseShare(StationID st)
 {
 	assert(!this->shares.empty());
 	uint flow = 0;
-	uint next_share = 0;
+	uint next_count = 0;
 	bool found = false;
-	for (SharesMap::reverse_iterator it(this->shares.rbegin()); it != this->shares.rend(); ++it) {
-		if (it->first < this->unrestricted) return; // Note: not <= as the share may hit the limit.
+	for (auto it = this->shares.rbegin(); it != this->shares.rend(); ++it) {
+		const Share &share = *it;
+		if (share.count < this->unrestricted) return; // Note: not <= as the share may hit the limit.
 		if (found) {
-			flow = next_share - it->first;
+			flow = next_count - share.count;
 			this->unrestricted += flow;
 			break;
 		} else {
-			if (it->first == this->unrestricted) return; // !found -> Limit not hit.
-			if (it->second == st) found = true;
+			if (share.count == this->unrestricted) return; // !found -> Limit not hit.
+			if (share.via == st) found = true;
 		}
-		next_share = it->first;
+		next_count = share.count;
 	}
 	if (flow == 0) return;
-	SharesMap new_shares;
-	new_shares[flow] = st;
-	for (SharesMap::iterator it(this->shares.begin()); it != this->shares.end(); ++it) {
-		if (it->second != st) {
-			new_shares[flow + it->first] = it->second;
+
+	Shares new_shares;
+	new_shares.emplace_back(flow, st);
+
+	for (const Share &share : this->shares) {
+		if (share.via != st) {
+			new_shares.emplace_back(flow + share.count, share.via);
 		} else {
 			flow = 0;
 		}
@@ -5125,12 +5125,12 @@ void FlowStat::ReleaseShare(StationID st)
 void FlowStat::ScaleToMonthly(uint runtime)
 {
 	assert(runtime > 0);
-	SharesMap new_shares;
-	uint share = 0;
-	for (auto i : this->shares) {
-		share = std::max(share + 1, i.first * 30 / runtime);
-		new_shares[share] = i.second;
-		if (this->unrestricted == i.first) this->unrestricted = share;
+	Shares new_shares;
+	uint count = 0;
+	for (const Share &share : this->shares) {
+		count = std::max(count + 1, share.count * 30 / runtime);
+		new_shares.emplace_back(count, share.via);
+		if (this->unrestricted == share.count) this->unrestricted = count;
 	}
 	this->shares.swap(new_shares);
 }
@@ -5148,7 +5148,7 @@ void FlowStatMap::AddFlow(StationID origin, StationID via, uint flow)
 		this->emplace(origin, FlowStat(via, flow));
 	} else {
 		origin_it->second.ChangeShare(via, flow);
-		assert(!origin_it->second.GetShares()->empty());
+		assert(!origin_it->second.GetShares().empty());
 	}
 }
 
@@ -5170,7 +5170,7 @@ void FlowStatMap::PassOnFlow(StationID origin, StationID via, uint flow)
 	} else {
 		prev_it->second.ChangeShare(via, flow);
 		prev_it->second.ChangeShare(StationID::Invalid(), flow);
-		assert(!prev_it->second.GetShares()->empty());
+		assert(!prev_it->second.GetShares().empty());
 	}
 }
 
@@ -5180,20 +5180,19 @@ void FlowStatMap::PassOnFlow(StationID origin, StationID via, uint flow)
  */
 void FlowStatMap::FinalizeLocalConsumption(StationID self)
 {
-	for (auto &i : *this) {
-		FlowStat &fs = i.second;
-		uint local = fs.GetShare(StationID::Invalid());
+	for (auto &[_, flowstat] : *this) {
+		uint local = flowstat.GetShare(StationID::Invalid());
 		if (local > INT_MAX) { // make sure it fits in an int
-			fs.ChangeShare(self, -INT_MAX);
-			fs.ChangeShare(StationID::Invalid(), -INT_MAX);
+			flowstat.ChangeShare(self, -INT_MAX);
+			flowstat.ChangeShare(StationID::Invalid(), -INT_MAX);
 			local -= INT_MAX;
 		}
-		fs.ChangeShare(self, -(int)local);
-		fs.ChangeShare(StationID::Invalid(), -(int)local);
+		flowstat.ChangeShare(self, -(int)local);
+		flowstat.ChangeShare(StationID::Invalid(), -(int)local);
 
 		/* If the local share is used up there must be a share for some
 		 * remote station. */
-		assert(!fs.GetShares()->empty());
+		assert(!flowstat.GetShares().empty());
 	}
 }
 
@@ -5209,7 +5208,7 @@ std::vector<StationID> FlowStatMap::DeleteFlows(StationID via)
 	for (FlowStatMap::iterator f_it = this->begin(); f_it != this->end();) {
 		FlowStat &s_flows = f_it->second;
 		s_flows.ChangeShare(via, INT_MIN);
-		if (s_flows.GetShares()->empty()) {
+		if (s_flows.GetShares().empty()) {
 			ret.push_back(f_it->first);
 			this->erase(f_it++);
 		} else {
@@ -5225,8 +5224,8 @@ std::vector<StationID> FlowStatMap::DeleteFlows(StationID via)
  */
 void FlowStatMap::RestrictFlows(StationID via)
 {
-	for (auto &it : *this) {
-		it.second.RestrictShare(via);
+	for (auto &[_, flowstat] : *this) {
+		flowstat.RestrictShare(via);
 	}
 }
 
@@ -5236,8 +5235,8 @@ void FlowStatMap::RestrictFlows(StationID via)
  */
 void FlowStatMap::ReleaseFlows(StationID via)
 {
-	for (auto &it : *this) {
-		it.second.ReleaseShare(via);
+	for (auto &[_, flowstat] : *this) {
+		flowstat.ReleaseShare(via);
 	}
 }
 
@@ -5248,8 +5247,8 @@ void FlowStatMap::ReleaseFlows(StationID via)
 uint FlowStatMap::GetFlow() const
 {
 	uint ret = 0;
-	for (const auto &it : *this) {
-		ret += (--(it.second.GetShares()->end()))->first;
+	for (const auto &[_, flowstat] : *this) {
+		ret += flowstat.GetShares().back().count;
 	}
 	return ret;
 }
@@ -5262,8 +5261,8 @@ uint FlowStatMap::GetFlow() const
 uint FlowStatMap::GetFlowVia(StationID via) const
 {
 	uint ret = 0;
-	for (const auto &it : *this) {
-		ret += it.second.GetShare(via);
+	for (const auto &[_, flowstat] : *this) {
+		ret += flowstat.GetShare(via);
 	}
 	return ret;
 }
@@ -5277,7 +5276,7 @@ uint FlowStatMap::GetFlowFrom(StationID from) const
 {
 	FlowStatMap::const_iterator i = this->find(from);
 	if (i == this->end()) return 0;
-	return (--(i->second.GetShares()->end()))->first;
+	return i->second.GetShares().back().count;
 }
 
 /**

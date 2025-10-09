@@ -293,21 +293,21 @@ public:
 		}
 
 		size_t num_flows = 0;
-		for (const auto &it : ge->GetData().flows) {
-			num_flows += it.second.GetShares()->size();
+		for (const auto &[_, flowstat] : ge->GetData().flows) {
+			num_flows += flowstat.GetShares().size();
 		}
 		SlSetStructListLength(num_flows);
 
-		for (const auto &outer_it : ge->GetData().flows) {
-			const FlowStat::SharesMap *shares = outer_it.second.GetShares();
-			uint32_t sum_shares = 0;
+		for (const auto &[source, flowstat] : ge->GetData().flows) {
 			FlowSaveLoad flow{};
-			flow.source = outer_it.first;
-			for (auto &inner_it : *shares) {
-				flow.via = inner_it.second;
-				flow.share = inner_it.first - sum_shares;
-				flow.restricted = inner_it.first > outer_it.second.GetUnrestricted();
-				sum_shares = inner_it.first;
+			flow.source = source;
+
+			uint prev_count = 0;
+			for (const FlowStat::Share &share : flowstat.GetShares()) {
+				flow.via = share.via;
+				flow.share = share.count - prev_count;
+				flow.restricted = share.count > flowstat.GetUnrestricted();
+				prev_count = share.count;
 				assert(flow.share > 0);
 				SlObject(&flow, this->GetDescription());
 			}
