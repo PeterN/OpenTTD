@@ -1948,10 +1948,12 @@ void LoadUnloadStation(Station *st)
 	 */
 	if (last_loading == nullptr) return;
 
+	[[maybe_unused]] size_t num_vehicles = st->loading_vehicles.size();
 	for (Vehicle *v : st->loading_vehicles) {
 		if (!v->vehstatus.Any({VehState::Stopped, VehState::Crashed})) LoadUnloadVehicle(v);
 		if (v == last_loading) break;
 	}
+	assert(num_vehicles == st->loading_vehicles.size()); // Check that loading_vehicles wasn't changed during iteration.
 
 	/* Call the production machinery of industries */
 	for (Industry *iid : _cargo_delivery_destinations) {

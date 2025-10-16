@@ -799,7 +799,8 @@ void Vehicle::PreDestructor()
 
 	if (Station::IsValidID(this->last_station_visited)) {
 		Station *st = Station::Get(this->last_station_visited);
-		st->loading_vehicles.remove(this);
+		auto e = std::ranges::remove(st->loading_vehicles, this);
+		st->loading_vehicles.erase(e.begin(), e.end());
 
 		HideFillingPercent(&this->fill_percent_te_id);
 		this->CancelReservation(StationID::Invalid(), st);
@@ -2356,7 +2357,8 @@ void Vehicle::LeaveStation()
 	this->current_order.MakeLeaveStation();
 	Station *st = Station::Get(this->last_station_visited);
 	this->CancelReservation(StationID::Invalid(), st);
-	st->loading_vehicles.remove(this);
+	auto e = std::ranges::remove(st->loading_vehicles, this);
+	st->loading_vehicles.erase(e.begin(), e.end());
 
 	HideFillingPercent(&this->fill_percent_te_id);
 	trip_occupancy = CalcPercentVehicleFilled(this, nullptr);
