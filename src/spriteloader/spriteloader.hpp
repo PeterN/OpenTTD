@@ -25,7 +25,7 @@ enum class SpriteComponent : uint8_t {
 	Palette = 2, ///< Sprite has palette data.
 	End,
 };
-using SpriteComponents = EnumBitSet<SpriteComponent, uint8_t, SpriteComponent::End>;
+using SpriteComponents = EnumBitSet<SpriteComponent, uint8_t, to_underlying(SpriteComponent::End)>;
 
 /**
  * Map zoom level to data.

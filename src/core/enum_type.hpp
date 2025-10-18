@@ -160,9 +160,9 @@ debug_inline constexpr void ToggleFlag(T &x, const T y)
 }
 
 /** Helper template structure to get the mask for an EnumBitSet from the end enum value. */
-template <typename Tstorage, typename Tenum, Tenum Tend_value>
+template <typename Tstorage, typename Tenum, size_t Tend_value>
 struct EnumBitSetMask {
-	static constexpr Tstorage value = std::numeric_limits<Tstorage>::max() >> (std::numeric_limits<Tstorage>::digits - to_underlying(Tend_value));
+	static constexpr Tstorage value = std::numeric_limits<Tstorage>::max() >> (std::numeric_limits<Tstorage>::digits - Tend_value);
 };
 
 /**
@@ -173,7 +173,7 @@ struct EnumBitSetMask {
  * @tparam Tstorage Storage type required to hold eenum values.
  * @tparam Tend_value Last valid value + 1.
  */
-template <typename Tenum, typename Tstorage, Tenum Tend_value = Tenum{std::numeric_limits<Tstorage>::digits}>
+template <typename Tenum, typename Tstorage, size_t Tend_value = std::numeric_limits<Tstorage>::digits>
 class EnumBitSet : public BaseBitSet<EnumBitSet<Tenum, Tstorage, Tend_value>, Tenum, Tstorage, EnumBitSetMask<Tstorage, Tenum, Tend_value>::value> {
 	using BaseClass = BaseBitSet<EnumBitSet<Tenum, Tstorage, Tend_value>, Tenum, Tstorage, EnumBitSetMask<Tstorage, Tenum, Tend_value>::value>;
 public:

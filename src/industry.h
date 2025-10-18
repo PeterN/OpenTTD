@@ -54,7 +54,7 @@ enum class IndustryControlFlag : uint8_t {
 	ExternalProdLevel = 3,
 	End,
 };
-using IndustryControlFlags = EnumBitSet<IndustryControlFlag, uint8_t, IndustryControlFlag::End>;
+using IndustryControlFlags = EnumBitSet<IndustryControlFlag, uint8_t, to_underlying(IndustryControlFlag::End)>;
 
 /**
  * Defines the internal data of a functional industry.
