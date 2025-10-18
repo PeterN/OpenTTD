@@ -890,7 +890,7 @@ static CallBackFunction MenuClickBuildRail(int index)
 
 static CallBackFunction ToolbarBuildRoadClick(Window *w)
 {
-	ShowDropDownList(w, GetRoadTypeDropDownList(RTTB_ROAD), _last_built_roadtype, WID_TN_ROADS, 140, _settings_client.gui.toolbar_dropdown_autoselect);
+	ShowDropDownList(w, GetRoadTypeDropDownList(RTT_ROAD), _last_built_roadtype, WID_TN_ROADS, 140, _settings_client.gui.toolbar_dropdown_autoselect);
 	return CBF_NONE;
 }
 
@@ -911,7 +911,7 @@ static CallBackFunction MenuClickBuildRoad(int index)
 
 static CallBackFunction ToolbarBuildTramClick(Window *w)
 {
-	ShowDropDownList(w, GetRoadTypeDropDownList(RTTB_TRAM), _last_built_tramtype, WID_TN_TRAMS, 140, _settings_client.gui.toolbar_dropdown_autoselect);
+	ShowDropDownList(w, GetRoadTypeDropDownList(RTT_TRAM), _last_built_tramtype, WID_TN_TRAMS, 140, _settings_client.gui.toolbar_dropdown_autoselect);
 	return CBF_NONE;
 }
 
@@ -1247,7 +1247,7 @@ static CallBackFunction ToolbarScenGenIndustry(Window *w)
 
 static CallBackFunction ToolbarScenBuildRoadClick(Window *w)
 {
-	ShowDropDownList(w, GetScenRoadTypeDropDownList(RTTB_ROAD), _last_built_roadtype, WID_TE_ROADS, 140, _settings_client.gui.toolbar_dropdown_autoselect);
+	ShowDropDownList(w, GetScenRoadTypeDropDownList(RTT_ROAD), _last_built_roadtype, WID_TE_ROADS, 140, _settings_client.gui.toolbar_dropdown_autoselect);
 	return CBF_NONE;
 }
 
@@ -1266,7 +1266,7 @@ static CallBackFunction ToolbarScenBuildRoad(int index)
 
 static CallBackFunction ToolbarScenBuildTramClick(Window *w)
 {
-	ShowDropDownList(w, GetScenRoadTypeDropDownList(RTTB_TRAM), _last_built_tramtype, WID_TE_TRAMS, 140, _settings_client.gui.toolbar_dropdown_autoselect);
+	ShowDropDownList(w, GetScenRoadTypeDropDownList(RTT_TRAM), _last_built_tramtype, WID_TE_TRAMS, 140, _settings_client.gui.toolbar_dropdown_autoselect);
 	return CBF_NONE;
 }
 

@@ -32,6 +32,18 @@ DECLARE_INCREMENT_DECREMENT_OPERATORS(RoadType)
 using RoadTypes = EnumBitSet<RoadType, uint64_t>;
 
 /**
+ * The different types of road type.
+ */
+enum RoadTramType : bool {
+	RTT_ROAD, ///< Road road type.
+	RTT_TRAM, ///< Tram road type.
+};
+
+using RoadTramTypes = EnumBitSet<RoadTramType, uint8_t>;
+
+static const RoadTramType _roadtramtypes[] = { RTT_ROAD, RTT_TRAM };
+
+/**
  * Enumeration for the road parts on a tile.
  *
  * This enumeration defines the possible road parts which
