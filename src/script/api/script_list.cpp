@@ -370,7 +370,6 @@ void ScriptList::CopyList(const ScriptList *list)
 {
 	this->Sort(list->sorter_type, list->sort_ascending);
 	this->items = list->items;
-	this->buckets = list->buckets;
 }
 
 ScriptList::ScriptList()
