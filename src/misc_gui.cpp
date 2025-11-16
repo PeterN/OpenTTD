@@ -47,7 +47,7 @@ enum OskActivation : uint8_t {
 };
 
 
-static constexpr NWidgetPart _nested_land_info_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_land_info_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY), SetStringTip(STR_LAND_AREA_INFORMATION_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -319,7 +319,7 @@ void ShowLandInfo(TileIndex tile)
 	new LandInfoWindow(tile);
 }
 
-static constexpr NWidgetPart _nested_about_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_about_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY), SetStringTip(STR_ABOUT_OPENTTD, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -586,7 +586,7 @@ void HideFillingPercent(TextEffectID *te_id)
 	*te_id = INVALID_TE_ID;
 }
 
-static constexpr NWidgetPart _nested_tooltips_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_tooltips_widgets = {
 	NWidget(WWT_EMPTY, INVALID_COLOUR, WID_TT_BACKGROUND),
 };
 
@@ -833,7 +833,7 @@ Rect QueryString::GetBoundingRect(const Window *w, WidgetID wid, size_t from, si
 	const auto p1 = GetCharPosInString(tb->GetText(), from, FS_NORMAL);
 	const auto p2 = from != to ? GetCharPosInString(tb->GetText(), to, FS_NORMAL) : p1;
 
-	return { Clamp(r.left + p1.left, r.left, r.right), r.top, Clamp(r.left + p2.right, r.left, r.right), r.bottom };
+	return r.WithX(Clamp(r.left + p1.left, r.left, r.right), Clamp(r.left + p2.right, r.left, r.right));
 }
 
 /**
@@ -975,7 +975,7 @@ struct QueryStringWindow : public Window
 	}
 };
 
-static constexpr NWidgetPart _nested_query_string_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_query_string_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_QS_CAPTION), SetTextStyle(TC_WHITE),
@@ -1113,7 +1113,7 @@ struct QueryWindow : public Window {
 	}
 };
 
-static constexpr NWidgetPart _nested_query_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_query_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_RED),
 		NWidget(WWT_CAPTION, COLOUR_RED, WID_Q_CAPTION),

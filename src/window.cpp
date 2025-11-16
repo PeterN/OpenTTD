@@ -594,6 +594,9 @@ EventState Window::OnHotkey(int hotkey)
  */
 void Window::HandleButtonClick(WidgetID widget)
 {
+	/* Button click for this widget may already have been handled. */
+	if (this->IsWidgetLowered(widget) && this->timeout_timer == TIMEOUT_DURATION) return;
+
 	this->LowerWidget(widget);
 	this->SetTimeout();
 	this->SetWidgetDirty(widget);
@@ -1674,7 +1677,7 @@ restart:
 /**
  * Computer the position of the top-left corner of a window to be opened right
  * under the toolbar.
- * @param window_width the width of the window to get the position for
+ * @param window_width the width of the window to get the position for.
  * @return Coordinate of the top-left corner of the new window.
  */
 Point GetToolbarAlignedWindowPosition(int window_width)
@@ -1682,6 +1685,24 @@ Point GetToolbarAlignedWindowPosition(int window_width)
 	const Window *w = FindWindowById(WC_MAIN_TOOLBAR, 0);
 	assert(w != nullptr);
 	Point pt = { _current_text_dir == TD_RTL ? w->left : (w->left + w->width) - window_width, w->top + w->height };
+	return pt;
+}
+
+/**
+ * Compute the position of the construction toolbars.
+ *
+ * If the terraform toolbar is open place them to the right/left of it,
+ * otherwise use default toolbar aligned position.
+ * @param window_width the width of the toolbar to get the position for.
+ * @return Coordinate of the top-left corner of the new toolbar.
+ */
+Point AlignInitialConstructionToolbar(int window_width)
+{
+	Point pt = GetToolbarAlignedWindowPosition(window_width);
+	const Window *w = FindWindowByClass(WC_SCEN_LAND_GEN);
+	if (w != nullptr && w->top == pt.y && !_settings_client.gui.link_terraform_toolbar) {
+		pt.x = w->left + (_current_text_dir == TD_RTL ? w->width : - window_width);
+	}
 	return pt;
 }
 
@@ -1806,7 +1827,7 @@ void Window::InitNested(WindowNumber window_number)
  * Empty constructor, initialization has been moved to #InitNested() called from the constructor of the derived class.
  * @param desc The description of the window.
  */
-Window::Window(WindowDesc &desc) : window_desc(desc), scale(_gui_scale), mouse_capture_widget(-1)
+Window::Window(WindowDesc &desc) : window_desc(desc), scale(_gui_scale), mouse_capture_widget(INVALID_WIDGET)
 {
 	this->z_position = _z_windows.insert(_z_windows.end(), this);
 }
@@ -1888,7 +1909,7 @@ static void DecreaseWindowCounters()
 					NWidgetScrollbar *sb = static_cast<NWidgetScrollbar*>(nwid);
 					if (sb->disp_flags.Any({NWidgetDisplayFlag::ScrollbarUp, NWidgetDisplayFlag::ScrollbarDown})) {
 						sb->disp_flags.Reset({NWidgetDisplayFlag::ScrollbarUp, NWidgetDisplayFlag::ScrollbarDown});
-						w->mouse_capture_widget = -1;
+						w->mouse_capture_widget = INVALID_WIDGET;
 						sb->SetDirty(w);
 					}
 				}
@@ -2387,7 +2408,7 @@ static EventState HandleActiveWidget()
 			/* Abort if no button is clicked any more. */
 			if (!_left_button_down) {
 				w->SetWidgetDirty(w->mouse_capture_widget);
-				w->mouse_capture_widget = -1;
+				w->mouse_capture_widget = INVALID_WIDGET;
 				return ES_HANDLED;
 			}
 

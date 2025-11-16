@@ -2157,7 +2157,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Höheneinheiten: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Immer wenn Höhen angezeigt werden, sie in den gewählten Einheiten anzeigen
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperial (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrisch (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
@@ -3425,6 +3425,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Südwest
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Beliebig
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Wasser
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Zufällig
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Zufällig
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Manuell
 
@@ -3465,7 +3467,6 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Landscha
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Flussgenerierung
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Raue, felsige Landschaft wird erzeugt
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Stadterzeugung
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Industrieerzeugung
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Unbewegliche Objekte werden erzeugt
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Bäume werden erzeugt
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Spiel wird vorbereitet
@@ -3685,7 +3686,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Text fü
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Städte ({COMMA} von {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Keine -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Großstadt){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Städtenamen – Klick auf den Namen zentriert Hauptansicht auf die Stadt. Mit Strg+Klick wird eine neue Zusatzansicht auf die Stadt geöffnet
 STR_TOWN_POPULATION                                             :{BLACK}Weltbevölkerung: {COMMA}
 

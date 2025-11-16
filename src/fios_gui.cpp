@@ -65,7 +65,7 @@ void LoadCheckData::Clear()
 }
 
 /** Load game/scenario with optional content download */
-static constexpr NWidgetPart _nested_load_dialog_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_load_dialog_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SL_CAPTION),
@@ -128,7 +128,7 @@ static constexpr NWidgetPart _nested_load_dialog_widgets[] = {
 };
 
 /** Load heightmap with content download */
-static constexpr NWidgetPart _nested_load_heightmap_dialog_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_load_heightmap_dialog_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SL_CAPTION),
@@ -175,7 +175,7 @@ static constexpr NWidgetPart _nested_load_heightmap_dialog_widgets[] = {
 };
 
 /** Load town data */
-static constexpr NWidgetPart _nested_load_town_data_dialog_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_load_town_data_dialog_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SL_CAPTION),
@@ -217,7 +217,7 @@ static constexpr NWidgetPart _nested_load_town_data_dialog_widgets[] = {
 };
 
 /** Save game/scenario */
-static constexpr NWidgetPart _nested_save_dialog_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_save_dialog_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SL_CAPTION),
@@ -527,9 +527,9 @@ public:
 					const FiosItem *item = *it;
 
 					if (item == this->selected) {
-						GfxFillRect(br.left, tr.top, br.right, tr.bottom, PC_DARK_BLUE);
+						GfxFillRect(br.WithY(tr), PC_DARK_BLUE);
 					} else if (item == this->highlighted) {
-						GfxFillRect(br.left, tr.top, br.right, tr.bottom, PC_VERY_DARK_BLUE);
+						GfxFillRect(br.WithY(tr), PC_VERY_DARK_BLUE);
 					}
 					DrawString(tr, item->title.GetDecodedString(), _fios_colours[item->type.detailed]);
 					tr = tr.Translate(0, this->resize.step_height);

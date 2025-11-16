@@ -15,6 +15,7 @@
 #include "gfx_type.h"
 #include "core/bitmath_func.hpp"
 #include "core/enum_type.hpp"
+#include "core/flatset_type.hpp"
 #include "economy_func.h"
 #include "slope_type.h"
 #include "strings_type.h"
@@ -131,6 +132,7 @@ public:
 		SpriteID single_sloped;///< single piece of rail for slopes
 		SpriteID crossing;     ///< level crossing, rail in X direction
 		SpriteID tunnel;       ///< tunnel sprites base
+		SpriteID bridge_deck;  ///< bridge deck sprites base
 	} base_sprites;
 
 	/**
@@ -226,7 +228,7 @@ public:
 	/**
 	 * Rail type labels this type provides in addition to the main label.
 	 */
-	std::vector<RailTypeLabel> alternate_labels;
+	FlatSet<RailTypeLabel> alternate_labels;
 
 	/**
 	 * Colour on mini-map
@@ -286,8 +288,20 @@ public:
 	{
 		return 82 * this->fallback_railtype;
 	}
+
+	RailType Index() const;
 };
 
+inline std::span<RailTypeInfo> GetRailTypeInfo()
+{
+	extern std::vector<RailTypeInfo> _railtypes;
+	return _railtypes;
+}
+
+inline size_t GetNumRailTypes()
+{
+	return std::size(GetRailTypeInfo());
+}
 
 /**
  * Returns a pointer to the Railtype information for a given railtype
@@ -296,22 +310,8 @@ public:
  */
 inline const RailTypeInfo *GetRailTypeInfo(RailType railtype)
 {
-	extern RailTypeInfo _railtypes[RAILTYPE_END];
-	assert(railtype < RAILTYPE_END);
-	return &_railtypes[railtype];
-}
-
-/**
- * Returns the railtype for a Railtype information.
- * @param rti Pointer to static RailTypeInfo
- * @return Railtype in static railtype definitions
- */
-inline RailType GetRailTypeInfoIndex(const RailTypeInfo *rti)
-{
-	extern RailTypeInfo _railtypes[RAILTYPE_END];
-	size_t index = rti - _railtypes;
-	assert(index < RAILTYPE_END && rti == _railtypes + index);
-	return static_cast<RailType>(index);
+	assert(railtype < GetNumRailTypes());
+	return &GetRailTypeInfo()[railtype];
 }
 
 /**
@@ -319,7 +319,7 @@ inline RailType GetRailTypeInfoIndex(const RailTypeInfo *rti)
  * @param railtypes Set of railtypes to get the compatible railtypes from.
  * @return Union of all compatible railtypes.
  */
-inline RailTypes GetAllCompatibleRailTypes(RailTypes railtypes)
+inline RailTypes GetAllCompatibleRailTypes(const RailTypes &railtypes)
 {
 	RailTypes compatible{};
 	for (RailType rt : railtypes) compatible.Set(GetRailTypeInfo(rt)->compatible_railtypes);
@@ -331,7 +331,7 @@ inline RailTypes GetAllCompatibleRailTypes(RailTypes railtypes)
  * @param railtypes Set of railtypes to get the powered railtypes from.
  * @return Union of all powered railtypes.
  */
-inline RailTypes GetAllPoweredRailTypes(RailTypes railtypes)
+inline RailTypes GetAllPoweredRailTypes(const RailTypes &railtypes)
 {
 	RailTypes powered{};
 	for (RailType rt : railtypes) powered.Set(GetRailTypeInfo(rt)->powered_railtypes);
@@ -343,7 +343,7 @@ inline RailTypes GetAllPoweredRailTypes(RailTypes railtypes)
  * @param railtypes Set of railtypes to get the introduced railtypes from.
  * @return Union of all introduced railtypes.
  */
-inline RailTypes GetAllIntroducesRailTypes(RailTypes railtypes)
+inline RailTypes GetAllIntroducesRailTypes(const RailTypes &railtypes)
 {
 	RailTypes introduces{};
 	for (RailType rt : railtypes) introduces.Set(GetRailTypeInfo(rt)->introduces_railtypes);
@@ -370,7 +370,7 @@ inline bool IsCompatibleRail(RailType enginetype, RailType tiletype)
  * @param  tiletype   The RailType of the tile we are considering.
  * @return Whether the engine can drive on this tile.
  */
-inline bool IsCompatibleRail(RailTypes enginetype, RailType tiletype)
+inline bool IsCompatibleRail(const RailTypes &enginetype, RailType tiletype)
 {
 	return GetAllCompatibleRailTypes(enginetype).Test(tiletype);
 }
@@ -395,7 +395,7 @@ inline bool HasPowerOnRail(RailType enginetype, RailType tiletype)
  * @param  tiletype   The RailType of the tile we are considering.
  * @return Whether the engine got power on this tile.
  */
-inline bool HasPowerOnRail(RailTypes enginetype, RailType tiletype)
+inline bool HasPowerOnRail(const RailTypes &enginetype, RailType tiletype)
 {
 	return GetAllPoweredRailTypes(enginetype).Test(tiletype);
 }
@@ -437,7 +437,7 @@ inline bool Rail90DegTurnDisallowed(RailType rt1, RailType rt2, bool def = _sett
  */
 inline Money RailBuildCost(RailType railtype)
 {
-	assert(railtype < RAILTYPE_END);
+	assert(railtype < GetNumRailTypes());
 	return (_price[PR_BUILD_RAIL] * GetRailTypeInfo(railtype)->cost_multiplier) >> 3;
 }
 
@@ -453,7 +453,7 @@ inline Money RailClearCost(RailType railtype)
 	 * In this case we limit the removal earnings to 3/4s of the build
 	 * cost.
 	 */
-	assert(railtype < RAILTYPE_END);
+	assert(railtype < GetNumRailTypes());
 	return std::max(_price[PR_CLEAR_RAIL], -RailBuildCost(railtype) * 3 / 4);
 }
 
@@ -492,7 +492,7 @@ inline Money RailConvertCost(RailType from, RailType to)
  */
 inline Money RailMaintenanceCost(RailType railtype, uint32_t num, uint32_t total_num)
 {
-	assert(railtype < RAILTYPE_END);
+	assert(railtype < GetNumRailTypes());
 	return (_price[PR_INFRASTRUCTURE_RAIL] * GetRailTypeInfo(railtype)->maintenance_multiplier * num * (1 + IntSqrt(total_num))) >> 11; // 4 bits fraction for the multiplier and 7 bits scaling.
 }
 
@@ -516,7 +516,7 @@ bool HasRailTypeAvail(const CompanyID company, const RailType railtype);
 bool HasAnyRailTypesAvail(const CompanyID company);
 bool ValParamRailType(const RailType rail);
 
-RailTypes AddDateIntroducedRailTypes(RailTypes current, TimerGameCalendar::Date date);
+RailTypes AddDateIntroducedRailTypes(const RailTypes &current, TimerGameCalendar::Date date);
 
 RailTypes GetCompanyRailTypes(CompanyID company, bool introduces = true);
 RailTypes GetRailTypes(bool introduces);

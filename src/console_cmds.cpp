@@ -46,6 +46,10 @@
 #include "company_cmd.h"
 #include "misc_cmd.h"
 
+#if defined(WITH_ZLIB)
+#include "network/network_content.h"
+#endif /* WITH_ZLIB */
+
 #include "table/strings.h"
 
 #include "safeguards.h"
@@ -2163,7 +2167,7 @@ static bool ConNetworkAuthorizedKey(std::span<std::string_view> argv)
 	}
 
 	for (auto [name, authorized_keys] : _console_cmd_authorized_keys) {
-		if (StrEqualsIgnoreCase(type, name)) continue;
+		if (!StrEqualsIgnoreCase(type, name)) continue;
 
 		PerformNetworkAuthorizedKeyAction(name, authorized_keys, action, authorized_key);
 		return true;
@@ -2176,7 +2180,6 @@ static bool ConNetworkAuthorizedKey(std::span<std::string_view> argv)
 
 /* Content downloading only is available with ZLIB */
 #if defined(WITH_ZLIB)
-#include "network/network_content.h"
 
 /** Resolve a string to a content type. */
 static ContentType StringToContentType(std::string_view str)
@@ -2699,7 +2702,7 @@ static std::string FormatLabel(uint32_t label)
 		return fmt::format("{:c}{:c}{:c}{:c}", GB(label, 24, 8), GB(label, 16, 8), GB(label, 8, 8), GB(label, 0, 8));
 	}
 
-	return fmt::format("{:08X}", std::byteswap(label));
+	return fmt::format("{:08X}", label);
 }
 
 static void ConDumpRoadTypes()
@@ -2712,7 +2715,7 @@ static void ConDumpRoadTypes()
 	IConsolePrint(CC_DEFAULT, "    T = buildable by towns");
 
 	std::map<uint32_t, const GRFFile *> grfs;
-	for (RoadType rt = ROADTYPE_BEGIN; rt < ROADTYPE_END; rt++) {
+	for (RoadType rt = ROADTYPE_BEGIN; rt < GetNumRoadTypes(); rt++) {
 		const RoadTypeInfo *rti = GetRoadTypeInfo(rt);
 		if (rti->label == 0) continue;
 		uint32_t grfid = 0;
@@ -2750,7 +2753,7 @@ static void ConDumpRailTypes()
 	IConsolePrint(CC_DEFAULT, "    d = always disallow 90 degree turns");
 
 	std::map<uint32_t, const GRFFile *> grfs;
-	for (RailType rt = RAILTYPE_BEGIN; rt < RAILTYPE_END; rt++) {
+	for (RailType rt = RAILTYPE_BEGIN; rt < GetNumRailTypes(); rt++) {
 		const RailTypeInfo *rti = GetRailTypeInfo(rt);
 		if (rti->label == 0) continue;
 		uint32_t grfid = 0;

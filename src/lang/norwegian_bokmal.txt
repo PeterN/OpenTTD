@@ -256,6 +256,7 @@ STR_UNITS_FORCE_SI                                              :{DECIMAL}{NBSP}
 STR_UNITS_HEIGHT_IMPERIAL                                       :{DECIMAL}{NBSP}fot
 STR_UNITS_HEIGHT_METRIC                                         :{DECIMAL}{NBSP}m
 STR_UNITS_HEIGHT_SI                                             :{DECIMAL}{NBSP}m
+STR_UNITS_HEIGHT_GAMEUNITS                                      :{DECIMAL}{NBSP}nivå{P "" er}
 
 # Time units used in string control characters
 STR_UNITS_DAYS                                                  :{COMMA}{NBSP}dag{P "" er}
@@ -2160,10 +2161,11 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Høydeenheter: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Når en høyde vises i brukergrensesnittet, vis den i de valgte enhetene
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperisk (fot)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrisk (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
+STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_GAMEUNITS          :Spillenheter (nivåer)
 
 STR_CONFIG_SETTING_LOCALISATION                                 :Lokalisering
 STR_CONFIG_SETTING_GRAPHICS                                     :Grafikk
@@ -3427,11 +3429,18 @@ STR_MAPGEN_NORTHWEST                                            :{BLACK}Nordvest
 STR_MAPGEN_NORTHEAST                                            :{BLACK}Nordøst
 STR_MAPGEN_SOUTHEAST                                            :{BLACK}Sørøst
 STR_MAPGEN_SOUTHWEST                                            :{BLACK}Sørvest
+STR_MAPGEN_NORTHWEST_TOOLTIP                                    :Veksle mellom vann eller fri kant ved nordvestre kartkant
+STR_MAPGEN_NORTHEAST_TOOLTIP                                    :Veksle mellom vann eller fri kant ved nordøstre kartkant
+STR_MAPGEN_SOUTHEAST_TOOLTIP                                    :Veksle mellom vann eller fri kant ved sørøstre kartkant
+STR_MAPGEN_SOUTHWEST_TOOLTIP                                    :Veksle mellom vann eller fri kant ved sørvestre kartkant
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Frihånds
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Sjø
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Tilfeldig
-STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Tilfeldige
-STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Manuelle
+
+###length 3
+STR_MAPGEN_BORDER_RANDOMIZE                                     :Tilfeldige
+STR_MAPGEN_BORDER_MANUAL                                        :Manuelle
+STR_MAPGEN_BORDER_INFINITE_WATER                                :Uendelig vann
 
 STR_MAPGEN_HEIGHTMAP_ROTATION                                   :{BLACK}Høydekartrotering:
 STR_MAPGEN_HEIGHTMAP_NAME                                       :{BLACK}Høydekartnavn:
@@ -3467,10 +3476,11 @@ STR_GENERATION_PROGRESS                                         :{WHITE}{NUM}{NB
 STR_GENERATION_PROGRESS_NUM                                     :{BLACK}{NUM} / {NUM}
 STR_GENERATION_WORLD_GENERATION                                 :{BLACK}Generer en verden
 STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Landskapsgenerering
-STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Skap elver
+STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Elvegenerering
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Generering av ulendt og steinete område
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Bygenerering
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Industrigenerering
+STR_GENERATION_LAND_INDUSTRY_GENERATION                         :{BLACK}Landindustrigenerering
+STR_GENERATION_WATER_INDUSTRY_GENERATION                        :{BLACK}Vannindustrigenerering
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Objektgenerering
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Tregenerering
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Klargjør spillet
@@ -3690,7 +3700,7 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Skriv in
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Byer ({COMMA} av {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Ingen -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (By){BLACK} ({COMMA})
+STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{BLACK} ({COMMA}) {YELLOW}{CITY_ICON}
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Bynavn - klikk på navnet for å gå til byen. Ctrl+klikk for å åpne et nytt tilleggsvindu over byen
 STR_TOWN_POPULATION                                             :{BLACK}Verdensbefolkning: {COMMA}
 
@@ -5268,13 +5278,13 @@ STR_ERROR_START_AND_END_MUST_BE_IN                              :{WHITE}Start og
 STR_ERROR_ENDS_OF_BRIDGE_MUST_BOTH                              :{WHITE}...{NBSP}broens ender må være på land
 STR_ERROR_BRIDGE_TOO_LONG                                       :{WHITE}... broen er for lang
 STR_ERROR_BRIDGE_THROUGH_MAP_BORDER                             :{WHITE}Bro vil ende utenfor kartet
-STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}Broen er for lav for en stasjon
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}Broen er for lav for en holdeplass
-STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}Broen er for lav for en havn
-STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}Broen er for lav for en bøye
-STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}Broen er for lav for et veipunkt
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}Broen er for lav for et veipunkt
-STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK                               :{WHITE}Broen er for lav for en sluse
+STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}Broen er {HEIGHT} for lav for en stasjon
+STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}Broen er {HEIGHT} for lav for en holdeplass
+STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}Broen er {HEIGHT} for lav for en havn
+STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}Broen er {HEIGHT} for lav for en bøye
+STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}Broen er {HEIGHT} for lav for et veipunkt
+STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}Broen er {HEIGHT} for lav for et veipunkt
+STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK                               :{WHITE}Broen er {HEIGHT} for lav for en sluse
 
 # Tunnel related errors
 STR_ERROR_CAN_T_BUILD_TUNNEL_HERE                               :{WHITE}Kan ikke bygge tunnel her...

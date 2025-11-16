@@ -84,8 +84,6 @@ static const uint32_t _autosave_dropdown_to_minutes[] = {
 	120,
 };
 
-Dimension _setting_circle_size; ///< Dimension of the circle +/- icon. This is here as not all users are within the class of the settings window.
-
 /**
  * Get index of the current screen resolution.
  * @return Index of the current screen resolution if it is a known resolution, _resolutions.size() otherwise.
@@ -204,7 +202,7 @@ static constexpr TextColour GAME_OPTIONS_LABEL = TC_LIGHT_BLUE;
 /** Colour for selected text of game options. */
 static constexpr TextColour GAME_OPTIONS_SELECTED = TC_WHITE;
 
-static constexpr NWidgetPart _nested_social_plugins_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_social_plugins_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_FRAME, GAME_OPTIONS_BACKGROUND, WID_GO_SOCIAL_PLUGIN_TITLE), SetTextStyle(GAME_OPTIONS_FRAME),
 			NWidget(NWID_HORIZONTAL), SetPIP(0, WidgetDimensions::unscaled.hsep_normal, 0),
@@ -219,7 +217,7 @@ static constexpr NWidgetPart _nested_social_plugins_widgets[] = {
 	EndContainer(),
 };
 
-static constexpr NWidgetPart _nested_social_plugins_none_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_social_plugins_none_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_TEXT, INVALID_COLOUR), SetResize(1, 0), SetFill(1, 0), SetStringTip(STR_GAME_OPTIONS_SOCIAL_PLUGINS_NONE), SetTextStyle(GAME_OPTIONS_LABEL),
 	EndContainer(),
@@ -363,8 +361,6 @@ std::unique_ptr<NWidgetBase> MakeNWidgetSocialPlugins()
 	return std::make_unique<NWidgetSocialPlugins>();
 }
 
-int SETTING_HEIGHT = 11;    ///< Height of a single setting in the tree view in pixels
-
 static const StringID _game_settings_restrict_dropdown[] = {
 	STR_CONFIG_SETTING_RESTRICT_BASIC,                            // RM_BASIC
 	STR_CONFIG_SETTING_RESTRICT_ADVANCED,                         // RM_ADVANCED
@@ -419,6 +415,7 @@ struct GameOptionsWindow : Window {
 	bool reload = false;
 	bool gui_scale_changed = false;
 	int gui_scale = 0;
+	static inline int previous_gui_scale = 0; ///< Previous GUI scale.
 	static inline WidgetID active_tab = WID_GO_TAB_GENERAL;
 
 	GameOptionsWindow(WindowDesc &desc) : Window(desc), filter_editbox(50)
@@ -453,7 +450,9 @@ struct GameOptionsWindow : Window {
 
 	void OnInit() override
 	{
-		_setting_circle_size = maxdim(GetSpriteSize(SPR_CIRCLE_FOLDED), GetSpriteSize(SPR_CIRCLE_UNFOLDED));
+		BaseSettingEntry::circle_size = maxdim(GetSpriteSize(SPR_CIRCLE_FOLDED), GetSpriteSize(SPR_CIRCLE_UNFOLDED));
+		BaseSettingEntry::line_height = std::max({static_cast<int>(BaseSettingEntry::circle_size.height), SETTING_BUTTON_HEIGHT, GetCharacterHeight(FS_NORMAL)}) + WidgetDimensions::scaled.vsep_normal;
+
 		this->gui_scale = _gui_scale;
 	}
 
@@ -709,7 +708,7 @@ struct GameOptionsWindow : Window {
 
 			case WID_GO_OPTIONSPANEL: {
 				Rect tr = r.Shrink(WidgetDimensions::scaled.frametext, WidgetDimensions::scaled.framerect);
-				tr.top += this->warn_lines * SETTING_HEIGHT;
+				tr.top += this->warn_lines * BaseSettingEntry::line_height;
 				uint last_row = this->vscroll->GetPosition() + this->vscroll->GetCapacity() - this->warn_lines;
 				int next_row = GetSettingsTree().Draw(settings_ptr, tr.left, tr.right, tr.top,
 						this->vscroll->GetPosition(), last_row, this->last_clicked);
@@ -858,7 +857,7 @@ struct GameOptionsWindow : Window {
 			}
 
 			case WID_GO_OPTIONSPANEL:
-				fill.height = resize.height = SETTING_HEIGHT = std::max({(int)_setting_circle_size.height, SETTING_BUTTON_HEIGHT, GetCharacterHeight(FS_NORMAL)}) + WidgetDimensions::scaled.vsep_normal;
+				fill.height = resize.height = BaseSettingEntry::line_height;
 				resize.width = 1;
 
 				size.height = 8 * resize.height + WidgetDimensions::scaled.framerect.Vertical();
@@ -1078,9 +1077,12 @@ struct GameOptionsWindow : Window {
 			case WID_GO_GUI_SCALE_AUTO:
 			{
 				if (_gui_scale_cfg == -1) {
-					_gui_scale_cfg = _gui_scale;
+					_gui_scale_cfg = this->previous_gui_scale; // Load the previous GUI scale
 					this->SetWidgetLoweredState(WID_GO_GUI_SCALE_AUTO, false);
+					if (AdjustGUIZoom(false)) ReInitAllWindows(true);
+					this->gui_scale = _gui_scale;
 				} else {
+					this->previous_gui_scale = _gui_scale; // Set the previous GUI scale value as the current one
 					_gui_scale_cfg = -1;
 					this->SetWidgetLoweredState(WID_GO_GUI_SCALE_AUTO, true);
 					if (AdjustGUIZoom(false)) ReInitAllWindows(true);
@@ -1271,7 +1273,7 @@ struct GameOptionsWindow : Window {
 				Rect wi_rect;
 				wi_rect.left = pt.x - (_current_text_dir == TD_RTL ? SETTING_BUTTON_WIDTH - 1 - x : x);
 				wi_rect.right = wi_rect.left + SETTING_BUTTON_WIDTH - 1;
-				wi_rect.top = pt.y - rel_y + (SETTING_HEIGHT - SETTING_BUTTON_HEIGHT) / 2;
+				wi_rect.top = pt.y - rel_y + (BaseSettingEntry::line_height - SETTING_BUTTON_HEIGHT) / 2;
 				wi_rect.bottom = wi_rect.top + SETTING_BUTTON_HEIGHT - 1;
 
 				/* For dropdowns we also have to check the y position thoroughly, the mouse may not above the just opening dropdown */
@@ -1600,7 +1602,7 @@ struct GameOptionsWindow : Window {
 	}
 };
 
-static constexpr NWidgetPart _nested_game_options_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_game_options_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, GAME_OPTIONS_BACKGROUND),
 		NWidget(WWT_CAPTION, GAME_OPTIONS_BACKGROUND), SetStringTip(STR_GAME_OPTIONS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -2140,7 +2142,7 @@ struct CustomCurrencyWindow : Window {
 	}
 };
 
-static constexpr NWidgetPart _nested_cust_currency_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_cust_currency_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY), SetStringTip(STR_CURRENCY_WINDOW, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),

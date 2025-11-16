@@ -633,6 +633,7 @@ STR_UNITS_FORCE_SI                                              :{DECIMAL}{NBSP}
 STR_UNITS_HEIGHT_IMPERIAL                                       :{DECIMAL}{NBSP}st{P opa opy óp}
 STR_UNITS_HEIGHT_METRIC                                         :{DECIMAL}{NBSP}m
 STR_UNITS_HEIGHT_SI                                             :{DECIMAL}{NBSP}m
+STR_UNITS_HEIGHT_GAMEUNITS                                      :{DECIMAL}{NBSP}poziom{P "" y ów}
 
 # Time units used in string control characters
 STR_UNITS_DAYS                                                  :{COMMA}{NBSP}d{P zień ni ni}
@@ -2538,10 +2539,11 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Jednostki wysokości: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Jeśli kiedykolwiek wysokości są pokazywane w interfejsie użytkownika, pokaż je w wybranych jednostkach
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperialne (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metryczne (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
+STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_GAMEUNITS          :Jednostki gry (poziomy)
 
 STR_CONFIG_SETTING_LOCALISATION                                 :Lokalizacja
 STR_CONFIG_SETTING_GRAPHICS                                     :Grafika
@@ -2926,7 +2928,7 @@ STR_NETWORK_ASK_RELAY_NO                                        :{BLACK}Nie
 STR_NETWORK_ASK_RELAY_YES_ONCE                                  :{BLACK}Tak, ten jeden raz
 STR_NETWORK_ASK_RELAY_YES_ALWAYS                                :{BLACK}Tak, nie pytaj ponownie
 
-STR_NETWORK_ASK_SURVEY_CAPTION                                  :Uczestniczyć w automatycznej ankiecie?
+STR_NETWORK_ASK_SURVEY_CAPTION                                  :Uczestnictwo w automatycznej ankiecie?
 STR_NETWORK_ASK_SURVEY_TEXT                                     :Czy chcesz wziąć udział w automatycznej ankiecie?{}OpenTTD prześle ankietę przy opuszczaniu gry.{}Możesz to zmienić w dowolnym momencie w „Opcjach gry”.
 STR_NETWORK_ASK_SURVEY_PREVIEW                                  :Podejrzyj wynik ankiety
 STR_NETWORK_ASK_SURVEY_LINK                                     :O ankiecie i prywatności
@@ -3805,11 +3807,18 @@ STR_MAPGEN_NORTHWEST                                            :{BLACK}Płn.-za
 STR_MAPGEN_NORTHEAST                                            :{BLACK}Płn.-wsch.
 STR_MAPGEN_SOUTHEAST                                            :{BLACK}Płd.-wsch.
 STR_MAPGEN_SOUTHWEST                                            :{BLACK}Płd.-zach.
+STR_MAPGEN_NORTHWEST_TOOLTIP                                    :Przełącz między wodą a lądem na płn.-zach. krawędzi mapy
+STR_MAPGEN_NORTHEAST_TOOLTIP                                    :Przełącz między wodą a lądem na płn.-wsch. krawędzi mapy
+STR_MAPGEN_SOUTHEAST_TOOLTIP                                    :Przełącz między wodą a lądem na płd.-wsch. krawędzi mapy
+STR_MAPGEN_SOUTHWEST_TOOLTIP                                    :Przełącz między wodą a lądem na płd.-zach. krawędzi mapy
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Ląd
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Woda
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Losowe
-STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Losowo
-STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Użytkownika
+
+###length 3
+STR_MAPGEN_BORDER_RANDOMIZE                                     :Losowe
+STR_MAPGEN_BORDER_MANUAL                                        :Ustalone
+STR_MAPGEN_BORDER_INFINITE_WATER                                :Bezkres Wód
 
 STR_MAPGEN_HEIGHTMAP_ROTATION                                   :{BLACK}Obrót mapy wysokości:
 STR_MAPGEN_HEIGHTMAP_NAME                                       :{BLACK}Nazwa mapy wysokosci:
@@ -3848,7 +3857,8 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Tworzeni
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Tworzenie rzek
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Tworzenie terenów skalistych i nierówności
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Tworzenie miast
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Rozmieszczanie przedsiębiorstw
+STR_GENERATION_LAND_INDUSTRY_GENERATION                         :{BLACK}Tworzenie przemysłu na lądzie
+STR_GENERATION_WATER_INDUSTRY_GENERATION                        :{BLACK}Tworzenie przemysłu na wodzie
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Rozmieszczanie obiektów
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Rozmieszczanie drzew
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Konfigurowanie rozgrywki
@@ -4068,7 +4078,7 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Wpisz na
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Miasta ({COMMA} z {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Żaden -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Metropolia){BLACK} ({COMMA})
+STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{BLACK} ({COMMA}) {YELLOW}{CITY_ICON}
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Nazwy miast - kliknij na nazwę miasta, aby wyśrodkować na nim widok główny. Użyj Ctrl, aby otworzyć nowy podgląd na lokalizację miasta
 STR_TOWN_POPULATION                                             :{BLACK}Populacja świata: {COMMA}
 
@@ -5652,13 +5662,13 @@ STR_ERROR_START_AND_END_MUST_BE_IN                              :{WHITE}Począte
 STR_ERROR_ENDS_OF_BRIDGE_MUST_BOTH                              :{WHITE}... końce mostu muszą znajdować się na lądzie
 STR_ERROR_BRIDGE_TOO_LONG                                       :{WHITE}... za długi most
 STR_ERROR_BRIDGE_THROUGH_MAP_BORDER                             :{WHITE}Koniec mostu poza mapą
-STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}Most jest zbyt niski dla stacji
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}Most jest zbyt niski dla przystanku
-STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}Most jest zbyt niski dla portu
-STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}Most jest zbyt niski dla boi
-STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}Most jest zbyt niski dla posterunku kolejowego
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}Most jest zbyt niski dla posterunku drogowego
-STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK                               :{WHITE}Most jest zbyt niski dla śluzy
+STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}Most jest o {HEIGHT} za niski dla stacji
+STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}Most jest o {HEIGHT} za niski dla przystanku
+STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}Most jest o {HEIGHT} za niski dla portu
+STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}Most jest o {HEIGHT} za niski dla boi
+STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}Most jest o {HEIGHT} za niski dla posterunku kolejowego
+STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}Most jest o {HEIGHT} za niski dla posterunku drogowego
+STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK                               :{WHITE}Most jest o {HEIGHT} za niski dla śluzy
 
 # Tunnel related errors
 STR_ERROR_CAN_T_BUILD_TUNNEL_HERE                               :{WHITE}Nie można tutaj zbudować tunelu...

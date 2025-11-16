@@ -55,6 +55,7 @@
 #include "road_cmd.h"
 #include "terraform_cmd.h"
 #include "tunnelbridge_cmd.h"
+#include "map_func.h"
 #include "timer/timer.h"
 #include "timer/timer_game_calendar.h"
 #include "timer/timer_game_economy.h"
@@ -666,7 +667,7 @@ static void TileLoop_Town(TileIndex tile)
 	Backup<CompanyID> cur_company(_current_company, OWNER_TOWN);
 
 	if (hs->building_flags.Any(BUILDING_HAS_1_TILE) &&
-			HasBit(t->flags, TOWN_IS_GROWING) &&
+			t->flags.Test(TownFlag::IsGrowing) &&
 			CanDeleteHouse(tile) &&
 			GetHouseAge(tile) >= hs->minimum_life &&
 			--t->time_until_rebuild == 0) {
@@ -917,7 +918,7 @@ static bool GrowTown(Town *t, TownExpandModes modes);
  */
 static void TownTickHandler(Town *t)
 {
-	if (HasBit(t->flags, TOWN_IS_GROWING)) {
+	if (t->flags.Test(TownFlag::IsGrowing)) {
 		TownExpandModes modes{TownExpandMode::Buildings};
 		if (_settings_game.economy.allow_town_roads) modes.Set(TownExpandMode::Roads);
 		int i = (int)t->grow_counter - 1;
@@ -965,13 +966,8 @@ RoadType GetTownRoadType()
 	const RoadTypeInfo *best = nullptr;
 	const uint16_t assume_max_speed = 50;
 
-	for (RoadType rt = ROADTYPE_BEGIN; rt != ROADTYPE_END; rt++) {
-		if (RoadTypeIsTram(rt)) continue;
-
+	for (RoadType rt : GetMaskForRoadTramType(RTT_ROAD)) {
 		const RoadTypeInfo *rti = GetRoadTypeInfo(rt);
-
-		/* Unused road type. */
-		if (rti->label == 0) continue;
 
 		/* Can town build this road. */
 		if (!rti->flags.Test(RoadTypeFlag::TownBuild)) continue;
@@ -997,10 +993,9 @@ RoadType GetTownRoadType()
 static TimerGameCalendar::Date GetTownRoadTypeFirstIntroductionDate()
 {
 	const RoadTypeInfo *best = nullptr;
-	for (RoadType rt = ROADTYPE_BEGIN; rt != ROADTYPE_END; rt++) {
-		if (RoadTypeIsTram(rt)) continue;
+	for (RoadType rt : GetMaskForRoadTramType(RTT_ROAD)) {
 		const RoadTypeInfo *rti = GetRoadTypeInfo(rt);
-		if (rti->label == 0) continue; // Unused road type.
+
 		if (!rti->flags.Test(RoadTypeFlag::TownBuild)) continue; // Town can't build this road type.
 
 		if (best != nullptr && rti->introduction_date >= best->introduction_date) continue;
@@ -1382,8 +1377,8 @@ static bool GrowTownWithBridge(const Town *t, const TileIndex tile, const DiagDi
 
 		/* Can we actually build the bridge? */
 		RoadType rt = GetTownRoadType();
-		if (Command<CMD_BUILD_BRIDGE>::Do(CommandFlagsToDCFlags(GetCommandFlags<CMD_BUILD_BRIDGE>()), tile, bridge_tile, TRANSPORT_ROAD, bridge_type, rt).Succeeded()) {
-			Command<CMD_BUILD_BRIDGE>::Do(CommandFlagsToDCFlags(GetCommandFlags<CMD_BUILD_BRIDGE>()).Set(DoCommandFlag::Execute), tile, bridge_tile, TRANSPORT_ROAD, bridge_type, rt);
+		if (Command<CMD_BUILD_BRIDGE>::Do(CommandFlagsToDCFlags(GetCommandFlags<CMD_BUILD_BRIDGE>()), tile, bridge_tile, TRANSPORT_ROAD, bridge_type, INVALID_RAILTYPE, rt).Succeeded()) {
+			Command<CMD_BUILD_BRIDGE>::Do(CommandFlagsToDCFlags(GetCommandFlags<CMD_BUILD_BRIDGE>()).Set(DoCommandFlag::Execute), tile, bridge_tile, TRANSPORT_ROAD, bridge_type, INVALID_RAILTYPE, rt);
 			return true;
 		}
 	}
@@ -1452,8 +1447,8 @@ static bool GrowTownWithTunnel(const Town *t, const TileIndex tile, const DiagDi
 
 	/* Attempt to build the tunnel. Return false if it fails to let the town build a road instead. */
 	RoadType rt = GetTownRoadType();
-	if (Command<CMD_BUILD_TUNNEL>::Do(CommandFlagsToDCFlags(GetCommandFlags<CMD_BUILD_TUNNEL>()), tile, TRANSPORT_ROAD, rt).Succeeded()) {
-		Command<CMD_BUILD_TUNNEL>::Do(CommandFlagsToDCFlags(GetCommandFlags<CMD_BUILD_TUNNEL>()).Set(DoCommandFlag::Execute), tile, TRANSPORT_ROAD, rt);
+	if (Command<CMD_BUILD_TUNNEL>::Do(CommandFlagsToDCFlags(GetCommandFlags<CMD_BUILD_TUNNEL>()), tile, TRANSPORT_ROAD, INVALID_RAILTYPE, rt).Succeeded()) {
+		Command<CMD_BUILD_TUNNEL>::Do(CommandFlagsToDCFlags(GetCommandFlags<CMD_BUILD_TUNNEL>()).Set(DoCommandFlag::Execute), tile, TRANSPORT_ROAD, INVALID_RAILTYPE, rt);
 		return true;
 	}
 
@@ -2046,7 +2041,7 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32_t townnameparts, TownSi
 	t->cache.num_houses = 0;
 	t->time_until_rebuild = 10;
 	UpdateTownRadius(t);
-	t->flags = 0;
+	t->flags.Reset();
 	t->cache.population = 0;
 	InitializeBuildingCounts(t);
 	/* Spread growth across ticks so even if there are many
@@ -2428,7 +2423,7 @@ bool GenerateTowns(TownLayout layout, std::optional<uint> number)
 	} else if (_settings_game.difficulty.number_towns == static_cast<uint>(CUSTOM_TOWN_NUMBER_DIFFICULTY)) {
 		total = GetDefaultTownsForMapSize();
 	} else {
-		total = GetDefaultTownsForMapSize() + (Random() & 7);
+		total = Map::ScaleByLandProportion(GetDefaultTownsForMapSize() + (Random() & 7));
 	}
 
 	total = std::min<uint>(TownPool::MAX_SIZE, total);
@@ -2867,15 +2862,15 @@ static bool TryBuildTownHouse(Town *t, TileIndex tile, TownExpandModes modes)
 		if (TimerGameCalendar::year < hs->min_year || TimerGameCalendar::year > hs->max_year) continue;
 
 		/* Special houses that there can be only one of. */
-		uint oneof = 0;
+		TownFlags oneof{};
 
 		if (hs->building_flags.Test(BuildingFlag::IsChurch)) {
-			SetBit(oneof, TOWN_HAS_CHURCH);
+			oneof.Set(TownFlag::HasChurch);
 		} else if (hs->building_flags.Test(BuildingFlag::IsStadium)) {
-			SetBit(oneof, TOWN_HAS_STADIUM);
+			oneof.Set(TownFlag::HasStadium);
 		}
 
-		if (t->flags & oneof) continue;
+		if (t->flags.Any(oneof)) continue;
 
 		/* Make sure there is no slope? */
 		bool noslope = hs->building_flags.Test(BuildingFlag::NotSloped);
@@ -2899,7 +2894,7 @@ static bool TryBuildTownHouse(Town *t, TileIndex tile, TownExpandModes modes)
 		}
 
 		/* Special houses that there can be only one of. */
-		t->flags |= oneof;
+		t->flags.Set(oneof);
 
 		BuildTownHouse(t, tile, hs, house, random_bits, false, hs->extra_flags.Test(HouseExtraFlag::BuildingIsProtected));
 
@@ -3034,9 +3029,9 @@ void ClearTownHouse(Town *t, TileIndex tile)
 
 	/* Clear flags for houses that only may exist once/town. */
 	if (hs->building_flags.Test(BuildingFlag::IsChurch)) {
-		ClrBit(t->flags, TOWN_HAS_CHURCH);
+		t->flags.Reset(TownFlag::HasChurch);
 	} else if (hs->building_flags.Test(BuildingFlag::IsStadium)) {
-		ClrBit(t->flags, TOWN_HAS_STADIUM);
+		t->flags.Reset(TownFlag::HasStadium);
 	}
 
 	/* Do the actual clearing of tiles */
@@ -3168,7 +3163,7 @@ CommandCost CmdTownGrowthRate(DoCommandFlags flags, TownID town_id, uint16_t gro
 	if (flags.Test(DoCommandFlag::Execute)) {
 		if (growth_rate == 0) {
 			/* Just clear the flag, UpdateTownGrowth will determine a proper growth rate */
-			ClrBit(t->flags, TOWN_CUSTOM_GROWTH);
+			t->flags.Reset(TownFlag::CustomGrowth);
 		} else {
 			uint old_rate = t->growth_rate;
 			if (t->grow_counter >= old_rate) {
@@ -3179,7 +3174,7 @@ CommandCost CmdTownGrowthRate(DoCommandFlags flags, TownID town_id, uint16_t gro
 				t->grow_counter = t->grow_counter * growth_rate / old_rate;
 			}
 			t->growth_rate = growth_rate;
-			SetBit(t->flags, TOWN_CUSTOM_GROWTH);
+			t->flags.Set(TownFlag::CustomGrowth);
 		}
 		UpdateTownGrowth(t);
 		InvalidateWindowData(WC_TOWN_VIEW, town_id);
@@ -3829,7 +3824,7 @@ static uint GetNormalGrowthRate(Town *t)
  */
 static void UpdateTownGrowthRate(Town *t)
 {
-	if (HasBit(t->flags, TOWN_CUSTOM_GROWTH)) return;
+	if (t->flags.Test(TownFlag::CustomGrowth)) return;
 	uint old_rate = t->growth_rate;
 	t->growth_rate = GetNormalGrowthRate(t);
 	UpdateTownGrowCounter(t, old_rate);
@@ -3844,7 +3839,7 @@ static void UpdateTownGrowth(Town *t)
 {
 	UpdateTownGrowthRate(t);
 
-	ClrBit(t->flags, TOWN_IS_GROWING);
+	t->flags.Reset(TownFlag::IsGrowing);
 	SetWindowDirty(WC_TOWN_VIEW, t->index);
 
 	if (_settings_game.economy.town_growth_rate == 0 && t->fund_buildings_months == 0) return;
@@ -3866,15 +3861,15 @@ static void UpdateTownGrowth(Town *t)
 		}
 	}
 
-	if (HasBit(t->flags, TOWN_CUSTOM_GROWTH)) {
-		if (t->growth_rate != TOWN_GROWTH_RATE_NONE) SetBit(t->flags, TOWN_IS_GROWING);
+	if (t->flags.Test(TownFlag::CustomGrowth)) {
+		if (t->growth_rate != TOWN_GROWTH_RATE_NONE) t->flags.Set(TownFlag::IsGrowing);
 		SetWindowDirty(WC_TOWN_VIEW, t->index);
 		return;
 	}
 
 	if (t->fund_buildings_months == 0 && CountActiveStations(t) == 0 && !Chance16(1, 12)) return;
 
-	SetBit(t->flags, TOWN_IS_GROWING);
+	t->flags.Set(TownFlag::IsGrowing);
 	SetWindowDirty(WC_TOWN_VIEW, t->index);
 }
 
@@ -4050,8 +4045,8 @@ CommandCost CheckforTownRating(DoCommandFlags flags, Town *t, TownRatingCheckTyp
 	}
 
 	/* minimum rating needed to be allowed to remove stuff */
-	static const int needed_rating[][TOWN_RATING_CHECK_TYPE_COUNT] = {
-		/*                  ROAD_REMOVE,                    TUNNELBRIDGE_REMOVE */
+	static const int needed_rating[][to_underlying(TownRatingCheckType::End)] = {
+		/*                   RoadRemove,                     TunnelBridgeRemove */
 		{    RATING_ROAD_NEEDED_LENIENT,    RATING_TUNNEL_BRIDGE_NEEDED_LENIENT}, // Lenient
 		{    RATING_ROAD_NEEDED_NEUTRAL,    RATING_TUNNEL_BRIDGE_NEEDED_NEUTRAL}, // Neutral
 		{    RATING_ROAD_NEEDED_HOSTILE,    RATING_TUNNEL_BRIDGE_NEEDED_HOSTILE}, // Hostile
@@ -4062,7 +4057,7 @@ CommandCost CheckforTownRating(DoCommandFlags flags, Town *t, TownRatingCheckTyp
 	 * owned by a town no removal if rating is lower than ... depends now on
 	 * difficulty setting. Minimum town rating selected by difficulty level
 	 */
-	int needed = needed_rating[_settings_game.difficulty.town_council_tolerance][type];
+	int needed = needed_rating[_settings_game.difficulty.town_council_tolerance][to_underlying(type)];
 
 	if (GetRating(t) < needed) {
 		return CommandCostWithParam(STR_ERROR_LOCAL_AUTHORITY_REFUSES_TO_ALLOW_THIS, t->index);

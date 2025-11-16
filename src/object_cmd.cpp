@@ -97,8 +97,7 @@ void BuildObject(ObjectType type, TileIndex tile, CompanyID owner, Town *town, u
 	if (owner == OWNER_NONE) {
 		o->colour = Random();
 	} else {
-		const Livery &l = Company::Get(owner)->livery[0];
-		o->colour = l.colour1 + l.colour2 * 16;
+		o->colour = Company::Get(owner)->GetCompanyRecolourOffset(LS_DEFAULT);
 	}
 
 	/* If the object wants only one colour, then give it that colour. */
@@ -193,8 +192,7 @@ void UpdateObjectColours(const Company *c)
 		/* Using the object colour callback, so not using company colour. */
 		if (spec->callback_mask.Test(ObjectCallbackMask::Colour)) continue;
 
-		const Livery &l = c->livery[0];
-		obj->colour = (spec->flags.Test(ObjectFlag::Uses2CC) ? (l.colour2 * 16) : 0) + l.colour1;
+		obj->colour = c->GetCompanyRecolourOffset(LS_DEFAULT, spec->flags.Test(ObjectFlag::Uses2CC));
 	}
 }
 
@@ -253,6 +251,11 @@ CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type
 					Owner o = GetTileOwner(t);
 					if (o != OWNER_NONE && o != OWNER_WATER) cost.AddCost(CheckOwnership(o, t));
 
+					/* If freeform edges are disabled, don't allow building on edge tiles. */
+					if (!_settings_game.construction.freeform_edges && (!IsInsideMM(TileX(t), 1, Map::MaxX() - 1) || !IsInsideMM(TileY(t), 1, Map::MaxY() - 1))) {
+						return CommandCost(STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP);
+					}
+
 					/* However, the tile has to be clear of vehicles. */
 					cost.AddCost(EnsureNoVehicleOnGround(t));
 				}
@@ -298,10 +301,10 @@ CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type
 			for (TileIndex t : ta) {
 				if (HasTileWaterGround(t)) {
 					if (!IsWaterTile(t)) {
-						Command<CMD_LANDSCAPE_CLEAR>::Do(DoCommandFlags{flags}.Reset(DoCommandFlag::NoWater).Set(DoCommandFlag::NoModifyTownRating), t);
+						Command<CMD_LANDSCAPE_CLEAR>::Do(DoCommandFlags{flags}.Reset(DoCommandFlag::NoWater), t);
 					}
 				} else {
-					Command<CMD_LANDSCAPE_CLEAR>::Do(flags | DoCommandFlag::NoModifyTownRating, t);
+					Command<CMD_LANDSCAPE_CLEAR>::Do(flags, t);
 				}
 			}
 		}

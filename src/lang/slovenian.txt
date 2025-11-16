@@ -1962,7 +1962,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Višinske enote: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Ko je omogočen prikaz višin na vmesniku, bodo prikazane v izbranih enotah.
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperične (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrične (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
@@ -2930,6 +2930,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Jugozaho
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Poljubno
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Voda
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Naključno
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Naključno
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Ročno
 
@@ -3155,7 +3157,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Vpiši i
 # Town directory window
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Brez -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Mesto){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Imena mest - klikni na ime za pogled na mesto. Ctrl+Klik odpre nov pogled na lokaciji mesta
 STR_TOWN_POPULATION                                             :{BLACK}Svetovno prebivalstvo: {COMMA}
 

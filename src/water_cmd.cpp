@@ -365,7 +365,8 @@ static CommandCost DoBuildLock(TileIndex tile, DiagDirection dir, DoCommandFlags
 
 	for (LockPart lock_part = LOCK_PART_MIDDLE; TileIndex t : {tile, tile - delta, tile + delta}) {
 		if (IsBridgeAbove(t) && GetBridgeHeight(GetSouthernBridgeEnd(t)) < GetTileMaxZ(t) + GetLockPartMinimalBridgeHeight(lock_part)) {
-			return CommandCost(STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK);
+			int height_diff = (GetTileMaxZ(tile) + GetLockPartMinimalBridgeHeight(lock_part) - GetBridgeHeight(GetSouthernBridgeEnd(t))) * TILE_HEIGHT_STEP;
+			return CommandCostWithParam(STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK, height_diff);
 		}
 		++lock_part;
 	}
@@ -453,6 +454,13 @@ CommandCost CmdBuildLock(DoCommandFlags flags, TileIndex tile)
 {
 	DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile));
 	if (dir == INVALID_DIAGDIR) return CommandCost(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+
+	TileIndex lower_tile = TileAddByDiagDir(tile, ReverseDiagDir(dir));
+
+	/* If freeform edges are disabled, don't allow building on edge tiles. */
+	if (!_settings_game.construction.freeform_edges && (!IsInsideMM(TileX(lower_tile), 1, Map::MaxX() - 1) || !IsInsideMM(TileY(lower_tile), 1, Map::MaxY() - 1))) {
+		return CommandCost(STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP);
+	}
 
 	return DoBuildLock(tile, dir, flags);
 }
@@ -1438,7 +1446,8 @@ static CommandCost CheckBuildAbove_Water(TileIndex tile, DoCommandFlags flags, A
 	if (IsWater(tile) || IsCoast(tile)) return CommandCost();
 	if (IsLock(tile)) {
 		if (GetTileMaxZ(tile) + GetLockPartMinimalBridgeHeight(GetLockPart(tile)) <= height) return CommandCost();
-		return CommandCost(STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK);
+		int height_diff = (GetTileMaxZ(tile) + GetLockPartMinimalBridgeHeight(GetLockPart(tile)) - height) * TILE_HEIGHT_STEP;
+		return CommandCostWithParam(STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK, height_diff);
 	}
 	return Command<CMD_LANDSCAPE_CLEAR>::Do(flags, tile);
 }

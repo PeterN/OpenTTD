@@ -2127,7 +2127,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Unitate înălțime: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Afișează înălțimile în interfață folosind unitățile selectate
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperial (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metric (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
@@ -3376,6 +3376,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Sud-vest
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Pământ
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Apă
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Aleator
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Aleator
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Manual
 
@@ -3416,7 +3418,6 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Generare
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Generarea râurilor
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Generare zonă dură și pietroasă
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Generare oraș
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Generare industrie
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Generare fixă
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Generare arbori
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Se configurează jocul
@@ -3629,7 +3630,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Introdu 
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Orașe ({COMMA} din {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Nimic -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (oraș){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Numele orașelor - clic pe un nume pentru a centra imaginea pe orașul respectiv. Ctrl+Click pentru a deshide o fereastra cu locația orașului
 STR_TOWN_POPULATION                                             :{BLACK}Populația totală: {COMMA}
 

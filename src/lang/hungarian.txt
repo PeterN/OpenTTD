@@ -317,6 +317,7 @@ STR_UNITS_FORCE_SI                                              :{DECIMAL}{NBSP}
 STR_UNITS_HEIGHT_IMPERIAL                                       :{DECIMAL}{NBSP}láb
 STR_UNITS_HEIGHT_METRIC                                         :{DECIMAL}{NBSP}m
 STR_UNITS_HEIGHT_SI                                             :{DECIMAL}{NBSP}m
+STR_UNITS_HEIGHT_GAMEUNITS                                      :{DECIMAL}{NBSP}szint
 
 # Time units used in string control characters
 STR_UNITS_DAYS                                                  :{COMMA}{NBSP}nap
@@ -1404,7 +1405,7 @@ STR_CONFIG_SETTING_SUBSIDY_DURATION_VALUE                       :{UNITS_YEARS_OR
 STR_CONFIG_SETTING_SUBSIDY_DURATION_DISABLED                    :Nincsenek támogatások
 
 STR_CONFIG_SETTING_CONSTRUCTION_COSTS                           :Építkezési költségek: {STRING}
-STR_CONFIG_SETTING_CONSTRUCTION_COSTS_HELPTEXT                  :Építkezések és beszerzésk költségeinek szintje
+STR_CONFIG_SETTING_CONSTRUCTION_COSTS_HELPTEXT                  :Építkezések és beszerzések költségeinek szintje
 ###length 3
 STR_CONFIG_SETTING_CONSTRUCTION_COSTS_LOW                       :Alacsony
 STR_CONFIG_SETTING_CONSTRUCTION_COSTS_MEDIUM                    :Közepes
@@ -2222,10 +2223,11 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Hosszúság mértékegysége: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :A magassági értékek a kiválasztott mértékegységben fognak megjelenni a felhasználói felületen
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Angolszász (láb)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrikus (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
+STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_GAMEUNITS          :Játékbeli mértékegység (szint)
 
 STR_CONFIG_SETTING_LOCALISATION                                 :Honosítás
 STR_CONFIG_SETTING_GRAPHICS                                     :Megjelenés
@@ -3412,6 +3414,8 @@ STR_SAVELOAD_DETAIL_GRFSTATUS                                   :{SILVER}NewGRF:
 STR_SAVELOAD_FILTER_TITLE                                       :{BLACK}Szűrő:
 STR_SAVELOAD_OVERWRITE_TITLE                                    :{WHITE}Fájl felülírása
 STR_SAVELOAD_OVERWRITE_WARNING                                  :{YELLOW}Biztos vagy benne, hogy felülírod a létező fájlt?
+STR_SAVELOAD_DELETE_TITLE                                       :{WHITE}Fájl törlése
+STR_SAVELOAD_DELETE_WARNING                                     :{YELLOW}Biztosan törölni akarod ezt a fájlt?
 STR_SAVELOAD_DIRECTORY                                          :{STRING} (Könyvtár)
 STR_SAVELOAD_PARENT_DIRECTORY                                   :{STRING} (Szülőkönyvtár)
 
@@ -3487,11 +3491,18 @@ STR_MAPGEN_NORTHWEST                                            :{BLACK}Északny
 STR_MAPGEN_NORTHEAST                                            :{BLACK}Északkelet
 STR_MAPGEN_SOUTHEAST                                            :{BLACK}Délkelet
 STR_MAPGEN_SOUTHWEST                                            :{BLACK}Délnyugat
+STR_MAPGEN_NORTHWEST_TOOLTIP                                    :Víz vagy szabad formájú térképszél bekapcsolása a térkép északnyugati szélén
+STR_MAPGEN_NORTHEAST_TOOLTIP                                    :Víz vagy szabad formájú térképszél bekapcsolása a térkép északkeleti szélén
+STR_MAPGEN_SOUTHEAST_TOOLTIP                                    :Víz vagy szabad formájú térképszél bekapcsolása a térkép délkeleti szélén
+STR_MAPGEN_SOUTHWEST_TOOLTIP                                    :Víz vagy szabad formájú térképszél bekapcsolása a térkép délnyugati szélén
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Szárazföld
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Víz
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Véletlen
-STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Véletlen
-STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Kézi
+
+###length 3
+STR_MAPGEN_BORDER_RANDOMIZE                                     :Véletlen
+STR_MAPGEN_BORDER_MANUAL                                        :Kézi
+STR_MAPGEN_BORDER_INFINITE_WATER                                :Végtelen víz
 
 STR_MAPGEN_HEIGHTMAP_ROTATION                                   :{BLACK}Magasságtérkép elforgatása:
 STR_MAPGEN_HEIGHTMAP_NAME                                       :{BLACK}Magasságtérkép neve:
@@ -3530,7 +3541,8 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Tájkép
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Folyó generálás
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Durva és köves területek generálása
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Város generálás
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Ipar generálás
+STR_GENERATION_LAND_INDUSTRY_GENERATION                         :{BLACK}Szárazföldi ipar generálás
+STR_GENERATION_WATER_INDUSTRY_GENERATION                        :{BLACK}Vízi ipar generálás
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Mozgathatatlan létesítmények létrehozása
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Fák generálása
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Játék beállítása
@@ -3750,7 +3762,7 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Felirat 
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Városok ({COMMA}, {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Nincs -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Város){BLACK} ({COMMA})
+STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{BLACK} ({COMMA}) {YELLOW}{CITY_ICON}
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Városnevek - kattints egy névre a város megnézéséhez. Ctrl+kattintással új nézet nyílik a városnál
 STR_TOWN_POPULATION                                             :{BLACK}Világnépesség: {COMMA}
 
@@ -4247,6 +4259,7 @@ STR_PURCHASE_INFO_ALL_BUT                                       :Mindenre, kivé
 STR_PURCHASE_INFO_MAX_TE                                        :{BLACK}Maximális vonóerő: {GOLD}{FORCE}
 STR_PURCHASE_INFO_AIRCRAFT_RANGE                                :{BLACK}Hatótávolság: {GOLD}{COMMA} mező
 STR_PURCHASE_INFO_AIRCRAFT_TYPE                                 :{BLACK}Típus: {GOLD}{STRING}
+STR_PURCHASE_INFO_RAILTYPES                                     :{BLACK}Sín típusok: {GOLD}{STRING}
 
 ###length 3
 STR_CARGO_TYPE_FILTER_ALL                                       :Minden rakománytípus
@@ -4430,6 +4443,7 @@ STR_ENGINE_PREVIEW_RUNCOST_YEAR                                 :Üzemeletetés:
 STR_ENGINE_PREVIEW_RUNCOST_PERIOD                               :Üzemeltetés: {CURRENCY_LONG}/időszak
 STR_ENGINE_PREVIEW_CAPACITY                                     :Kapacitás: {CARGO_LONG}
 STR_ENGINE_PREVIEW_CAPACITY_2                                   :Kapacitás: {CARGO_LONG}, {CARGO_LONG}
+STR_ENGINE_PREVIEW_RAILTYPES                                    :Sín típusok: {STRING}
 
 # Autoreplace window
 STR_REPLACE_VEHICLES_WHITE                                      :{WHITE}{STRING} lecserélése - {STRING}
@@ -5326,12 +5340,13 @@ STR_ERROR_START_AND_END_MUST_BE_IN                              :{WHITE}A kezdet
 STR_ERROR_ENDS_OF_BRIDGE_MUST_BOTH                              :{WHITE}... a híd mindkét végének szárazföldön kell lennie
 STR_ERROR_BRIDGE_TOO_LONG                                       :{WHITE}... a híd túl hosszú
 STR_ERROR_BRIDGE_THROUGH_MAP_BORDER                             :{WHITE}A híd a térképen túl végződne
-STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}A híd túl alacsony az állomáshoz
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}A híd túl alacsony a megállóhoz
-STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}A híd túl alacsony a kikötőhöz
-STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}A híd túl alacsony a bójához
-STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}A híd túl alacsony a vasúti ellenőrzőponthoz
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}BA híd túl alacsony az útponthoz
+STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}A híd {HEIGHT} magas, túl alacsony az állomáshoz
+STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}A híd {HEIGHT} magas, túl alacsony a megállóhoz
+STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}A híd {HEIGHT} magas, túl alacsony a kikötőhöz
+STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}A híd {HEIGHT} magas, túl alacsony a bójához
+STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}A híd {HEIGHT} magas, túl alacsony a vasúti ellenőrzőponthoz
+STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}A híd {HEIGHT} magas, túl alacsony az útponthoz
+STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK                               :{WHITE}A híd {HEIGHT} magas, túl alacsony a zároláshoz
 
 # Tunnel related errors
 STR_ERROR_CAN_T_BUILD_TUNNEL_HERE                               :{WHITE}Nem áshatsz ide alagutat...

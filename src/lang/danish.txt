@@ -2158,7 +2158,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Højdeenheder: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Når højde er vist i brugergrænsefladen, så vis dem i de valgte enheder
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperisk (fod)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrisk (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
@@ -3428,8 +3428,11 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Sydvest
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Fri udformning
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Vand
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Tilfældige
-STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Tilfældige
-STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Manuel
+
+###length 3
+STR_MAPGEN_BORDER_RANDOMIZE                                     :Tilfældig
+STR_MAPGEN_BORDER_MANUAL                                        :Manuel
+STR_MAPGEN_BORDER_INFINITE_WATER                                :Uendeligt vand
 
 STR_MAPGEN_HEIGHTMAP_ROTATION                                   :{BLACK}Højdekortets rotation:
 STR_MAPGEN_HEIGHTMAP_NAME                                       :{BLACK}Højdekortets navn:
@@ -3468,7 +3471,6 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Landskab
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Flod-generering
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Generer råt og stenet område
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}By generation
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Industri generation
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Ikke-flytbar generering
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Trægenerering
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Klargør spil
@@ -3688,7 +3690,7 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Indtast 
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Byer ({COMMA} of {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Ingen -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (storby){BLACK} ({COMMA})
+STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{BLACK} ({COMMA}) {YELLOW}{CITY_ICON}
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Bynavne - klik på et navn for at centrere skærmen over byen. Ctrl+Klik åbner et nyt vindue ved byens lokalitet.
 STR_TOWN_POPULATION                                             :{BLACK}Verdens befolkning: {COMMA}
 
@@ -5266,13 +5268,6 @@ STR_ERROR_START_AND_END_MUST_BE_IN                              :{WHITE}Start- o
 STR_ERROR_ENDS_OF_BRIDGE_MUST_BOTH                              :{WHITE}... begge ender af en bro skal være på land
 STR_ERROR_BRIDGE_TOO_LONG                                       :{WHITE}... broen er for lang
 STR_ERROR_BRIDGE_THROUGH_MAP_BORDER                             :{WHITE}Broen ville slutte udenfor kortet
-STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}Broen er for lav til en station
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}Broen er for lav til et vej stoppested
-STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}Broen er for lav til havnen
-STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}Broen er for lav til en bøje
-STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}Broen er for lav til et rutepunkt
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}Broen er for lav til et rutepunkt
-STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK                               :{WHITE}Bro er for lav til at låse
 
 # Tunnel related errors
 STR_ERROR_CAN_T_BUILD_TUNNEL_HERE                               :{WHITE}Kan ikke bygge en tunnel her...

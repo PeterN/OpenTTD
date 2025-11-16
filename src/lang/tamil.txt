@@ -1916,7 +1916,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :உயரங்கள் அலகுகள்: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :பயனர் இடைமுகத்தில் ஒரு உயரம் காட்டப்படும் போதெல்லாம், தேர்ந்தெடுக்கப்பட்ட அலகுகளில் அதைக் காட்டுங்கள்
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :இம்பீரியல் (அடி)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :மெட்ரிக் (மீ)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :அனைத்துலக முறை அலகு (மீ)
@@ -3023,6 +3023,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}தெ�
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}இலவசமாக
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}தண்ணீர்
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}ஏதொவொன்று
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}ஏதோவொன்று
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}எனது
 
@@ -3241,7 +3243,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}கு�
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}நகரங்கள் ({1:COMMA}இல் {0:COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- ஒன்றுமில்லை -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (மாநகரம்){BLACK} ({COMMA})
 STR_TOWN_POPULATION                                             :{BLACK}உலக மக்கள்தொகை: {COMMA}
 
 # Town view window

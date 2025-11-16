@@ -7,6 +7,8 @@
 
 /** @file freetypefontcache.cpp FreeType font cache implementation. */
 
+#ifdef WITH_FREETYPE
+
 #include "../stdafx.h"
 
 #include "../debug.h"
@@ -20,13 +22,12 @@
 
 #include "../table/control_codes.h"
 
-#include "../safeguards.h"
-
-#ifdef WITH_FREETYPE
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_TRUETYPE_TABLES_H
+
+#include "../safeguards.h"
 
 /** Font cache for fonts that are based on a freetype font. */
 class FreeTypeFontCache : public TrueTypeFontCache {
@@ -225,7 +226,7 @@ public:
 	 * format is 'font family name' or 'font family name, font style'.
 	 * @param fs The font size to load.
 	 */
-	std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype) override
+	std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype) const override
 	{
 		if (fonttype != FontType::TrueType) return nullptr;
 
@@ -271,7 +272,7 @@ public:
 		return LoadFont(fs, face, font, GetFontCacheFontSize(fs));
 	}
 
-	bool FindFallbackFont(struct FontCacheSettings *settings, const std::string &language_isocode, class MissingGlyphSearcher *callback) override
+	bool FindFallbackFont(struct FontCacheSettings *settings, const std::string &language_isocode, class MissingGlyphSearcher *callback) const override
 	{
 #ifdef WITH_FONTCONFIG
 		if (FontConfigFindFallbackFont(settings, language_isocode, callback)) return true;

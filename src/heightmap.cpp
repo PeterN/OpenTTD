@@ -9,6 +9,7 @@
 
 #include "stdafx.h"
 #include "heightmap.h"
+#include "landscape.h"
 #include "clear_map.h"
 #include "strings_func.h"
 #include "void_map.h"
@@ -20,6 +21,10 @@
 #include "fileio_func.h"
 
 #include "table/strings.h"
+
+#ifdef WITH_PNG
+#include <png.h>
+#endif /* WITH_PNG */
 
 #include "safeguards.h"
 
@@ -70,8 +75,6 @@ static inline uint8_t RGBToGreyscale(uint8_t red, uint8_t green, uint8_t blue)
 
 
 #ifdef WITH_PNG
-
-#include <png.h>
 
 /**
  * The PNG Heightmap loader.
@@ -523,6 +526,10 @@ bool LoadHeightmap(DetailedFileType dft, std::string_view filename)
 	GreyscaleToMapHeights(x, y, map);
 
 	FixSlopes();
+
+	/* If all map borders are water, we will draw infinite water. */
+	_settings_game.construction.freeform_edges = !IsMapSurroundedByWater();
+
 	MarkWholeScreenDirty();
 
 	return true;

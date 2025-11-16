@@ -2099,7 +2099,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI-unuoj (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Altecunuoj: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Kiam ajn montriĝas alteco en la uzantinterfaco, montru ĝin en la indikitaj unuoj
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Angla-usona sistemo (futoj)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metra (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI-unuoj (m)
@@ -3256,6 +3256,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Sudokcid
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Libermana
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Akvo
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Hazarde
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Hazarde
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Permane
 
@@ -3477,7 +3479,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Enigu no
 # Town directory window
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}-Neniu -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Urbego){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Urbonomoj - klaku nomon por centri vidpukto ĉe la urbo. Ctrl+Klak por malfermi novan vidujon ĉe la urba loko
 STR_TOWN_POPULATION                                             :{BLACK}Monda enloĝantaro: {COMMA}
 

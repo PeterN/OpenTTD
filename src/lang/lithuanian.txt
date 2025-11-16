@@ -2274,7 +2274,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Aukščio vienetai: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Vienetai, kuriais matuojamas aukštis
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :imperiniai (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :metriniai (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
@@ -3463,6 +3463,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Pietvaka
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Laisva forma
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Vanduo
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Atsitiktinis
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Atsitiktiniai
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Pasirinktiniai
 
@@ -3501,7 +3503,6 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Peizažo
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Upių generavimas
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Daubų ir uolų generacija
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Miestų generavimas
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Pramonės generavimas
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Nejudinama generacija
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Medžių generacija
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Sukurti zaidima
@@ -3714,7 +3715,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Įrašyk
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Miestai ({COMMA} of {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}Nėra
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Miestas){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Spragtelėjus ant pavadinimo, miestas bus parodytas ekrano centre. Spragtelėkite laikant nuspaudus „Ctrl“ klavišą, kad atverti papildomą peržiūros langą į pasirinktą miestą
 STR_TOWN_POPULATION                                             :{BLACK}Pasaulio populiacija: {COMMA}
 

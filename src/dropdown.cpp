@@ -56,7 +56,7 @@ std::unique_ptr<DropDownListItem> MakeDropDownListCheckedItem(bool checked, Stri
 	return std::make_unique<DropDownListCheckedItem>(indent, checked, GetString(str), value, masked, shaded);
 }
 
-static constexpr NWidgetPart _nested_dropdown_menu_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_dropdown_menu_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_PANEL, COLOUR_END, WID_DM_ITEMS), SetScrollbar(WID_DM_SCROLL), EndContainer(),
 		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_DM_SHOW_SCROLL),
@@ -248,7 +248,7 @@ struct DropdownWindow : Window {
 			if (y < item_height) {
 				if (item->masked || !item->Selectable()) return false;
 				result = item->result;
-				click_result = item->OnClick({r.left, 0, r.right, item_height - 1}, {_cursor.pos.x - this->left, y});
+				click_result = item->OnClick(r.WithY(0, item_height - 1), {_cursor.pos.x - this->left, y});
 				return true;
 			}
 
@@ -274,7 +274,7 @@ struct DropdownWindow : Window {
 			if (--pos >= 0) continue;
 
 			if (y + item_height - 1 <= ir.bottom) {
-				Rect full{ir.left, y, ir.right, y + item_height - 1};
+				Rect full = ir.WithY(y, y + item_height - 1);
 
 				bool selected = (this->selected_result == item->result) && item->Selectable();
 				if (selected) GfxFillRect(full, PC_BLACK);

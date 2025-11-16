@@ -98,7 +98,7 @@ static TileIndex GetOtherAqueductEnd(TileIndex tile_from, TileIndex *tile_to = n
 
 /** Toolbar window for constructing water infrastructure. */
 struct BuildDocksToolbarWindow : Window {
-	DockToolbarWidgets last_clicked_widget = WID_DT_INVALID; ///< Contains the last widget that has been clicked on this toolbar.
+	WidgetID last_clicked_widget = INVALID_WIDGET; ///< Contains the last widget that has been clicked on this toolbar.
 
 	BuildDocksToolbarWindow(WindowDesc &desc, WindowNumber window_number) : Window(desc)
 	{
@@ -189,7 +189,7 @@ struct BuildDocksToolbarWindow : Window {
 
 			default: return;
 		}
-		this->last_clicked_widget = (DockToolbarWidgets)widget;
+		this->last_clicked_widget = widget;
 	}
 
 	void OnPlaceObject([[maybe_unused]] Point pt, TileIndex tile) override
@@ -238,7 +238,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_BUILD_AQUEDUCT: // Build aqueduct button
-				Command<CMD_BUILD_BRIDGE>::Post(STR_ERROR_CAN_T_BUILD_AQUEDUCT_HERE, CcBuildBridge, tile, GetOtherAqueductEnd(tile), TRANSPORT_WATER, 0, 0);
+				Command<CMD_BUILD_BRIDGE>::Post(STR_ERROR_CAN_T_BUILD_AQUEDUCT_HERE, CcBuildBridge, tile, GetOtherAqueductEnd(tile), TRANSPORT_WATER, 0, INVALID_RAILTYPE, INVALID_ROADTYPE);
 				break;
 
 			default: NOT_REACHED();
@@ -248,6 +248,11 @@ struct BuildDocksToolbarWindow : Window {
 	void OnPlaceDrag(ViewportPlaceMethod select_method, [[maybe_unused]] ViewportDragDropSelectionProcess select_proc, [[maybe_unused]] Point pt) override
 	{
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
+	}
+
+	Point OnInitialPosition(int16_t sm_width, [[maybe_unused]] int16_t sm_height, [[maybe_unused]] int window_number) override
+	{
+		return AlignInitialConstructionToolbar(sm_width);
 	}
 
 	void OnPlaceMouseUp([[maybe_unused]] ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, [[maybe_unused]] Point pt, TileIndex start_tile, TileIndex end_tile) override
@@ -333,7 +338,7 @@ struct BuildDocksToolbarWindow : Window {
  * Nested widget parts of docks toolbar, game version.
  * Position of #WID_DT_RIVER widget has changed.
  */
-static constexpr NWidgetPart _nested_build_docks_toolbar_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_build_docks_toolbar_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
 		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetStringTip(STR_WATERWAYS_TOOLBAR_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -352,7 +357,7 @@ static constexpr NWidgetPart _nested_build_docks_toolbar_widgets[] = {
 };
 
 static WindowDesc _build_docks_toolbar_desc(
-	WDP_ALIGN_TOOLBAR, "toolbar_water", 0, 0,
+	WDP_MANUAL, "toolbar_water", 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WindowDefaultFlag::Construction,
 	_nested_build_docks_toolbar_widgets,
@@ -378,7 +383,7 @@ Window *ShowBuildDocksToolbar()
  * Nested widget parts of docks toolbar, scenario editor version.
  * Positions of #WID_DT_DEPOT, #WID_DT_STATION, and #WID_DT_BUOY widgets have changed.
  */
-static constexpr NWidgetPart _nested_build_docks_scen_toolbar_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_build_docks_scen_toolbar_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
 		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetStringTip(STR_WATERWAYS_TOOLBAR_CAPTION_SE, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -412,21 +417,12 @@ Window *ShowBuildDocksScenToolbar()
 	return AllocateWindowDescFront<BuildDocksToolbarWindow>(_build_docks_scen_toolbar_desc, TRANSPORT_WATER);
 }
 
-/** Widget numbers of the build-dock GUI. */
-enum BuildDockStationWidgets {
-	BDSW_BACKGROUND, ///< Background panel.
-	BDSW_LT_OFF,     ///< 'Off' button of coverage high light.
-	BDSW_LT_ON,      ///< 'On' button of coverage high light.
-	BDSW_INFO,       ///< 'Coverage highlight' label.
-	BDSW_ACCEPTANCE, ///< Acceptance info.
-};
-
 struct BuildDocksStationWindow : public PickerWindowBase {
 public:
 	BuildDocksStationWindow(WindowDesc &desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->InitNested(TRANSPORT_WATER);
-		this->LowerWidget(_settings_client.gui.station_show_coverage + BDSW_LT_OFF);
+		this->LowerWidget(_settings_client.gui.station_show_coverage + WID_BDSW_LT_OFF);
 	}
 
 	void Close([[maybe_unused]] int data = 0) override
@@ -448,7 +444,7 @@ public:
 		}
 
 		/* strings such as 'Size' and 'Coverage Area' */
-		Rect r = this->GetWidget<NWidgetBase>(BDSW_ACCEPTANCE)->GetCurrentRect();
+		Rect r = this->GetWidget<NWidgetBase>(WID_BDSW_ACCEPTANCE)->GetCurrentRect();
 		const int bottom = r.bottom;
 		r.bottom = INT_MAX; // Allow overflow as we want to know the required height.
 		r.top = DrawStationCoverageAreaText(r, SCT_ALL, rad, false) + WidgetDimensions::scaled.vsep_normal;
@@ -464,11 +460,11 @@ public:
 	void OnClick([[maybe_unused]] Point pt, WidgetID widget, [[maybe_unused]] int click_count) override
 	{
 		switch (widget) {
-			case BDSW_LT_OFF:
-			case BDSW_LT_ON:
-				this->RaiseWidget(_settings_client.gui.station_show_coverage + BDSW_LT_OFF);
-				_settings_client.gui.station_show_coverage = (widget != BDSW_LT_OFF);
-				this->LowerWidget(_settings_client.gui.station_show_coverage + BDSW_LT_OFF);
+			case WID_BDSW_LT_OFF:
+			case WID_BDSW_LT_ON:
+				this->RaiseWidget(_settings_client.gui.station_show_coverage + WID_BDSW_LT_OFF);
+				_settings_client.gui.station_show_coverage = (widget != WID_BDSW_LT_OFF);
+				this->LowerWidget(_settings_client.gui.station_show_coverage + WID_BDSW_LT_OFF);
 				SndClickBeep();
 				this->SetDirty();
 				SetViewportCatchmentStation(nullptr, true);
@@ -487,21 +483,21 @@ public:
 };
 
 /** Nested widget parts of a build dock station window. */
-static constexpr NWidgetPart _nested_build_dock_station_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_build_dock_station_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
 		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetStringTip(STR_STATION_BUILD_DOCK_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 	EndContainer(),
-	NWidget(WWT_PANEL, COLOUR_DARK_GREEN, BDSW_BACKGROUND),
+	NWidget(WWT_PANEL, COLOUR_DARK_GREEN, WID_BDSW_BACKGROUND),
 		NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_normal, 0), SetPadding(WidgetDimensions::unscaled.picker),
 			NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_picker, 0),
-				NWidget(WWT_LABEL, INVALID_COLOUR, BDSW_INFO), SetStringTip(STR_STATION_BUILD_COVERAGE_AREA_TITLE), SetFill(1, 0),
+				NWidget(WWT_LABEL, INVALID_COLOUR, WID_BDSW_INFO), SetStringTip(STR_STATION_BUILD_COVERAGE_AREA_TITLE), SetFill(1, 0),
 				NWidget(NWID_HORIZONTAL, NWidContainerFlag::EqualSize), SetPIP(14, 0, 14),
-					NWidget(WWT_TEXTBTN, COLOUR_GREY, BDSW_LT_OFF), SetMinimalSize(60, 12), SetFill(1, 0), SetStringTip(STR_STATION_BUILD_COVERAGE_OFF, STR_STATION_BUILD_COVERAGE_AREA_OFF_TOOLTIP),
-					NWidget(WWT_TEXTBTN, COLOUR_GREY, BDSW_LT_ON), SetMinimalSize(60, 12), SetFill(1, 0), SetStringTip(STR_STATION_BUILD_COVERAGE_ON, STR_STATION_BUILD_COVERAGE_AREA_ON_TOOLTIP),
+					NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BDSW_LT_OFF), SetMinimalSize(60, 12), SetFill(1, 0), SetStringTip(STR_STATION_BUILD_COVERAGE_OFF, STR_STATION_BUILD_COVERAGE_AREA_OFF_TOOLTIP),
+					NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BDSW_LT_ON), SetMinimalSize(60, 12), SetFill(1, 0), SetStringTip(STR_STATION_BUILD_COVERAGE_ON, STR_STATION_BUILD_COVERAGE_AREA_ON_TOOLTIP),
 				EndContainer(),
 			EndContainer(),
-			NWidget(WWT_EMPTY, INVALID_COLOUR, BDSW_ACCEPTANCE), SetResize(0, 1), SetMinimalTextLines(2, WidgetDimensions::unscaled.vsep_normal),
+			NWidget(WWT_EMPTY, INVALID_COLOUR, WID_BDSW_ACCEPTANCE), SetResize(0, 1), SetMinimalTextLines(2, WidgetDimensions::unscaled.vsep_normal),
 		EndContainer(),
 	EndContainer(),
 };
@@ -588,7 +584,7 @@ public:
 	}
 };
 
-static constexpr NWidgetPart _nested_build_docks_depot_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_build_docks_depot_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
 		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetStringTip(STR_DEPOT_BUILD_SHIP_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),

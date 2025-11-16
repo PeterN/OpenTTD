@@ -129,14 +129,15 @@ void MoveWaypointsToBaseStations()
 		bool reserved = !IsSavegameVersionBefore(SLV_100) && HasBit(tile.m5(), 4);
 
 		/* The tile really has our waypoint, so reassign the map array */
-		MakeRailWaypoint(tile, GetTileOwner(tile), new_wp->index, (Axis)GB(tile.m5(), 0, 1), 0, GetRailType(tile));
+		MakeRailWaypoint(tile, GetTileOwner(tile), new_wp->index, (Axis)GB(tile.m5(), 0, 1), 0, GetMapRailType(tile));
 		new_wp->facilities.Set(StationFacility::Train);
 		new_wp->owner = GetTileOwner(tile);
 
 		SetRailStationReservation(tile, reserved);
 
 		if (wp.spec != nullptr) {
-			auto specindex = AllocateSpecToStation(wp.spec, new_wp, true);
+			auto specindex = AllocateSpecToStation(wp.spec, new_wp);
+			if (specindex.has_value()) AssignSpecToStation(wp.spec, new_wp, *specindex);
 			SetCustomStationSpecIndex(tile, specindex.value_or(0));
 		}
 		new_wp->rect.BeforeAddTile(tile, StationRect::ADD_FORCE);

@@ -10,6 +10,7 @@
 #ifndef SETTINGS_TYPE_H
 #define SETTINGS_TYPE_H
 
+#include "command_type.h"
 #include "timer/timer_game_calendar.h"
 #include "economy_type.h"
 #include "town_type.h"
@@ -62,6 +63,13 @@ enum IndustryDensity : uint8_t {
 	ID_CUSTOM,    ///< Custom number of industries.
 
 	ID_END,       ///< Number of industry density settings.
+};
+
+/** Possible options for the Borders pulldown in the Genworld GUI. */
+enum BorderFlagPresets : uint8_t {
+	BFP_RANDOM = 0,
+	BFP_MANUAL,
+	BFP_INFINITE_WATER,
 };
 
 /** Possible values for the "timekeeping_units" setting. */
@@ -375,6 +383,7 @@ struct GameCreationSettings {
 	uint8_t town_name;                        ///< the town name generator used for town names
 	LandscapeType landscape;                        ///< the landscape we're currently in
 	BorderFlags water_borders;                    ///< bitset of the borders that are water
+	BorderFlagPresets water_border_presets;    ///< presets for map border options
 	uint16_t custom_town_number;               ///< manually entered number of towns
 	uint16_t custom_industry_number;           ///< manually entered number of industries
 	uint8_t variety;                          ///< variety level applied to TGP
@@ -402,7 +411,7 @@ struct ConstructionSettings {
 	uint8_t  industry_platform;                ///< the amount of flat land around an industry
 	bool   freeform_edges;                   ///< allow terraforming the tiles at the map edges
 	uint8_t  extra_tree_placement;             ///< (dis)allow building extra trees in-game
-	uint8_t  command_pause_level;              ///< level/amount of commands that can't be executed while paused
+	CommandPauseLevel command_pause_level; ///< level/amount of commands that can't be executed while paused
 
 	uint32_t terraform_per_64k_frames;         ///< how many tile heights may, over a long period, be terraformed per 65536 frames?
 	uint16_t terraform_frame_burst;            ///< how many tile heights may, over a short period, be terraformed?

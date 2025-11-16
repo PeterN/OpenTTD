@@ -1716,7 +1716,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE                     ::وحدات ج�
 STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_IMPERIAL            :إمبراطوري (lbf)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_METRIC              :متري (كغ - قوة)
 
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :إمبراطوري (قدم)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :متري (م)
 
@@ -2769,6 +2769,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK} الج�
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK} حر
 STR_MAPGEN_BORDER_WATER                                         :{BLACK} ماء
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK} عشوائي
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK} عشوائيا
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK} يدوي
 
@@ -2990,7 +2992,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}ادخل
 # Town directory window
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}-بدون-
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{RLE}{TOWN}{BLACK} {RLM}({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{RLE}{TOWN}{YELLOW} (مدينة){BLACK} {RLM}({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}اسم المدينة - اضغط على الاسم لتوسيط الشاشة عليها. اضغط + كنترول لفتح شاشة عرض جديدة للضاحية.
 STR_TOWN_POPULATION                                             :{BLACK}سكان العالم: {COMMA}
 

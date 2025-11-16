@@ -891,7 +891,10 @@ static CommandCost IsStationBridgeAboveOk(TileIndex tile, std::span<const Bridge
 		/* Get normal error message associated with clearing the tile. */
 		return Command<CMD_LANDSCAPE_CLEAR>::Do(DoCommandFlag::Auto, tile);
 	}
-	if (GetTileMaxZ(tile) + height > bridge_height) return CommandCost{GetBridgeTooLowMessageForStationType(type)};
+	if (GetTileMaxZ(tile) + height > bridge_height) {
+		int height_diff = (GetTileMaxZ(tile) + height - bridge_height) * TILE_HEIGHT_STEP;
+		return CommandCostWithParam(GetBridgeTooLowMessageForStationType(type), height_diff);
+	}
 
 	return CommandCost{};
 }
@@ -1424,6 +1427,9 @@ CommandCost CmdBuildRailStation(DoCommandFlags flags, TileIndex tile_org, RailTy
 
 	if (!ValParamRailType(rt) || !IsValidAxis(axis)) return CMD_ERROR;
 
+	MapRailType map_railtype = _railtype_mapping.AllocateMapType(rt, flags.Test(DoCommandFlag::Execute));
+	if (map_railtype == RailTypeMapping::INVALID_MAP_TYPE) return CommandCost{STR_ERROR_TOO_MANY_RAILTYPES};
+
 	/* Check if the given station class is valid */
 	if (static_cast<uint>(spec_class) >= StationClass::GetClassCount()) return CMD_ERROR;
 	const StationClass *cls = StationClass::Get(spec_class);
@@ -1478,20 +1484,26 @@ CommandCost CmdBuildRailStation(DoCommandFlags flags, TileIndex tile_org, RailTy
 	TileIndexDiff track_delta = TileOffsByAxis(OtherAxis(axis)); // offset to go to the next track
 
 	RailStationTileLayout stl{statspec, numtracks, plat_len};
-	auto it = stl.begin();
-	TileIndex tile_track = tile_org;
-	for (uint i = 0; i != numtracks; ++i) {
-		TileIndex tile = tile_track;
-		for (uint j = 0; j != plat_len; ++j) {
-			ret = IsRailStationBridgeAboveOk(tile, statspec, StationType::Rail, *it++ + axis);
+	for (auto [i, it, tile_track] = std::make_tuple(0, stl.begin(), tile_org); i != numtracks; ++i, tile_track += track_delta) {
+		for (auto [j, tile] = std::make_tuple(0, tile_track); j != plat_len; ++j, tile += tile_delta, ++it) {
+			/* Don't check the layout if there's no bridge above anyway. */
+			if (!IsBridgeAbove(tile)) continue;
+
+			StationGfx gfx = *it + axis;
+			if (statspec != nullptr) {
+				uint32_t platinfo = GetPlatformInfo(AXIS_X, gfx, plat_len, numtracks, j, i, false);
+				/* As the station is not yet completely finished, the station does not yet exist. */
+				uint16_t callback = GetStationCallback(CBID_STATION_BUILD_TILE_LAYOUT, platinfo, 0, statspec, nullptr, tile);
+				if (callback != CALLBACK_FAILED && callback <= UINT8_MAX) gfx = (callback & ~1) + axis;
+			}
+
+			ret = IsRailStationBridgeAboveOk(tile, statspec, StationType::Rail, gfx);
 			if (ret.Failed()) return ret;
-			tile += tile_delta;
 		}
-		tile_track += track_delta;
 	}
 
 	/* Check if we can allocate a custom stationspec to this station */
-	auto specindex = AllocateSpecToStation(statspec, st, flags.Test(DoCommandFlag::Execute));
+	auto specindex = AllocateSpecToStation(statspec, st);
 	if (!specindex.has_value()) return CommandCost(STR_ERROR_TOO_MANY_STATION_SPECS);
 
 	if (statspec != nullptr) {
@@ -1514,6 +1526,7 @@ CommandCost CmdBuildRailStation(DoCommandFlags flags, TileIndex tile_org, RailTy
 
 		st->rect.BeforeAddRect(tile_org, w_org, h_org, StationRect::ADD_TRY);
 
+		if (specindex.has_value()) AssignSpecToStation(statspec, st, *specindex);
 		if (statspec != nullptr) {
 			/* Include this station spec's animation trigger bitmask
 			 * in the station's cached copy. */
@@ -1521,14 +1534,9 @@ CommandCost CmdBuildRailStation(DoCommandFlags flags, TileIndex tile_org, RailTy
 		}
 
 		Track track = AxisToTrack(axis);
-
-		auto it = stl.begin();
-
 		Company *c = Company::Get(st->owner);
-		TileIndex tile_track = tile_org;
-		for (uint i = 0; i != numtracks; ++i) {
-			TileIndex tile = tile_track;
-			for (uint j = 0; j != plat_len; ++j) {
+		for (auto [i, it, tile_track] = std::make_tuple(0, stl.begin(), tile_org); i != numtracks; ++i, tile_track += track_delta) {
+			for (auto [j, tile] = std::make_tuple(0, tile_track); j != plat_len; ++j, tile += tile_delta, ++it) {
 				if (IsRailStationTile(tile) && HasStationReservation(tile)) {
 					/* Check for trains having a reservation for this tile. */
 					Train *v = GetTrainForReservation(tile, AxisToTrack(GetRailStationAxis(tile)));
@@ -1548,7 +1556,7 @@ CommandCost CmdBuildRailStation(DoCommandFlags flags, TileIndex tile_org, RailTy
 				DeleteAnimatedTile(tile);
 				uint8_t old_specindex = HasStationTileRail(tile) ? GetCustomStationSpecIndex(tile) : 0;
 
-				MakeRailStation(tile, st->owner, st->index, axis, *it++, rt);
+				MakeRailStation(tile, st->owner, st->index, axis, *it, map_railtype);
 				/* Free the spec if we overbuild something */
 				DeallocateSpecFromStation(st, old_specindex);
 
@@ -1578,12 +1586,9 @@ CommandCost CmdBuildRailStation(DoCommandFlags flags, TileIndex tile_org, RailTy
 
 				if (!IsStationTileBlocked(tile)) c->infrastructure.rail[rt]++;
 				c->infrastructure.station++;
-
-				tile += tile_delta;
 			}
 			AddTrackToSignalBuffer(tile_track, track, _current_company);
 			YapfNotifyTrackLayoutChange(tile_track, track);
-			tile_track += track_delta;
 		}
 
 		for (uint i = 0; i < affected_vehicles.size(); ++i) {
@@ -1770,7 +1775,7 @@ CommandCost RemoveFromRailBaseStation(TileArea ta, std::vector<T *> &affected_st
 			uint specindex = GetCustomStationSpecIndex(tile);
 			Track track = GetRailStationTrack(tile);
 			Owner owner = GetTileOwner(tile);
-			RailType rt = GetRailType(tile);
+			MapRailType map_railtype = GetMapRailType(tile);
 			Train *v = nullptr;
 
 			if (HasStationReservation(tile)) {
@@ -1779,11 +1784,11 @@ CommandCost RemoveFromRailBaseStation(TileArea ta, std::vector<T *> &affected_st
 			}
 
 			bool build_rail = keep_rail && !IsStationTileBlocked(tile);
-			if (!build_rail && !IsStationTileBlocked(tile)) Company::Get(owner)->infrastructure.rail[rt]--;
+			if (!build_rail && !IsStationTileBlocked(tile)) Company::Get(owner)->infrastructure.rail[_railtype_mapping.GetType(map_railtype)]--;
 
 			DoClearSquare(tile);
 			DeleteNewGRFInspectWindow(GSF_STATIONS, tile.base());
-			if (build_rail) MakeRailNormal(tile, owner, TrackToTrackBits(track), rt);
+			if (build_rail) MakeRailNormal(tile, owner, TrackToTrackBits(track), map_railtype);
 			Company::Get(owner)->infrastructure.station--;
 			DirtyCompanyInfrastructureWindows(owner);
 
@@ -2113,7 +2118,7 @@ CommandCost CmdBuildRoadStop(DoCommandFlags flags, TileIndex tile, uint8_t width
 	if (ret.Failed()) return ret;
 
 	/* Check if we can allocate a custom stationspec to this station */
-	auto specindex = AllocateSpecToRoadStop(roadstopspec, st, flags.Test(DoCommandFlag::Execute));
+	auto specindex = AllocateSpecToRoadStop(roadstopspec, st);
 	if (!specindex.has_value()) return CommandCost(STR_ERROR_TOO_MANY_STATION_SPECS);
 
 	if (roadstopspec != nullptr) {
@@ -2126,14 +2131,21 @@ CommandCost CmdBuildRoadStop(DoCommandFlags flags, TileIndex tile, uint8_t width
 		}
 	}
 
+	RoadTramType rtt = GetRoadTramType(rt);
+	MapRoadType new_map_roadtype = rtt == RTT_ROAD ? _roadtype_mapping.AllocateMapType(rt, flags.Test(DoCommandFlag::Execute)) : RoadTypeMapping::INVALID_MAP_TYPE;
+	if (rtt == RTT_ROAD && new_map_roadtype == RoadTypeMapping::INVALID_MAP_TYPE) return CommandCost{STR_ERROR_TOO_MANY_ROADTYPES};
+	MapTramType new_map_tramtype = rtt == RTT_TRAM ? _tramtype_mapping.AllocateMapType(rt, flags.Test(DoCommandFlag::Execute)) : TramTypeMapping::INVALID_MAP_TYPE;
+	if (rtt == RTT_TRAM && new_map_tramtype == TramTypeMapping::INVALID_MAP_TYPE) return CommandCost{STR_ERROR_TOO_MANY_TRAMTYPES};
+
 	if (flags.Test(DoCommandFlag::Execute)) {
+		if (specindex.has_value()) AssignSpecToRoadStop(roadstopspec, st, *specindex);
 		/* Check every tile in the area. */
 		for (TileIndex cur_tile : roadstop_area) {
 			/* Get existing road types and owners before any tile clearing */
-			RoadType road_rt = MayHaveRoad(cur_tile) ? GetRoadType(cur_tile, RTT_ROAD) : INVALID_ROADTYPE;
-			RoadType tram_rt = MayHaveRoad(cur_tile) ? GetRoadType(cur_tile, RTT_TRAM) : INVALID_ROADTYPE;
-			Owner road_owner = road_rt != INVALID_ROADTYPE ? GetRoadOwner(cur_tile, RTT_ROAD) : _current_company;
-			Owner tram_owner = tram_rt != INVALID_ROADTYPE ? GetRoadOwner(cur_tile, RTT_TRAM) : _current_company;
+			MapRoadType cur_map_roadtype = MayHaveRoad(cur_tile) ? GetMapRoadTypeRoad(cur_tile) : RoadTypeMapping::INVALID_MAP_TYPE;
+			MapTramType cur_map_tramtype = MayHaveRoad(cur_tile) ? GetMapRoadTypeTram(cur_tile) : TramTypeMapping::INVALID_MAP_TYPE;
+			Owner road_owner = cur_map_roadtype != RoadTypeMapping::INVALID_MAP_TYPE ? GetRoadOwner(cur_tile, RTT_ROAD) : _current_company;
+			Owner tram_owner = cur_map_tramtype != TramTypeMapping::INVALID_MAP_TYPE ? GetRoadOwner(cur_tile, RTT_TRAM) : _current_company;
 
 			if (IsTileType(cur_tile, MP_STATION) && IsStationRoadStop(cur_tile)) {
 				RemoveRoadStop(cur_tile, flags, *specindex);
@@ -2166,22 +2178,22 @@ CommandCost CmdBuildRoadStop(DoCommandFlags flags, TileIndex tile, uint8_t width
 				/* Update company infrastructure counts. If the current tile is a normal road tile, remove the old
 				 * bits first. */
 				if (IsNormalRoadTile(cur_tile)) {
-					UpdateCompanyRoadInfrastructure(road_rt, road_owner, -(int)CountBits(GetRoadBits(cur_tile, RTT_ROAD)));
-					UpdateCompanyRoadInfrastructure(tram_rt, tram_owner, -(int)CountBits(GetRoadBits(cur_tile, RTT_TRAM)));
+					UpdateCompanyRoadInfrastructure(_roadtype_mapping.GetType(cur_map_roadtype), road_owner, -(int)CountBits(GetRoadBits(cur_tile, RTT_ROAD)));
+					UpdateCompanyRoadInfrastructure(_tramtype_mapping.GetType(cur_map_tramtype), tram_owner, -(int)CountBits(GetRoadBits(cur_tile, RTT_TRAM)));
 				}
 
-				if (road_rt == INVALID_ROADTYPE && RoadTypeIsRoad(rt)) road_rt = rt;
-				if (tram_rt == INVALID_ROADTYPE && RoadTypeIsTram(rt)) tram_rt = rt;
+				if (cur_map_roadtype == RoadTypeMapping::INVALID_MAP_TYPE && RoadTypeIsRoad(rt)) cur_map_roadtype = new_map_roadtype;
+				if (cur_map_tramtype == TramTypeMapping::INVALID_MAP_TYPE && RoadTypeIsTram(rt)) cur_map_tramtype = new_map_tramtype;
 
-				MakeDriveThroughRoadStop(cur_tile, st->owner, road_owner, tram_owner, st->index, (rs_type == RoadStopType::Bus ? StationType::Bus : StationType::Truck), road_rt, tram_rt, axis);
+				MakeDriveThroughRoadStop(cur_tile, st->owner, road_owner, tram_owner, st->index, (rs_type == RoadStopType::Bus ? StationType::Bus : StationType::Truck), cur_map_roadtype, cur_map_tramtype, axis);
 				road_stop->MakeDriveThrough();
 			} else {
-				if (road_rt == INVALID_ROADTYPE && RoadTypeIsRoad(rt)) road_rt = rt;
-				if (tram_rt == INVALID_ROADTYPE && RoadTypeIsTram(rt)) tram_rt = rt;
-				MakeRoadStop(cur_tile, st->owner, st->index, rs_type, road_rt, tram_rt, ddir);
+				if (cur_map_roadtype == RoadTypeMapping::INVALID_MAP_TYPE && RoadTypeIsRoad(rt)) cur_map_roadtype = new_map_roadtype;
+				if (cur_map_tramtype == TramTypeMapping::INVALID_MAP_TYPE && RoadTypeIsTram(rt)) cur_map_tramtype = new_map_tramtype;
+				MakeRoadStop(cur_tile, st->owner, st->index, rs_type, cur_map_roadtype, cur_map_tramtype, ddir);
 			}
-			UpdateCompanyRoadInfrastructure(road_rt, road_owner, ROAD_STOP_TRACKBIT_FACTOR);
-			UpdateCompanyRoadInfrastructure(tram_rt, tram_owner, ROAD_STOP_TRACKBIT_FACTOR);
+			UpdateCompanyRoadInfrastructure(_roadtype_mapping.GetType(cur_map_roadtype), road_owner, ROAD_STOP_TRACKBIT_FACTOR);
+			UpdateCompanyRoadInfrastructure(_tramtype_mapping.GetType(cur_map_tramtype), tram_owner, ROAD_STOP_TRACKBIT_FACTOR);
 			Company::Get(st->owner)->infrastructure.station++;
 
 			SetCustomRoadStopSpecIndex(cur_tile, *specindex);
@@ -2437,7 +2449,7 @@ static CommandCost RemoveGenericRoadStop(DoCommandFlags flags, const TileArea &r
 
 		/* Restore roads. */
 		if (flags.Test(DoCommandFlag::Execute) && (road_type[RTT_ROAD] != INVALID_ROADTYPE || road_type[RTT_TRAM] != INVALID_ROADTYPE)) {
-			MakeRoadNormal(cur_tile, road_bits, road_type[RTT_ROAD], road_type[RTT_TRAM], ClosestTownFromTile(cur_tile, UINT_MAX)->index,
+			MakeRoadNormal(cur_tile, road_bits, _roadtype_mapping.GetMappedType(road_type[RTT_ROAD]), _tramtype_mapping.GetMappedType(road_type[RTT_TRAM]), ClosestTownFromTile(cur_tile, UINT_MAX)->index,
 					road_owner[RTT_ROAD], road_owner[RTT_TRAM]);
 
 			/* Update company infrastructure counts. */
@@ -3946,6 +3958,10 @@ static void TruncateCargo(const CargoSpec *cs, GoodsEntry *ge, uint amount = UIN
 	}
 }
 
+/**
+ * Periodic update of a station's rating.
+ * @param st The station to update.
+ */
 static void UpdateStationRating(Station *st)
 {
 	bool waiting_changed = false;
@@ -3955,144 +3971,148 @@ static void UpdateStationRating(Station *st)
 
 	for (const CargoSpec *cs : CargoSpec::Iterate()) {
 		GoodsEntry *ge = &st->goods[cs->Index()];
-		/* Slowly increase the rating back to its original level in the case we
-		 *  didn't deliver cargo yet to this station. This happens when a bribe
-		 *  failed while you didn't moved that cargo yet to a station. */
-		if (!ge->HasRating() && ge->rating < INITIAL_STATION_RATING) {
-			ge->rating++;
+
+		/* The station might not currently be moving this cargo. */
+		if (!ge->HasRating()) {
+			/* Slowly increase the rating back to its original level in the case we
+			 *  didn't deliver cargo yet to this station. This happens when a bribe
+			 *  failed while you didn't moved that cargo yet to a station. */
+			if (ge->rating < INITIAL_STATION_RATING) ge->rating++;
+
+			/* Nothing else to do with this cargo. */
+			continue;
 		}
 
-		/* Only change the rating if we are moving this cargo */
-		if (ge->HasRating()) {
-			byte_inc_sat(&ge->time_since_pickup);
-			if (ge->time_since_pickup == 255 && _settings_game.order.selectgoods) {
-				ge->status.Reset(GoodsEntry::State::Rating);
-				ge->last_speed = 0;
-				TruncateCargo(cs, ge);
-				waiting_changed = true;
-				continue;
-			}
+		byte_inc_sat(&ge->time_since_pickup);
 
-			bool skip = false;
-			int rating = 0;
-			uint waiting = ge->HasData() ? ge->GetData().cargo.AvailableCount() : 0;
+		/* If this cargo hasn't been picked up in a long time, get rid of it. */
+		if (ge->time_since_pickup == 255 && _settings_game.order.selectgoods) {
+			ge->status.Reset(GoodsEntry::State::Rating);
+			ge->last_speed = 0;
+			TruncateCargo(cs, ge);
+			waiting_changed = true;
+			continue;
+		}
 
-			/* num_dests is at least 1 if there is any cargo as
-			 * StationID::Invalid() is also a destination.
-			 */
-			uint num_dests = ge->HasData() ? static_cast<uint>(ge->GetData().cargo.Packets()->MapSize()) : 0;
+		bool skip = false;
+		int rating = 0;
+		uint waiting = ge->HasData() ? ge->GetData().cargo.AvailableCount() : 0;
 
-			/* Average amount of cargo per next hop, but prefer solitary stations
-			 * with only one or two next hops. They are allowed to have more
-			 * cargo waiting per next hop.
-			 * With manual cargo distribution waiting_avg = waiting / 2 as then
-			 * StationID::Invalid() is the only destination.
-			 */
-			uint waiting_avg = waiting / (num_dests + 1);
+		/* num_dests is at least 1 if there is any cargo as
+		 * StationID::Invalid() is also a destination.
+		 */
+		uint num_dests = ge->HasData() ? static_cast<uint>(ge->GetData().cargo.Packets()->MapSize()) : 0;
 
-			if (_cheats.station_rating.value) {
-				ge->rating = rating = MAX_STATION_RATING;
+		/* Average amount of cargo per next hop, but prefer solitary stations
+		 * with only one or two next hops. They are allowed to have more
+		 * cargo waiting per next hop.
+		 * With manual cargo distribution waiting_avg = waiting / 2 as then
+		 * StationID::Invalid() is the only destination.
+		 */
+		uint waiting_avg = waiting / (num_dests + 1);
+
+		if (_cheats.station_rating.value) {
+			ge->rating = rating = MAX_STATION_RATING;
+			skip = true;
+		} else if (cs->callback_mask.Test(CargoCallbackMask::StationRatingCalc)) {
+			/* Perform custom station rating. If it succeeds the speed, days in transit and
+			 * waiting cargo ratings must not be executed. */
+
+			/* NewGRFs expect last speed to be 0xFF when no vehicle has arrived yet. */
+			uint last_speed = ge->HasVehicleEverTriedLoading() ? ge->last_speed : 0xFF;
+
+			uint32_t var18 = ClampTo<uint8_t>(ge->time_since_pickup)
+				| (ClampTo<uint16_t>(ge->max_waiting_cargo) << 8)
+				| (ClampTo<uint8_t>(last_speed) << 24);
+			/* Convert to the 'old' vehicle types */
+			uint32_t var10 = (st->last_vehicle_type == VEH_INVALID) ? 0x0 : (st->last_vehicle_type + 0x10);
+			uint16_t callback = GetCargoCallback(CBID_CARGO_STATION_RATING_CALC, var10, var18, cs);
+			if (callback != CALLBACK_FAILED) {
 				skip = true;
-			} else if (cs->callback_mask.Test(CargoCallbackMask::StationRatingCalc)) {
-				/* Perform custom station rating. If it succeeds the speed, days in transit and
-				 * waiting cargo ratings must not be executed. */
+				rating = GB(callback, 0, 14);
 
-				/* NewGRFs expect last speed to be 0xFF when no vehicle has arrived yet. */
-				uint last_speed = ge->HasVehicleEverTriedLoading() ? ge->last_speed : 0xFF;
+				/* Simulate a 15 bit signed value */
+				if (HasBit(callback, 14)) rating -= 0x4000;
+			}
+		}
 
-				uint32_t var18 = ClampTo<uint8_t>(ge->time_since_pickup)
-					| (ClampTo<uint16_t>(ge->max_waiting_cargo) << 8)
-					| (ClampTo<uint8_t>(last_speed) << 24);
-				/* Convert to the 'old' vehicle types */
-				uint32_t var10 = (st->last_vehicle_type == VEH_INVALID) ? 0x0 : (st->last_vehicle_type + 0x10);
-				uint16_t callback = GetCargoCallback(CBID_CARGO_STATION_RATING_CALC, var10, var18, cs);
-				if (callback != CALLBACK_FAILED) {
-					skip = true;
-					rating = GB(callback, 0, 14);
+		if (!skip) {
+			int b = ge->last_speed - 85;
+			if (b >= 0) rating += b >> 2;
 
-					/* Simulate a 15 bit signed value */
-					if (HasBit(callback, 14)) rating -= 0x4000;
+			uint8_t waittime = ge->time_since_pickup;
+			if (st->last_vehicle_type == VEH_SHIP) waittime >>= 2;
+			if (waittime <= 21) rating += 25;
+			if (waittime <= 12) rating += 25;
+			if (waittime <= 6) rating += 45;
+			if (waittime <= 3) rating += 35;
+
+			rating -= 90;
+			if (ge->max_waiting_cargo <= 1500) rating += 55;
+			if (ge->max_waiting_cargo <= 1000) rating += 35;
+			if (ge->max_waiting_cargo <= 600) rating += 10;
+			if (ge->max_waiting_cargo <= 300) rating += 20;
+			if (ge->max_waiting_cargo <= 100) rating += 10;
+		}
+
+		if (Company::IsValidID(st->owner) && st->town->statues.Test(st->owner)) rating += 26;
+
+		uint8_t age = ge->last_age;
+		if (age < 3) rating += 10;
+		if (age < 2) rating += 10;
+		if (age < 1) rating += 13;
+
+		{
+			int or_ = ge->rating; // old rating
+
+			/* only modify rating in steps of -2, -1, 0, 1 or 2 */
+			ge->rating = rating = ClampTo<uint8_t>(or_ + Clamp(rating - or_, -2, 2));
+
+			/* if rating is <= 64 and more than 100 items waiting on average per destination,
+			 * remove some random amount of goods from the station */
+			if (rating <= 64 && waiting_avg >= 100) {
+				int dec = Random() & 0x1F;
+				if (waiting_avg < 200) dec &= 7;
+				waiting -= (dec + 1) * num_dests;
+				waiting_changed = true;
+			}
+
+			/* if rating is <= 127 and there are any items waiting, maybe remove some goods. */
+			if (rating <= 127 && waiting != 0) {
+				uint32_t r = Random();
+				if (rating <= (int)GB(r, 0, 7)) {
+					/* Need to have int, otherwise it will just overflow etc. */
+					waiting = std::max((int)waiting - (int)((GB(r, 8, 2) - 1) * num_dests), 0);
+					waiting_changed = true;
 				}
 			}
 
-			if (!skip) {
-				int b = ge->last_speed - 85;
-				if (b >= 0) rating += b >> 2;
+			/* At some point we really must cap the cargo. Previously this
+			 * was a strict 4095, but now we'll have a less strict, but
+			 * increasingly aggressive truncation of the amount of cargo. */
+			static const uint WAITING_CARGO_THRESHOLD  = 1 << 12;
+			static const uint WAITING_CARGO_CUT_FACTOR = 1 <<  6;
+			static const uint MAX_WAITING_CARGO        = 1 << 15;
 
-				uint8_t waittime = ge->time_since_pickup;
-				if (st->last_vehicle_type == VEH_SHIP) waittime >>= 2;
-				if (waittime <= 21) rating += 25;
-				if (waittime <= 12) rating += 25;
-				if (waittime <= 6) rating += 45;
-				if (waittime <= 3) rating += 35;
+			if (waiting > WAITING_CARGO_THRESHOLD) {
+				uint difference = waiting - WAITING_CARGO_THRESHOLD;
+				waiting -= (difference / WAITING_CARGO_CUT_FACTOR);
 
-				rating -= 90;
-				if (ge->max_waiting_cargo <= 1500) rating += 55;
-				if (ge->max_waiting_cargo <= 1000) rating += 35;
-				if (ge->max_waiting_cargo <= 600) rating += 10;
-				if (ge->max_waiting_cargo <= 300) rating += 20;
-				if (ge->max_waiting_cargo <= 100) rating += 10;
+				waiting = std::min(waiting, MAX_WAITING_CARGO);
+				waiting_changed = true;
 			}
 
-			if (Company::IsValidID(st->owner) && st->town->statues.Test(st->owner)) rating += 26;
+			/* We can't truncate cargo that's already reserved for loading.
+			 * Thus StoredCount() here. */
+			if (waiting_changed && waiting < (ge->HasData() ? ge->GetData().cargo.AvailableCount() : 0)) {
+				/* Feed back the exact own waiting cargo at this station for the
+				 * next rating calculation. */
+				ge->max_waiting_cargo = 0;
 
-			uint8_t age = ge->last_age;
-			if (age < 3) rating += 10;
-			if (age < 2) rating += 10;
-			if (age < 1) rating += 13;
-
-			{
-				int or_ = ge->rating; // old rating
-
-				/* only modify rating in steps of -2, -1, 0, 1 or 2 */
-				ge->rating = rating = ClampTo<uint8_t>(or_ + Clamp(rating - or_, -2, 2));
-
-				/* if rating is <= 64 and more than 100 items waiting on average per destination,
-				 * remove some random amount of goods from the station */
-				if (rating <= 64 && waiting_avg >= 100) {
-					int dec = Random() & 0x1F;
-					if (waiting_avg < 200) dec &= 7;
-					waiting -= (dec + 1) * num_dests;
-					waiting_changed = true;
-				}
-
-				/* if rating is <= 127 and there are any items waiting, maybe remove some goods. */
-				if (rating <= 127 && waiting != 0) {
-					uint32_t r = Random();
-					if (rating <= (int)GB(r, 0, 7)) {
-						/* Need to have int, otherwise it will just overflow etc. */
-						waiting = std::max((int)waiting - (int)((GB(r, 8, 2) - 1) * num_dests), 0);
-						waiting_changed = true;
-					}
-				}
-
-				/* At some point we really must cap the cargo. Previously this
-				 * was a strict 4095, but now we'll have a less strict, but
-				 * increasingly aggressive truncation of the amount of cargo. */
-				static const uint WAITING_CARGO_THRESHOLD  = 1 << 12;
-				static const uint WAITING_CARGO_CUT_FACTOR = 1 <<  6;
-				static const uint MAX_WAITING_CARGO        = 1 << 15;
-
-				if (waiting > WAITING_CARGO_THRESHOLD) {
-					uint difference = waiting - WAITING_CARGO_THRESHOLD;
-					waiting -= (difference / WAITING_CARGO_CUT_FACTOR);
-
-					waiting = std::min(waiting, MAX_WAITING_CARGO);
-					waiting_changed = true;
-				}
-
-				/* We can't truncate cargo that's already reserved for loading.
-				 * Thus StoredCount() here. */
-				if (waiting_changed && waiting < (ge->HasData() ? ge->GetData().cargo.AvailableCount() : 0)) {
-					/* Feed back the exact own waiting cargo at this station for the
-					 * next rating calculation. */
-					ge->max_waiting_cargo = 0;
-
-					TruncateCargo(cs, ge, ge->GetData().cargo.AvailableCount() - waiting);
-				} else {
-					/* If the average number per next hop is low, be more forgiving. */
-					ge->max_waiting_cargo = waiting_avg;
-				}
+				TruncateCargo(cs, ge, ge->GetData().cargo.AvailableCount() - waiting);
+			} else {
+				/* If the average number per next hop is low, be more forgiving. */
+				ge->max_waiting_cargo = waiting_avg;
 			}
 		}
 	}
@@ -4349,6 +4369,14 @@ static const IntervalTimer<TimerGameEconomy> _economy_stations_monthly({TimerGam
 	}
 });
 
+/**
+ * Forcibly modify station ratings near a given tile.
+ * Used when a crash hurts a company's station ratings nearby, or when local authority actions affect nearby ratings.
+ * @param tile The center of the ratings change area.
+ * @param owner The station owner whose stations are affected.
+ * @param amount The amount to change the rating.
+ * @param radius The radius to search for stations, from the origin tile.
+ */
 void ModifyStationRatingAround(TileIndex tile, Owner owner, int amount, uint radius)
 {
 	ForAllStationsRadius(tile, radius, [&](Station *st) {
@@ -4694,7 +4722,11 @@ static void ChangeTileOwner_Station(TileIndex tile, Owner old_owner, Owner new_o
 				if (rt != INVALID_ROADTYPE) {
 					/* A drive-through road-stop has always two road bits. No need to dirty windows here, we'll redraw the whole screen anyway. */
 					Company::Get(old_owner)->infrastructure.road[rt] -= 2;
-					if (new_owner != INVALID_OWNER) Company::Get(new_owner)->infrastructure.road[rt] += 2;
+					if (new_owner != INVALID_OWNER) {
+						Company::Get(new_owner)->infrastructure.road[rt] += 2;
+					} else {
+						RoadTypeInfo::infrastructure_counts[rt] += 2;
+					}
 				}
 				SetRoadOwner(tile, rtt, new_owner == INVALID_OWNER ? OWNER_NONE : new_owner);
 			}
@@ -5184,14 +5216,14 @@ void FlowStatMap::FinalizeLocalConsumption(StationID self)
  * @return IDs of source stations for which the complete FlowStat, not only a
  *         share, has been erased.
  */
-StationIDStack FlowStatMap::DeleteFlows(StationID via)
+std::vector<StationID> FlowStatMap::DeleteFlows(StationID via)
 {
-	StationIDStack ret;
+	std::vector<StationID> ret;
 	for (FlowStatMap::iterator f_it = this->begin(); f_it != this->end();) {
 		FlowStat &s_flows = f_it->second;
 		s_flows.ChangeShare(via, INT_MIN);
 		if (s_flows.GetShares()->empty()) {
-			ret.Push(f_it->first);
+			ret.push_back(f_it->first);
 			this->erase(f_it++);
 		} else {
 			++f_it;

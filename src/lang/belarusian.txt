@@ -2414,7 +2414,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :СІ (кН)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Сыстэма адзінак для вышыні: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Паказваць значэньні вышыні ў абранай сыстэме адзінак
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :ангельская (фут)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :мэтрычная (м)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :СІ (м)
@@ -3631,6 +3631,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Паўд
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Зямля
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Вада
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Выпадковы
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Выпадковыя
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Уручную
 
@@ -3878,7 +3880,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Увяд
 # Town directory window
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Няма -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Мегаполіс){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Сьпіс гарадоў: пстрычка па назьве паказвае горад у асноўным вакне. Ctrl+пстрычка — у дадатковым вакне.
 STR_TOWN_POPULATION                                             :{BLACK}Насельніцтва: {COMMA}
 

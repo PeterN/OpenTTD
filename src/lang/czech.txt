@@ -2211,7 +2211,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Výškové jednotky: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Kdykoliv se v uživatelském rozhraní zobrazí výška, bude ve zvolených jednotkách
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperiální (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrické (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
@@ -3466,6 +3466,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Jihozáp
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}terén
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}voda
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}náhodně
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}náhodně
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}vlastní
 
@@ -3506,7 +3508,6 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Generov�
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Generování řek
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Tvorba členitého a kamenitého území
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Generování měst
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Generování průmyslu
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Výstavba nepřesunutelných objektů
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Výsadba stromů
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Nastavování hry
@@ -3721,7 +3722,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Zadej n�
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Města ({COMMA} z {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Nic -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (velkoměsto){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Jména měst - pohled na město zaměříš kliknutím na jeho jméno. Při stisknutém Ctrl otevřeš nový pohled
 STR_TOWN_POPULATION                                             :{BLACK}Populace světa: {COMMA}
 

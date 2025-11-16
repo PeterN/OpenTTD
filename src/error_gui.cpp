@@ -33,7 +33,7 @@
 
 #include "safeguards.h"
 
-static constexpr NWidgetPart _nested_errmsg_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_errmsg_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_RED),
 		NWidget(WWT_CAPTION, COLOUR_RED, WID_EM_CAPTION), SetStringTip(STR_ERROR_MESSAGE_CAPTION),
@@ -50,7 +50,7 @@ static WindowDesc _errmsg_desc(
 	_nested_errmsg_widgets
 );
 
-static constexpr NWidgetPart _nested_errmsg_face_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_errmsg_face_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_RED),
 		NWidget(WWT_CAPTION, COLOUR_RED, WID_EM_CAPTION),
@@ -209,7 +209,7 @@ public:
 					/* Note: NewGRF supplied error message often do not start with a colour code, so default to white. */
 					Rect top_section = r.WithHeight(this->height_summary + extra, false);
 					Rect bottom_section = r.WithHeight(this->height_extra + extra, true);
-					Rect middle_section = { top_section.left, top_section.bottom, top_section.right, bottom_section.top };
+					Rect middle_section = top_section.WithY(top_section.bottom, bottom_section.top);
 					DrawStringMultiLineWithClipping(top_section, this->summary_msg.GetDecodedString(), TC_WHITE, SA_CENTER);
 					DrawStringMultiLineWithClipping(middle_section, this->detailed_msg.GetDecodedString(), TC_WHITE, SA_CENTER);
 					DrawStringMultiLineWithClipping(bottom_section, this->extra_msg.GetDecodedString(), TC_WHITE, SA_CENTER);

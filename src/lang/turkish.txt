@@ -2106,7 +2106,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (Uluslararas
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Yükseklik ölçü birimi: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Kullanıcı arayüzünde yükseklikler görüntülendiğinde, bunları seçili ölçü biriminde göster
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperial (Ingiliz ölçü birimleri) (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metrik (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (Uluslararası Ölçüm Sistemi) (m)
@@ -3338,6 +3338,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}Güneyba
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Serbest
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Su
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Rastgele
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Rastgele
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}El ile
 
@@ -3378,7 +3380,6 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Peyzaj o
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Nehir oluşturma
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Engebeli ve kayalık alan oluştur
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Kasaba Oluşumu
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Endüstri Oluşumu
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Nesne oluşturma
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Ağaç üretimi
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Oyun ayarlanıyor
@@ -3592,7 +3593,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Tabela i
 # Town directory window
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Hiçbiri -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Şehir){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Şehir isimleri - şehre bakmak için ismine tıkla. Ctrl + Sol Tıklama şehrin olduğu yere ait bir görünüm penceresi açar.
 STR_TOWN_POPULATION                                             :{BLACK}Dünya nüfusu: {COMMA}
 

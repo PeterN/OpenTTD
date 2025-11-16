@@ -155,7 +155,7 @@ void PlaceProc_DemolishArea(TileIndex tile)
 
 /** Terra form toolbar managing class. */
 struct TerraformToolbarWindow : Window {
-	int last_user_action = INVALID_WID_TT; ///< Last started user action.
+	WidgetID last_user_action = INVALID_WIDGET; ///< Last started user action.
 
 	TerraformToolbarWindow(WindowDesc &desc, WindowNumber window_number) : Window(desc)
 	{
@@ -257,7 +257,8 @@ struct TerraformToolbarWindow : Window {
 	Point OnInitialPosition([[maybe_unused]] int16_t sm_width, [[maybe_unused]] int16_t sm_height, [[maybe_unused]] int window_number) override
 	{
 		Point pt = GetToolbarAlignedWindowPosition(sm_width);
-		pt.y += sm_height;
+		if (FindWindowByClass(WC_BUILD_TOOLBAR) != nullptr && !_settings_client.gui.link_terraform_toolbar) pt.y += sm_height;
+
 		return pt;
 	}
 
@@ -316,7 +317,7 @@ struct TerraformToolbarWindow : Window {
 	}, TerraformToolbarGlobalHotkeys};
 };
 
-static constexpr NWidgetPart _nested_terraform_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_terraform_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
 		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetStringTip(STR_LANDSCAPING_TOOLBAR, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -364,19 +365,13 @@ Window *ShowTerraformToolbar(Window *link)
 {
 	if (!Company::IsValidID(_local_company)) return nullptr;
 
-	Window *w;
-	if (link == nullptr) {
-		w = AllocateWindowDescFront<TerraformToolbarWindow>(_terraform_desc, 0);
-		return w;
-	}
-
 	/* Delete the terraform toolbar to place it again. */
 	CloseWindowById(WC_SCEN_LAND_GEN, 0, true);
-	w = AllocateWindowDescFront<TerraformToolbarWindow>(_terraform_desc, 0);
-	/* Align the terraform toolbar under the main toolbar. */
-	w->top -= w->height;
-	w->SetDirty();
-	/* Put the linked toolbar to the left / right of it. */
+
+	if (link == nullptr) return AllocateWindowDescFront<TerraformToolbarWindow>(_terraform_desc, 0);
+
+	Window *w = AllocateWindowDescFront<TerraformToolbarWindow>(_terraform_desc, 0);
+	/* Put the linked toolbar to the left / right of the main toolbar. */
 	link->left = w->left + (_current_text_dir == TD_RTL ? w->width : -link->width);
 	link->top  = w->top;
 	link->SetDirty();
@@ -445,7 +440,7 @@ static const int8_t _multi_terraform_coords[][2] = {
 	{-28,  0}, {-24, -2}, {-20, -4}, {-16, -6}, {-12, -8}, { -8,-10}, { -4,-12}, {  0,-14}, {  4,-12}, {  8,-10}, { 12, -8}, { 16, -6}, { 20, -4}, { 24, -2}, { 28,  0},
 };
 
-static constexpr NWidgetPart _nested_scen_edit_land_gen_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_scen_edit_land_gen_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
 		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetStringTip(STR_TERRAFORM_TOOLBAR_LAND_GENERATION_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -529,7 +524,7 @@ static void ResetLandscapeConfirmationCallback(Window *, bool confirmed)
 
 /** Landscape generation window handler in the scenario editor. */
 struct ScenarioEditorLandscapeGenerationWindow : Window {
-	int last_user_action = INVALID_WID_ETT; ///< Last started user action.
+	WidgetID last_user_action = INVALID_WIDGET; ///< Last started user action.
 
 	ScenarioEditorLandscapeGenerationWindow(WindowDesc &desc, WindowNumber window_number) : Window(desc)
 	{

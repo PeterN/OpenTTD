@@ -13,26 +13,13 @@
 #include "road_type.h"
 #include "gfx_type.h"
 #include "core/bitmath_func.hpp"
+#include "core/flatset_type.hpp"
 #include "strings_type.h"
 #include "timer/timer_game_calendar.h"
 #include "core/enum_type.hpp"
 #include "newgrf.h"
 #include "newgrf_badge_type.h"
 #include "economy_func.h"
-
-
-enum RoadTramType : bool {
-	RTT_ROAD,
-	RTT_TRAM,
-};
-
-enum RoadTramTypes : uint8_t {
-	RTTB_ROAD = 1 << RTT_ROAD,
-	RTTB_TRAM = 1 << RTT_TRAM,
-};
-DECLARE_ENUM_AS_BIT_SET(RoadTramTypes)
-
-static const RoadTramType _roadtramtypes[] = { RTT_ROAD, RTT_TRAM };
 
 /** Roadtype flag bit numbers. */
 enum class RoadTypeFlag : uint8_t {
@@ -137,7 +124,7 @@ public:
 	/**
 	 * Road type labels this type provides in addition to the main label.
 	 */
-	std::vector<RoadTypeLabel> alternate_labels;
+	FlatSet<RoadTypeLabel> alternate_labels;
 
 	/**
 	 * Colour on mini-map
@@ -185,6 +172,13 @@ public:
 	{
 		return this->group[ROTSG_GROUND] != nullptr;
 	}
+
+	RoadType Index() const;
+
+	/**
+	 * Infrastructure counts for unowned road pieces.
+	 */
+	static inline std::map<RoadType, uint32_t> infrastructure_counts{};
 };
 
 /**
@@ -192,7 +186,7 @@ public:
  * @param rtt RoadTramType.
  * @return Mask of road types for RoadTramType.
  */
-inline RoadTypes GetMaskForRoadTramType(RoadTramType rtt)
+inline const RoadTypes &GetMaskForRoadTramType(RoadTramType rtt)
 {
 	extern RoadTypes _roadtypes_road;
 	extern RoadTypes _roadtypes_tram;
@@ -215,8 +209,20 @@ inline RoadTramType GetRoadTramType(RoadType roadtype)
 }
 
 inline RoadTramType OtherRoadTramType(RoadTramType rtt)
+
 {
 	return rtt == RTT_ROAD ? RTT_TRAM : RTT_ROAD;
+}
+
+inline std::span<RoadTypeInfo> GetRoadTypeInfo()
+{
+	extern std::vector<RoadTypeInfo> _roadtypes;
+	return _roadtypes;
+}
+
+inline size_t GetNumRoadTypes()
+{
+	return std::size(GetRoadTypeInfo());
 }
 
 /**
@@ -226,22 +232,8 @@ inline RoadTramType OtherRoadTramType(RoadTramType rtt)
  */
 inline const RoadTypeInfo *GetRoadTypeInfo(RoadType roadtype)
 {
-	extern RoadTypeInfo _roadtypes[ROADTYPE_END];
-	assert(roadtype < ROADTYPE_END);
-	return &_roadtypes[roadtype];
-}
-
-/**
- * Returns the railtype for a Railtype information.
- * @param rti Pointer to static RailTypeInfo
- * @return Railtype in static railtype definitions
- */
-inline RoadType GetRoadTypeInfoIndex(const RoadTypeInfo *rti)
-{
-	extern RoadTypeInfo _roadtypes[ROADTYPE_END];
-	size_t index = rti - _roadtypes;
-	assert(index < ROADTYPE_END && rti == _roadtypes + index);
-	return static_cast<RoadType>(index);
+	assert(roadtype < GetNumRoadTypes());
+	return &GetRoadTypeInfo()[roadtype];
 }
 
 /**
@@ -264,7 +256,7 @@ inline bool HasPowerOnRoad(RoadType enginetype, RoadType tiletype)
  */
 inline Money RoadBuildCost(RoadType roadtype)
 {
-	assert(roadtype < ROADTYPE_END);
+	assert(roadtype < GetNumRoadTypes());
 	return (_price[PR_BUILD_ROAD] * GetRoadTypeInfo(roadtype)->cost_multiplier) >> 3;
 }
 
@@ -275,7 +267,7 @@ inline Money RoadBuildCost(RoadType roadtype)
  */
 inline Money RoadClearCost(RoadType roadtype)
 {
-	assert(roadtype < ROADTYPE_END);
+	assert(roadtype < GetNumRoadTypes());
 
 	/* Flat fee for removing road. */
 	if (RoadTypeIsRoad(roadtype)) return _price[PR_CLEAR_ROAD];
@@ -307,7 +299,7 @@ inline Money RoadConvertCost(RoadType from, RoadType to)
  */
 inline bool RoadNoLevelCrossing(RoadType roadtype)
 {
-	assert(roadtype < ROADTYPE_END);
+	assert(roadtype < GetNumRoadTypes());
 	return GetRoadTypeInfo(roadtype)->flags.Test(RoadTypeFlag::NoLevelCrossing);
 }
 

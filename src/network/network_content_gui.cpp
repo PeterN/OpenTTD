@@ -84,7 +84,7 @@ static void ShowContentTextfileWindow(Window *parent, TextfileType file_type, co
 }
 
 /** Nested widgets for the download window. */
-static constexpr NWidgetPart _nested_network_content_download_status_window_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_network_content_download_status_window_widgets = {
 	NWidget(WWT_CAPTION, COLOUR_GREY), SetStringTip(STR_CONTENT_DOWNLOAD_TITLE, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 	NWidget(WWT_PANEL, COLOUR_GREY),
 		NWidget(NWID_VERTICAL), SetPIP(0, WidgetDimensions::unscaled.vsep_wide, 0), SetPadding(WidgetDimensions::unscaled.modalpopup),
@@ -673,7 +673,7 @@ public:
 				case ContentInfo::State::DoesNotExist: sprite = SPR_BLOT; pal = PALETTE_TO_RED; break;
 				default: NOT_REACHED();
 			}
-			DrawSpriteIgnorePadding(sprite, pal, {checkbox.left, mr.top, checkbox.right, mr.bottom}, SA_CENTER);
+			DrawSpriteIgnorePadding(sprite, pal, checkbox.WithY(mr), SA_CENTER);
 
 			StringID str = STR_CONTENT_TYPE_BASE_GRAPHICS + ci->type - CONTENT_TYPE_BASE_GRAPHICS;
 			DrawString(type.left, type.right, mr.top + text_y_offset, str, TC_BLACK, SA_HOR_CENTER);
@@ -1025,7 +1025,7 @@ void BuildContentTypeStringList()
 }
 
 /** The widgets for the content list. */
-static constexpr NWidgetPart _nested_network_content_list_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_network_content_list_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_LIGHT_BLUE),
 		NWidget(WWT_CAPTION, COLOUR_LIGHT_BLUE), SetStringTip(STR_CONTENT_TITLE),

@@ -1136,7 +1136,7 @@ STR_CONFIG_SETTING_ZOOM_LVL_OUT_8X                              :8x
 
 ###length 3
 
-###length 3
+###length 4
 
 
 
@@ -1459,6 +1459,8 @@ STR_MAPGEN_BY                                                   :{BLACK}*
 ###length 21
 
 # Strings for map borders at game generation
+
+###length 3
 
 
 

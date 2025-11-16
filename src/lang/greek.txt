@@ -316,6 +316,7 @@ STR_UNITS_FORCE_SI                                              :{DECIMAL}{NBSP}
 STR_UNITS_HEIGHT_IMPERIAL                                       :{DECIMAL}{NBSP}πόδ{P "ι" "ια"}
 STR_UNITS_HEIGHT_METRIC                                         :{DECIMAL}{NBSP}μ
 STR_UNITS_HEIGHT_SI                                             :{DECIMAL}{NBSP}m
+STR_UNITS_HEIGHT_GAMEUNITS                                      :{DECIMAL}{NBSP}επίπεδ{P "ο" "α"}
 
 # Time units used in string control characters
 STR_UNITS_DAYS                                                  :{COMMA}{NBSP}ημέρ{P 0 α ες}
@@ -2251,10 +2252,11 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :SI (kN)
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :Μονάδες μέτρησης ύψους: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :Όποτε εμφανίζεται ένα ύψος στη διεπαφή χρήστη, να εμφανίζεται στην επιλεγμένη μονάδα
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Αυτοκρατορικό (πόδια)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Μετρικό (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
+STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_GAMEUNITS          :Μονάδες παιχνιδιού (επίπεδα)
 
 STR_CONFIG_SETTING_LOCALISATION                                 :Τοπικοποίηση
 STR_CONFIG_SETTING_GRAPHICS                                     :Γραφικά
@@ -3518,11 +3520,18 @@ STR_MAPGEN_NORTHWEST                                            :{BLACK}Βορε
 STR_MAPGEN_NORTHEAST                                            :{BLACK}Βορειοανατολικά
 STR_MAPGEN_SOUTHEAST                                            :{BLACK}Νοτιοανατολικά
 STR_MAPGEN_SOUTHWEST                                            :{BLACK}Νοτιοδυτικά
+STR_MAPGEN_NORTHWEST_TOOLTIP                                    :Εναλλαγή νερού ή ελεύθερης μορφής άκρης στο βορειοδυτικό άκρο του χάρτη
+STR_MAPGEN_NORTHEAST_TOOLTIP                                    :Εναλλαγή νερού ή ελεύθερης μορφής άκρης στο βορειοανατολικό άκρο του χάρτη
+STR_MAPGEN_SOUTHEAST_TOOLTIP                                    :Εναλλαγή νερού ή ελεύθερης μορφής άκρης στο νοτιοανατολικό άκρο του χάρτη
+STR_MAPGEN_SOUTHWEST_TOOLTIP                                    :Εναλλαγή νερού ή ελεύθερης μορφής άκρης στο νοτιοδυτικό άκρο του χάρτη
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Ελεύθερη μορφή
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Νερό
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Τυχαία
-STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}Τυχαία
-STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}Χειροκίνητος
+
+###length 3
+STR_MAPGEN_BORDER_RANDOMIZE                                     :Τυχαία
+STR_MAPGEN_BORDER_MANUAL                                        :Χειροκίνητος
+STR_MAPGEN_BORDER_INFINITE_WATER                                :Απεριόριστo Νερό
 
 STR_MAPGEN_HEIGHTMAP_ROTATION                                   :{BLACK}Περιστροφή χάρτη υψομετρίας:
 STR_MAPGEN_HEIGHTMAP_NAME                                       :{BLACK}Όνομα χάρτη υψομετρίας:
@@ -3561,7 +3570,8 @@ STR_GENERATION_LANDSCAPE_GENERATION                             :{BLACK}Δημι
 STR_GENERATION_RIVER_GENERATION                                 :{BLACK}Δημιουργία ποταμού
 STR_GENERATION_CLEARING_TILES                                   :{BLACK}Δημιουργία άγριας και πετρώδης περιοχής
 STR_GENERATION_TOWN_GENERATION                                  :{BLACK}Δημιουργία πόλης
-STR_GENERATION_INDUSTRY_GENERATION                              :{BLACK}Δημιουργία βιομηχανίας
+STR_GENERATION_LAND_INDUSTRY_GENERATION                         :{BLACK}Δημιουργία βιομηχανίας γης
+STR_GENERATION_WATER_INDUSTRY_GENERATION                        :{BLACK}Δημιουργία βιομηχανίας νερού
 STR_GENERATION_OBJECT_GENERATION                                :{BLACK}Δημιουργία μη μετακινούμενων
 STR_GENERATION_TREE_GENERATION                                  :{BLACK}Δημιουργία δέντρων
 STR_GENERATION_SETTINGUP_GAME                                   :{BLACK}Ρύθμιση παιχνιδιού
@@ -3781,7 +3791,7 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}Δώστ
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}Πόλεις ({COMMA} από {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- Τίποτα -
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (Πόλη){BLACK} ({COMMA})
+STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{BLACK} ({COMMA}) {YELLOW}{CITY_ICON}
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}Ονόματα πόλεων - πατήστε στο όνομα για κεντράρισμα της κύριας προβολής στην πόλη. Ctrl+Κλικ για άνοιγμα νέου παραθύρου προβολής στην τοποθεσία της πόλης
 STR_TOWN_POPULATION                                             :{BLACK}Παγκόσμιος πληθυσμός: {COMMA}
 
@@ -5367,13 +5377,13 @@ STR_ERROR_START_AND_END_MUST_BE_IN                              :{WHITE}Η αρ�
 STR_ERROR_ENDS_OF_BRIDGE_MUST_BOTH                              :{WHITE}... και τα δύο άκρα της γέφυρας πρέπει να είναι σε έδαφος
 STR_ERROR_BRIDGE_TOO_LONG                                       :{WHITE}... η γέφυρα είναι πολλή μακριά
 STR_ERROR_BRIDGE_THROUGH_MAP_BORDER                             :{WHITE}Η γέφυρα θα καταλήξει εκτός χάρτη
-STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}Η γέφυρα είναι πολύ χαμηλή για σταθμό
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}Η γέφυρα είναι πολύ χαμηλή για οδική στάση
-STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}Η γέφυρα είναι πολύ χαμηλή για αποβάθρα
-STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}Η γέφυρα είναι πολύ χαμηλή για σημαδούρα
-STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}Η γέφυρα είναι πολύ χαμηλή για σιδηροδρομικό σημείο αναφοράς
-STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}Η γέφυρα είναι πολύ χαμηλή για οδικό σημείο αναφοράς
-STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK                               :{WHITE}Η γέφυρα είναι πολύ χαμηλή για κλείδωμα
+STR_ERROR_BRIDGE_TOO_LOW_FOR_STATION                            :{WHITE}Η γέφυρα είναι {HEIGHT} πολύ χαμηλή για σταθμό
+STR_ERROR_BRIDGE_TOO_LOW_FOR_ROADSTOP                           :{WHITE}Η γέφυρα είναι {HEIGHT} πολύ χαμηλή για οδική στάση
+STR_ERROR_BRIDGE_TOO_LOW_FOR_DOCK                               :{WHITE}Η γέφυρα είναι {HEIGHT} πολύ χαμηλή για αποβάθρα
+STR_ERROR_BRIDGE_TOO_LOW_FOR_BUOY                               :{WHITE}Η γέφυρα είναι {HEIGHT} πολύ χαμηλή για σημαδούρα
+STR_ERROR_BRIDGE_TOO_LOW_FOR_RAIL_WAYPOINT                      :{WHITE}Η γέφυρα είναι {HEIGHT} πολύ χαμηλή για σιδηροδρομικό σημείο αναφοράς
+STR_ERROR_BRIDGE_TOO_LOW_FOR_ROAD_WAYPOINT                      :{WHITE}Η γέφυρα είναι {HEIGHT} πολύ χαμηλή για οδικό σημείο αναφοράς
+STR_ERROR_BRIDGE_TOO_LOW_FOR_LOCK                               :{WHITE}Η γέφυρα είναι {HEIGHT} πολύ χαμηλή για κλείδωμα
 
 # Tunnel related errors
 STR_ERROR_CAN_T_BUILD_TUNNEL_HERE                               :{WHITE}Δεν μπορεί να κατασκευαστεί σήραγγα εδώ...

@@ -286,7 +286,7 @@ static void DrawYearColumn(const Rect &r, TimerGameEconomy::Year year, const Exp
 	DrawPrice(sum, r.left, r.right, y, TC_WHITE);
 }
 
-static constexpr NWidgetPart _nested_company_finances_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_company_finances_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_CF_CAPTION),
@@ -655,7 +655,7 @@ private:
 		}
 
 		uint8_t sel;
-		if (default_livery == nullptr || HasBit(livery->in_use, primary ? 0 : 1)) {
+		if (default_livery == nullptr || livery->in_use.Test(primary ? Livery::Flag::Primary : Livery::Flag::Secondary)) {
 			sel = primary ? livery->colour1 : livery->colour2;
 		} else {
 			sel = default_col;
@@ -819,7 +819,7 @@ public:
 						}
 						if (scheme == LS_END) scheme = LS_DEFAULT;
 						const Livery *livery = &c->livery[scheme];
-						if (scheme == LS_DEFAULT || HasBit(livery->in_use, primary ? 0 : 1)) {
+						if (scheme == LS_DEFAULT || livery->in_use.Test(primary ? Livery::Flag::Primary : Livery::Flag::Secondary)) {
 							colour = STR_COLOUR_DARK_BLUE + (primary ? livery->colour1 : livery->colour2);
 						}
 					}
@@ -827,7 +827,7 @@ public:
 					if (this->sel != GroupID::Invalid()) {
 						const Group *g = Group::Get(this->sel);
 						const Livery *livery = &g->livery;
-						if (HasBit(livery->in_use, primary ? 0 : 1)) {
+						if (livery->in_use.Test(primary ? Livery::Flag::Primary : Livery::Flag::Secondary)) {
 							colour = STR_COLOUR_DARK_BLUE + (primary ? livery->colour1 : livery->colour2);
 						}
 					}
@@ -875,12 +875,12 @@ public:
 
 			/* Text below the first dropdown. */
 			DrawSprite(SPR_SQUARE, GetColourPalette(livery.colour1), pri_squ.left, y + square_offs);
-			DrawString(pri.left, pri.right, y + text_offs, (is_default_scheme || HasBit(livery.in_use, 0)) ? STR_COLOUR_DARK_BLUE + livery.colour1 : STR_COLOUR_DEFAULT, is_selected ? TC_WHITE : TC_GOLD);
+			DrawString(pri.left, pri.right, y + text_offs, (is_default_scheme || livery.in_use.Test(Livery::Flag::Primary)) ? STR_COLOUR_DARK_BLUE + livery.colour1 : STR_COLOUR_DEFAULT, is_selected ? TC_WHITE : TC_GOLD);
 
 			/* Text below the second dropdown. */
 			if (sec.right > sec.left) { // Second dropdown has non-zero size.
 				DrawSprite(SPR_SQUARE, GetColourPalette(livery.colour2), sec_squ.left, y + square_offs);
-				DrawString(sec.left, sec.right, y + text_offs, (is_default_scheme || HasBit(livery.in_use, 1)) ? STR_COLOUR_DARK_BLUE + livery.colour2 : STR_COLOUR_DEFAULT, is_selected ? TC_WHITE : TC_GOLD);
+				DrawString(sec.left, sec.right, y + text_offs, (is_default_scheme || livery.in_use.Test(Livery::Flag::Secondary)) ? STR_COLOUR_DARK_BLUE + livery.colour2 : STR_COLOUR_DEFAULT, is_selected ? TC_WHITE : TC_GOLD);
 			}
 
 			y += this->line_height;
@@ -1062,7 +1062,7 @@ public:
 	}
 };
 
-static constexpr NWidgetPart _nested_select_company_livery_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_select_company_livery_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SCL_CAPTION),
@@ -1161,7 +1161,7 @@ void DrawCompanyManagerFace(const CompanyManagerFace &cmf, Colours colour, const
 }
 
 /** Nested widget description for the company manager face selection dialog */
-static constexpr NWidgetPart _nested_select_company_manager_face_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_select_company_manager_face_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SCMF_CAPTION), SetStringTip(STR_FACE_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -1333,8 +1333,8 @@ public:
 				Rect ir = r.Shrink(WidgetDimensions::scaled.frametext, RectPadding::zero).WithHeight(this->line_height);
 				bool rtl = _current_text_dir == TD_RTL;
 
-				Rect br = ir.CentreTo(ir.Width(), SETTING_BUTTON_HEIGHT).WithWidth(SETTING_BUTTON_WIDTH, rtl);
-				Rect tr = ir.Shrink(RectPadding::zero, WidgetDimensions::scaled.matrix).CentreTo(ir.Width(), GetCharacterHeight(FS_NORMAL)).Indent(SETTING_BUTTON_WIDTH + WidgetDimensions::scaled.hsep_wide, rtl);
+				Rect br = ir.CentreToHeight(SETTING_BUTTON_HEIGHT).WithWidth(SETTING_BUTTON_WIDTH, rtl);
+				Rect tr = ir.Shrink(RectPadding::zero, WidgetDimensions::scaled.matrix).CentreToHeight(GetCharacterHeight(FS_NORMAL)).Indent(SETTING_BUTTON_WIDTH + WidgetDimensions::scaled.hsep_wide, rtl);
 
 				DrawArrowButtons(br.left, br.top, COLOUR_YELLOW, this->selected_var == UINT_MAX - 1 ? this->click_state : 0, true, true);
 				DrawString(tr, GetString(STR_FACE_SETTING_NUMERIC, STR_FACE_STYLE, this->face.style + 1, GetNumCompanyManagerFaceStyles()), TC_WHITE);
@@ -1352,8 +1352,8 @@ public:
 					const uint8_t var = static_cast<uint8_t>(*it - vars.data());
 					const FaceVar &facevar = **it;
 
-					Rect br = ir.CentreTo(ir.Width(), SETTING_BUTTON_HEIGHT).WithWidth(SETTING_BUTTON_WIDTH, rtl);
-					Rect tr = ir.Shrink(RectPadding::zero, WidgetDimensions::scaled.matrix).CentreTo(ir.Width(), GetCharacterHeight(FS_NORMAL)).Indent(SETTING_BUTTON_WIDTH + WidgetDimensions::scaled.hsep_wide, rtl);
+					Rect br = ir.CentreToHeight(SETTING_BUTTON_HEIGHT).WithWidth(SETTING_BUTTON_WIDTH, rtl);
+					Rect tr = ir.Shrink(RectPadding::zero, WidgetDimensions::scaled.matrix).CentreToHeight(GetCharacterHeight(FS_NORMAL)).Indent(SETTING_BUTTON_WIDTH + WidgetDimensions::scaled.hsep_wide, rtl);
 
 					uint val = vars[var].GetBits(this->face);
 					if (facevar.type == FaceVarType::Toggle) {
@@ -1384,7 +1384,7 @@ public:
 
 			/* OK button */
 			case WID_SCMF_ACCEPT:
-				Command<CMD_SET_COMPANY_MANAGER_FACE>::Post(this->face.bits, this->face.style);
+				Command<CMD_SET_COMPANY_MANAGER_FACE>::Post(this->face.style, this->face.bits);
 				[[fallthrough]];
 
 			/* Cancel button */
@@ -1536,7 +1536,7 @@ static void DoSelectCompanyManagerFace(Window *parent)
 	new SelectCompanyManagerFaceWindow(_select_company_manager_face_desc, parent);
 }
 
-static constexpr NWidgetPart _nested_company_infrastructure_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_company_infrastructure_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_CI_CAPTION),
@@ -1604,10 +1604,11 @@ struct CompanyInfrastructureWindow : Window
 			this->list.emplace_back(InfrastructureItemType::Header, STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT);
 
 			for (const RailType &rt : _sorted_railtypes) {
-				if (c->infrastructure.rail[rt] == 0) continue;
-				Money monthly_cost = RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total);
+				auto it = c->infrastructure.rail.find(rt);
+				if (it == std::end(c->infrastructure.rail) || it->second == 0) continue;
+				Money monthly_cost = RailMaintenanceCost(rt, it->second, rail_total);
 				total_monthly_cost += monthly_cost;
-				this->list.emplace_back(InfrastructureItemType::Value, GetRailTypeInfo(rt)->strings.name, c->infrastructure.rail[rt], monthly_cost);
+				this->list.emplace_back(InfrastructureItemType::Value, GetRailTypeInfo(rt)->strings.name, it->second, monthly_cost);
 			}
 
 			if (c->infrastructure.signal > 0) {
@@ -1624,10 +1625,11 @@ struct CompanyInfrastructureWindow : Window
 
 			for (const RoadType &rt : _sorted_roadtypes) {
 				if (!RoadTypeIsRoad(rt)) continue;
-				if (c->infrastructure.road[rt] == 0) continue;
-				Money monthly_cost = RoadMaintenanceCost(rt, c->infrastructure.road[rt], road_total);
+				auto it = c->infrastructure.road.find(rt);
+				if (it == std::end(c->infrastructure.road) || it->second == 0) continue;
+				Money monthly_cost = RoadMaintenanceCost(rt, it->second, road_total);
 				total_monthly_cost += monthly_cost;
-				this->list.emplace_back(InfrastructureItemType::Value, GetRoadTypeInfo(rt)->strings.name, c->infrastructure.road[rt], monthly_cost);
+				this->list.emplace_back(InfrastructureItemType::Value, GetRoadTypeInfo(rt)->strings.name, it->second, monthly_cost);
 			}
 		}
 
@@ -1638,10 +1640,11 @@ struct CompanyInfrastructureWindow : Window
 
 			for (const RoadType &rt : _sorted_roadtypes) {
 				if (!RoadTypeIsTram(rt)) continue;
-				if (c->infrastructure.road[rt] == 0) continue;
-				Money monthly_cost = RoadMaintenanceCost(rt, c->infrastructure.road[rt], tram_total);
+				auto it = c->infrastructure.road.find(rt);
+				if (it == std::end(c->infrastructure.road) || it->second == 0) continue;
+				Money monthly_cost = RoadMaintenanceCost(rt, it->second, tram_total);
 				total_monthly_cost += monthly_cost;
-				this->list.emplace_back(InfrastructureItemType::Value, GetRoadTypeInfo(rt)->strings.name, c->infrastructure.road[rt], monthly_cost);
+				this->list.emplace_back(InfrastructureItemType::Value, GetRoadTypeInfo(rt)->strings.name, it->second, monthly_cost);
 			}
 		}
 
@@ -1840,7 +1843,7 @@ static void ShowCompanyInfrastructure(CompanyID company)
 	AllocateWindowDescFront<CompanyInfrastructureWindow>(_company_infrastructure_desc, company);
 }
 
-static constexpr NWidgetPart _nested_company_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_company_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_C_CAPTION),
@@ -2072,8 +2075,7 @@ struct CompanyWindow : Window
 			y += GetCharacterHeight(FS_NORMAL);
 		}
 
-		/* GetRoadTotal() skips tram pieces, but we actually want road and tram here. */
-		uint road_pieces = std::accumulate(std::begin(c->infrastructure.road), std::end(c->infrastructure.road), 0U);
+		uint road_pieces = c->infrastructure.GetRoadTotal() + c->infrastructure.GetTramTotal();
 		if (road_pieces != 0) {
 			DrawString(r.left, r.right, y, GetString(STR_COMPANY_VIEW_INFRASTRUCTURE_ROAD, road_pieces));
 			y += GetCharacterHeight(FS_NORMAL);
@@ -2405,7 +2407,7 @@ private:
 	Money company_value{}; ///< The value of the company for which the user can buy it.
 };
 
-static constexpr NWidgetPart _nested_buy_company_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_buy_company_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_LIGHT_BLUE),
 		NWidget(WWT_CAPTION, COLOUR_LIGHT_BLUE, WID_BC_CAPTION),

@@ -62,7 +62,7 @@ public:
 					if (i == WID_TT_TEXT) continue; // Loading and cost/income text has no invisibility button.
 
 					const Rect wr = this->GetWidget<NWidgetBase>(i)->GetCurrentRect().Shrink(WidgetDimensions::scaled.fullbevel);
-					DrawFrameRect(wr.left, fr.top, wr.right, fr.bottom, COLOUR_PALE_GREEN,
+					DrawFrameRect(wr.WithY(fr), COLOUR_PALE_GREEN,
 							HasBit(_invisibility_opt, i - WID_TT_BEGIN) ? FrameFlag::Lowered : FrameFlags{});
 				}
 				break;
@@ -126,7 +126,7 @@ public:
 	}
 };
 
-static constexpr NWidgetPart _nested_transparency_widgets[] = {
+static constexpr std::initializer_list<NWidgetPart> _nested_transparency_widgets = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
 		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN), SetStringTip(STR_TRANSPARENCY_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),

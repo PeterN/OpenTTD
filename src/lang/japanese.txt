@@ -2011,7 +2011,7 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_FORCE_SI                  :国際単位系
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT                    :距離単位: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_HELPTEXT           :ゲーム中の高度をいずれの単位系で表すか決定します
-###length 3
+###length 4
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :ヤード・ポンド法 (フィート(ft))
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :メートル法 (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :国際単位系 (m)
@@ -3176,6 +3176,8 @@ STR_MAPGEN_SOUTHWEST                                            :{BLACK}南西
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}自由形成
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}水域
 STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}ランダム
+
+###length 3
 STR_MAPGEN_BORDER_RANDOMIZE                                     :{BLACK}ランダム設定
 STR_MAPGEN_BORDER_MANUAL                                        :{BLACK}手動設定
 
@@ -3422,7 +3424,6 @@ STR_EDIT_SIGN_SIGN_OSKTITLE                                     :{BLACK}標識�
 STR_TOWN_DIRECTORY_CAPTION                                      :{WHITE}街一覧 ({COMMA} の {COMMA})
 STR_TOWN_DIRECTORY_NONE                                         :{ORANGE}- なし-
 STR_TOWN_DIRECTORY_TOWN                                         :{ORANGE}{TOWN}{BLACK} ({COMMA})
-STR_TOWN_DIRECTORY_CITY                                         :{ORANGE}{TOWN}{YELLOW} (都市){BLACK} ({COMMA})
 STR_TOWN_DIRECTORY_LIST_TOOLTIP                                 :{BLACK}街の名前 - メイン画面を街の場所に移動するには名前をクリックします。Ctrl+クリックで新しいビューポートに表示します
 STR_TOWN_POPULATION                                             :{BLACK}地域人口: {COMMA}人
 
