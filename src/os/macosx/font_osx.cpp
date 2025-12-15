@@ -211,29 +211,26 @@ public:
 	 * fallback search, use it. Otherwise, try to resolve it by font name.
 	 * @param fs The font size to load.
 	 */
-	std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype) const override
+	std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype, bool search, const std::string &font_name, std::span<const std::byte>) const override
 	{
 		if (fonttype != FontType::TrueType) return nullptr;
-
-		std::string font = GetFontCacheFontName(fs);
-		if (font.empty()) return nullptr;
 
 		CFAutoRelease<CTFontDescriptorRef> font_ref;
 
 		if (MacOSVersionIsAtLeast(10, 6, 0)) {
 			/* Might be a font file name, try load it. */
-			font_ref.reset(LoadFontFromFile(font));
-			if (!font_ref) ShowInfo("Unable to load file '{}' for {} font, using default OS font selection instead", font, FontSizeToName(fs));
+			font_ref.reset(LoadFontFromFile(font_name));
+			if (!font_ref) ShowInfo("Unable to load file '{}' for {} font, using default OS font selection instead", font_name, FontSizeToName(fs));
 		}
 
-		if (!font_ref) {
-			CFAutoRelease<CFStringRef> name(CFStringCreateWithCString(kCFAllocatorDefault, font.c_str(), kCFStringEncodingUTF8));
+		if (!font_ref && search) {
+			CFAutoRelease<CFStringRef> name(CFStringCreateWithCString(kCFAllocatorDefault, font_name.c_str(), kCFStringEncodingUTF8));
 
 			/* Simply creating the font using CTFontCreateWithNameAndSize will *always* return
 			* something, no matter the name. As such, we can't use it to check for existence.
 			* We instead query the list of all font descriptors that match the given name which
 			* does not do this stupid name fallback. */
-			CFAutoRelease<CTFontDescriptorRef> name_desc(CTFontDescriptorCreateWithNameAndSize(name.get(), 0.0));
+			CFAutoRelease<CTFontDescriptorRef> name_desc(CTFontDescriptorCreateWithNameAndSize(font_name.get(), 0.0));
 			CFAutoRelease<CFSetRef> mandatory_attribs(CFSetCreate(kCFAllocatorDefault, const_cast<const void **>(reinterpret_cast<const void * const *>(&kCTFontNameAttribute)), 1, &kCFTypeSetCallBacks));
 			CFAutoRelease<CFArrayRef> descs(CTFontDescriptorCreateMatchingFontDescriptors(name_desc.get(), mandatory_attribs.get()));
 
@@ -245,7 +242,7 @@ public:
 		}
 
 		if (!font_ref) {
-			ShowInfo("Unable to use '{}' for {} font, using sprite font instead", font, FontSizeToName(fs));
+			ShowInfo("Unable to use '{}' for {} font, using sprite font instead", font_name, FontSizeToName(fs));
 			return nullptr;
 		}
 

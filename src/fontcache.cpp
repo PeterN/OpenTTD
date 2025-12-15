@@ -33,10 +33,10 @@ FontCacheSettings _fcsettings;
  * @param fonttype Font type requested.
  * @return FontCache of the font if loaded, or nullptr.
  */
-/* static */ std::unique_ptr<FontCache> FontProviderManager::LoadFont(FontSize fs, FontType fonttype)
+/* static */ std::unique_ptr<FontCache> FontProviderManager::LoadFont(FontSize fs, FontType fonttype, bool search, const std::string &font_name, std::span<const std::byte> os_handle)
 {
 	for (auto &provider : FontProviderManager::GetProviders()) {
-		auto fc = provider->LoadFont(fs, fonttype);
+		auto fc = provider->LoadFont(fs, fonttype, search, font_name, os_handle);
 		if (fc != nullptr) return fc;
 	}
 
@@ -99,7 +99,7 @@ int GetCharacterHeight(FontSize size)
 {
 	for (FontSize fs = FS_BEGIN; fs != FS_END; fs++) {
 		if (FontCache::Get(fs) != nullptr) continue;
-		FontCache::Register(FontProviderManager::LoadFont(fs, FontType::Sprite));
+		FontCache::Register(FontProviderManager::LoadFont(fs, FontType::Sprite, false, {}, {}));
 	}
 }
 
@@ -208,7 +208,7 @@ static std::string GetDefaultTruetypeFontFile([[maybe_unused]] FontSize fs)
  * @param fs Font size.
  * @return If configured, the font name to use, or the path of the default TrueType font if sprites are not preferred.
  */
-std::string GetFontCacheFontName(FontSize fs)
+static std::string GetFontCacheFontName(FontSize fs)
 {
 	const FontCacheSubSetting *settings = GetFontCacheSubSetting(fs);
 	if (!settings->font.empty()) return settings->font;
@@ -260,7 +260,12 @@ std::string GetFontCacheFontName(FontSize fs)
 			FontCache::caches[fs] = std::move(FontCache::caches[fs]->parent);
 		}
 
-		FontCache::Register(FontProviderManager::LoadFont(fs, FontType::TrueType));
+		FontCacheSubSetting *settings = GetFontCacheSubSetting(fs);
+
+		std::string font_name = GetFontCacheFontName(fs);
+		if (font_name.empty()) continue;
+
+		FontCache::Register(FontProviderManager::LoadFont(fs, FontType::TrueType, true, font_name, settings->os_handle));
 	}
 }
 

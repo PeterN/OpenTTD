@@ -220,7 +220,6 @@ inline FontCacheSubSetting *GetFontCacheSubSetting(FontSize fs)
 }
 
 uint GetFontCacheFontSize(FontSize fs);
-std::string GetFontCacheFontName(FontSize fs);
 
 bool GetFontAAState();
 void SetFont(FontSize fontsize, const std::string &font, uint size);
@@ -244,13 +243,13 @@ public:
 		ProviderManager<FontCacheFactory>::Unregister(*this);
 	}
 
-	virtual std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype) const = 0;
+	virtual std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype, bool search, const std::string &font_name, std::span<const std::byte> os_handle) const = 0;
 	virtual bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, class MissingGlyphSearcher *callback) const = 0;
 };
 
 class FontProviderManager : ProviderManager<FontCacheFactory> {
 public:
-	static std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype);
+	static std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype, bool search, const std::string &font_name, std::span<const std::byte> os_handle);
 	static bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, MissingGlyphSearcher *callback);
 };
 

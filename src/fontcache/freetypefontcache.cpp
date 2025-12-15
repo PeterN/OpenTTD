@@ -226,14 +226,9 @@ public:
 	 * format is 'font family name' or 'font family name, font style'.
 	 * @param fs The font size to load.
 	 */
-	std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype) const override
+	std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype, bool search, const std::string &font_name, std::span<const std::byte> os_handle) const override
 	{
 		if (fonttype != FontType::TrueType) return nullptr;
-
-		FontCacheSubSetting *settings = GetFontCacheSubSetting(fs);
-
-		std::string font = GetFontCacheFontName(fs);
-		if (font.empty()) return nullptr;
 
 		if (_ft_library == nullptr) {
 			if (FT_Init_FreeType(&_ft_library) != FT_Err_Ok) {
@@ -248,22 +243,22 @@ public:
 
 		/* If font is an absolute path to a ttf, try loading that first. */
 		int32_t index = 0;
-		if (settings->os_handle.size() == sizeof(index)) {
-			index = *reinterpret_cast<const int32_t *>(settings->os_handle.data());
+		if (os_handle.size() == sizeof(index)) {
+			index = *reinterpret_cast<const int32_t *>(os_handle.data());
 		}
-		FT_Error error = FT_New_Face(_ft_library, font.c_str(), index, &face);
+		FT_Error error = FT_New_Face(_ft_library, font_name.c_str(), index, &face);
 
 		if (error != FT_Err_Ok) {
 			/* Check if font is a relative filename in one of our search-paths. */
-			std::string full_font = FioFindFullPath(BASE_DIR, font);
+			std::string full_font = FioFindFullPath(BASE_DIR, font_name);
 			if (!full_font.empty()) {
 				error = FT_New_Face(_ft_library, full_font.c_str(), 0, &face);
 			}
 		}
 
 #ifdef WITH_FONTCONFIG
-		/* Try loading based on font face name (OS-wide fonts). */
-		if (error != FT_Err_Ok) error = GetFontByFaceName(font, &face);
+		/* If allowed to search, try loading based on font face name (OS-wide fonts). */
+		if (error != FT_Err_Ok && search) error = GetFontByFaceName(font_name, &face);
 #endif /* WITH_FONTCONFIG */
 
 		if (error != FT_Err_Ok) {
@@ -271,7 +266,7 @@ public:
 			return nullptr;
 		}
 
-		return LoadFont(fs, face, font, GetFontCacheFontSize(fs));
+		return LoadFont(fs, face, font_name, GetFontCacheFontSize(fs));
 	}
 
 	bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, class MissingGlyphSearcher *callback) const override
