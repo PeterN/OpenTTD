@@ -98,6 +98,7 @@ std::vector<BadgeID> ReadBadgeList(ByteReader &buf, GrfSpecFeature feature)
 		}
 
 		BadgeID index = _cur_gps.grffile->badge_list[local_index];
+		if (index == INVALID_BADGE_ID) continue;
 
 		/* Is badge already present? */
 		if (std::ranges::find(badges, index) != std::end(badges)) continue;

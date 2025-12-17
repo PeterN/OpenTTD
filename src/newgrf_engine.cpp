@@ -698,6 +698,7 @@ static uint32_t VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *objec
 			/* Look up badge index. */
 			if (parameter >= std::size(object->ro.grffile->badge_list)) return UINT_MAX;
 			BadgeID index = object->ro.grffile->badge_list[parameter];
+			if (index == INVALID_BADGE_ID) return 0;
 
 			/* Count number of vehicles that contain this badge index. */
 			uint count = 0;

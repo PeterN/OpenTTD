@@ -60,6 +60,8 @@ static BadgeClassID GetOrCreateBadgeClass(BadgeID index)
 {
 	auto it = std::ranges::find(_badges.classes, index);
 	if (it == std::end(_badges.classes)) {
+		/* Class badges are also badges, so it should not be possible to exceed the BadgeClassID limit. */
+		assert(_badges.classes.size() < std::numeric_limits<BadgeClassID>::max());
 		it = _badges.classes.emplace(it, index);
 	}
 
@@ -77,13 +79,13 @@ void ResetBadges()
 /**
  * Register a badge label and return its global index.
  * @param label Badge label to register.
- * @returns Global index of the badge.
+ * @returns The badge, or nullptr if it could not be registered.
  */
-Badge &GetOrCreateBadge(std::string_view label)
+Badge *GetOrCreateBadge(std::string_view label)
 {
 	/* Check if the label exists. */
 	auto it = std::ranges::find(_badges.specs, label, &Badge::label);
-	if (it != std::end(_badges.specs)) return *it;
+	if (it != std::end(_badges.specs)) return &*it;
 
 	BadgeClassID class_index;
 
@@ -91,18 +93,23 @@ Badge &GetOrCreateBadge(std::string_view label)
 	auto sep = label.find_first_of(BADGE_CLASS_SEPARATOR);
 	if (sep != std::string_view::npos) {
 		/* There is a separator, find (and create if necessary) the class label. */
-		class_index = GetOrCreateBadge(label.substr(0, sep)).class_index;
+		Badge *class_badge = GetOrCreateBadge(label.substr(0, sep));
+		if (class_badge == nullptr) return nullptr;
+
+		class_index = class_badge->class_index;
 		it = std::end(_badges.specs);
 	}
 
 	BadgeID index = BadgeID(std::distance(std::begin(_badges.specs), it));
+	if (index >= INVALID_BADGE_ID) return nullptr;
+
 	if (sep == std::string_view::npos) {
 		/* There is no separator, so this badge is a class badge. */
 		class_index = GetOrCreateBadgeClass(index);
 	}
 
 	it = _badges.specs.emplace(it, label, index, class_index);
-	return *it;
+	return &*it;
 }
 
 /**
@@ -227,6 +234,8 @@ uint32_t GetBadgeVariableResult(const GRFFile &grffile, std::span<const BadgeID>
 	if (parameter >= std::size(grffile.badge_list)) return UINT_MAX;
 
 	BadgeID index = grffile.badge_list[parameter];
+	if (index == INVALID_BADGE_ID) return 0;
+
 	return std::ranges::find(badges, index) != std::end(badges);
 }
 

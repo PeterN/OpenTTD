@@ -78,7 +78,8 @@ static ChangeInfoResult LoadBadgeTranslationTable(uint first, uint last, ByteRea
 	translation_table.reserve(last);
 	for (uint id = first; id < last; ++id) {
 		std::string_view label = buf.ReadString();
-		translation_table.push_back(GetOrCreateBadge(label).index);
+		Badge *badge = GetOrCreateBadge(label);
+		translation_table.push_back(badge == nullptr ? INVALID_BADGE_ID : badge->index);
 	}
 
 	return CIR_SUCCESS;

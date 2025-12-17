@@ -38,7 +38,8 @@ static ChangeInfoResult BadgeChangeInfo(uint first, uint last, int prop, ByteRea
 		switch (prop) {
 			case 0x08: { // Label
 				std::string_view label = buf.ReadString();
-				_cur_gps.grffile->badge_map[id] = GetOrCreateBadge(label).index;
+				Badge *badge = GetOrCreateBadge(label);
+				if (badge != nullptr) _cur_gps.grffile->badge_map[id] = badge->index;
 				break;
 			}
 

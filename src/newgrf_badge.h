@@ -53,7 +53,7 @@ private:
 
 void ResetBadges();
 
-Badge &GetOrCreateBadge(std::string_view label);
+Badge *GetOrCreateBadge(std::string_view label);
 void MarkBadgeSeen(BadgeID index, GrfSpecFeature feature);
 void AppendCopyableBadgeList(std::vector<BadgeID> &dst, std::span<const BadgeID> src, GrfSpecFeature feature);
 void ApplyBadgeFeaturesToClassBadges();

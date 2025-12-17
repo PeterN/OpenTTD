@@ -16,6 +16,9 @@
 using BadgeID = StrongType::Typedef<uint16_t, struct BadgeIDTag, StrongType::Compare>;
 using BadgeClassID = StrongType::Typedef<uint16_t, struct BadgeClassIDTag, StrongType::Compare>;
 
+/** Marker for an invalid badge ID. */
+static constexpr BadgeID INVALID_BADGE_ID{std::numeric_limits<BadgeID>::max()};
+
 template <> struct std::hash<BadgeClassID> {
 	std::size_t operator()(const BadgeClassID &badge_class_index) const noexcept
 	{
