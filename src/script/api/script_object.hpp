@@ -510,4 +510,29 @@ public:
 	}
 };
 
+template <typename T>
+struct ScriptStdAllocator
+{
+	using value_type = T;
+
+	static T *allocate(std::size_t n)
+	{
+		Squirrel::IncreaseAllocatedSize(n * sizeof(T));
+		return std::allocator<T>{}.allocate(n);
+	}
+
+	static void deallocate(T *mem, std::size_t n)
+	{
+		Squirrel::DecreaseAllocatedSize(n * sizeof(T));
+		std::allocator<T>{}.deallocate(mem, n);
+	}
+};
+
+template <typename T, typename U>
+bool operator==(const ScriptStdAllocator<T> &, const ScriptStdAllocator<U> &) { return true; }
+
+template <typename T, typename U>
+bool operator!=(const ScriptStdAllocator<T> &, const ScriptStdAllocator<U> &) { return false; }
+
+
 #endif /* SCRIPT_OBJECT_HPP */
