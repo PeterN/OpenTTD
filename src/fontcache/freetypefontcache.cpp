@@ -269,10 +269,10 @@ public:
 		return LoadFont(fs, face, font_name, GetFontCacheFontSize(fs));
 	}
 
-	bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, class MissingGlyphSearcher *callback) const override
+	bool FindFallbackFont(const std::string &language_isocode, const MissingGlyphs &glyphs, class MissingGlyphSearcher *callback) const override
 	{
 #ifdef WITH_FONTCONFIG
-		if (FontConfigFindFallbackFont(language_isocode, fontsizes, callback)) return true;
+		if (FontConfigFindFallbackFont(language_isocode, glyphs, callback)) return true;
 #endif /* WITH_FONTCONFIG */
 
 		return false;

@@ -249,7 +249,7 @@ public:
 		return std::make_unique<CoreTextFontCache>(fs, std::move(font_ref), GetFontCacheFontSize(fs));
 	}
 
-	bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, MissingGlyphSearcher *callback) const override
+	bool FindFallbackFont(const std::string &language_isocode, const MissingGlyphs &glyphs, MissingGlyphSearcher *callback) const override
 	{
 		/* Determine fallback font using CoreText. This uses the language isocode
 		 * to find a suitable font. CoreText is available from 10.5 onwards. */
@@ -313,10 +313,10 @@ public:
 				if (name.starts_with(".") || name.starts_with("LastResort")) continue;
 
 				/* Save result. */
-				FontCache::AddFallback(fontsizes, name);
-				if (!callback->FindMissingGlyphs()) {
+				result = FontCache::TryFallback(name, {}, glyphs.glyphs);
+				if (result) {
+					FontCache::AddFallback(fontsizes, name);
 					Debug(fontcache, 2, "CT-Font for {}: {}", language_isocode, name);
-					result = true;
 					break;
 				}
 			}
@@ -325,11 +325,12 @@ public:
 		if (!result) {
 			/* For some OS versions, the font 'Arial Unicode MS' does not report all languages it
 			 * supports. If we didn't find any other font, just try it, maybe we get lucky. */
-			FontCache::AddFallback(fontsizes, "Arial Unicode MS");
-			result = !callback->FindMissingGlyphs();
+			result = FontCache::TryFallback("Arial Unicode MS", {}, glyphs.glyphs);
+			if (result) {
+				FontCache::AddFallback(fontsizes, "Arial Unicode MS");
+			}
 		}
 
-		callback->FindMissingGlyphs();
 		return result;
 	}
 

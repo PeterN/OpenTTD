@@ -165,7 +165,7 @@ public:
 		return std::make_unique<SpriteFontCache>(fs);
 	}
 
-	bool FindFallbackFont(const std::string &, FontSizes, class MissingGlyphSearcher *) const override
+	bool FindFallbackFont(const std::string &, const MissingGlyphs &, class MissingGlyphSearcher *) const override
 	{
 		return false;
 	}

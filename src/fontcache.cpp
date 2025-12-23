@@ -52,10 +52,10 @@ FontCacheSettings _fcsettings;
  * @param callback The function to call to check for missing glyphs.
  * @return true if a font has been set, false otherwise.
  */
-/* static */ bool FontProviderManager::FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, MissingGlyphSearcher *callback)
+/* static */ bool FontProviderManager::FindFallbackFont(const std::string &language_isocode, const MissingGlyphs &missing_glyphs, MissingGlyphSearcher *callback)
 {
 	return std::ranges::any_of(FontProviderManager::GetProviders(),
-		[&](auto *provider) { return provider->FindFallbackFont(language_isocode, fontsizes, callback); });
+		[&](auto *provider) { return provider->FindFallbackFont(language_isocode, missing_glyphs, callback); });
 }
 
 int FontCache::GetDefaultFontHeight(FontSize fs)
@@ -242,6 +242,31 @@ static std::string GetFontCacheFontName(FontSize fs)
 		GetFontCacheSubSetting(fs)->font = name;
 		GetFontCacheSubSetting(fs)->os_handle.assign(os_handle.begin(), os_handle.end());
 	}
+}
+
+/**
+ * Test a fallback font, with optional OS-specific handle, for specific glyphs.
+ * @param name Name of font to test.
+ * @param handle OS-specific handle or data of font.
+ * @param missing_glyphs Glyphs to search for.
+ */
+/* static */ bool FontCache::TryFallback(const std::string &name, std::span<const std::byte> os_handle, const std::set<char32_t> &missing_glyphs)
+{
+	/* Load the font without registering it. The font size does not matter. */
+	auto fc = FontProviderManager::LoadFont(FS_NORMAL, FontType::TrueType, false, name, os_handle);
+	if (fc == nullptr) return false;
+
+	size_t matching_chars = 0;
+	for (const char32_t &c : missing_glyphs) {
+		if (fc->MapCharToGlyph(c, true) != 0) ++matching_chars;
+	}
+
+	if (matching_chars < missing_glyphs.size()) {
+		Debug(fontcache, 1, "Font \"{}\" misses {} glyphs", name, missing_glyphs.size() - matching_chars);
+		return false;
+	}
+
+	return true;
 }
 
 /**

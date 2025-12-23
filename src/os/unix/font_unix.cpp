@@ -139,7 +139,7 @@ static int GetPreferredWeightDistance(int weight)
 	return 0;
 }
 
-bool FontConfigFindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, MissingGlyphSearcher *callback)
+bool FontConfigFindFallbackFont(const std::string &language_isocode, const MissingGlyphs &glyphs, MissingGlyphSearcher *)
 {
 	bool ret = false;
 
@@ -156,7 +156,7 @@ bool FontConfigFindFallbackFont(const std::string &language_isocode, FontSizes f
 	/* First create a pattern to match the wanted language. */
 	auto pat = AutoRelease<FcPattern, FcPatternDestroy>(FcNameParse(ToFcString(lang)));
 	/* We only want to know these attributes. */
-	auto os = AutoRelease<FcObjectSet, FcObjectSetDestroy>(FcObjectSetBuild(FC_FILE, FC_INDEX, FC_SPACING, FC_SLANT, FC_WEIGHT, nullptr));
+	auto os = AutoRelease<FcObjectSet, FcObjectSetDestroy>(FcObjectSetBuild(FC_FILE, FC_INDEX, FC_SPACING, FC_SLANT, FC_WEIGHT, FC_CHARSET, nullptr));
 	/* Get the list of filenames matching the wanted language. */
 	auto fs = AutoRelease<FcFontSet, FcFontSetDestroy>(FcFontList(nullptr, pat.get(), os.get()));
 
@@ -174,7 +174,7 @@ bool FontConfigFindFallbackFont(const std::string &language_isocode, FontSizes f
 		/* Get a font with the right spacing .*/
 		int value = 0;
 		FcPatternGetInteger(font, FC_SPACING, 0, &value);
-		if (fontsizes.Test(FS_MONO) != (value == FC_MONO) && value != FC_DUAL) continue;
+		if (glyphs.fontsizes.Test(FS_MONO) != (value == FC_MONO) && value != FC_DUAL) continue;
 
 		/* Do not use those that explicitly say they're slanted. */
 		FcPatternGetInteger(font, FC_SLANT, 0, &value);
@@ -185,26 +185,32 @@ bool FontConfigFindFallbackFont(const std::string &language_isocode, FontSizes f
 		int weight = GetPreferredWeightDistance(value);
 		if (best_weight != -1 && weight > best_weight) continue;
 
+		size_t matching_chars = 0;
+		FcCharSet *charset;
+		FcPatternGetCharSet(font, FC_CHARSET, 0, &charset);
+		for (const char32_t &c : glyphs.glyphs) {
+			if (FcCharSetHasChar(charset, c)) ++matching_chars;
+		}
+
+		if (matching_chars < glyphs.glyphs.size()) {
+			Debug(fontcache, 1, "Font \"{}\" misses {} glyphs", FromFcString(file), glyphs.glyphs.size() - matching_chars);
+			continue;
+		}
+
 		/* Possible match based on attributes, get index. */
 		int32_t index;
 		res = FcPatternGetInteger(font, FC_INDEX, 0, &index);
 		if (res != FcResultMatch) continue;
 
-		FontCache::AddFallbackWithHandle(fontsizes, FromFcString(file), index);
+		// if (!FontCache::TryFallbackWithHandle(FromFcString(file), index, glyphs.glyphs)) continue;
 
-		bool missing = callback->FindMissingGlyphs();
-		Debug(fontcache, 1, "Font \"{}\" misses{} glyphs", FromFcString(file), missing ? "" : " no");
-
-		if (!missing) {
-			best_weight = weight;
-			best_font = FromFcString(file);
-			best_index = index;
-		}
+		best_weight = weight;
+		best_font = FromFcString(file);
+		best_index = index;
 	}
 
 	if (best_font == nullptr) return false;
 
-	FontCache::AddFallbackWithHandle(fontsizes, best_font, best_index);
-	FontCache::LoadFontCaches(fontsizes);
+	FontCache::AddFallbackWithHandle(glyphs.fontsizes, best_font, best_index);
 	return true;
 }

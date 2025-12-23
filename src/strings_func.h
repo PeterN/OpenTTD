@@ -10,6 +10,7 @@
 #ifndef STRINGS_FUNC_H
 #define STRINGS_FUNC_H
 
+#include "fontcache.h"
 #include "strings_type.h"
 #include "gfx_type.h"
 #include "vehicle_type.h"
@@ -163,6 +164,20 @@ public:
 	virtual ~MissingGlyphSearcher() = default;
 
 	/**
+	 * Get set of glyphs required for the current language.
+	 * @param fontsizes Font sizes to test.
+	 * @return Set of required glyphs.
+	 **/
+	virtual MissingGlyphs GetRequiredGlyphs(FontSizes fontsizes) = 0;
+};
+
+class BaseStringMissingGlyphSearcher : public MissingGlyphSearcher {
+public:
+	BaseStringMissingGlyphSearcher(FontSizes fontsizes) : MissingGlyphSearcher(fontsizes) {}
+
+	MissingGlyphs GetRequiredGlyphs(FontSizes fontsizes) override;
+
+	/**
 	 * Get the next string to search through.
 	 * @return The next string or nullopt if there is none.
 	 */
@@ -178,10 +193,8 @@ public:
 	 * Reset the search, i.e. begin from the beginning again.
 	 */
 	virtual void Reset() = 0;
-
-	bool FindMissingGlyphs();
 };
 
-void CheckForMissingGlyphs(MissingGlyphSearcher *search = nullptr);
+void CheckForMissingGlyphs(MissingGlyphSearcher *searcher = nullptr);
 
 #endif /* STRINGS_FUNC_H */

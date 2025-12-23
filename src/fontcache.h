@@ -61,6 +61,21 @@ public:
 		FontCache::AddFallback(fontsizes, name, os_handle);
 	}
 
+	static bool TryFallback(const std::string &name, std::span<const std::byte> os_handle, const std::set<char32_t> &missing_glyphs);
+
+	/**
+	 * Test a fallback font, with OS-specific handle, for specific glyphs.
+	 * @param name Name of font to test.
+	 * @param handle OS-specific handle or data of font.
+	 * @param missing_glyphs Glyphs to search for.
+	 */
+	template <typename T>
+	static bool TryFallbackWithHandle(const std::string &name, T &handle, const std::set<char32_t> &missing_glyphs)
+	{
+		auto os_handle = std::as_bytes(std::span(&handle, 1));
+		return FontCache::TryFallback(name, os_handle, missing_glyphs);
+	}
+
 	/**
 	 * Get the FontSize of the font.
 	 * @return The FontSize.
@@ -230,6 +245,11 @@ enum class FontType : uint8_t {
 	TrueType, ///< Scalable TrueType fonts.
 };
 
+struct MissingGlyphs {
+	std::set<char32_t> glyphs{}; ///< Glyphs that are missing.
+	FontSizes fontsizes{}; ///< Font sizes which are missing glyphs,
+};
+
 /** Factory for FontCaches. */
 class FontCacheFactory : public BaseProvider<FontCacheFactory> {
 public:
@@ -244,13 +264,13 @@ public:
 	}
 
 	virtual std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype, bool search, const std::string &font_name, std::span<const std::byte> os_handle) const = 0;
-	virtual bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, class MissingGlyphSearcher *callback) const = 0;
+	virtual bool FindFallbackFont(const std::string &language_isocode, const MissingGlyphs &glyphs, class MissingGlyphSearcher *callback) const = 0;
 };
 
 class FontProviderManager : ProviderManager<FontCacheFactory> {
 public:
 	static std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype, bool search, const std::string &font_name, std::span<const std::byte> os_handle);
-	static bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, MissingGlyphSearcher *callback);
+	static bool FindFallbackFont(const std::string &language_isocode, const MissingGlyphs &glyphs, MissingGlyphSearcher *callback);
 };
 
 /* Implemented in spritefontcache.cpp */
