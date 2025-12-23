@@ -46,6 +46,21 @@ public:
 
 	static int GetDefaultFontHeight(FontSize fs);
 
+	static void AddFallback(FontSizes fontsizes, std::string_view name, std::span<const std::byte> os_data = {});
+
+	/**
+	 * Add a fallback font, with OS-specific handle.
+	 * @param fontsizes Fontsizes to add fallback to.
+	 * @param name Name of font to add.
+	 * @param handle OS-specific handle or data of font.
+	 */
+	template <typename T>
+	static void AddFallbackWithHandle(FontSizes fontsizes, std::string_view name, T &handle)
+	{
+		auto os_handle = std::as_bytes(std::span(&handle, 1));
+		FontCache::AddFallback(fontsizes, name, os_handle);
+	}
+
 	/**
 	 * Get the FontSize of the font.
 	 * @return The FontSize.
@@ -173,7 +188,7 @@ struct FontCacheSubSetting {
 	std::string font; ///< The name of the font, or path to the font.
 	uint size;        ///< The (requested) size of the font.
 
-	const void *os_handle = nullptr; ///< Optional native OS font info. Only valid during font search.
+	std::vector<std::byte> os_handle; ///< Optional native OS font info.
 };
 
 /** Settings for the four different fonts. */
@@ -230,13 +245,13 @@ public:
 	}
 
 	virtual std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype) const = 0;
-	virtual bool FindFallbackFont(struct FontCacheSettings *settings, const std::string &language_isocode, class MissingGlyphSearcher *callback) const = 0;
+	virtual bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, class MissingGlyphSearcher *callback) const = 0;
 };
 
 class FontProviderManager : ProviderManager<FontCacheFactory> {
 public:
 	static std::unique_ptr<FontCache> LoadFont(FontSize fs, FontType fonttype);
-	static bool FindFallbackFont(FontCacheSettings *settings, const std::string &language_isocode, MissingGlyphSearcher *callback);
+	static bool FindFallbackFont(const std::string &language_isocode, FontSizes fontsizes, MissingGlyphSearcher *callback);
 };
 
 /* Implemented in spritefontcache.cpp */

@@ -155,6 +155,10 @@ EncodedString GetEncodedString(StringID string, const Args&... args)
  */
 class MissingGlyphSearcher {
 public:
+	FontSizes fontsizes; ///< Font sizes to search for.
+
+	MissingGlyphSearcher(FontSizes fontsizes) : fontsizes(fontsizes) {}
+
 	/** Make sure everything gets destructed right. */
 	virtual ~MissingGlyphSearcher() = default;
 
@@ -174,20 +178,6 @@ public:
 	 * Reset the search, i.e. begin from the beginning again.
 	 */
 	virtual void Reset() = 0;
-
-	/**
-	 * Whether to search for a monospace font or not.
-	 * @return True if searching for monospace.
-	 */
-	virtual bool Monospace() = 0;
-
-	/**
-	 * Set the right font names.
-	 * @param settings  The settings to modify.
-	 * @param font_name The new font name.
-	 * @param os_data Opaque pointer to OS-specific data.
-	 */
-	virtual void SetFontNames(struct FontCacheSettings *settings, std::string_view font_name, const void *os_data = nullptr) = 0;
 
 	bool FindMissingGlyphs();
 };
