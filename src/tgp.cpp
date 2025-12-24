@@ -145,6 +145,7 @@
 #include "genworld.h"
 #include "core/random_func.hpp"
 #include "landscape_type.h"
+#include "tgp.h"
 
 #include "safeguards.h"
 
@@ -701,8 +702,6 @@ static void HeightMapAdjustWaterLevel(int64_t water_percent, Height h_max_new)
 	}
 }
 
-static double perlin_coast_noise_2D(const double x, const double y, const double p, const int prime);
-
 /**
  * This routine sculpts in from the edge a random amount, again a Perlin
  * sequence, to avoid the rigid flat-edge slopes that were present before. The
@@ -735,7 +734,7 @@ static void HeightMapCoastLines(BorderFlags water_borders)
 	for (y = 0; y <= _height_map.size_y; y++) {
 		if (water_borders.Test(BorderFlag::NorthEast)) {
 			/* Top right */
-			max_x = abs((perlin_coast_noise_2D(_height_map.size_y - y, y, 0.9, 53) + 0.25) * 5 + (perlin_coast_noise_2D(y, y, 0.35, 179) + 1) * 12);
+			max_x = abs((PerlinNoise2D(_height_map.size_y - y, y, 0.9, 53) + 0.25) * 5 + (PerlinNoise2D(y, y, 0.35, 179) + 1) * 12);
 			max_x = std::max((smallest_size * smallest_size / 64) + max_x, (smallest_size * smallest_size / 64) + margin - max_x);
 			if (smallest_size < 8 && max_x > 5) max_x /= 1.5;
 			for (x = 0; x < max_x; x++) {
@@ -745,7 +744,7 @@ static void HeightMapCoastLines(BorderFlags water_borders)
 
 		if (water_borders.Test(BorderFlag::SouthWest)) {
 			/* Bottom left */
-			max_x = abs((perlin_coast_noise_2D(_height_map.size_y - y, y, 0.85, 101) + 0.3) * 6 + (perlin_coast_noise_2D(y, y, 0.45,  67) + 0.75) * 8);
+			max_x = abs((PerlinNoise2D(_height_map.size_y - y, y, 0.85, 101) + 0.3) * 6 + (PerlinNoise2D(y, y, 0.45,  67) + 0.75) * 8);
 			max_x = std::max((smallest_size * smallest_size / 64) + max_x, (smallest_size * smallest_size / 64) + margin - max_x);
 			if (smallest_size < 8 && max_x > 5) max_x /= 1.5;
 			for (x = _height_map.size_x; x > (_height_map.size_x - 1 - max_x); x--) {
@@ -758,7 +757,7 @@ static void HeightMapCoastLines(BorderFlags water_borders)
 	for (x = 0; x <= _height_map.size_x; x++) {
 		if (water_borders.Test(BorderFlag::NorthWest)) {
 			/* Top left */
-			max_y = abs((perlin_coast_noise_2D(x, _height_map.size_y / 2, 0.9, 167) + 0.4) * 5 + (perlin_coast_noise_2D(x, _height_map.size_y / 3, 0.4, 211) + 0.7) * 9);
+			max_y = abs((PerlinNoise2D(x, _height_map.size_y / 2, 0.9, 167) + 0.4) * 5 + (PerlinNoise2D(x, _height_map.size_y / 3, 0.4, 211) + 0.7) * 9);
 			max_y = std::max((smallest_size * smallest_size / 64) + max_y, (smallest_size * smallest_size / 64) + margin - max_y);
 			if (smallest_size < 8 && max_y > 5) max_y /= 1.5;
 			for (y = 0; y < max_y; y++) {
@@ -768,7 +767,7 @@ static void HeightMapCoastLines(BorderFlags water_borders)
 
 		if (water_borders.Test(BorderFlag::SouthEast)) {
 			/* Bottom right */
-			max_y = abs((perlin_coast_noise_2D(x, _height_map.size_y / 3, 0.85, 71) + 0.25) * 6 + (perlin_coast_noise_2D(x, _height_map.size_y / 3, 0.35, 193) + 0.75) * 12);
+			max_y = abs((PerlinNoise2D(x, _height_map.size_y / 3, 0.85, 71) + 0.25) * 6 + (PerlinNoise2D(x, _height_map.size_y / 3, 0.35, 193) + 0.75) * 12);
 			max_y = std::max((smallest_size * smallest_size / 64) + max_y, (smallest_size * smallest_size / 64) + margin - max_y);
 			if (smallest_size < 8 && max_y > 5) max_y /= 1.5;
 			for (y = _height_map.size_y; y > (_height_map.size_y - 1 - max_y); y--) {
@@ -942,7 +941,7 @@ static double interpolated_noise(const double x, const double y, const int prime
  * sequences. as you can guess by its title, i use this to create the indented
  * coastline, which is just another perlin sequence.
  */
-static double perlin_coast_noise_2D(const double x, const double y, const double p, const int prime)
+double PerlinNoise2D(const double x, const double y, const double p, const int prime)
 {
 	double total = 0.0;
 

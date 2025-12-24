@@ -13,4 +13,6 @@
 void GenerateTerrainPerlin();
 uint GetEstimationTGPMapHeight();
 
+double PerlinNoise2D(const double x, const double y, const double p, const int prime);
+
 #endif /* TGP_H */

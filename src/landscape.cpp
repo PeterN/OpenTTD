@@ -971,18 +971,21 @@ static void GenerateTerrain(int type, uint flag)
 
 #include "table/genland.h"
 
-static void CreateDesertOrRainForest(uint desert_tropic_line)
+static void CreateDesertOrRainForest()
 {
 	uint update_freq = Map::Size() / 4;
+	int desert_tropic_line = _settings_game.game_creation.desert_coverage * 2 - 100;
 
 	for (const auto tile : Map::Iterate()) {
 		if ((tile % update_freq) == 0) IncreaseGeneratingWorldProgress(GWP_LANDSCAPE);
 
 		if (!IsValidTile(tile)) continue;
+		if (IsTileType(tile, MP_WATER)) continue;
+		if (PerlinNoise2D(TileX(tile), TileY(tile), 0.35, 37) * 100 > desert_tropic_line) continue;
 
-		auto allows_desert = [tile, desert_tropic_line](auto &offset) {
+		auto allows_desert = [tile](const auto &offset) {
 			TileIndex t = AddTileIndexDiffCWrap(tile, offset);
-			return t == INVALID_TILE || (TileHeight(t) < desert_tropic_line && !IsTileType(t, MP_WATER));
+			return t == INVALID_TILE || !IsTileType(t, MP_WATER);
 		};
 		if (std::all_of(std::begin(_make_desert_or_rainforest_data), std::end(_make_desert_or_rainforest_data), allows_desert)) {
 			SetTropicZone(tile, TROPICZONE_DESERT);
@@ -999,8 +1002,10 @@ static void CreateDesertOrRainForest(uint desert_tropic_line)
 		if ((tile % update_freq) == 0) IncreaseGeneratingWorldProgress(GWP_LANDSCAPE);
 
 		if (!IsValidTile(tile)) continue;
+		if (GetTropicZone(tile) != TROPICZONE_NORMAL) continue;
+		if (PerlinNoise2D(TileX(tile), TileY(tile), 0.5, 179) * 100 < desert_tropic_line) continue;
 
-		auto allows_rainforest = [tile](auto &offset) {
+		auto allows_rainforest = [tile](const auto &offset) {
 			TileIndex t = AddTileIndexDiffCWrap(tile, offset);
 			return t == INVALID_TILE || !IsTileType(t, MP_CLEAR) || !IsClearGround(t, CLEAR_DESERT);
 		};
@@ -1589,16 +1594,6 @@ static void CalculateSnowLine()
 	_settings_game.game_creation.snow_line_height = std::max(CalculateCoverageLine(_settings_game.game_creation.snow_coverage, 0), 2u);
 }
 
-/**
- * Calculate the line (in height) between desert and tropic.
- * @return The height of the line between desert and tropic.
- */
-static uint8_t CalculateDesertLine()
-{
-	/* CalculateCoverageLine() runs from top to bottom, so we need to invert the coverage. */
-	return CalculateCoverageLine(100 - _settings_game.game_creation.desert_coverage, 4);
-}
-
 bool GenerateLandscape(uint8_t mode)
 {
 	/* Number of steps of landscape generation */
@@ -1688,11 +1683,9 @@ bool GenerateLandscape(uint8_t mode)
 			CalculateSnowLine();
 			break;
 
-		case LandscapeType::Tropic: {
-			uint desert_tropic_line = CalculateDesertLine();
-			CreateDesertOrRainForest(desert_tropic_line);
+		case LandscapeType::Tropic:
+			CreateDesertOrRainForest();
 			break;
-		}
 
 		default:
 			break;
