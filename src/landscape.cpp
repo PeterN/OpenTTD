@@ -983,13 +983,7 @@ static void CreateDesertOrRainForest()
 		if (IsTileType(tile, MP_WATER)) continue;
 		if (PerlinNoise2D(TileX(tile), TileY(tile), 0.35, 37) * 100 > desert_tropic_line) continue;
 
-		auto allows_desert = [tile](const auto &offset) {
-			TileIndex t = AddTileIndexDiffCWrap(tile, offset);
-			return t == INVALID_TILE || !IsTileType(t, MP_WATER);
-		};
-		if (std::all_of(std::begin(_make_desert_or_rainforest_data), std::end(_make_desert_or_rainforest_data), allows_desert)) {
-			SetTropicZone(tile, TROPICZONE_DESERT);
-		}
+		SetTropicZone(tile, TROPICZONE_DESERT);
 	}
 
 	for (uint i = 0; i != TILE_UPDATE_FREQUENCY; i++) {
@@ -1007,7 +1001,7 @@ static void CreateDesertOrRainForest()
 
 		auto allows_rainforest = [tile](const auto &offset) {
 			TileIndex t = AddTileIndexDiffCWrap(tile, offset);
-			return t == INVALID_TILE || !IsTileType(t, MP_CLEAR) || !IsClearGround(t, CLEAR_DESERT);
+			return t == INVALID_TILE || GetTropicZone(t) != TROPICZONE_DESERT;
 		};
 		if (std::all_of(std::begin(_make_desert_or_rainforest_data), std::end(_make_desert_or_rainforest_data), allows_rainforest)) {
 			SetTropicZone(tile, TROPICZONE_RAINFOREST);
