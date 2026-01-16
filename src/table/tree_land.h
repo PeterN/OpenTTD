@@ -10,9 +10,6 @@
 #ifndef TREE_LAND_H
 #define TREE_LAND_H
 
-static const uint8_t _tree_base_by_landscape[4] = {0, 12, 20, 32};
-static const uint8_t _tree_count_by_landscape[4] = {12, 8, 12, 9};
-
 struct TreePos {
 	uint8_t x;
 	uint8_t y;
@@ -25,204 +22,540 @@ static const TreePos _tree_layout_xy[][4] = {
 	{ { 3, 9 }, { 8, 2 }, { 9, 9 }, { 1, 5 } }
 };
 
-static const PalSpriteID _tree_layout_sprite[164 + (79 - 48 + 1)][4] = {
-	{ { 0x652, PAL_NONE }, { 0x659, PAL_NONE }, { 0x660, PAL_NONE }, { 0x667, PAL_NONE } }, // 0
-	{ { 0x652, PAL_NONE }, { 0x667, PAL_NONE }, { 0x66e, PAL_NONE }, { 0x675, PAL_NONE } }, // 1
-	{ { 0x652, PAL_NONE }, { 0x66e, PAL_NONE }, { 0x659, PAL_NONE }, { 0x675, PAL_NONE } }, // 2
-	{ { 0x652, PAL_NONE }, { 0x652, PAL_NONE }, { 0x660, PAL_NONE }, { 0x66e, PAL_NONE } }, // 3
-	{ { 0x660, PAL_NONE }, { 0x667, PAL_NONE }, { 0x659, PAL_NONE }, { 0x652, PAL_NONE } }, // 4
-	{ { 0x660, PAL_NONE }, { 0x675, PAL_NONE }, { 0x660, PAL_NONE }, { 0x660, PAL_NONE } }, // 5
-	{ { 0x660, PAL_NONE }, { 0x652, PAL_NONE }, { 0x652, PAL_NONE }, { 0x66e, PAL_NONE } }, // 6
-	{ { 0x660, PAL_NONE }, { 0x675, PAL_NONE }, { 0x667, PAL_NONE }, { 0x659, PAL_NONE } }, // 7
-	{ { 0x675, PAL_NONE }, { 0x660, PAL_NONE }, { 0x675, PAL_NONE }, { 0x675, PAL_NONE } }, // 8
-	{ { 0x675, PAL_NONE }, { 0x659, PAL_NONE }, { 0x652, PAL_NONE }, { 0x652, PAL_NONE } }, // 9
-	{ { 0x675, PAL_NONE }, { 0x66e, PAL_NONE }, { 0x652, PAL_NONE }, { 0x652, PAL_NONE } }, // 10
-	{ { 0x675, PAL_NONE }, { 0x667, PAL_NONE }, { 0x659, PAL_NONE }, { 0x667, PAL_NONE } }, // 11
-	{ { 0x628, PAL_NONE }, { 0x652, PAL_NONE }, { 0x660, PAL_NONE }, { 0x62f, PAL_NONE } }, // 12
-	{ { 0x628, PAL_NONE }, { 0x636, PAL_NONE }, { 0x675, PAL_NONE }, { 0x644, PAL_NONE } }, // 13
-	{ { 0x628, PAL_NONE }, { 0x652, PAL_NONE }, { 0x63d, PAL_NONE }, { 0x66e, PAL_NONE } }, // 14
-	{ { 0x628, PAL_NONE }, { 0x667, PAL_NONE }, { 0x644, PAL_NONE }, { 0x652, PAL_NONE } }, // 15
-	{ { 0x644, PAL_NONE }, { 0x659, PAL_NONE }, { 0x660, PAL_NONE }, { 0x628, PAL_NONE } }, // 16
-	{ { 0x644, PAL_NONE }, { 0x64b, PAL_NONE }, { 0x659, PAL_NONE }, { 0x636, PAL_NONE } }, // 17
-	{ { 0x644, PAL_NONE }, { 0x675, PAL_NONE }, { 0x652, PAL_NONE }, { 0x63d, PAL_NONE } }, // 18
-	{ { 0x644, PAL_NONE }, { 0x63d, PAL_NONE }, { 0x66e, PAL_NONE }, { 0x652, PAL_NONE } }, // 19
-	{ { 0x636, PAL_NONE }, { 0x636, PAL_NONE }, { 0x628, PAL_NONE }, { 0x636, PAL_NONE } }, // 20
-	{ { 0x636, PAL_NONE }, { 0x63d, PAL_NONE }, { 0x636, PAL_NONE }, { 0x636, PAL_NONE } }, // 21
-	{ { 0x636, PAL_NONE }, { 0x64b, PAL_NONE }, { 0x636, PAL_NONE }, { 0x636, PAL_NONE } }, // 22
-	{ { 0x636, PAL_NONE }, { 0x636, PAL_NONE }, { 0x636, PAL_NONE }, { 0x636, PAL_NONE } }, // 23
-	{ { 0x64b, PAL_NONE }, { 0x628, PAL_NONE }, { 0x62f, PAL_NONE }, { 0x636, PAL_NONE } }, // 24
-	{ { 0x64b, PAL_NONE }, { 0x63d, PAL_NONE }, { 0x644, PAL_NONE }, { 0x636, PAL_NONE } }, // 25
-	{ { 0x64b, PAL_NONE }, { 0x636, PAL_NONE }, { 0x63d, PAL_NONE }, { 0x628, PAL_NONE } }, // 26
-	{ { 0x64b, PAL_NONE }, { 0x64b, PAL_NONE }, { 0x636, PAL_NONE }, { 0x63d, PAL_NONE } }, // 27
-	{ { 0x62f, PAL_NONE }, { 0x644, PAL_NONE }, { 0x644, PAL_NONE }, { 0x636, PAL_NONE } }, // 28
-	{ { 0x62f, PAL_NONE }, { 0x62f, PAL_NONE }, { 0x636, PAL_NONE }, { 0x628, PAL_NONE } }, // 29
-	{ { 0x62f, PAL_NONE }, { 0x64b, PAL_NONE }, { 0x636, PAL_NONE }, { 0x636, PAL_NONE } }, // 30
-	{ { 0x62f, PAL_NONE }, { 0x636, PAL_NONE }, { 0x62f, PAL_NONE }, { 0x636, PAL_NONE } }, // 31
-	{ { 0x67c, PAL_NONE }, { 0x675, PAL_NONE }, { 0x683, PAL_NONE }, { 0x67c, PAL_NONE } }, // 32
-	{ { 0x67c, PAL_NONE }, { 0x69f, PAL_NONE }, { 0x67c, PAL_NONE }, { 0x659, PAL_NONE } }, // 33
-	{ { 0x67c, PAL_NONE }, { 0x67c, PAL_NONE }, { 0x67c, PAL_NONE }, { 0x6a6, PAL_NONE } }, // 34
-	{ { 0x67c, PAL_NONE }, { 0x691, PAL_NONE }, { 0x66e, PAL_NONE }, { 0x68a, PAL_NONE } }, // 35
-	{ { 0x68a, PAL_NONE }, { 0x68a, PAL_NONE }, { 0x698, PAL_NONE }, { 0x68a, PAL_NONE } }, // 36
-	{ { 0x68a, PAL_NONE }, { 0x698, PAL_NONE }, { 0x683, PAL_NONE }, { 0x68a, PAL_NONE } }, // 37
-	{ { 0x68a, PAL_NONE }, { 0x67c, PAL_NONE }, { 0x691, PAL_NONE }, { 0x68a, PAL_NONE } }, // 38
-	{ { 0x68a, PAL_NONE }, { 0x683, PAL_NONE }, { 0x6a6, PAL_NONE }, { 0x69f, PAL_NONE } }, // 39
-	{ { 0x698, PAL_NONE }, { 0x68a, PAL_NONE }, { 0x698, PAL_NONE }, { 0x652, PAL_NONE } }, // 40
-	{ { 0x698, PAL_NONE }, { 0x698, PAL_NONE }, { 0x660, PAL_NONE }, { 0x667, PAL_NONE } }, // 41
-	{ { 0x698, PAL_NONE }, { 0x67c, PAL_NONE }, { 0x6a6, PAL_NONE }, { 0x698, PAL_NONE } }, // 42
-	{ { 0x698, PAL_NONE }, { 0x698, PAL_NONE }, { 0x698, PAL_NONE }, { 0x691, PAL_NONE } }, // 43
-	{ { 0x6a6, PAL_NONE }, { 0x6a6, PAL_NONE }, { 0x67c, PAL_NONE }, { 0x660, PAL_NONE } }, // 44
-	{ { 0x6a6, PAL_NONE }, { 0x69f, PAL_NONE }, { 0x6a6, PAL_NONE }, { 0x652, PAL_NONE } }, // 45
-	{ { 0x6a6, PAL_NONE }, { 0x67c, PAL_NONE }, { 0x6a6, PAL_NONE }, { 0x691, PAL_NONE } }, // 46
-	{ { 0x6a6, PAL_NONE }, { 0x691, PAL_NONE }, { 0x69f, PAL_NONE }, { 0x6a6, PAL_NONE } }, // 47
-	{ { 0x6ad, PAL_NONE }, { 0x6ad, PAL_NONE }, { 0x6ad, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 48
-	{ { 0x6ad, PAL_NONE }, { 0x6ad, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6d0, PAL_NONE } }, // 49
-	{ { 0x6ad, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6ad, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 50
-	{ { 0x6ad, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6c9, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 51
-	{ { 0x6d0, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 52
-	{ { 0x6d0, PAL_NONE }, { 0x6ad, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6c9, PAL_NONE } }, // 53
-	{ { 0x6d0, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6c2, PAL_NONE } }, // 54
-	{ { 0x6d0, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 55
-	{ { 0x6d7, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6d7, PAL_NONE } }, // 56
-	{ { 0x6d7, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6ad, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 57
-	{ { 0x6d7, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 58
-	{ { 0x6d7, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 59
-	{ { 0x6c2, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6c9, PAL_NONE }, { 0x6c2, PAL_NONE } }, // 60
-	{ { 0x6c2, PAL_NONE }, { 0x6c9, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 61
-	{ { 0x6c2, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 62
-	{ { 0x6c2, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6c9, PAL_NONE } }, // 63
-	{ { 0x6c9, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6b4, PAL_NONE }, { 0x6c2, PAL_NONE } }, // 64
-	{ { 0x6c9, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6de, PAL_NONE }, { 0x6d7, PAL_NONE } }, // 65
-	{ { 0x6c9, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6b4, PAL_NONE } }, // 66
-	{ { 0x6c9, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6de, PAL_NONE } }, // 67
-	{ { 0x6b4, PAL_NONE }, { 0x6b4, PAL_NONE }, { 0x6de, PAL_NONE }, { 0x6c9, PAL_NONE } }, // 68
-	{ { 0x6b4, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6ad, PAL_NONE } }, // 69
-	{ { 0x6b4, PAL_NONE }, { 0x6de, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6b4, PAL_NONE } }, // 70
-	{ { 0x6b4, PAL_NONE }, { 0x6ad, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6de, PAL_NONE } }, // 71
-	{ { 0x6bb, PAL_NONE }, { 0x6d0, PAL_NONE }, { 0x6de, PAL_NONE }, { 0x6c2, PAL_NONE } }, // 72
-	{ { 0x6bb, PAL_NONE }, { 0x6b4, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6d7, PAL_NONE } }, // 73
-	{ { 0x6bb, PAL_NONE }, { 0x6de, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6b4, PAL_NONE } }, // 74
-	{ { 0x6bb, PAL_NONE }, { 0x6c9, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6de, PAL_NONE } }, // 75
-	{ { 0x6de, PAL_NONE }, { 0x6d7, PAL_NONE }, { 0x6de, PAL_NONE }, { 0x6c2, PAL_NONE } }, // 76
-	{ { 0x6de, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6de, PAL_NONE }, { 0x6d0, PAL_NONE } }, // 77
-	{ { 0x6de, PAL_NONE }, { 0x6de, PAL_NONE }, { 0x6bb, PAL_NONE }, { 0x6b4, PAL_NONE } }, // 78
-	{ { 0x6de, PAL_NONE }, { 0x6c9, PAL_NONE }, { 0x6c2, PAL_NONE }, { 0x6de, PAL_NONE } }, // 79
-	{ { 0x72b, PAL_NONE }, { 0x732, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x739, PAL_NONE } }, // 80
-	{ { 0x72b, PAL_NONE }, { 0x747, PAL_NONE }, { 0x755, PAL_NONE }, { 0x72b, PAL_NONE } }, // 81
-	{ { 0x72b, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x76a, PAL_NONE }, { 0x786, PAL_NONE } }, // 82
-	{ { 0x72b, PAL_NONE }, { 0x74e, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x72b, PAL_NONE } }, // 83
-	{ { 0x732, PAL_NONE }, { 0x732, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x739, PAL_NONE } }, // 84
-	{ { 0x732, PAL_NONE }, { 0x747, PAL_NONE }, { 0x732, PAL_NONE }, { 0x732, PAL_NONE } }, // 85
-	{ { 0x732, PAL_NONE }, { 0x732, PAL_NONE }, { 0x755, PAL_NONE }, { 0x794, PAL_NONE } }, // 86
-	{ { 0x732, PAL_NONE }, { 0x74e, PAL_NONE }, { 0x732, PAL_NONE }, { 0x78d, PAL_NONE } }, // 87
-	{ { 0x747, PAL_NONE }, { 0x732, PAL_NONE }, { 0x747, PAL_NONE }, { 0x740, PAL_NONE } }, // 88
-	{ { 0x747, PAL_NONE }, { 0x747, PAL_NONE }, { 0x732, PAL_NONE }, { 0x76a, PAL_NONE } }, // 89
-	{ { 0x747, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x755, PAL_NONE }, { 0x747, PAL_NONE } }, // 90
-	{ { 0x747, PAL_NONE }, { 0x786, PAL_NONE }, { 0x732, PAL_NONE }, { 0x747, PAL_NONE } }, // 91
-	{ { 0x74e, PAL_NONE }, { 0x74e, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x794, PAL_NONE } }, // 92
-	{ { 0x74e, PAL_NONE }, { 0x755, PAL_NONE }, { 0x732, PAL_NONE }, { 0x74e, PAL_NONE } }, // 93
-	{ { 0x74e, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x786, PAL_NONE }, { 0x747, PAL_NONE } }, // 94
-	{ { 0x74e, PAL_NONE }, { 0x74e, PAL_NONE }, { 0x732, PAL_NONE }, { 0x794, PAL_NONE } }, // 95
-	{ { 0x76a, PAL_NONE }, { 0x76a, PAL_NONE }, { 0x74e, PAL_NONE }, { 0x74e, PAL_NONE } }, // 96
-	{ { 0x76a, PAL_NONE }, { 0x794, PAL_NONE }, { 0x732, PAL_NONE }, { 0x76a, PAL_NONE } }, // 97
-	{ { 0x76a, PAL_NONE }, { 0x732, PAL_NONE }, { 0x786, PAL_NONE }, { 0x76a, PAL_NONE } }, // 98
-	{ { 0x76a, PAL_NONE }, { 0x786, PAL_NONE }, { 0x732, PAL_NONE }, { 0x78d, PAL_NONE } }, // 99
-	{ { 0x78d, PAL_NONE }, { 0x78d, PAL_NONE }, { 0x74e, PAL_NONE }, { 0x794, PAL_NONE } }, // 100
-	{ { 0x78d, PAL_NONE }, { 0x732, PAL_NONE }, { 0x739, PAL_NONE }, { 0x747, PAL_NONE } }, // 101
-	{ { 0x78d, PAL_NONE }, { 0x732, PAL_NONE }, { 0x786, PAL_NONE }, { 0x76a, PAL_NONE } }, // 102
-	{ { 0x78d, PAL_NONE }, { 0x786, PAL_NONE }, { 0x78d, PAL_NONE }, { 0x794, PAL_NONE } }, // 103
-	{ { 0x786, PAL_NONE }, { 0x786, PAL_NONE }, { 0x740, PAL_NONE }, { 0x732, PAL_NONE } }, // 104
-	{ { 0x786, PAL_NONE }, { 0x786, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x732, PAL_NONE } }, // 105
-	{ { 0x786, PAL_NONE }, { 0x732, PAL_NONE }, { 0x786, PAL_NONE }, { 0x786, PAL_NONE } }, // 106
-	{ { 0x786, PAL_NONE }, { 0x786, PAL_NONE }, { 0x78d, PAL_NONE }, { 0x794, PAL_NONE } }, // 107
-	{ { 0x778, PAL_NONE }, { 0x778, PAL_NONE }, { 0x77f, PAL_NONE }, { 0x778, PAL_NONE } }, // 108
-	{ { 0x778, PAL_NONE }, { 0x77f, PAL_NONE }, { 0x778, PAL_NONE }, { 0x77f, PAL_NONE } }, // 109
-	{ { 0x778, PAL_NONE }, { 0x77f, PAL_NONE }, { 0x77f, PAL_NONE }, { 0x778, PAL_NONE } }, // 110
-	{ { 0x778, PAL_NONE }, { 0x778, PAL_NONE }, { 0x778, PAL_NONE }, { 0x77f, PAL_NONE } }, // 111
-	{ { 0x75c, PAL_NONE }, { 0x71d, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x724, PAL_NONE } }, // 112
-	{ { 0x75c, PAL_NONE }, { 0x72b, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x763, PAL_NONE } }, // 113
-	{ { 0x75c, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x771, PAL_NONE }, { 0x71d, PAL_NONE } }, // 114
-	{ { 0x75c, PAL_NONE }, { 0x771, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x75c, PAL_NONE } }, // 115
-	{ { 0x771, PAL_NONE }, { 0x771, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x71d, PAL_NONE } }, // 116
-	{ { 0x771, PAL_NONE }, { 0x747, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x771, PAL_NONE } }, // 117
-	{ { 0x771, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x771, PAL_NONE }, { 0x724, PAL_NONE } }, // 118
-	{ { 0x771, PAL_NONE }, { 0x771, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x763, PAL_NONE } }, // 119
-	{ { 0x71d, PAL_NONE }, { 0x71d, PAL_NONE }, { 0x771, PAL_NONE }, { 0x724, PAL_NONE } }, // 120
-	{ { 0x71d, PAL_NONE }, { 0x74e, PAL_NONE }, { 0x763, PAL_NONE }, { 0x71d, PAL_NONE } }, // 121
-	{ { 0x71d, PAL_NONE }, { 0x724, PAL_NONE }, { 0x794, PAL_NONE }, { 0x71d, PAL_NONE } }, // 122
-	{ { 0x71d, PAL_NONE }, { 0x71d, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x78d, PAL_NONE } }, // 123
-	{ { 0x794, PAL_NONE }, { 0x724, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x794, PAL_NONE } }, // 124
-	{ { 0x794, PAL_NONE }, { 0x794, PAL_NONE }, { 0x75c, PAL_NONE }, { 0x71d, PAL_NONE } }, // 125
-	{ { 0x794, PAL_NONE }, { 0x724, PAL_NONE }, { 0x794, PAL_NONE }, { 0x71d, PAL_NONE } }, // 126
-	{ { 0x794, PAL_NONE }, { 0x794, PAL_NONE }, { 0x771, PAL_NONE }, { 0x78d, PAL_NONE } }, // 127
-	{ { 0x79b, PALETTE_TO_RED },    { 0x79b, PALETTE_TO_PALE_GREEN }, { 0x79b, PALETTE_TO_MAUVE },      { 0x79b, PALETTE_TO_PURPLE } }, // 128
-	{ { 0x79b, PAL_NONE },          { 0x79b, PALETTE_TO_GREY },       { 0x79b, PALETTE_TO_GREEN },      { 0x79b, PALETTE_TO_WHITE } },  // 129
-	{ { 0x79b, PALETTE_TO_GREEN },  { 0x79b, PALETTE_TO_ORANGE },     { 0x79b, PALETTE_TO_PINK },       { 0x79b, PAL_NONE } },          // 130
-	{ { 0x79b, PALETTE_TO_YELLOW }, { 0x79b, PALETTE_TO_RED },        { 0x79b, PALETTE_TO_CREAM },      { 0x79b, PALETTE_TO_RED } },    // 131
-	{ { 0x7a2, PAL_NONE },          { 0x7a2, PALETTE_TO_RED },        { 0x7a2, PALETTE_TO_PINK },       { 0x7a2, PALETTE_TO_PURPLE } }, // 132
-	{ { 0x7a2, PALETTE_TO_MAUVE },  { 0x7a2, PALETTE_TO_GREEN },      { 0x7a2, PALETTE_TO_PINK },       { 0x7a2, PALETTE_TO_GREY } },   // 133
-	{ { 0x7a2, PALETTE_TO_RED },    { 0x7a2, PALETTE_TO_PALE_GREEN }, { 0x7a2, PALETTE_TO_YELLOW },     { 0x7a2, PALETTE_TO_WHITE } },  // 134
-	{ { 0x7a2, PALETTE_TO_ORANGE }, { 0x7a2, PALETTE_TO_MAUVE },      { 0x7a2, PALETTE_TO_CREAM },      { 0x7a2, PALETTE_TO_BROWN } },  // 135
-	{ { 0x7a9, PALETTE_TO_RED },    { 0x7a9, PAL_NONE },              { 0x7a9, PALETTE_TO_ORANGE },     { 0x7a9, PALETTE_TO_GREY } },   // 136
-	{ { 0x7a9, PALETTE_TO_ORANGE }, { 0x7a9, PALETTE_TO_GREEN },      { 0x7a9, PALETTE_TO_PALE_GREEN }, { 0x7a9, PALETTE_TO_MAUVE } },  // 137
-	{ { 0x7a9, PALETTE_TO_PINK },   { 0x7a9, PALETTE_TO_RED },        { 0x7a9, PALETTE_TO_GREEN },      { 0x7a9, PALETTE_TO_BROWN } },  // 138
-	{ { 0x7a9, PALETTE_TO_GREEN },  { 0x7a9, PAL_NONE },              { 0x7a9, PALETTE_TO_RED },        { 0x7a9, PALETTE_TO_CREAM } },  // 139
-	{ { 0x7b0, PAL_NONE },          { 0x7b0, PAL_NONE },              { 0x7b0, PAL_NONE },              { 0x7b0, PAL_NONE } },          // 140
-	{ { 0x7b0, PAL_NONE },          { 0x7b0, PAL_NONE },              { 0x7b0, PAL_NONE },              { 0x7b0, PAL_NONE } },          // 141
-	{ { 0x7b0, PAL_NONE },          { 0x7b0, PAL_NONE },              { 0x7b0, PAL_NONE },              { 0x7b0, PAL_NONE } },          // 142
-	{ { 0x7b0, PAL_NONE },          { 0x7b0, PAL_NONE },              { 0x7b0, PAL_NONE },              { 0x7b0, PAL_NONE } },          // 143
-	{ { 0x7b7, PALETTE_TO_PINK },   { 0x7b7, PALETTE_TO_RED },        { 0x7b7, PALETTE_TO_ORANGE },     { 0x7b7, PALETTE_TO_MAUVE } },  // 144
-	{ { 0x7b7, PALETTE_TO_RED },    { 0x7b7, PAL_NONE },              { 0x7b7, PALETTE_TO_GREY },       { 0x7b7, PALETTE_TO_CREAM } },  // 145
-	{ { 0x7b7, PALETTE_TO_GREEN },  { 0x7b7, PALETTE_TO_BROWN },      { 0x7b7, PALETTE_TO_PINK },       { 0x7b7, PALETTE_TO_RED } },    // 146
-	{ { 0x7b7, PAL_NONE },          { 0x7b7, PALETTE_TO_PALE_GREEN }, { 0x7b7, PALETTE_TO_ORANGE },     { 0x7b7, PALETTE_TO_RED } },    // 147
-	{ { 0x7be, PALETTE_TO_RED },    { 0x7be, PALETTE_TO_PINK },       { 0x7be, PALETTE_TO_GREEN },      { 0x7be, PAL_NONE } },          // 148
-	{ { 0x7be, PALETTE_TO_GREEN },  { 0x7be, PALETTE_TO_BROWN },      { 0x7be, PALETTE_TO_PURPLE },     { 0x7be, PALETTE_TO_GREY } },   // 149
-	{ { 0x7be, PALETTE_TO_MAUVE },  { 0x7be, PALETTE_TO_CREAM },      { 0x7be, PALETTE_TO_ORANGE },     { 0x7be, PALETTE_TO_RED } },    // 150
-	{ { 0x7be, PAL_NONE },          { 0x7be, PALETTE_TO_RED },        { 0x7be, PALETTE_TO_PALE_GREEN }, { 0x7be, PALETTE_TO_PINK } },   // 151
-	{ { 0x7c5, PALETTE_TO_YELLOW }, { 0x7c5, PALETTE_TO_RED },        { 0x7c5, PALETTE_TO_WHITE },      { 0x7c5, PALETTE_TO_CREAM } },  // 152
-	{ { 0x7c5, PALETTE_TO_RED },    { 0x7c5, PALETTE_TO_PALE_GREEN }, { 0x7c5, PALETTE_TO_BROWN },      { 0x7c5, PALETTE_TO_YELLOW } }, // 153
-	{ { 0x7c5, PAL_NONE },          { 0x7c5, PALETTE_TO_PURPLE },     { 0x7c5, PALETTE_TO_GREEN },      { 0x7c5, PALETTE_TO_YELLOW } }, // 154
-	{ { 0x7c5, PALETTE_TO_PINK },   { 0x7c5, PALETTE_TO_CREAM },      { 0x7c5, PAL_NONE },              { 0x7c5, PALETTE_TO_GREY } },   // 155
-	{ { 0x7cc, PALETTE_TO_YELLOW }, { 0x7cc, PALETTE_TO_GREY },       { 0x7cc, PALETTE_TO_PURPLE },     { 0x7cc, PALETTE_TO_BROWN } },  // 156
-	{ { 0x7cc, PALETTE_TO_GREEN },  { 0x7cc, PAL_NONE },              { 0x7cc, PALETTE_TO_CREAM },      { 0x7cc, PALETTE_TO_WHITE } },  // 157
-	{ { 0x7cc, PALETTE_TO_RED },    { 0x7cc, PALETTE_TO_PALE_GREEN }, { 0x7cc, PALETTE_TO_MAUVE },      { 0x7cc, PALETTE_TO_RED } },    // 158
-	{ { 0x7cc, PALETTE_TO_PINK },   { 0x7cc, PALETTE_TO_ORANGE },     { 0x7cc, PALETTE_TO_GREEN },      { 0x7cc, PALETTE_TO_YELLOW } }, // 159
-	{ { 0x7d3, PALETTE_TO_RED },    { 0x7d3, PALETTE_TO_PINK },       { 0x7d3, PALETTE_TO_BROWN },      { 0x7d3, PALETTE_TO_WHITE } },  // 160
-	{ { 0x7d3, PALETTE_TO_GREEN },  { 0x7d3, PALETTE_TO_ORANGE },     { 0x7d3, PALETTE_TO_GREY },       { 0x7d3, PALETTE_TO_MAUVE } },  // 161
-	{ { 0x7d3, PALETTE_TO_YELLOW }, { 0x7d3, PALETTE_TO_PALE_GREEN }, { 0x7d3, PAL_NONE },              { 0x7d3, PALETTE_TO_CREAM } },  // 162
-	{ { 0x7d3, PALETTE_TO_GREY },   { 0x7d3, PALETTE_TO_RED },        { 0x7d3, PALETTE_TO_WHITE },      { 0x7d3, PAL_NONE } },          // 163
-	/* the extra things follow */
-	{ { 0x6e5, PAL_NONE }, { 0x6e5, PAL_NONE }, { 0x6e5, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 0
-	{ { 0x6e5, PAL_NONE }, { 0x6e5, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x708, PAL_NONE } }, // 1
-	{ { 0x6e5, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x6e5, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 2
-	{ { 0x6e5, PAL_NONE }, { 0x708, PAL_NONE }, { 0x701, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 3
-	{ { 0x708, PAL_NONE }, { 0x708, PAL_NONE }, { 0x708, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 4
-	{ { 0x708, PAL_NONE }, { 0x6e5, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x701, PAL_NONE } }, // 5
-	{ { 0x708, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x708, PAL_NONE }, { 0x6fa, PAL_NONE } }, // 6
-	{ { 0x708, PAL_NONE }, { 0x708, PAL_NONE }, { 0x708, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 7
-	{ { 0x70f, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x70f, PAL_NONE } }, // 8
-	{ { 0x70f, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x6e5, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 9
-	{ { 0x70f, PAL_NONE }, { 0x708, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 10
-	{ { 0x70f, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x708, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 11
-	{ { 0x6fa, PAL_NONE }, { 0x708, PAL_NONE }, { 0x701, PAL_NONE }, { 0x6fa, PAL_NONE } }, // 12
-	{ { 0x6fa, PAL_NONE }, { 0x701, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 13
-	{ { 0x6fa, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 14
-	{ { 0x6fa, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x701, PAL_NONE } }, // 15
-	{ { 0x701, PAL_NONE }, { 0x708, PAL_NONE }, { 0x6ec, PAL_NONE }, { 0x6fa, PAL_NONE } }, // 16
-	{ { 0x701, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x716, PAL_NONE }, { 0x70f, PAL_NONE } }, // 17
-	{ { 0x701, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x6ec, PAL_NONE } }, // 18
-	{ { 0x701, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x716, PAL_NONE } }, // 19
-	{ { 0x6ec, PAL_NONE }, { 0x6ec, PAL_NONE }, { 0x716, PAL_NONE }, { 0x701, PAL_NONE } }, // 20
-	{ { 0x6ec, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x6e5, PAL_NONE } }, // 21
-	{ { 0x6ec, PAL_NONE }, { 0x716, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x6ec, PAL_NONE } }, // 22
-	{ { 0x6ec, PAL_NONE }, { 0x6e5, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x716, PAL_NONE } }, // 23
-	{ { 0x6f3, PAL_NONE }, { 0x708, PAL_NONE }, { 0x716, PAL_NONE }, { 0x6fa, PAL_NONE } }, // 24
-	{ { 0x6f3, PAL_NONE }, { 0x6ec, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x70f, PAL_NONE } }, // 25
-	{ { 0x6f3, PAL_NONE }, { 0x716, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x6ec, PAL_NONE } }, // 26
-	{ { 0x6f3, PAL_NONE }, { 0x701, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x716, PAL_NONE } }, // 27
-	{ { 0x716, PAL_NONE }, { 0x70f, PAL_NONE }, { 0x716, PAL_NONE }, { 0x6fa, PAL_NONE } }, // 28
-	{ { 0x716, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x716, PAL_NONE }, { 0x708, PAL_NONE } }, // 29
-	{ { 0x716, PAL_NONE }, { 0x716, PAL_NONE }, { 0x6f3, PAL_NONE }, { 0x6ec, PAL_NONE } }, // 30
-	{ { 0x716, PAL_NONE }, { 0x701, PAL_NONE }, { 0x6fa, PAL_NONE }, { 0x716, PAL_NONE } }, // 31
+static constexpr uint8_t TREE_GROWTH_COUNT = 7; ///< Number of tree growth stages.
+
+
+/**
+ * Make a TreeBase for a default tree.
+ * @param index Sprite offset index for normal tree.
+ * @return TreeBase for default tree.
+ */
+static constexpr TreeInfo MakeDefaultTree(uint8_t index)
+{
+	return {SPR_TREE_BASE + (TREE_GROWTH_COUNT * index), 0};
+}
+
+/**
+ * Make a TreeBase for a default snowy tree.
+ * @param normal_index Sprite offset index for normal tree.
+ * @param snowy_index Sprite offset index for snowy tree.
+ * @return TreeBase for default snowy tree.
+ */
+static constexpr TreeInfo MakeDefaultSnowyTree(uint8_t normal_index, uint8_t snowy_index)
+{
+	return {SPR_TREE_BASE + (TREE_GROWTH_COUNT * normal_index), SPR_TREE_BASE + (TREE_GROWTH_COUNT * snowy_index)};
+}
+
+/** Sprite IDs of original trees, normal and snowy variants. */
+static constexpr TreeInfo _original_tree_info[] = {
+	/* Temperate */
+	MakeDefaultTree(0),
+	MakeDefaultTree(1),
+	MakeDefaultTree(2),
+	MakeDefaultTree(3),
+	MakeDefaultTree(4),
+	MakeDefaultTree(5),
+	MakeDefaultTree(6),
+	MakeDefaultTree(7),
+	MakeDefaultTree(8),
+	MakeDefaultTree(9),
+	MakeDefaultTree(10),
+	MakeDefaultTree(11),
+	MakeDefaultTree(12),
+	MakeDefaultTree(13),
+	MakeDefaultTree(14),
+	MakeDefaultTree(15),
+	MakeDefaultTree(16),
+	MakeDefaultTree(17),
+	MakeDefaultTree(18),
+
+	/* Arctic */
+	MakeDefaultSnowyTree(19, 27),
+	MakeDefaultSnowyTree(20, 28),
+	MakeDefaultSnowyTree(21, 29),
+	MakeDefaultSnowyTree(22, 30),
+	MakeDefaultSnowyTree(23, 31),
+	MakeDefaultSnowyTree(24, 32),
+	MakeDefaultSnowyTree(25, 33),
+	MakeDefaultSnowyTree(26, 34),
+
+	/* Sub-tropic */
+	MakeDefaultTree(35),
+	MakeDefaultTree(36),
+	MakeDefaultTree(37),
+	MakeDefaultTree(38),
+	MakeDefaultTree(39),
+	MakeDefaultTree(40),
+	MakeDefaultTree(41),
+	MakeDefaultTree(42),
+	MakeDefaultTree(43),
+	MakeDefaultTree(44),
+	MakeDefaultTree(45),
+	MakeDefaultTree(46),
+	MakeDefaultTree(47),
+	MakeDefaultTree(48),
+	MakeDefaultTree(49),
+	MakeDefaultTree(50),
+	MakeDefaultTree(51),
+	MakeDefaultTree(52),
+
+	/* Toyland */
+	MakeDefaultTree(53),
+	MakeDefaultTree(54),
+	MakeDefaultTree(55),
+	MakeDefaultTree(56),
+	MakeDefaultTree(57),
+	MakeDefaultTree(58),
+	MakeDefaultTree(59),
+	MakeDefaultTree(60),
+	MakeDefaultTree(61),
+};
+
+static constexpr TreeID TREEBASE_T = 0; ///< Base tree index for default temperate tree sprites.
+static constexpr TreeID TREEBASE_A = 19; ///< Base tree index for default arctic tree sprites.
+static constexpr TreeID TREEBASE_S = 27; ///< Base tree index for default subtropic tree sprites.
+static constexpr TreeID TREEBASE_Y = 45; ///< Base tree index for default toyland tree sprites.
+
+/** Tree tile information for original trees. */
+static const TreeTileInfo _original_tree_tile_info[] = {
+	// Temperate
+	{
+		.trees = {{
+			{TREEBASE_T + 6, TREEBASE_T + 7, TREEBASE_T + 8, TREEBASE_T + 9},
+			{TREEBASE_T + 6, TREEBASE_T + 9, TREEBASE_T + 10, TREEBASE_T + 11},
+			{TREEBASE_T + 6, TREEBASE_T + 10, TREEBASE_T + 7, TREEBASE_T + 11},
+			{TREEBASE_T + 6, TREEBASE_T + 6, TREEBASE_T + 8, TREEBASE_T + 10},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 8, TREEBASE_T + 9, TREEBASE_T + 7, TREEBASE_T + 6},
+			{TREEBASE_T + 8, TREEBASE_T + 11, TREEBASE_T + 8, TREEBASE_T + 8},
+			{TREEBASE_T + 8, TREEBASE_T + 6, TREEBASE_T + 6, TREEBASE_T + 10},
+			{TREEBASE_T + 8, TREEBASE_T + 11, TREEBASE_T + 9, TREEBASE_T + 7},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 11, TREEBASE_T + 8, TREEBASE_T + 11, TREEBASE_T + 11},
+			{TREEBASE_T + 11, TREEBASE_T + 7, TREEBASE_T + 6, TREEBASE_T + 6},
+			{TREEBASE_T + 11, TREEBASE_T + 10, TREEBASE_T + 6, TREEBASE_T + 6},
+			{TREEBASE_T + 11, TREEBASE_T + 9, TREEBASE_T + 7, TREEBASE_T + 9},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 0, TREEBASE_T + 6, TREEBASE_T + 8, TREEBASE_T + 1},
+			{TREEBASE_T + 0, TREEBASE_T + 2, TREEBASE_T + 11, TREEBASE_T + 4},
+			{TREEBASE_T + 0, TREEBASE_T + 6, TREEBASE_T + 3, TREEBASE_T + 10},
+			{TREEBASE_T + 0, TREEBASE_T + 9, TREEBASE_T + 4, TREEBASE_T + 6},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 4, TREEBASE_T + 7, TREEBASE_T + 8, TREEBASE_T + 0},
+			{TREEBASE_T + 4, TREEBASE_T + 5, TREEBASE_T + 7, TREEBASE_T + 2},
+			{TREEBASE_T + 4, TREEBASE_T + 11, TREEBASE_T + 6, TREEBASE_T + 3},
+			{TREEBASE_T + 4, TREEBASE_T + 3, TREEBASE_T + 10, TREEBASE_T + 6},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 2, TREEBASE_T + 2, TREEBASE_T + 0, TREEBASE_T + 2},
+			{TREEBASE_T + 2, TREEBASE_T + 3, TREEBASE_T + 2, TREEBASE_T + 2},
+			{TREEBASE_T + 2, TREEBASE_T + 5, TREEBASE_T + 2, TREEBASE_T + 2},
+			{TREEBASE_T + 2, TREEBASE_T + 2, TREEBASE_T + 2, TREEBASE_T + 2},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 5, TREEBASE_T + 0, TREEBASE_T + 1, TREEBASE_T + 2},
+			{TREEBASE_T + 5, TREEBASE_T + 3, TREEBASE_T + 4, TREEBASE_T + 2},
+			{TREEBASE_T + 5, TREEBASE_T + 2, TREEBASE_T + 3, TREEBASE_T + 0},
+			{TREEBASE_T + 5, TREEBASE_T + 5, TREEBASE_T + 2, TREEBASE_T + 3},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 1, TREEBASE_T + 4, TREEBASE_T + 4, TREEBASE_T + 2},
+			{TREEBASE_T + 1, TREEBASE_T + 1, TREEBASE_T + 2, TREEBASE_T + 0},
+			{TREEBASE_T + 1, TREEBASE_T + 5, TREEBASE_T + 2, TREEBASE_T + 2},
+			{TREEBASE_T + 1, TREEBASE_T + 2, TREEBASE_T + 1, TREEBASE_T + 2},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 12, TREEBASE_T + 11, TREEBASE_T + 13, TREEBASE_T + 12},
+			{TREEBASE_T + 12, TREEBASE_T + 17, TREEBASE_T + 12, TREEBASE_T + 7},
+			{TREEBASE_T + 12, TREEBASE_T + 12, TREEBASE_T + 12, TREEBASE_T + 18},
+			{TREEBASE_T + 12, TREEBASE_T + 15, TREEBASE_T + 10, TREEBASE_T + 14},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 14, TREEBASE_T + 14, TREEBASE_T + 16, TREEBASE_T + 14},
+			{TREEBASE_T + 14, TREEBASE_T + 16, TREEBASE_T + 13, TREEBASE_T + 14},
+			{TREEBASE_T + 14, TREEBASE_T + 12, TREEBASE_T + 15, TREEBASE_T + 14},
+			{TREEBASE_T + 14, TREEBASE_T + 13, TREEBASE_T + 18, TREEBASE_T + 17},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 16, TREEBASE_T + 14, TREEBASE_T + 16, TREEBASE_T + 6},
+			{TREEBASE_T + 16, TREEBASE_T + 16, TREEBASE_T + 8, TREEBASE_T + 9},
+			{TREEBASE_T + 16, TREEBASE_T + 12, TREEBASE_T + 18, TREEBASE_T + 16},
+			{TREEBASE_T + 16, TREEBASE_T + 16, TREEBASE_T + 16, TREEBASE_T + 15},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	{
+		.trees = {{
+			{TREEBASE_T + 18, TREEBASE_T + 18, TREEBASE_T + 12, TREEBASE_T + 8},
+			{TREEBASE_T + 18, TREEBASE_T + 17, TREEBASE_T + 18, TREEBASE_T + 6},
+			{TREEBASE_T + 18, TREEBASE_T + 12, TREEBASE_T + 18, TREEBASE_T + 15},
+			{TREEBASE_T + 18, TREEBASE_T + 15, TREEBASE_T + 17, TREEBASE_T + 18},
+		}},
+		.landscapes = LandscapeType::Temperate,
+	},
+	// Arctic
+	{
+		.trees = {{
+			{TREEBASE_A + 0, TREEBASE_A + 0, TREEBASE_A + 0, TREEBASE_A + 0},
+			{TREEBASE_A + 0, TREEBASE_A + 0, TREEBASE_A + 3, TREEBASE_A + 5},
+			{TREEBASE_A + 0, TREEBASE_A + 6, TREEBASE_A + 0, TREEBASE_A + 0},
+			{TREEBASE_A + 0, TREEBASE_A + 5, TREEBASE_A + 4, TREEBASE_A + 0},
+		}},
+		.landscapes = LandscapeType::Arctic,
+	},
+	{
+		.trees = {{
+			{TREEBASE_A + 5, TREEBASE_A + 5, TREEBASE_A + 5, TREEBASE_A + 0},
+			{TREEBASE_A + 5, TREEBASE_A + 0, TREEBASE_A + 6, TREEBASE_A + 4},
+			{TREEBASE_A + 5, TREEBASE_A + 6, TREEBASE_A + 5, TREEBASE_A + 3},
+			{TREEBASE_A + 5, TREEBASE_A + 5, TREEBASE_A + 5, TREEBASE_A + 0},
+		}},
+		.landscapes = LandscapeType::Arctic,
+	},
+	{
+		.trees = {{
+			{TREEBASE_A + 6, TREEBASE_A + 6, TREEBASE_A + 6, TREEBASE_A + 6},
+			{TREEBASE_A + 6, TREEBASE_A + 6, TREEBASE_A + 0, TREEBASE_A + 0},
+			{TREEBASE_A + 6, TREEBASE_A + 5, TREEBASE_A + 6, TREEBASE_A + 0},
+			{TREEBASE_A + 6, TREEBASE_A + 6, TREEBASE_A + 5, TREEBASE_A + 0},
+		}},
+		.landscapes = LandscapeType::Arctic,
+	},
+	{
+		.trees = {{
+			{TREEBASE_A + 3, TREEBASE_A + 5, TREEBASE_A + 4, TREEBASE_A + 3},
+			{TREEBASE_A + 3, TREEBASE_A + 4, TREEBASE_A + 3, TREEBASE_A + 0},
+			{TREEBASE_A + 3, TREEBASE_A + 3, TREEBASE_A + 3, TREEBASE_A + 0},
+			{TREEBASE_A + 3, TREEBASE_A + 3, TREEBASE_A + 3, TREEBASE_A + 4},
+		}},
+		.landscapes = LandscapeType::Arctic,
+	},
+	{
+		.trees = {{
+			{TREEBASE_A + 4, TREEBASE_A + 5, TREEBASE_A + 1, TREEBASE_A + 3},
+			{TREEBASE_A + 4, TREEBASE_A + 2, TREEBASE_A + 7, TREEBASE_A + 6},
+			{TREEBASE_A + 4, TREEBASE_A + 3, TREEBASE_A + 2, TREEBASE_A + 1},
+			{TREEBASE_A + 4, TREEBASE_A + 2, TREEBASE_A + 3, TREEBASE_A + 7},
+		}},
+		.landscapes = LandscapeType::Arctic,
+	},
+	{
+		.trees = {{
+			{TREEBASE_A + 1, TREEBASE_A + 1, TREEBASE_A + 7, TREEBASE_A + 4},
+			{TREEBASE_A + 1, TREEBASE_A + 2, TREEBASE_A + 2, TREEBASE_A + 0},
+			{TREEBASE_A + 1, TREEBASE_A + 7, TREEBASE_A + 2, TREEBASE_A + 1},
+			{TREEBASE_A + 1, TREEBASE_A + 0, TREEBASE_A + 3, TREEBASE_A + 7},
+		}},
+		.landscapes = LandscapeType::Arctic,
+	},
+	{
+		.trees = {{
+			{TREEBASE_A + 2, TREEBASE_A + 5, TREEBASE_A + 7, TREEBASE_A + 3},
+			{TREEBASE_A + 2, TREEBASE_A + 1, TREEBASE_A + 2, TREEBASE_A + 6},
+			{TREEBASE_A + 2, TREEBASE_A + 7, TREEBASE_A + 2, TREEBASE_A + 1},
+			{TREEBASE_A + 2, TREEBASE_A + 4, TREEBASE_A + 3, TREEBASE_A + 7},
+		}},
+		.landscapes = LandscapeType::Arctic,
+	},
+	{
+		.trees = {{
+			{TREEBASE_A + 7, TREEBASE_A + 6, TREEBASE_A + 7, TREEBASE_A + 3},
+			{TREEBASE_A + 7, TREEBASE_A + 2, TREEBASE_A + 7, TREEBASE_A + 5},
+			{TREEBASE_A + 7, TREEBASE_A + 7, TREEBASE_A + 2, TREEBASE_A + 1},
+			{TREEBASE_A + 7, TREEBASE_A + 4, TREEBASE_A + 3, TREEBASE_A + 7},
+		}},
+		.landscapes = LandscapeType::Arctic,
+	},
+	// Sub-tropic, rainforest
+	{
+		.trees = {{
+			{TREEBASE_S + 2, TREEBASE_S + 3, TREEBASE_S + 2, TREEBASE_S + 4},
+			{TREEBASE_S + 2, TREEBASE_S + 6, TREEBASE_S + 8, TREEBASE_S + 2},
+			{TREEBASE_S + 2, TREEBASE_S + 2, TREEBASE_S + 11, TREEBASE_S + 15},
+			{TREEBASE_S + 2, TREEBASE_S + 7, TREEBASE_S + 2, TREEBASE_S + 2},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Rainforest,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 3, TREEBASE_S + 3, TREEBASE_S + 2, TREEBASE_S + 4},
+			{TREEBASE_S + 3, TREEBASE_S + 6, TREEBASE_S + 3, TREEBASE_S + 3},
+			{TREEBASE_S + 3, TREEBASE_S + 3, TREEBASE_S + 8, TREEBASE_S + 17},
+			{TREEBASE_S + 3, TREEBASE_S + 7, TREEBASE_S + 3, TREEBASE_S + 16},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Rainforest,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 6, TREEBASE_S + 3, TREEBASE_S + 6, TREEBASE_S + 5},
+			{TREEBASE_S + 6, TREEBASE_S + 6, TREEBASE_S + 3, TREEBASE_S + 11},
+			{TREEBASE_S + 6, TREEBASE_S + 2, TREEBASE_S + 8, TREEBASE_S + 6},
+			{TREEBASE_S + 6, TREEBASE_S + 15, TREEBASE_S + 3, TREEBASE_S + 6},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Rainforest,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 7, TREEBASE_S + 7, TREEBASE_S + 2, TREEBASE_S + 17},
+			{TREEBASE_S + 7, TREEBASE_S + 8, TREEBASE_S + 3, TREEBASE_S + 7},
+			{TREEBASE_S + 7, TREEBASE_S + 2, TREEBASE_S + 15, TREEBASE_S + 6},
+			{TREEBASE_S + 7, TREEBASE_S + 7, TREEBASE_S + 3, TREEBASE_S + 17},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Rainforest,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 11, TREEBASE_S + 11, TREEBASE_S + 7, TREEBASE_S + 7},
+			{TREEBASE_S + 11, TREEBASE_S + 17, TREEBASE_S + 3, TREEBASE_S + 11},
+			{TREEBASE_S + 11, TREEBASE_S + 3, TREEBASE_S + 15, TREEBASE_S + 11},
+			{TREEBASE_S + 11, TREEBASE_S + 15, TREEBASE_S + 3, TREEBASE_S + 16},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Rainforest,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 16, TREEBASE_S + 16, TREEBASE_S + 7, TREEBASE_S + 17},
+			{TREEBASE_S + 16, TREEBASE_S + 3, TREEBASE_S + 4, TREEBASE_S + 6},
+			{TREEBASE_S + 16, TREEBASE_S + 3, TREEBASE_S + 15, TREEBASE_S + 11},
+			{TREEBASE_S + 16, TREEBASE_S + 15, TREEBASE_S + 16, TREEBASE_S + 17},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Rainforest,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 15, TREEBASE_S + 15, TREEBASE_S + 5, TREEBASE_S + 3},
+			{TREEBASE_S + 15, TREEBASE_S + 15, TREEBASE_S + 2, TREEBASE_S + 3},
+			{TREEBASE_S + 15, TREEBASE_S + 3, TREEBASE_S + 15, TREEBASE_S + 15},
+			{TREEBASE_S + 15, TREEBASE_S + 15, TREEBASE_S + 16, TREEBASE_S + 17},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Rainforest,
+	},
+	// Sub-tropic, cactus
+	{
+		.trees = {{
+			{TREEBASE_S + 13, TREEBASE_S + 13, TREEBASE_S + 14, TREEBASE_S + 13},
+			{TREEBASE_S + 13, TREEBASE_S + 14, TREEBASE_S + 13, TREEBASE_S + 14},
+			{TREEBASE_S + 13, TREEBASE_S + 14, TREEBASE_S + 14, TREEBASE_S + 13},
+			{TREEBASE_S + 13, TREEBASE_S + 13, TREEBASE_S + 13, TREEBASE_S + 14},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Desert,
+		.probability = 12,
+	},
+	// Sub-tropic, non-tropical
+	{
+		.trees = {{
+			{TREEBASE_S + 9, TREEBASE_S + 0, TREEBASE_S + 9, TREEBASE_S + 1},
+			{TREEBASE_S + 9, TREEBASE_S + 2, TREEBASE_S + 9, TREEBASE_S + 10},
+			{TREEBASE_S + 9, TREEBASE_S + 9, TREEBASE_S + 12, TREEBASE_S + 0},
+			{TREEBASE_S + 9, TREEBASE_S + 12, TREEBASE_S + 9, TREEBASE_S + 9},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Normal,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 12, TREEBASE_S + 12, TREEBASE_S + 9, TREEBASE_S + 0},
+			{TREEBASE_S + 12, TREEBASE_S + 6, TREEBASE_S + 9, TREEBASE_S + 12},
+			{TREEBASE_S + 12, TREEBASE_S + 9, TREEBASE_S + 12, TREEBASE_S + 1},
+			{TREEBASE_S + 12, TREEBASE_S + 12, TREEBASE_S + 9, TREEBASE_S + 10},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Normal,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 0, TREEBASE_S + 0, TREEBASE_S + 12, TREEBASE_S + 1},
+			{TREEBASE_S + 0, TREEBASE_S + 7, TREEBASE_S + 10, TREEBASE_S + 0},
+			{TREEBASE_S + 0, TREEBASE_S + 1, TREEBASE_S + 17, TREEBASE_S + 0},
+			{TREEBASE_S + 0, TREEBASE_S + 0, TREEBASE_S + 9, TREEBASE_S + 16},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Normal,
+	},
+	{
+		.trees = {{
+			{TREEBASE_S + 17, TREEBASE_S + 1, TREEBASE_S + 9, TREEBASE_S + 17},
+			{TREEBASE_S + 17, TREEBASE_S + 17, TREEBASE_S + 9, TREEBASE_S + 0},
+			{TREEBASE_S + 17, TREEBASE_S + 1, TREEBASE_S + 17, TREEBASE_S + 0},
+			{TREEBASE_S + 17, TREEBASE_S + 17, TREEBASE_S + 12, TREEBASE_S + 16},
+		}},
+		.landscapes = LandscapeType::Tropic,
+		.tropiczones = TropicZone::Normal,
+	},
+	// Toyland
+	{
+		.trees = {{
+			{TREEBASE_Y + 0, TREEBASE_Y + 0, TREEBASE_Y + 0, TREEBASE_Y + 0},
+			{TREEBASE_Y + 0, TREEBASE_Y + 0, TREEBASE_Y + 0, TREEBASE_Y + 0},
+			{TREEBASE_Y + 0, TREEBASE_Y + 0, TREEBASE_Y + 0, TREEBASE_Y + 0},
+			{TREEBASE_Y + 0, TREEBASE_Y + 0, TREEBASE_Y + 0, TREEBASE_Y + 0},
+		}},
+		.palettes = {{
+			{PALETTE_TO_RED,    PALETTE_TO_PALE_GREEN, PALETTE_TO_MAUVE, PALETTE_TO_PURPLE},
+			{PAL_NONE,          PALETTE_TO_GREY,       PALETTE_TO_GREEN, PALETTE_TO_WHITE},
+			{PALETTE_TO_GREEN,  PALETTE_TO_ORANGE,     PALETTE_TO_PINK,  PAL_NONE},
+			{PALETTE_TO_YELLOW, PALETTE_TO_RED,        PALETTE_TO_CREAM, PALETTE_TO_RED},
+		}},
+		.landscapes = LandscapeType::Toyland,
+	},
+	{
+		.trees = {{
+			{TREEBASE_Y + 1, TREEBASE_Y + 1, TREEBASE_Y + 1, TREEBASE_Y + 1},
+			{TREEBASE_Y + 1, TREEBASE_Y + 1, TREEBASE_Y + 1, TREEBASE_Y + 1},
+			{TREEBASE_Y + 1, TREEBASE_Y + 1, TREEBASE_Y + 1, TREEBASE_Y + 1},
+			{TREEBASE_Y + 1, TREEBASE_Y + 1, TREEBASE_Y + 1, TREEBASE_Y + 1},
+		}},
+		.palettes = {{
+			{PAL_NONE,          PALETTE_TO_RED,        PALETTE_TO_PINK,   PALETTE_TO_PURPLE},
+			{PALETTE_TO_MAUVE,  PALETTE_TO_GREEN,      PALETTE_TO_PINK,   PALETTE_TO_GREY},
+			{PALETTE_TO_RED,    PALETTE_TO_PALE_GREEN, PALETTE_TO_YELLOW, PALETTE_TO_WHITE},
+			{PALETTE_TO_ORANGE, PALETTE_TO_MAUVE,      PALETTE_TO_CREAM,  PALETTE_TO_BROWN},
+		}},
+		.landscapes = LandscapeType::Toyland,
+	},
+	{
+		.trees = {{
+			{TREEBASE_Y + 2, TREEBASE_Y + 2, TREEBASE_Y + 2, TREEBASE_Y + 2},
+			{TREEBASE_Y + 2, TREEBASE_Y + 2, TREEBASE_Y + 2, TREEBASE_Y + 2},
+			{TREEBASE_Y + 2, TREEBASE_Y + 2, TREEBASE_Y + 2, TREEBASE_Y + 2},
+			{TREEBASE_Y + 2, TREEBASE_Y + 2, TREEBASE_Y + 2, TREEBASE_Y + 2},
+		}},
+		.palettes = {{
+			{PALETTE_TO_RED,    PAL_NONE,         PALETTE_TO_ORANGE,     PALETTE_TO_GREY},
+			{PALETTE_TO_ORANGE, PALETTE_TO_GREEN, PALETTE_TO_PALE_GREEN, PALETTE_TO_MAUVE},
+			{PALETTE_TO_PINK,   PALETTE_TO_RED,   PALETTE_TO_GREEN,      PALETTE_TO_BROWN},
+			{PALETTE_TO_GREEN,  PAL_NONE,         PALETTE_TO_RED,        PALETTE_TO_CREAM},
+		}},
+		.landscapes = LandscapeType::Toyland,
+	},
+	{
+		.trees = {{
+			{TREEBASE_Y + 3, TREEBASE_Y + 3, TREEBASE_Y + 3, TREEBASE_Y + 3},
+			{TREEBASE_Y + 3, TREEBASE_Y + 3, TREEBASE_Y + 3, TREEBASE_Y + 3},
+			{TREEBASE_Y + 3, TREEBASE_Y + 3, TREEBASE_Y + 3, TREEBASE_Y + 3},
+			{TREEBASE_Y + 3, TREEBASE_Y + 3, TREEBASE_Y + 3, TREEBASE_Y + 3},
+		}},
+		/* No palettes */
+		.landscapes = LandscapeType::Toyland,
+	},
+	{
+		.trees = {{
+			{TREEBASE_Y + 4, TREEBASE_Y + 4, TREEBASE_Y + 4, TREEBASE_Y + 4},
+			{TREEBASE_Y + 4, TREEBASE_Y + 4, TREEBASE_Y + 4, TREEBASE_Y + 4},
+			{TREEBASE_Y + 4, TREEBASE_Y + 4, TREEBASE_Y + 4, TREEBASE_Y + 4},
+			{TREEBASE_Y + 4, TREEBASE_Y + 4, TREEBASE_Y + 4, TREEBASE_Y + 4},
+		}},
+		.palettes = {{
+			{PALETTE_TO_PINK,  PALETTE_TO_RED,        PALETTE_TO_ORANGE, PALETTE_TO_MAUVE},
+			{PALETTE_TO_RED,   PAL_NONE,              PALETTE_TO_GREY,   PALETTE_TO_CREAM},
+			{PALETTE_TO_GREEN, PALETTE_TO_BROWN,      PALETTE_TO_PINK,   PALETTE_TO_RED},
+			{PAL_NONE,         PALETTE_TO_PALE_GREEN, PALETTE_TO_ORANGE, PALETTE_TO_RED},
+
+		}},
+		.landscapes = LandscapeType::Toyland,
+	},
+	{
+		.trees = {{
+			{TREEBASE_Y + 5, TREEBASE_Y + 5, TREEBASE_Y + 5, TREEBASE_Y + 5},
+			{TREEBASE_Y + 5, TREEBASE_Y + 5, TREEBASE_Y + 5, TREEBASE_Y + 5},
+			{TREEBASE_Y + 5, TREEBASE_Y + 5, TREEBASE_Y + 5, TREEBASE_Y + 5},
+			{TREEBASE_Y + 5, TREEBASE_Y + 5, TREEBASE_Y + 5, TREEBASE_Y + 5},
+		}},
+		.palettes = {{
+			{PALETTE_TO_RED,   PALETTE_TO_PINK,  PALETTE_TO_GREEN,      PAL_NONE},
+			{PALETTE_TO_GREEN, PALETTE_TO_BROWN, PALETTE_TO_PURPLE,     PALETTE_TO_GREY},
+			{PALETTE_TO_MAUVE, PALETTE_TO_CREAM, PALETTE_TO_ORANGE,     PALETTE_TO_RED},
+			{PAL_NONE,         PALETTE_TO_RED,   PALETTE_TO_PALE_GREEN, PALETTE_TO_PINK},
+		}},
+		.landscapes = LandscapeType::Toyland,
+	},
+	{
+		.trees = {{
+			{TREEBASE_Y + 6, TREEBASE_Y + 6, TREEBASE_Y + 6, TREEBASE_Y + 6},
+			{TREEBASE_Y + 6, TREEBASE_Y + 6, TREEBASE_Y + 6, TREEBASE_Y + 6},
+			{TREEBASE_Y + 6, TREEBASE_Y + 6, TREEBASE_Y + 6, TREEBASE_Y + 6},
+			{TREEBASE_Y + 6, TREEBASE_Y + 6, TREEBASE_Y + 6, TREEBASE_Y + 6},
+		}},
+		.palettes = {{
+			{PALETTE_TO_YELLOW, PALETTE_TO_RED,        PALETTE_TO_WHITE, PALETTE_TO_CREAM},
+			{PALETTE_TO_RED,    PALETTE_TO_PALE_GREEN, PALETTE_TO_BROWN, PALETTE_TO_YELLOW},
+			{PAL_NONE,          PALETTE_TO_PURPLE,     PALETTE_TO_GREEN, PALETTE_TO_YELLOW},
+			{PALETTE_TO_PINK,   PALETTE_TO_CREAM,      PAL_NONE,         PALETTE_TO_GREY},
+		}},
+		.landscapes = LandscapeType::Toyland,
+	},
+	{
+		.trees = {{
+			{TREEBASE_Y + 7, TREEBASE_Y + 7, TREEBASE_Y + 7, TREEBASE_Y + 7},
+			{TREEBASE_Y + 7, TREEBASE_Y + 7, TREEBASE_Y + 7, TREEBASE_Y + 7},
+			{TREEBASE_Y + 7, TREEBASE_Y + 7, TREEBASE_Y + 7, TREEBASE_Y + 7},
+			{TREEBASE_Y + 7, TREEBASE_Y + 7, TREEBASE_Y + 7, TREEBASE_Y + 7},
+		}},
+		.palettes = {{
+			{PALETTE_TO_YELLOW, PALETTE_TO_GREY,       PALETTE_TO_PURPLE, PALETTE_TO_BROWN},
+			{PALETTE_TO_GREEN,  PAL_NONE,              PALETTE_TO_CREAM,  PALETTE_TO_WHITE},
+			{PALETTE_TO_RED,    PALETTE_TO_PALE_GREEN, PALETTE_TO_MAUVE,  PALETTE_TO_RED},
+			{PALETTE_TO_PINK,   PALETTE_TO_ORANGE,     PALETTE_TO_GREEN,  PALETTE_TO_YELLOW},
+		}},
+		.landscapes = LandscapeType::Toyland,
+	},
+	{
+		.trees = {{
+			{TREEBASE_Y + 8, TREEBASE_Y + 8, TREEBASE_Y + 8, TREEBASE_Y + 8},
+			{TREEBASE_Y + 8, TREEBASE_Y + 8, TREEBASE_Y + 8, TREEBASE_Y + 8},
+			{TREEBASE_Y + 8, TREEBASE_Y + 8, TREEBASE_Y + 8, TREEBASE_Y + 8},
+			{TREEBASE_Y + 8, TREEBASE_Y + 8, TREEBASE_Y + 8, TREEBASE_Y + 8},
+		}},
+		.palettes = {{
+			{PALETTE_TO_RED,    PALETTE_TO_PINK,       PALETTE_TO_BROWN, PALETTE_TO_WHITE},
+			{PALETTE_TO_GREEN,  PALETTE_TO_ORANGE,     PALETTE_TO_GREY,  PALETTE_TO_MAUVE},
+			{PALETTE_TO_YELLOW, PALETTE_TO_PALE_GREEN, PAL_NONE,         PALETTE_TO_CREAM},
+			{PALETTE_TO_GREY,   PALETTE_TO_RED,        PALETTE_TO_WHITE, PAL_NONE},
+		}},
+		.landscapes = LandscapeType::Toyland,
+	},
 };
 
 #endif /* TREE_LAND_H */
