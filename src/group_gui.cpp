@@ -531,12 +531,16 @@ public:
 	 */
 	void OnInvalidateData([[maybe_unused]] int data = 0, [[maybe_unused]] bool gui_scope = true) override
 	{
-		if (data == 0) {
-			/* This needs to be done in command-scope to enforce rebuilding before resorting invalid data */
+		/* This needs to be done in command-scope to enforce rebuilding before resorting invalid data */
+		VehicleListInvalidations vli(data);
+		if (vli.Test(VehicleListInvalidation::RebuildVehicles)) {
 			this->vehgroups.ForceRebuild();
-			this->groups.ForceRebuild();
-		} else {
+		} else if (vli.Test(VehicleListInvalidation::ResortVehicles)) {
 			this->vehgroups.ForceResort();
+		}
+		if (vli.Test(VehicleListInvalidation::RebuildGroups)) {
+			this->groups.ForceRebuild();
+		} else if (vli.Test(VehicleListInvalidation::ResortGroups)) {
 			this->groups.ForceResort();
 		}
 

@@ -38,6 +38,15 @@ enum VehicleInvalidateWindowData : int {
 	VIWD_AUTOREPLACE       = -4, ///< Autoreplace replaced the vehicle.
 };
 
+/** The things of a vehicle list window that can be invalidated. */
+enum class VehicleListInvalidation : uint8_t {
+	RebuildVehicles, ///< Set to rebuild vehicles.
+	ResortVehicles, ///< Set to resort vehicles.
+	RebuildGroups, ///< Set to rebuild groups.
+	ResortGroups, ///< Set to resort groups.
+};
+using VehicleListInvalidations = EnumBitSet<VehicleListInvalidation, uint8_t>;
+
 /** Extra information about refitted cargo and capacity */
 struct TestedEngineDetails {
 	Money cost;           ///< Refit cost

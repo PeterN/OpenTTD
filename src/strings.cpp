@@ -11,6 +11,7 @@
 #include "currency.h"
 #include "station_base.h"
 #include "town.h"
+#include "vehicle_gui.h"
 #include "waypoint_base.h"
 #include "depot_base.h"
 #include "industry.h"
@@ -2139,10 +2140,11 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 	BuildIndustriesLegend();
 	BuildContentTypeStringList();
 	InvalidateWindowClassesData(WC_BUILD_VEHICLE);      // Build vehicle window.
-	InvalidateWindowClassesData(WC_TRAINS_LIST);        // Train group window.
-	InvalidateWindowClassesData(WC_ROADVEH_LIST);       // Road vehicle group window.
-	InvalidateWindowClassesData(WC_SHIPS_LIST);         // Ship group window.
-	InvalidateWindowClassesData(WC_AIRCRAFT_LIST);      // Aircraft group window.
+	VehicleListInvalidations vli{VehicleListInvalidation::ResortVehicles,VehicleListInvalidation::ResortGroups};
+	InvalidateWindowClassesData(WC_TRAINS_LIST, vli); // Train group window.
+	InvalidateWindowClassesData(WC_ROADVEH_LIST, vli); // Road vehicle group window.
+	InvalidateWindowClassesData(WC_SHIPS_LIST, vli); // Ship group window.
+	InvalidateWindowClassesData(WC_AIRCRAFT_LIST, vli); // Aircraft group window.
 	InvalidateWindowClassesData(WC_INDUSTRY_DIRECTORY); // Industry directory window.
 	InvalidateWindowClassesData(WC_STATION_LIST);       // Station list window.
 

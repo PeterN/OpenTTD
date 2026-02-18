@@ -904,7 +904,8 @@ void InsertOrder(Vehicle *v, Order &&new_o, VehicleOrderID sel_ord)
 	}
 
 	/* Make sure to rebuild the whole list */
-	InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), 0);
+	VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+	InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), vli);
 }
 
 /**
@@ -917,7 +918,8 @@ static CommandCost DecloneOrder(Vehicle *dst, DoCommandFlags flags)
 	if (flags.Test(DoCommandFlag::Execute)) {
 		DeleteVehicleOrders(dst);
 		InvalidateVehicleOrder(dst, VIWD_REMOVE_ALL_ORDERS);
-		InvalidateWindowClassesData(GetWindowClassForVehicleType(dst->type), 0);
+		VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+		InvalidateWindowClassesData(GetWindowClassForVehicleType(dst->type), vli);
 	}
 	return CommandCost();
 }
@@ -1021,7 +1023,8 @@ void DeleteOrder(Vehicle *v, VehicleOrderID sel_ord)
 		cur_order_id++;
 	}
 
-	InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), 0);
+	VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+	InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), vli);
 }
 
 /**
@@ -1150,7 +1153,8 @@ CommandCost CmdMoveOrder(DoCommandFlags flags, VehicleID veh, VehicleOrderID mov
 		}
 
 		/* Make sure to rebuild the whole list */
-		InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), 0);
+		VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+		InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), vli);
 	}
 
 	return CommandCost();
@@ -1550,7 +1554,8 @@ CommandCost CmdCloneOrder(DoCommandFlags flags, CloneOptions action, VehicleID v
 				InvalidateVehicleOrder(dst, VIWD_REMOVE_ALL_ORDERS);
 				InvalidateVehicleOrder(src, VIWD_MODIFY_ORDERS);
 
-				InvalidateWindowClassesData(GetWindowClassForVehicleType(dst->type), 0);
+				VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+				InvalidateWindowClassesData(GetWindowClassForVehicleType(dst->type), vli);
 			}
 			break;
 		}
@@ -1606,7 +1611,8 @@ CommandCost CmdCloneOrder(DoCommandFlags flags, CloneOptions action, VehicleID v
 
 				InvalidateVehicleOrder(dst, VIWD_REMOVE_ALL_ORDERS);
 
-				InvalidateWindowClassesData(GetWindowClassForVehicleType(dst->type), 0);
+				VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+				InvalidateWindowClassesData(GetWindowClassForVehicleType(dst->type), vli);
 			}
 			break;
 		}

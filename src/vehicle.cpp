@@ -305,7 +305,8 @@ uint Vehicle::Crash(bool)
 	}
 
 	/* Dirty some windows */
-	InvalidateWindowClassesData(GetWindowClassForVehicleType(this->type), 0);
+	VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+	InvalidateWindowClassesData(GetWindowClassForVehicleType(this->type), vli);
 	SetWindowWidgetDirty(WC_VEHICLE_VIEW, this->index, WID_VV_START_STOP);
 	SetWindowDirty(WC_VEHICLE_DETAILS, this->index);
 	SetWindowDirty(WC_VEHICLE_DEPOT, this->tile);
@@ -852,7 +853,8 @@ void Vehicle::PreDestructor()
 		SetWindowDirty(WC_COMPANY, this->owner);
 		OrderBackup::ClearVehicle(this);
 	}
-	InvalidateWindowClassesData(GetWindowClassForVehicleType(this->type), 0);
+	VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+	InvalidateWindowClassesData(GetWindowClassForVehicleType(this->type), vli);
 
 	this->cargo.Truncate();
 	DeleteVehicleOrders(this);

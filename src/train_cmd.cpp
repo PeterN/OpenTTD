@@ -1394,7 +1394,8 @@ CommandCost CmdMoveRailVehicle(DoCommandFlags flags, VehicleID src_veh, VehicleI
 
 		/* We are undoubtedly changing something in the depot and train list. */
 		InvalidateWindowData(WC_VEHICLE_DEPOT, src->tile);
-		InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
+		VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+		InvalidateWindowClassesData(WC_TRAINS_LIST, vli);
 	} else {
 		/* We don't want to execute what we're just tried. */
 		RestoreTrainBackup(original_src);
@@ -1478,7 +1479,8 @@ CommandCost CmdSellRailWagon(DoCommandFlags flags, Vehicle *t, bool sell_chain, 
 
 		/* We are undoubtedly changing something in the depot and train list. */
 		InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
-		InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
+		VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+		InvalidateWindowClassesData(WC_TRAINS_LIST, vli);
 
 		/* Actually delete the sold 'goods' */
 		delete sell_head;

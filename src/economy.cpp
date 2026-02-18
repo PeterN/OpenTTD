@@ -1993,10 +1993,11 @@ static void DoAcquireCompany(Company *c, bool hostile_takeover)
 	if (c->is_ai) AI::Stop(c->index);
 
 	CloseCompanyWindows(ci);
-	InvalidateWindowClassesData(WC_TRAINS_LIST, 0);
-	InvalidateWindowClassesData(WC_SHIPS_LIST, 0);
-	InvalidateWindowClassesData(WC_ROADVEH_LIST, 0);
-	InvalidateWindowClassesData(WC_AIRCRAFT_LIST, 0);
+	VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles,VehicleListInvalidation::RebuildGroups};
+	InvalidateWindowClassesData(WC_TRAINS_LIST, vli);
+	InvalidateWindowClassesData(WC_SHIPS_LIST, vli);
+	InvalidateWindowClassesData(WC_ROADVEH_LIST, vli);
+	InvalidateWindowClassesData(WC_AIRCRAFT_LIST, vli);
 	InvalidateWindowData(WC_CLIENT_LIST, 0);
 
 	delete c;

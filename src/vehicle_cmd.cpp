@@ -192,7 +192,8 @@ std::tuple<CommandCost, VehicleID, uint, uint16_t, CargoArray> CmdBuildVehicle(D
 			}
 
 			InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
-			InvalidateWindowClassesData(GetWindowClassForVehicleType(type), 0);
+			VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+			InvalidateWindowClassesData(GetWindowClassForVehicleType(type), vli);
 			SetWindowDirty(WC_COMPANY, _current_company);
 			if (IsLocalCompany()) {
 				InvalidateAutoreplaceWindow(v->engine_type, v->group_id); // updates the auto replace window (must be called before incrementing num_engines)
@@ -554,7 +555,8 @@ std::tuple<CommandCost, uint, uint16_t, CargoArray> CmdRefitVehicle(DoCommandFla
 
 		if (!free_wagon) {
 			InvalidateWindowData(WC_VEHICLE_DETAILS, front->index);
-			InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), 0);
+			VehicleListInvalidations vli{VehicleListInvalidation::RebuildVehicles};
+			InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), vli);
 		}
 		SetWindowDirty(WC_VEHICLE_DEPOT, front->tile);
 	} else {
@@ -1096,7 +1098,8 @@ CommandCost CmdRenameVehicle(DoCommandFlags flags, VehicleID veh_id, const std::
 		} else {
 			v->name = text;
 		}
-		InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), 1);
+		VehicleListInvalidations vli{VehicleListInvalidation::ResortVehicles};
+		InvalidateWindowClassesData(GetWindowClassForVehicleType(v->type), vli);
 		MarkWholeScreenDirty();
 	}
 
