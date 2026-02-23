@@ -8,6 +8,7 @@
 /** @file train_cmd.cpp Handling of trains. */
 
 #include "stdafx.h"
+#include "core/container_func.hpp"
 #include "error.h"
 #include "articulated_vehicles.h"
 #include "command_func.h"
@@ -3264,17 +3265,18 @@ static bool CheckTrainCollision(Train *v)
 	uint num_victims = 0;
 
 	/* find colliding vehicles */
+	std::vector<VehicleID> vehicles;
 	if (v->track == TRACK_BIT_WORMHOLE) {
-		for (Vehicle *u : VehiclesOnTile(v->tile)) {
-			num_victims += CheckTrainCollision(u, v);
-		}
-		for (Vehicle *u : VehiclesOnTile(GetOtherTunnelBridgeEnd(v->tile))) {
-			num_victims += CheckTrainCollision(u, v);
-		}
+		for (const Vehicle *u : VehiclesOnTile(v->tile)) include(vehicles, u->index);
+		for (const Vehicle *u : VehiclesOnTile(GetOtherTunnelBridgeEnd(v->tile))) include(vehicles, u->index);
 	} else {
-		for (Vehicle *u : VehiclesNearTileXY(v->x_pos, v->y_pos, 7)) {
-			num_victims += CheckTrainCollision(u, v);
-		}
+		for (const Vehicle *u : VehiclesNearTileXY(v->x_pos, v->y_pos, 7)) include(vehicles, u->index);
+	}
+
+	std::ranges::sort(vehicles);
+	for (const VehicleID &vehicle_id : vehicles)
+	{
+		num_victims += CheckTrainCollision(Vehicle::Get(vehicle_id), v);
 	}
 
 	/* any dead -> no crash */

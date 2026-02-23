@@ -8,6 +8,7 @@
 /** @file water_cmd.cpp Handling of water tiles. */
 
 #include "stdafx.h"
+#include "core/container_func.hpp"
 #include "landscape.h"
 #include "viewport_func.h"
 #include "command_func.h"
@@ -1098,8 +1099,12 @@ static void FloodVehicleProc(Vehicle *v, int z)
 
 static void FloodVehiclesOnTile(TileIndex tile, int z)
 {
-	for (Vehicle *v : VehiclesOnTile(tile)) {
-		FloodVehicleProc(v, z);
+	std::vector<VehicleID> vehicles;
+	for (const Vehicle *v : VehiclesOnTile(tile)) include(vehicles, v->index);
+
+	std::ranges::sort(vehicles);
+	for (const VehicleID &vehicle_id : vehicles) {
+		FloodVehicleProc(Vehicle::Get(vehicle_id), z);
 	}
 }
 
