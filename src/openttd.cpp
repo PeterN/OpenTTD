@@ -664,6 +664,8 @@ int openttd_main(std::span<std::string_view> arguments)
 	}
 
 	DeterminePaths(arguments[0], only_local_path);
+	SocialIntegration::Initialize();
+	DeterminePaths(arguments[0], only_local_path);
 	TarScanner::DoScan(TarScanner::Mode::Baseset);
 
 	if (dedicated) Debug(net, 3, "Starting dedicated server, version {}", _openttd_revision);
@@ -760,7 +762,6 @@ int openttd_main(std::span<std::string_view> arguments)
 	/* The video driver is now selected, now initialise GUI zoom */
 	UpdateGUIZoom();
 
-	SocialIntegration::Initialize();
 	NetworkStartUp(); // initialize network-core
 
 	if (!HandleBootstrap()) {

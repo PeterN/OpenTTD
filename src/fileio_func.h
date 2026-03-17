@@ -30,6 +30,8 @@ std::unique_ptr<char[]> ReadFileToMem(const std::string &filename, size_t &lenp,
 bool FileExists(std::string_view filename);
 bool ExtractTar(const std::string &tar_filename, Subdirectory subdir);
 
+void SetAdditionalSearchPath(std::string_view path);
+
 extern std::string _personal_dir; ///< custom directory for personal settings, saves, newgrf, etc.
 extern std::vector<Searchpath> _valid_searchpaths;
 

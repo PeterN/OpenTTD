@@ -58,6 +58,11 @@ public:
 	static void RunCallbacks();
 
 	/**
+	 * Add search paths that may be provided by the integration library.
+	 */
+	static void AddSearchPaths();
+
+	/**
 	 * Event: user entered the main menu.
 	 */
 	static void EventEnterMainMenu();

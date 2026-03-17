@@ -16,6 +16,7 @@
 #include "fileio_func.h"
 #include "library_loader.h"
 #include "rev.h"
+#include "settings_type.h"
 #include "string_func.h"
 #include "signature.h"
 
@@ -38,9 +39,9 @@ public:
 		this->library = std::make_unique<LibraryLoader>(filename);
 	}
 
-	OpenTTD_SocialIntegration_v1_PluginInfo plugin_info = {}; ///< Information supplied by plugin.
-	OpenTTD_SocialIntegration_v1_PluginApi plugin_api = {}; ///< API supplied by plugin.
-	OpenTTD_SocialIntegration_v1_OpenTTDInfo openttd_info = {}; ///< Information supplied by OpenTTD.
+	OpenTTD_SocialIntegration_v2_PluginInfo plugin_info = {}; ///< Information supplied by plugin.
+	OpenTTD_SocialIntegration_v2_PluginApi plugin_api = {}; ///< API supplied by plugin.
+	OpenTTD_SocialIntegration_v2_OpenTTDInfo openttd_info = {}; ///< Information supplied by OpenTTD.
 
 	std::unique_ptr<LibraryLoader> library = nullptr; ///< Library handle.
 
@@ -85,19 +86,19 @@ public:
 			return false;
 		}
 
-		OpenTTD_SocialIntegration_v1_GetInfo getinfo_func = plugin->library->GetFunction("SocialIntegration_v1_GetInfo");
+		OpenTTD_SocialIntegration_v2_GetInfo getinfo_func = plugin->library->GetFunction("SocialIntegration_v2_GetInfo");
 		if (plugin->library->HasError()) {
 			plugin->external.state = SocialIntegrationPlugin::UNSUPPORTED_API;
 
-			Debug(misc, 0, "[Social Integration: {}] Failed to find symbol SocialPlugin_v1_GetInfo: {}", basepath, plugin->library->GetLastError());
+			Debug(misc, 0, "[Social Integration: {}] Failed to find symbol SocialPlugin_v2_GetInfo: {}", basepath, plugin->library->GetLastError());
 			return false;
 		}
 
-		OpenTTD_SocialIntegration_v1_Init init_func = plugin->library->GetFunction("SocialIntegration_v1_Init");
+		OpenTTD_SocialIntegration_v2_Init init_func = plugin->library->GetFunction("SocialIntegration_v2_Init");
 		if (plugin->library->HasError()) {
 			plugin->external.state = SocialIntegrationPlugin::UNSUPPORTED_API;
 
-			Debug(misc, 0, "[Social Integration: {}] Failed to find symbol SocialPlugin_v1_Init: {}", basepath, plugin->library->GetLastError());
+			Debug(misc, 0, "[Social Integration: {}] Failed to find symbol SocialPlugin_v2_Init: {}", basepath, plugin->library->GetLastError());
 			return false;
 		}
 
@@ -122,19 +123,19 @@ public:
 
 		auto state = init_func(&plugin->plugin_api, &plugin->openttd_info);
 		switch (state) {
-			case OTTD_SOCIAL_INTEGRATION_V1_INIT_SUCCESS:
+			case OTTD_SOCIAL_INTEGRATION_V2_INIT_SUCCESS:
 				plugin->external.state = SocialIntegrationPlugin::RUNNING;
 
 				Debug(misc, 1, "[Social Integration: {}] Loaded for {}: {} ({})", basepath, plugin->plugin_info.social_platform, plugin->plugin_info.name, plugin->plugin_info.version);
 				return true;
 
-			case OTTD_SOCIAL_INTEGRATION_V1_INIT_FAILED:
+			case OTTD_SOCIAL_INTEGRATION_V2_INIT_FAILED:
 				plugin->external.state = SocialIntegrationPlugin::FAILED;
 
 				Debug(misc, 0, "[Social Integration: {}] Failed to initialize", basepath);
 				return false;
 
-			case OTTD_SOCIAL_INTEGRATION_V1_INIT_PLATFORM_NOT_RUNNING:
+			case OTTD_SOCIAL_INTEGRATION_V2_INIT_PLATFORM_NOT_RUNNING:
 				plugin->external.state = SocialIntegrationPlugin::PLATFORM_NOT_RUNNING;
 
 				Debug(misc, 1, "[Social Integration: {}] Failed to initialize: {} is not running", basepath, plugin->plugin_info.social_platform);
@@ -208,6 +209,21 @@ void SocialIntegration::RunCallbacks()
 				PluginCall(plugin, plugin->plugin_api.shutdown);
 			}
 		}
+	}
+}
+
+void SocialIntegration::AddSearchPaths()
+{
+	for (auto &plugin : _plugins) {
+		if (plugin->external.state != SocialIntegrationPlugin::RUNNING) continue;
+		if (plugin->plugin_api.add_search_paths == nullptr) continue;
+
+		char path[1024];
+		const char *path_last = path + sizeof(path);
+		char *last = plugin->plugin_api.add_search_paths(path, path_last);
+		if (last == nullptr || last == path) continue;
+
+		SetAdditionalSearchPath({path, last});
 	}
 }
 
