@@ -271,8 +271,8 @@ protected:
 
 		/* road depots can be also left in one direction only */
 		if (IsRoadTT() && IsDepotTypeTile(this->old_tile, TT())) {
-			DiagDirection exitdir = GetRoadDepotDirection(this->old_tile);
-			if (exitdir != this->exitdir) {
+			DiagDirections dirs = RoadBitsToDiagDirs(GetRoadBits(this->old_tile, this->IsTram() ? RTT_TRAM : RTT_ROAD));
+			if (!dirs.Test(ReverseDiagDir(this->exitdir))) {
 				this->err = EC_NO_WAY;
 				return false;
 			}
@@ -303,8 +303,8 @@ protected:
 
 		/* road and rail depots can also be entered from one direction only */
 		if (IsRoadTT() && IsDepotTypeTile(this->new_tile, TT())) {
-			DiagDirection exitdir = GetRoadDepotDirection(this->new_tile);
-			if (ReverseDiagDir(exitdir) != this->exitdir) {
+			DiagDirections dirs = RoadBitsToDiagDirs(GetRoadBits(this->new_tile, this->IsTram() ? RTT_TRAM : RTT_ROAD));
+			if (!dirs.Test(ReverseDiagDir(this->exitdir))) {
 				this->err = EC_NO_WAY;
 				return false;
 			}
@@ -392,8 +392,8 @@ protected:
 	inline bool ForcedReverse()
 	{
 		/* rail and road depots cause reversing */
-		if (!IsWaterTT() && IsDepotTypeTile(this->old_tile, TT())) {
-			DiagDirection exitdir = IsRailTT() ? GetRailDepotDirection(this->old_tile) : GetRoadDepotDirection(this->old_tile);
+		if (IsRailTT() && IsDepotTypeTile(this->old_tile, TT())) {
+			DiagDirection exitdir = GetRailDepotDirection(this->old_tile);
 			if (exitdir != this->exitdir) {
 				/* reverse */
 				this->new_tile = this->old_tile;

@@ -37,6 +37,7 @@ enum class VehState : uint8_t {
 	TrainSlowing   = 4, ///< Train is slowing down.
 	Shadow         = 5, ///< Vehicle is a shadow vehicle.
 	AircraftBroken = 6, ///< Aircraft is broken down.
+	LeavingDepot   = 6, ///< Train or Road vehicle is leaving depot.
 	Crashed        = 7, ///< Vehicle is crashed.
 };
 using VehStates = EnumBitSet<VehState, uint8_t>;

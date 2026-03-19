@@ -99,6 +99,8 @@ inline RoadBits DiagDirToRoadBits(DiagDirection d)
 	return (RoadBits)(ROAD_NW << (3 ^ d));
 }
 
+DiagDirections RoadBitsToDiagDirs(RoadBits r);
+
 /**
  * Create the road-part which belongs to the given Axis
  *

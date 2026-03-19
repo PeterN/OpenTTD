@@ -1148,6 +1148,8 @@ CommandCost CmdBuildRoadDepot(DoCommandFlags flags, TileIndex tile, RoadType rt,
 		cost.AddCost(_price[Price::BuildFoundation]);
 	}
 
+	RoadBits bits = DiagDirToRoadBits(dir);
+
 	/* Allow the user to rotate the depot instead of having to destroy it and build it again */
 	bool rotate_existing_depot = false;
 	if (IsRoadDepotTile(tile) && (HasRoadTypeTram(tile) ? rt == GetRoadTypeTram(tile) : rt == GetRoadTypeRoad(tile)))
@@ -1155,7 +1157,7 @@ CommandCost CmdBuildRoadDepot(DoCommandFlags flags, TileIndex tile, RoadType rt,
 		CommandCost ret = CheckTileOwnership(tile);
 		if (ret.Failed()) return ret;
 
-		if (dir == GetRoadDepotDirection(tile)) return CommandCost();
+		if ((bits & GetRoadBits(tile, GetRoadTramType(rt))) != 0) return CommandCost();
 
 		ret = EnsureNoVehicleOnGround(tile);
 		if (ret.Failed()) return ret;
@@ -1174,10 +1176,13 @@ CommandCost CmdBuildRoadDepot(DoCommandFlags flags, TileIndex tile, RoadType rt,
 
 	if (flags.Test(DoCommandFlag::Execute)) {
 		if (rotate_existing_depot) {
-			SetRoadDepotExitDirection(tile, dir);
+			SetRoadBits(tile, bits, GetRoadTramType(rt));
 		} else {
 			Depot *dep = Depot::Create(tile);
-			MakeRoadDepot(tile, _current_company, dep->index, dir, rt);
+
+			RoadType road_rt = RoadTypeIsRoad(rt) ? rt : INVALID_ROADTYPE;
+			RoadType tram_rt = RoadTypeIsTram(rt) ? rt : INVALID_ROADTYPE;
+			MakeRoadDepot(tile, _current_company, dep->index, bits, road_rt, tram_rt);
 			MakeDefaultName(dep);
 
 			/* A road depot has two road bits. */
@@ -1705,6 +1710,68 @@ static void DrawRoadBits(TileInfo *ti)
 	}
 }
 
+/**
+ * Convert RoadBits to DiagDirections.
+ * @param r RoadBits to convert.
+ * @return DiagDirections for the given RoadBits.
+ */
+DiagDirections RoadBitsToDiagDirs(RoadBits r)
+{
+	static constexpr DiagDirections roadbits_to_diagdirs[] = {
+		{},
+		{DIAGDIR_NW},
+		{DIAGDIR_SW},
+		{DIAGDIR_NW, DIAGDIR_SW},
+		{DIAGDIR_SE},
+		{DIAGDIR_SE, DIAGDIR_NW},
+		{DIAGDIR_SE, DIAGDIR_SW},
+		{DIAGDIR_SE, DIAGDIR_NW, DIAGDIR_SW},
+		{DIAGDIR_NE},
+		{DIAGDIR_NE, DIAGDIR_NW},
+		{DIAGDIR_NE, DIAGDIR_SW},
+		{DIAGDIR_NE, DIAGDIR_NW, DIAGDIR_SW},
+		{DIAGDIR_NE, DIAGDIR_SE},
+		{DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_NW},
+		{DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_SW},
+		{DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_NW, DIAGDIR_SW},
+	};
+
+	return roadbits_to_diagdirs[r];
+
+	/* Equivalent to:
+	 * DiagDirections dir{};
+	 * if ((r & ROAD_SW) != 0) dir.Set(DIAGDIR_SW);
+	 * if ((r & ROAD_SE) != 0) dir.Set(DIAGDIR_SE);
+	 * if ((r & ROAD_NE) != 0) dir.Set(DIAGDIR_NE);
+	 * if ((r & ROAD_NW) != 0) dir.Set(DIAGDIR_NW);
+	 * return dir;
+	 */
+}
+
+TrackdirBits RoadBitsToTrackdirBits(RoadBits r)
+{
+	static constexpr TrackdirBits roadbits_to_trackdirs[] = {
+		TRACKDIR_BIT_NONE,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE,
+		TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+		TRACKDIR_BIT_Y_NW | TRACKDIR_BIT_Y_SE | TRACKDIR_BIT_X_NE | TRACKDIR_BIT_X_SW,
+	};
+
+	return roadbits_to_trackdirs[r];
+}
+
 /** @copydoc DrawTileProc */
 static void DrawTile_Road(TileInfo *ti)
 {
@@ -1872,12 +1939,17 @@ static void DrawTile_Road(TileInfo *ti)
 				relocation -= SPR_ROAD_DEPOT;
 			}
 
-			DiagDirection dir = GetRoadDepotDirection(ti->tile);
+			RoadBits bits = GetAllRoadBits(ti->tile);
+			DiagDirection dir = DIAGDIR_BEGIN;
+			if ((bits & ROAD_SW) != 0) { dir = DIAGDIR_SW; }
+			else if ((bits & ROAD_SE) != 0) { dir = DIAGDIR_SE; }
+			else if ((bits & ROAD_NE) != 0) { dir = DIAGDIR_NE; }
+			else if ((bits & ROAD_NW) != 0) { dir = DIAGDIR_NW; }
 			const DrawTileSprites *dts = &_road_depot[dir];
 			DrawGroundSprite(dts->ground.sprite, PAL_NONE);
 
 			if (default_gfx) {
-				uint offset = GetRoadSpriteOffset(SLOPE_FLAT, DiagDirToRoadBits(dir));
+				uint offset = GetRoadSpriteOffset(SLOPE_FLAT, bits);
 				if (rti->UsesOverlay()) {
 					SpriteID ground = GetCustomRoadSprite(rti, ti->tile, ROTSG_OVERLAY);
 					if (ground != 0) DrawGroundSprite(ground + offset, PAL_NONE);
@@ -2190,11 +2262,12 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, u
 
 				default:
 				case RoadTileType::Depot: {
-					DiagDirection dir = GetRoadDepotDirection(tile);
+					RoadBits bits = GetRoadBits(tile, rtt);
 
-					if (side != INVALID_DIAGDIR && side != dir) break;
+					/* no roadbit at this side of tile, return 0 */
+					if (side != INVALID_DIAGDIR && (DiagDirToRoadBits(side) & bits) == 0) break;
 
-					trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrackBits(dir));
+					trackdirbits = RoadBitsToTrackdirBits(bits);
 					break;
 				}
 			}
@@ -2300,8 +2373,9 @@ static VehicleEnterTileStates VehicleEnterTile_Road(Vehicle *v, TileIndex tile, 
 			if (v->type != VEH_ROAD) break;
 
 			RoadVehicle *rv = RoadVehicle::From(v);
+			if (rv->vehstatus.Test(VehState::LeavingDepot)) break;
 			if (rv->frame == RVC_DEPOT_STOP_FRAME &&
-					_roadveh_enter_depot_dir[GetRoadDepotDirection(tile)] == rv->state) {
+					_roadveh_enter_depot_dir[DirToDiagDir(ReverseDir(rv->direction))] == rv->state) {
 				rv->state = RVSB_IN_DEPOT;
 				rv->vehstatus.Set(VehState::Hidden);
 				rv->direction = ReverseDir(rv->direction);
@@ -2384,9 +2458,14 @@ static CommandCost TerraformTile_Road(TileIndex tile, DoCommandFlags flags, int 
 				if (!IsSteepSlope(tileh_new) && (GetTileMaxZ(tile) == z_new + GetSlopeMaxZ(tileh_new)) && HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh_new)) return CommandCost(EXPENSES_CONSTRUCTION, _price[Price::BuildFoundation]);
 				break;
 
-			case RoadTileType::Depot:
-				if (AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, GetRoadDepotDirection(tile))) return CommandCost(EXPENSES_CONSTRUCTION, _price[Price::BuildFoundation]);
-				break;
+			case RoadTileType::Depot: {
+				RoadBits bits = GetAllRoadBits(tile);
+				if ((bits & ROAD_SW) != 0 && !AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, DIAGDIR_SW)) break;
+				if ((bits & ROAD_SE) != 0 && !AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, DIAGDIR_SE)) break;
+				if ((bits & ROAD_NE) != 0 && !AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, DIAGDIR_NE)) break;
+				if ((bits & ROAD_NW) != 0 && !AutoslopeCheckForEntranceEdge(tile, z_new, tileh_new, DIAGDIR_NW)) break;
+				return CommandCost(EXPENSES_CONSTRUCTION, _price[Price::BuildFoundation]);
+			}
 
 			case RoadTileType::Normal: {
 				RoadBits bits = GetAllRoadBits(tile);

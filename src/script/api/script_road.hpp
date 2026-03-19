@@ -290,6 +290,14 @@ public:
 	static TileIndex GetRoadDepotFrontTile(TileIndex depot);
 
 	/**
+	 * Gets the tile in the back of a road depot.
+	 * @param depot The road depot tile.
+	 * @pre IsRoadDepotTile(depot).
+	 * @return The tile at the back of the depot.
+	 */
+	static TileIndex GetRoadDepotBackTile(TileIndex depot);
+
+	/**
 	 * Gets the tile in front of a road station.
 	 * @param station The road station tile.
 	 * @pre IsRoadStationTile(station).

@@ -134,10 +134,10 @@ public:
 			}
 
 			/* stop if we have just entered the depot */
-			if (IsRoadDepotTile(tile) && trackdir == DiagDirToDiagTrackdir(ReverseDiagDir(GetRoadDepotDirection(tile)))) {
-				/* next time we will reverse and leave the depot */
-				break;
-			}
+			// if (IsRoadDepotTile(tile) && trackdir == DiagDirToDiagTrackdir(ReverseDiagDir(GetRoadDepotDirection(tile)))) {
+				// /* next time we will reverse and leave the depot */
+				// break;
+			// }
 
 			/* if there are no reachable trackdirs on new tile, we have end of road */
 			TrackFollower F(Yapf().GetVehicle());
@@ -363,7 +363,7 @@ public:
 		/* get available trackdirs on the start tile */
 		TrackdirBits src_trackdirs = GetTrackdirBitsForRoad(tile, GetRoadTramType(v->roadtype));
 		/* select reachable trackdirs only */
-		src_trackdirs &= DiagdirReachesTrackdirs(enterdir);
+		if (enterdir != INVALID_DIAGDIR) src_trackdirs &= DiagdirReachesTrackdirs(enterdir);
 
 		/* set origin and destination nodes */
 		Yapf().SetOrigin(src_tile, src_trackdirs);

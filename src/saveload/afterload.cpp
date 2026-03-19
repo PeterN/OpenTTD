@@ -1223,6 +1223,16 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (IsSavegameVersionBefore(SLV_DEPOT_DIRECTIONS)) {
+		for (auto t : Map::Iterate()) {
+			if (IsRoadDepotTile(t)) {
+				RoadBits rb = DiagDirToRoadBits(static_cast<DiagDirection>(GB(t.m5(), 0, 2)));
+				if (GetRoadType(t, RTT_ROAD) != INVALID_ROADTYPE) SetRoadBits(t, rb, RTT_ROAD);
+				if (GetRoadType(t, RTT_TRAM) != INVALID_ROADTYPE) SetRoadBits(t, rb, RTT_TRAM);
+			}
+		}
+	}
+
 	if (IsSavegameVersionBefore(SLV_42)) {
 		for (auto t : Map::Iterate()) {
 			if (MayHaveBridgeAbove(t)) ClearBridgeMiddle(t);

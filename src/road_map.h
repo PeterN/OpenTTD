@@ -111,7 +111,7 @@ inline bool IsLevelCrossingTile(Tile t)
  */
 inline RoadBits GetRoadBits(Tile t, RoadTramType rtt)
 {
-	assert(IsNormalRoad(t));
+	assert(!IsLevelCrossing(t));
 	if (rtt == RTT_TRAM) return (RoadBits)GB(t.m3(), 0, 4);
 	return (RoadBits)GB(t.m5(), 0, 4);
 }
@@ -136,7 +136,7 @@ inline RoadBits GetAllRoadBits(Tile tile)
  */
 inline void SetRoadBits(Tile t, RoadBits r, RoadTramType rtt)
 {
-	assert(IsNormalRoad(t)); // XXX incomplete
+	assert(!IsLevelCrossing(t)); // XXX incomplete
 	if (rtt == RTT_TRAM) {
 		SB(t.m3(), 0, 4, r);
 	} else {
@@ -568,18 +568,6 @@ inline void TerminateRoadWorks(Tile t)
 }
 
 
-/**
- * Get the direction of the exit of a road depot.
- * @param t The tile to query.
- * @return Diagonal direction of the depot exit.
- */
-inline DiagDirection GetRoadDepotDirection(Tile t)
-{
-	assert(IsRoadDepot(t));
-	return (DiagDirection)GB(t.m5(), 0, 2);
-}
-
-
 RoadBits GetAnyRoadBits(Tile tile, RoadTramType rtt, bool straight_tunnel_bridge_entrance = false);
 
 /**
@@ -685,36 +673,26 @@ inline void MakeRoadCrossing(Tile t, Owner road, Owner tram, Owner rail, Axis ro
 }
 
 /**
- * Sets the exit direction of a road depot.
- * @param tile Tile of the depot.
- * @param dir  Direction of the depot exit.
- */
-inline void SetRoadDepotExitDirection(Tile tile, DiagDirection dir)
-{
-	assert(IsRoadDepotTile(tile));
-	SB(tile.m5(), 0, 2, dir);
-}
-
-/**
  * Make a road depot.
  * @param tile      Tile to make a depot on.
  * @param owner     New owner of the depot.
  * @param depot_id  New depot ID.
- * @param dir       Direction of the depot exit.
- * @param rt        Road type of the depot.
+ * @param bits      Road bits to set for all present road types.
+ * @param road_rt   The road roadtype to set for the tile.
+ * @param tram_rt   The tram roadtype to set for the tile.
  */
-inline void MakeRoadDepot(Tile tile, Owner owner, DepotID depot_id, DiagDirection dir, RoadType rt)
+inline void MakeRoadDepot(Tile tile, Owner owner, DepotID depot_id, RoadBits bits, RoadType road_rt, RoadType tram_rt)
 {
 	SetTileType(tile, TileType::Road);
 	SetTileOwner(tile, owner);
 	tile.m2() = depot_id.base();
-	tile.m3() = 0;
+	tile.m3() = (tram_rt != INVALID_ROADTYPE ? bits : 0);
 	tile.m4() = INVALID_ROADTYPE;
-	tile.m5() = to_underlying(RoadTileType::Depot) << 6 | dir;
+	tile.m5() = (road_rt != INVALID_ROADTYPE ? bits : 0) | to_underlying(RoadTileType::Depot) << 6;
 	SB(tile.m6(), 2, 6, 0);
 	tile.m7() = owner.base();
 	tile.m8() = INVALID_ROADTYPE << 6;
-	SetRoadType(tile, GetRoadTramType(rt), rt);
+	SetRoadTypes(tile, road_rt, tram_rt);
 	SetRoadOwner(tile, RTT_TRAM, owner);
 }
 

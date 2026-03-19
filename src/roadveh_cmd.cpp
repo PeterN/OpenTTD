@@ -272,7 +272,7 @@ CommandCost CmdBuildRoadVehicle(DoCommandFlags flags, TileIndex tile, const Engi
 
 		RoadVehicle *v = RoadVehicle::Create();
 		*ret = v;
-		v->direction = DiagDirToDir(GetRoadDepotDirection(tile));
+		v->direction = DIR_BEGIN;
 		v->owner = _current_company;
 
 		v->tile = tile;
@@ -901,7 +901,7 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection
 	};
 
 	if (IsTileType(tile, TileType::Road)) {
-		if (IsRoadDepot(tile) && (!IsTileOwner(tile, v->owner) || GetRoadDepotDirection(tile) == enterdir)) {
+		if (IsRoadDepot(tile) && !IsTileOwner(tile, v->owner)) {
 			/* Road depot owned by another company or with the wrong orientation */
 			trackdirs = TRACKDIR_BIT_NONE;
 		}
@@ -934,15 +934,16 @@ static Trackdir RoadFindPathToDest(RoadVehicle *v, TileIndex tile, DiagDirection
 	 */
 
 	/* Remove tracks unreachable from the enter dir */
-	trackdirs &= DiagdirReachesTrackdirs(enterdir);
+	if (enterdir != INVALID_DIAGDIR) trackdirs &= DiagdirReachesTrackdirs(enterdir);
 	if (trackdirs == TRACKDIR_BIT_NONE) {
 		/* If vehicle expected a path, it no longer exists, so invalidate it. */
 		if (!v->path.empty()) v->path.clear();
 		/* No reachable tracks, so we'll reverse */
+		assert(enterdir != INVALID_DIAGDIR);
 		return FilterRedSignal(_road_reverse_table[enterdir]);
 	}
 
-	if (v->reverse_ctr != 0) {
+	if (enterdir != INVALID_DIAGDIR && v->reverse_ctr != 0) {
 		bool reverse = true;
 		if (RoadTypeIsTram(v->roadtype)) {
 			/* Trams may only reverse on a tile if it contains at least the straight
@@ -1012,8 +1013,20 @@ bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 		if (u->state != RVSB_IN_DEPOT || u->tile != v->tile) return false;
 	}
 
-	DiagDirection dir = GetRoadDepotDirection(v->tile);
-	v->direction = DiagDirToDir(dir);
+	DiagDirection dir;
+	if (first) {
+		DiagDirections dirs = RoadBitsToDiagDirs(GetAllRoadBits(v->tile));
+		if (dirs.Count() > 1) {
+			dir = TrackdirToExitdir(RoadFindPathToDest(v, v->tile, INVALID_DIAGDIR));
+		} else {
+			dir = dirs.GetNthSetBit(0).value_or(DIAGDIR_SE);
+		}
+		v->direction = DiagDirToDir(dir);
+	} else {
+		/* Follow the previous part, hopefully it hasn't reached a corner yet. */
+		v->direction = v->Previous()->direction;
+		dir = DirToDiagDir(v->direction);
+	}
 
 	Trackdir tdir = DiagDirToDiagTrackdir(dir);
 	const RoadDriveEntry *rdp = _road_drive_data[GetRoadTramType(v->roadtype)][(_settings_game.vehicle.road_side << RVS_DRIVE_SIDE) + tdir];
@@ -1039,7 +1052,7 @@ bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 		v->cur_speed = 0;
 	}
 
-	v->vehstatus.Reset(VehState::Hidden);
+	v->vehstatus.Reset(VehState::Hidden).Set(VehState::LeavingDepot);
 	v->state = tdir;
 	v->frame = RVC_DEPOT_START_FRAME;
 
@@ -1070,7 +1083,8 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 		if (IsTileType(tile, TileType::TunnelBridge)) {
 			diag_dir = GetTunnelBridgeDirection(tile);
 		} else if (IsRoadDepotTile(tile)) {
-			diag_dir = ReverseDiagDir(GetRoadDepotDirection(tile));
+			// diag_dir = ReverseDiagDir(GetRoadDepotDirection(tile));
+			diag_dir = DirToDiagDir(prev->direction);
 		}
 
 		if (diag_dir == INVALID_DIAGDIR) return INVALID_TRACKDIR;
@@ -1337,6 +1351,7 @@ again:
 		if (!vets.Test(VehicleEnterTileState::EnteredWormhole)) {
 			TileIndex old_tile = v->tile;
 
+			v->vehstatus.Reset(VehState::LeavingDepot);
 			v->tile = tile;
 			v->state = (uint8_t)dir;
 			v->frame = start_frame;
@@ -1751,11 +1766,6 @@ void RoadVehicle::OnNewEconomyDay()
 Trackdir RoadVehicle::GetVehicleTrackdir() const
 {
 	if (this->vehstatus.Test(VehState::Crashed)) return INVALID_TRACKDIR;
-
-	if (this->IsInDepot()) {
-		/* We'll assume the road vehicle is facing outwards */
-		return DiagDirToDiagTrackdir(GetRoadDepotDirection(this->tile));
-	}
 
 	if (IsBayRoadStopTile(this->tile)) {
 		/* We'll assume the road vehicle is facing outwards */

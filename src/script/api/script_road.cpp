@@ -501,7 +501,22 @@ static bool NeighbourHasReachableRoad(::RoadType rt, TileIndex start_tile, DiagD
 {
 	if (!IsRoadDepotTile(depot)) return INVALID_TILE;
 
-	return depot + ::TileOffsByDiagDir(::GetRoadDepotDirection(depot));
+	RoadBits bits = GetAllRoadBits(depot);
+	if ((bits & ROAD_SW) == ROAD_SW) return depot + ::TileOffsByDiagDir(DIAGDIR_SW);
+	if ((bits & ROAD_SE) == ROAD_SE) return depot + ::TileOffsByDiagDir(DIAGDIR_SE);
+	if ((bits & ROAD_NW) == ROAD_NW) return depot + ::TileOffsByDiagDir(DIAGDIR_NW);
+	if ((bits & ROAD_NE) == ROAD_NE) return depot + ::TileOffsByDiagDir(DIAGDIR_NE);
+	return INVALID_TILE;
+}
+
+/* static */ TileIndex ScriptRoad::GetRoadDepotBackTile(TileIndex depot)
+{
+	if (!IsRoadDepotTile(depot)) return INVALID_TILE;
+
+	RoadBits bits = GetAllRoadBits(depot);
+	if ((bits & ROAD_X) == ROAD_X) return depot + ::TileOffsByDiagDir(DIAGDIR_NE);
+	if ((bits & ROAD_Y) == ROAD_Y) return depot + ::TileOffsByDiagDir(DIAGDIR_NW);
+	return INVALID_TILE;
 }
 
 /* static */ TileIndex ScriptRoad::GetRoadStationFrontTile(TileIndex station)

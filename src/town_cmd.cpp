@@ -1261,7 +1261,7 @@ static bool CanRoadContinueIntoNextTile(const Town *t, const TileIndex tile, con
 
 	/* If the next tile is a road depot, allow if it's facing the right way. */
 	if (IsTileType(next_tile, TileType::Road)) {
-		return IsRoadDepot(next_tile) && GetRoadDepotDirection(next_tile) == ReverseDiagDir(road_dir);
+		return IsRoadDepot(next_tile) && RoadBitsToDiagDirs(GetAllRoadBits(next_tile)).Test(ReverseDiagDir(road_dir));
 	}
 
 	/* If the next tile is a railroad track, check if towns are allowed to build level crossings.
