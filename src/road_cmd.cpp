@@ -703,8 +703,10 @@ CommandCost CmdBuildRoad(DoCommandFlags flags, TileIndex tile, RoadBits pieces, 
 					break;
 
 				case RoadTileType::Depot:
-					if ((GetAnyRoadBits(tile, rtt) & pieces) == pieces) return CommandCost(STR_ERROR_ALREADY_BUILT);
-					goto do_clear;
+					existing = GetAnyRoadBits(tile, rtt);
+					if ((existing & pieces) == pieces) return CommandCost(STR_ERROR_ALREADY_BUILT);
+					break;
+					// goto do_clear;
 
 				default: NOT_REACHED();
 			}
@@ -1958,6 +1960,23 @@ static void DrawTile_Road(TileInfo *ti)
 				}
 			}
 
+			RoadBits road = GetRoadBits(ti->tile, RTT_ROAD);
+			RoadBits tram = GetRoadBits(ti->tile, RTT_TRAM);
+			const RoadTypeInfo *road_rti = road_rt == INVALID_ROADTYPE ? nullptr : GetRoadTypeInfo(road_rt);
+			const RoadTypeInfo *tram_rti = tram_rt == INVALID_ROADTYPE ? nullptr : GetRoadTypeInfo(tram_rt);
+
+			/* Determine sprite offsets */
+			uint road_offset = GetRoadSpriteOffset(ti->tileh, road);
+			uint tram_offset = GetRoadSpriteOffset(ti->tileh, tram);
+
+			/* Draw baseset underlay */
+			PaletteID pal = PAL_NONE;
+			SpriteID image = GetRoadGroundSprite(ti, Roadside::Paved, road_rti, road == ROAD_NONE ? tram_offset : road_offset, IsOnSnowOrDesert(ti->tile), &pal);
+			DrawGroundSprite(image, pal);
+
+			DrawRoadOverlays(ti, PAL_NONE, road_rti, tram_rti, road_offset, tram_offset);
+
+			// DrawRoadBits(ti);
 			DrawRailTileSeq(ti, dts, TO_BUILDINGS, relocation, 0, palette);
 			/* Depots can't have bridges above so no blocked pillars. */
 			break;
