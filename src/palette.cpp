@@ -10,6 +10,8 @@
 #include "stdafx.h"
 #include "blitter/base.hpp"
 #include "blitter/factory.hpp"
+#include "console_func.h"
+#include "console_type.h"
 #include "fileio_func.h"
 #include "gfx_type.h"
 #include "landscape_type.h"
@@ -211,10 +213,50 @@ Colour ReallyAdjustBrightness(Colour colour, int brightness)
 
 void DoPaletteAnimations();
 
+#include "table/custom_palettes.h"
+
+static int _custom_palette = -1;
+
+void SwitchCustomPalette()
+{
+	++_custom_palette;
+	if (_custom_palette == std::size(RETRO_PALETTES)) {
+		_custom_palette = -1;
+		IConsolePrint(CC_INFO, "Custom palette off");
+	} else {
+		IConsolePrint(CC_INFO, "Custom palette switched to '{}' ({} colours)", RETRO_PALETTES[_custom_palette].second, std::size(RETRO_PALETTES[_custom_palette].first));
+	}
+	GfxInitPalettes();
+}
+
+static Colour FindNearestRetroColour(const Colour &colour)
+{
+	if (_custom_palette == -1) return colour;
+
+	constexpr int m = 3;
+	constexpr int d = 4;
+	const auto &pal = RETRO_PALETTES[_custom_palette].first;
+
+	uint best_index = 0;
+	uint best_distance = UINT32_MAX;
+	for (uint j = 0; j < std::size(pal); ++j) {
+		if (uint distance = CalculateColourDistance(colour, pal[j].r * m / d, pal[j].g * m / d, pal[j].b * m / d); distance < best_distance) {
+			best_index = j;
+			best_distance = distance;
+		}
+	}
+	return pal[best_index];
+}
+
 void GfxInitPalettes()
 {
 	std::lock_guard<std::recursive_mutex> lock(_palette_mutex);
-	_cur_palette = _palette;
+	_cur_palette.first_dirty = 0;
+	_cur_palette.count_dirty = 256;
+	_cur_palette.palette[0] = _palette.palette[0];
+	for (uint i = 1; i != lengthof(_palette.palette); ++i) {
+		_cur_palette.palette[i] = FindNearestRetroColour(_palette.palette[i]);
+	}
 	DoPaletteAnimations();
 }
 
@@ -276,7 +318,7 @@ void DoPaletteAnimations()
 	s = ev->fizzy_drink;
 	j = EXTR2(512, EPV_CYCLES_FIZZY_DRINK);
 	for (uint i = 0; i != EPV_CYCLES_FIZZY_DRINK; i++) {
-		*palette_pos++ = s[j];
+		*palette_pos++ = FindNearestRetroColour(s[j]);
 		j++;
 		if (j == EPV_CYCLES_FIZZY_DRINK) j = 0;
 	}
@@ -285,7 +327,7 @@ void DoPaletteAnimations()
 	s = ev->oil_refinery;
 	j = EXTR2(512, EPV_CYCLES_OIL_REFINERY);
 	for (uint i = 0; i != EPV_CYCLES_OIL_REFINERY; i++) {
-		*palette_pos++ = s[j];
+		*palette_pos++ = FindNearestRetroColour(s[j]);
 		j++;
 		if (j == EPV_CYCLES_OIL_REFINERY) j = 0;
 	}
@@ -302,10 +344,7 @@ void DoPaletteAnimations()
 		} else {
 			v = 20;
 		}
-		palette_pos->r = v;
-		palette_pos->g = 0;
-		palette_pos->b = 0;
-		palette_pos++;
+		*palette_pos++ = FindNearestRetroColour({v, 0, 0});
 
 		i ^= 0x40;
 		if (i < 0x3f) {
@@ -315,17 +354,14 @@ void DoPaletteAnimations()
 		} else {
 			v = 20;
 		}
-		palette_pos->r = v;
-		palette_pos->g = 0;
-		palette_pos->b = 0;
-		palette_pos++;
+		*palette_pos++ = FindNearestRetroColour({v, 0, 0});
 	}
 
 	/* Handle lighthouse and stadium animation */
 	s = ev->lighthouse;
 	j = EXTR(256, EPV_CYCLES_LIGHTHOUSE);
 	for (uint i = 0; i != EPV_CYCLES_LIGHTHOUSE; i++) {
-		*palette_pos++ = s[j];
+		*palette_pos++ = FindNearestRetroColour(s[j]);
 		j++;
 		if (j == EPV_CYCLES_LIGHTHOUSE) j = 0;
 	}
@@ -334,7 +370,7 @@ void DoPaletteAnimations()
 	s = (_settings_game.game_creation.landscape == LandscapeType::Toyland) ? ev->dark_water_toyland : ev->dark_water;
 	j = EXTR(320, EPV_CYCLES_DARK_WATER);
 	for (uint i = 0; i != EPV_CYCLES_DARK_WATER; i++) {
-		*palette_pos++ = s[j];
+		*palette_pos++ = FindNearestRetroColour(s[j]);
 		j++;
 		if (j == EPV_CYCLES_DARK_WATER) j = 0;
 	}
@@ -343,7 +379,7 @@ void DoPaletteAnimations()
 	s = (_settings_game.game_creation.landscape == LandscapeType::Toyland) ? ev->glitter_water_toyland : ev->glitter_water;
 	j = EXTR(128, EPV_CYCLES_GLITTER_WATER);
 	for (uint i = 0; i != EPV_CYCLES_GLITTER_WATER / 3; i++) {
-		*palette_pos++ = s[j];
+		*palette_pos++ = FindNearestRetroColour(s[j]);
 		j += 3;
 		if (j >= EPV_CYCLES_GLITTER_WATER) j -= EPV_CYCLES_GLITTER_WATER;
 	}
