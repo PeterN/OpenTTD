@@ -188,6 +188,7 @@ enum GlobalHotKeys : int32_t {
 	GHK_BOUNDING_BOXES,
 	GHK_DIRTY_BLOCKS,
 	GHK_WIDGET_OUTLINES,
+	GHK_CUSTOM_PALETTE,
 	GHK_CENTER,
 	GHK_CENTER_ZOOM,
 	GHK_RESET_OBJECT_TO_PLACE,
@@ -315,6 +316,10 @@ struct MainWindow : Window
 
 			case GHK_WIDGET_OUTLINES:
 				ToggleWidgetOutlines();
+				return ES_HANDLED;
+
+			case GHK_CUSTOM_PALETTE:
+				SwitchCustomPalette();
 				return ES_HANDLED;
 		}
 
@@ -485,6 +490,7 @@ struct MainWindow : Window
 		Hotkey('B' | WKC_CTRL, "bounding_boxes", GHK_BOUNDING_BOXES),
 		Hotkey('I' | WKC_CTRL, "dirty_blocks", GHK_DIRTY_BLOCKS),
 		Hotkey('O' | WKC_CTRL, "widget_outlines", GHK_WIDGET_OUTLINES),
+		Hotkey('P' | WKC_CTRL | WKC_SHIFT, "custom_palette", GHK_CUSTOM_PALETTE),
 		Hotkey('C', "center", GHK_CENTER),
 		Hotkey('Z', "center_zoom", GHK_CENTER_ZOOM),
 		Hotkey(WKC_ESC, "reset_object_to_place", GHK_RESET_OBJECT_TO_PLACE),
