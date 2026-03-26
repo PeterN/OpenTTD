@@ -188,6 +188,10 @@ static ChangeInfoResult CargoReserveInfo(uint first, uint last, int prop, ByteRe
 				cs->town_production_multiplier = std::max<uint16_t>(1U, buf.ReadWord());
 				break;
 
+			case 0x20: // Cargo layer palette remap.
+				cs->layer_palette = buf.ReadWord();
+				break;
+
 			default:
 				ret = CIR_UNKNOWN;
 				break;

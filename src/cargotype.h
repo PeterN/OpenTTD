@@ -95,6 +95,7 @@ struct CargoSpec {
 	StringID abbrev;                 ///< Two letter abbreviation for this cargo type.
 
 	SpriteID sprite;                 ///< Icon to display this cargo type, may be \c 0xFFF (which means to resolve an action123 chain).
+	PaletteID layer_palette; ///< Palette to use when drawing vehicle sprite layers.
 
 	const struct GRFFile *grffile;   ///< NewGRF where #group belongs to.
 	const struct SpriteGroup *group;

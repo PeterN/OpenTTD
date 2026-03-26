@@ -1119,7 +1119,11 @@ static void GetCustomEngineSprite(EngineID engine, const Vehicle *v, Direction d
 		int32_t reg100 = sprite_stack ? object.GetRegister(0x100) : 0;
 		if (group != nullptr && group->num_sprites != 0) {
 			result->seq[result->count].sprite = group->sprite + (direction % group->num_sprites);
-			result->seq[result->count].pal    = GB(reg100, 0, 16); // zero means default recolouring
+			result->seq[result->count].pal = GB(reg100, 0, 16); // zero means default recolouring
+			if (result->seq[result->count].pal == 1) {
+				/* As a special-case, a value of 1 indicates that the cargo's palette remap should be used. */
+				result->seq[result->count].pal = IsValidCargoType(v->cargo_type) ? CargoSpec::Get(v->cargo_type)->layer_palette : 0;
+			}
 			result->count++;
 		}
 		if (!HasBit(reg100, 31)) break;

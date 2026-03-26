@@ -51,7 +51,7 @@
 #define MK(bt, label, colour, weight, mult, ip, td1, td2, freight, tae, str_plural, str_singular, str_volume, classes) \
 		{label, bt, PixelColour{colour}, PixelColour{colour}, weight, mult, classes, ip, {td1, td2}, freight, tae, INVALID_TPE, TOWN_PRODUCTION_DIVISOR, CargoCallbackMasks{}, \
 		MK_STR_CARGO_PLURAL(str_plural), MK_STR_CARGO_SINGULAR(str_singular), str_volume, MK_STR_QUANTITY(str_plural), MK_STR_ABBREV(str_plural), \
-		MK_SPRITE(str_plural), nullptr, nullptr, 0}
+		MK_SPRITE(str_plural), 0, nullptr, nullptr, 0}
 
 /** Cargo types available by default. */
 static const CargoSpec _default_cargo[] = {
