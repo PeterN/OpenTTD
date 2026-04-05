@@ -33,6 +33,6 @@
 #ifndef OPENTTD_SOCIAL_INTEGRATION_API_H
 #define OPENTTD_SOCIAL_INTEGRATION_API_H
 
-#include "openttd_social_integration_api_v1.h"
+#include "openttd_social_integration_api_v2.h"
 
 #endif /* OPENTTD_SOCIAL_INTEGRATION_API_H */

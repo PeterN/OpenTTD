@@ -28,17 +28,17 @@
  * for non-free implementations.
  */
 
-/** @file v1.h Version 1 definition of the OpenTTD Social Integration Plugin API. */
+/** @file v1.h Version 2 definition of the OpenTTD Social Integration Plugin API. */
 
-#ifndef OPENTTD_SOCIAL_INTEGRATION_API_V1_H
-#define OPENTTD_SOCIAL_INTEGRATION_API_V1_H
+#ifndef OPENTTD_SOCIAL_INTEGRATION_API_V2_H
+#define OPENTTD_SOCIAL_INTEGRATION_API_V2_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /** Pointers supplied by the plugin for OpenTTD to use. */
-struct OpenTTD_SocialIntegration_v1_PluginInfo {
+struct OpenTTD_SocialIntegration_v2_PluginInfo {
 	/**
 	 * The Social Platform this plugin is for.
 	 *
@@ -62,7 +62,7 @@ struct OpenTTD_SocialIntegration_v1_PluginInfo {
 };
 
 /** Pointers supplied by the plugin for OpenTTD to use. */
-struct OpenTTD_SocialIntegration_v1_PluginApi {
+struct OpenTTD_SocialIntegration_v2_PluginApi {
 	/**
 	 * OpenTTD tells the plugin to shut down.
 	 *
@@ -114,18 +114,20 @@ struct OpenTTD_SocialIntegration_v1_PluginApi {
 	 * This is followed by event_enter_multiplayer() if the join was successful.
 	 */
 	void (*event_joining_multiplayer)();
+
+	char *(*add_search_paths)(char *path, const char *path_last);
 };
 
 /** Pointers supplied by OpenTTD, for the plugin to use. */
-struct OpenTTD_SocialIntegration_v1_OpenTTDInfo {
+struct OpenTTD_SocialIntegration_v2_OpenTTDInfo {
 	const char *openttd_version; ///< Version of OpenTTD. UTF-8, nul-terminated. OpenTTD is and remains the owner of the memory.
 };
 
 /** The result of the initialization. */
-enum OpenTTD_SocialIntegration_v1_InitResult : int {
-	OTTD_SOCIAL_INTEGRATION_V1_INIT_SUCCESS = 1, ///< Plugin initialized successfully.
-	OTTD_SOCIAL_INTEGRATION_V1_INIT_FAILED = -1, ///< Plugin failed to initialize (generic error).
-	OTTD_SOCIAL_INTEGRATION_V1_INIT_PLATFORM_NOT_RUNNING = -2, ///< The Social Platform is not running.
+enum OpenTTD_SocialIntegration_v2_InitResult : int {
+	OTTD_SOCIAL_INTEGRATION_V2_INIT_SUCCESS = 1, ///< Plugin initialized successfully.
+	OTTD_SOCIAL_INTEGRATION_V2_INIT_FAILED = -1, ///< Plugin failed to initialize (generic error).
+	OTTD_SOCIAL_INTEGRATION_V2_INIT_PLATFORM_NOT_RUNNING = -2, ///< The Social Platform is not running.
 };
 
 /**
@@ -138,7 +140,7 @@ enum OpenTTD_SocialIntegration_v1_InitResult : int {
  * @param[in]  openttd_info  Structure that OpenTTD filled with pointers. All pointers will remain valid until shutdown(). OpenTTD is owner of the memory.
  * @return                   The status of the initialization.
  */
-typedef OpenTTD_SocialIntegration_v1_InitResult (*OpenTTD_SocialIntegration_v1_Init)(OpenTTD_SocialIntegration_v1_PluginApi *plugin_api, const OpenTTD_SocialIntegration_v1_OpenTTDInfo *openttd_info);
+typedef OpenTTD_SocialIntegration_v2_InitResult (*OpenTTD_SocialIntegration_v2_Init)(OpenTTD_SocialIntegration_v2_PluginApi *plugin_api, const OpenTTD_SocialIntegration_v2_OpenTTDInfo *openttd_info);
 
 /**
  * Type of the GetInfo function the plugin is expected to export from its dynamic library.
@@ -148,10 +150,10 @@ typedef OpenTTD_SocialIntegration_v1_InitResult (*OpenTTD_SocialIntegration_v1_I
  *
  * @param[out] plugin_info   Structure the plugin must fill with pointers. The plugin is owner of the memory.
  */
-typedef void (*OpenTTD_SocialIntegration_v1_GetInfo)(OpenTTD_SocialIntegration_v1_PluginInfo *plugin_info);
+typedef void (*OpenTTD_SocialIntegration_v2_GetInfo)(OpenTTD_SocialIntegration_v2_PluginInfo *plugin_info);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* OPENTTD_SOCIAL_INTEGRATION_API_V1_H */
+#endif /* OPENTTD_SOCIAL_INTEGRATION_API_V2_H */

@@ -107,6 +107,9 @@ enum Subdirectory : uint8_t {
 	NO_DIRECTORY,  ///< A path without any base directory
 };
 
+/** Number of additional search directories. */
+static constexpr size_t NUM_ADDITIONAL_DIRS = 3;
+
 /**
  * Types of searchpaths OpenTTD might use
  */
@@ -124,7 +127,9 @@ enum Searchpath : uint8_t {
 	SP_AUTODOWNLOAD_DIR,           ///< Search within the autodownload directory
 	SP_AUTODOWNLOAD_PERSONAL_DIR,  ///< Search within the autodownload directory located in the personal directory
 	SP_AUTODOWNLOAD_PERSONAL_DIR_XDG, ///< Search within the autodownload directory located in the personal directory (XDG variant)
-	NUM_SEARCHPATHS
+	SP_ADDITIONAL_DIR, ///< Search within an additional directory
+
+	NUM_SEARCHPATHS = SP_ADDITIONAL_DIR + NUM_ADDITIONAL_DIRS, ///< Total number of search paths
 };
 
 DECLARE_INCREMENT_DECREMENT_OPERATORS(Searchpath)

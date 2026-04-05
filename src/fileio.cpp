@@ -10,6 +10,7 @@
 #include "stdafx.h"
 #include "core/string_consumer.hpp"
 #include "fileio_func.h"
+#include "social_integration.h"
 #include "spriteloader/spriteloader.hpp"
 #include "debug.h"
 #include "fios.h"
@@ -165,6 +166,9 @@ std::string FioGetDirectory(Searchpath sp, Subdirectory subdir)
 	assert(subdir < NUM_SUBDIRS);
 	assert(sp < NUM_SEARCHPATHS);
 
+	/* For additional baseset directories, don't ever include the subdirectory. */
+	if (sp >= SP_ADDITIONAL_DIR && subdir == BASESET_DIR) return _searchpaths[sp];
+
 	return fmt::format("{}{}", _searchpaths[sp], _subdirs[subdir]);
 }
 
@@ -195,7 +199,7 @@ static std::optional<FileHandle> FioFOpenFileSp(std::string_view filename, std::
 	if (subdir == NO_DIRECTORY) {
 		buf = filename;
 	} else {
-		buf = fmt::format("{}{}{}", _searchpaths[sp], _subdirs[subdir], filename);
+		buf = fmt::format("{}{}", FioGetDirectory(sp, subdir), filename);
 	}
 
 	auto f = FileHandle::Open(buf, mode);
@@ -754,6 +758,29 @@ static std::string GetHomeDir()
 }
 
 /**
+ * Clear all additional search paths.
+ */
+void ClearAdditionalSearchPaths()
+{
+	for (Searchpath sp = SP_ADDITIONAL_DIR; sp != NUM_SEARCHPATHS; ++sp) {
+		_searchpaths[sp].clear();
+	}
+}
+
+/**
+ * Set an additional search path.
+ * @param path the search path to set.
+ */
+void SetAdditionalSearchPath(std::string_view path)
+{
+	for (Searchpath sp = SP_ADDITIONAL_DIR; sp != NUM_SEARCHPATHS; ++sp) {
+		if (!_searchpaths[sp].empty()) continue;
+		_searchpaths[sp] = path.ends_with(PATHSEP) ? path : fmt::format("{}{}", path, PATHSEP);
+		break;
+	}
+}
+
+/**
  * Determine the base (personal dir and game data dir) paths
  * @param exe the path to the executable
  */
@@ -851,6 +878,9 @@ void DetermineBasePaths(std::string_view exe)
 	} else {
 		_searchpaths[SP_BINARY_DIR].clear();
 	}
+
+	ClearAdditionalSearchPaths();
+	SocialIntegration::AddSearchPaths();
 
 	if (cwd[0] != '\0') {
 		/* Go back to the current working directory. */
