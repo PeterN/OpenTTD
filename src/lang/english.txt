@@ -1905,6 +1905,9 @@ STR_CONFIG_SETTING_STATION_LENGTH_LOADING_PENALTY_HELPTEXT      :When enabled, t
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Enable wagon speed limits: {STRING2}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :When enabled, also use speed limits of wagons for deciding the maximum speed of a train
 
+STR_CONFIG_SETTING_AIRCRAFT_RANGE                               :Enable aircraft maximum range: {STRING2}
+STR_CONFIG_SETTING_AIRCRAFT_RANGE_HELPTEXT                      :When enabled, NewGRFs will be able to limit maximum range of aircraft
+
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Disable electric rails: {STRING2}
 STR_CONFIG_SETTING_DISABLE_ELRAILS_HELPTEXT                     :Enabling this setting disables the requirement to electrify tracks to make electric engines run on them
 
@@ -5291,6 +5294,7 @@ STR_ERROR_CAN_T_REMOVE_SIGNALS_FROM                             :Can't remove si
 STR_ERROR_SIGNAL_CAN_T_CONVERT_SIGNALS_HERE                     :Can't convert signals here...
 STR_ERROR_THERE_IS_NO_RAILROAD_TRACK                            :there is no railway track
 STR_ERROR_THERE_ARE_NO_SIGNALS                                  :there are no signals
+STR_ERROR_TOO_MANY_RAILTYPES                                    :too many rail types in use
 
 STR_ERROR_CAN_T_CONVERT_RAIL                                    :Can't convert rail type here...
 
@@ -5307,6 +5311,8 @@ STR_ERROR_CAN_T_CONVERT_ROAD                                    :Can't convert r
 STR_ERROR_CAN_T_CONVERT_TRAMWAY                                 :Can't convert tram type here...
 STR_ERROR_NO_SUITABLE_ROAD                                      :no suitable road
 STR_ERROR_NO_SUITABLE_TRAMWAY                                   :no suitable tramway
+STR_ERROR_TOO_MANY_ROADTYPES                                    :too many road types in use
+STR_ERROR_TOO_MANY_TRAMTYPES                                    :too many tram types in use
 
 # Waterway construction errors
 STR_ERROR_CAN_T_BUILD_CANALS                                    :Can't build canals here...

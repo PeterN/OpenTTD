@@ -56,7 +56,7 @@ NetworkClientSocketPool _networkclientsocket_pool{"NetworkClientSocket"};
 INSTANTIATE_POOL_METHODS(NetworkClientSocket)
 
 /** Instantiate the listen sockets. */
-template SocketList TCPListenHandler<ServerNetworkGameSocketHandler, PACKET_SERVER_FULL, PACKET_SERVER_BANNED>::sockets;
+template SocketList TCPListenHandler<ServerNetworkGameSocketHandler, PacketGameType, PACKET_SERVER_FULL, PACKET_SERVER_BANNED>::sockets;
 
 static NetworkAuthenticationDefaultPasswordProvider _password_provider{_settings_client.network.server_password}; ///< Provides the password validation for the game's password.
 static NetworkAuthenticationDefaultAuthorizedKeyHandler _authorized_key_handler{_settings_client.network.server_authorized_keys}; ///< Provides the authorized key handling for the game authentication.
@@ -1874,12 +1874,12 @@ static void NetworkRestartMap()
 {
 	_settings_newgame.game_creation.generation_seed = GENERATE_NEW_SEED;
 	switch (_file_to_saveload.ftype.abstract) {
-		case FT_SAVEGAME:
-		case FT_SCENARIO:
+		case AbstractFileType::Savegame:
+		case AbstractFileType::Scenario:
 			_switch_mode = SM_LOAD_GAME;
 			break;
 
-		case FT_HEIGHTMAP:
+		case AbstractFileType::Heightmap:
 			_switch_mode = SM_START_HEIGHTMAP;
 			break;
 
