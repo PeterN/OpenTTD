@@ -1397,6 +1397,8 @@ static const SpriteID SPR_SELECT_SUB_TROPICAL_PUSHED = 4887;
 static const SpriteID SPR_SELECT_TOYLAND             = 4888;
 static const SpriteID SPR_SELECT_TOYLAND_PUSHED      = 4889;
 
+static constexpr SpriteID SPR_TREE_BASE = 1576; ///< Base sprite of all trees.
+
 /** Cursor sprite numbers */
 
 /* Terraform
