@@ -2247,8 +2247,8 @@ STR_INTRO_VERSION                                               :OpenTTD {REV}
 
 STR_INTRO_NEW_GAME                                              :{BLACK}Màn Chơi Mới
 STR_INTRO_LOAD_GAME                                             :{BLACK}Nạp Ván Chơi
-STR_INTRO_PLAY_SCENARIO                                         :{BLACK}Chơi Kịch Bản Này
-STR_INTRO_PLAY_HEIGHTMAP                                        :{BLACK}Chơi Bằng Bản Đồ Địa Hình
+STR_INTRO_PLAY_SCENARIO                                         :{BLACK}Nạp Màn Chơi Kịch Bản
+STR_INTRO_PLAY_HEIGHTMAP                                        :{BLACK}Nạp Bản Đồ Địa Hình
 STR_INTRO_SCENARIO_EDITOR                                       :{BLACK}Biên Tập Màn Chơi Kịch Bản
 STR_INTRO_MULTIPLAYER                                           :{BLACK}Ván Chơi Mạng
 
@@ -3368,8 +3368,8 @@ STR_FRAMETIME_CAPTION_AI                                        :AI {NUM} {STRIN
 STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Lưu Ván Chơi
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Nạp Ván Chơi
 STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Lưu màn chơi kịch bản
-STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Nạp màn chơi kịch bản
-STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Nạp bản đồ địa hình
+STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Nạp Màn Chơi Kịch Bản
+STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Nạp Bản Đồ Địa Hình
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Lưu bản đồ địa hình
 STR_SAVELOAD_LOAD_TOWN_DATA                                     :{WHITE}Nạp Dữ Liệu Đô Thị
 STR_SAVELOAD_HOME_BUTTON_TOOLTIP                                :{BLACK}Nháy vào đây để tới thư mục mặc định hiện thời để nạp/lưu
@@ -3430,13 +3430,13 @@ STR_MAPGEN_SEA_LEVEL_TOOLTIP                                    :{BLACK}Chọn m
 STR_MAPGEN_QUANTITY_OF_RIVERS                                   :{BLACK}Số sông/suối:
 STR_MAPGEN_SMOOTHNESS                                           :{BLACK}Độ phẳng phiu:
 STR_MAPGEN_VARIETY                                              :{BLACK}Phân bổ sự đa dạng:
-STR_MAPGEN_GENERATE                                             :{WHITE}Khởi Tạo
+STR_MAPGEN_GENERATE                                             :{WHITE}Khởi tạo
 STR_MAPGEN_GENERATE_TOOLTIP                                     :{BLACK}Kiến tạo thế giới và chơi với OpenTTD!
-STR_MAPGEN_NEWGRF_SETTINGS                                      :{BLACK}Thiết Lập NewGRF
+STR_MAPGEN_NEWGRF_SETTINGS                                      :{BLACK}Thiết lập NewGRF
 STR_MAPGEN_NEWGRF_SETTINGS_TOOLTIP                              :{BLACK}Hiển thị tùy chỉnh NewGRF
 STR_MAPGEN_AI_SETTINGS                                          :{BLACK}Thiết lập AI
 STR_MAPGEN_AI_SETTINGS_TOOLTIP                                  :{BLACK}Hiển thị tùy chỉnh AI
-STR_MAPGEN_GS_SETTINGS                                          :{BLACK}Thiết Lập Tập Lệnh Trò Chơi
+STR_MAPGEN_GS_SETTINGS                                          :{BLACK}Thiết lập Game Script
 STR_MAPGEN_GS_SETTINGS_TOOLTIP                                  :{BLACK}Hiển thị thiết lập tập lệnh trò chơi
 
 ###length 21
@@ -3475,12 +3475,12 @@ STR_MAPGEN_SOUTHEAST_TOOLTIP                                    :Bật/tắt mé
 STR_MAPGEN_SOUTHWEST_TOOLTIP                                    :Bật/tắt mép nước hoặc mép tự do ở cạnh tây nam bản đồ
 STR_MAPGEN_BORDER_FREEFORM                                      :{BLACK}Dạng Tự Do
 STR_MAPGEN_BORDER_WATER                                         :{BLACK}Nước
-STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Ngẫu Nhiên
+STR_MAPGEN_BORDER_RANDOM                                        :{BLACK}Ngẫu nhiên
 
 ###length 3
-STR_MAPGEN_BORDER_RANDOMIZE                                     :Ngẫu Nhiên
-STR_MAPGEN_BORDER_MANUAL                                        :Điều Chỉnh
-STR_MAPGEN_BORDER_INFINITE_WATER                                :Xung Quanh Toàn Nước
+STR_MAPGEN_BORDER_RANDOMIZE                                     :Ngẫu nhiên
+STR_MAPGEN_BORDER_MANUAL                                        :Thủ công
+STR_MAPGEN_BORDER_INFINITE_WATER                                :Xung quanh là nước
 
 STR_MAPGEN_HEIGHTMAP_ROTATION                                   :{BLACK}Xoay bản đồ địa hình:
 STR_MAPGEN_HEIGHTMAP_NAME                                       :{BLACK}Tên bản đồ địa hình:
