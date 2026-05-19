@@ -418,22 +418,19 @@ static void DrawRailCatenaryRailway(const TileInfo *ti)
 		if (ppp_allowed[i].Any() && pcp_status.Test(i) && !override_pcp.Test(i) &&
 				(!IsRailStationTile(ti->tile) || CanStationTileHavePylons(ti->tile))) {
 
-			const auto &ppp_orders = _ppp_order[i][GetTileLocationGroup(ti->tile)];
-			for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
-				Direction temp = ppp_orders[k];
-
-				if (ppp_allowed[i].Test(temp)) {
-					uint x = ti->x + _x_pcp_offsets[i] + _x_ppp_offsets[temp];
-					uint y = ti->y + _y_pcp_offsets[i] + _y_ppp_offsets[temp];
+			for (Direction dir : _ppp_order[i][GetTileLocationGroup(ti->tile)]) {
+				if (ppp_allowed[i].Test(dir)) {
+					uint x = ti->x + _x_pcp_offsets[i] + _x_ppp_offsets[dir];
+					uint y = ti->y + _y_pcp_offsets[i] + _y_ppp_offsets[dir];
 
 					/* Don't build the pylon if it would be outside the tile */
-					if (!_owned_ppp_on_pcp[i].Test(temp)) {
+					if (!_owned_ppp_on_pcp[i].Test(dir)) {
 						/* We have a neighbour that will draw it, bail out */
 						if (track_config[TileSource::Neighbour] != TRACK_BIT_NONE) break;
 						continue; // No neighbour, go looking for a better position
 					}
 
-					AddSortableSpriteToDraw(pylon_base + _pylon_sprites[temp], PAL_NONE, x, y, elevation,
+					AddSortableSpriteToDraw(pylon_base + _pylon_sprites[dir], PAL_NONE, x, y, elevation,
 						{{-1, -1, 0}, {1, 1, BB_HEIGHT_UNDER_BRIDGE}, {1, 1, 0}}, IsTransparencySet(TO_CATENARY));
 
 					break; // We already have drawn a pylon, bail out
