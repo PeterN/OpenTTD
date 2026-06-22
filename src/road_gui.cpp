@@ -381,6 +381,10 @@ struct BuildRoadToolbarWindow : Window {
 	{
 		if (!gui_scope) return;
 
+		if (_cur_roadtype != this->roadtype) {
+			this->ModifyRoadType(_cur_roadtype);
+		}
+
 		if (!ValParamRoadType(this->roadtype)) {
 			/* Close toolbar if road type is not available. */
 			this->Close();
@@ -1062,9 +1066,14 @@ Window *ShowBuildRoadToolbar(RoadType roadtype)
 	if (!Company::IsValidID(_local_company)) return nullptr;
 	if (!ValParamRoadType(roadtype)) return nullptr;
 
-	CloseWindowByClass(WindowClass::BuildToolbar);
 	_cur_roadtype = roadtype;
 
+	if (Window *w = BringWindowToFrontById(WindowClass::BuildToolbar, TransportType::Road); w != nullptr) {
+		w->OnInvalidateData();
+		return w;
+	}
+
+	CloseWindowByClass(WindowClass::BuildToolbar);
 	return AllocateWindowDescFront<BuildRoadToolbarWindow>(RoadTypeIsRoad(_cur_roadtype) ? _build_road_desc : _build_tramway_desc, TransportType::Road);
 }
 

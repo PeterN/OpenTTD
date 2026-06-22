@@ -475,6 +475,10 @@ struct BuildRailToolbarWindow : Window {
 	{
 		if (!gui_scope) return;
 
+		if (_cur_railtype != this->railtype) {
+			this->ModifyRailType(_cur_railtype);
+		}
+
 		if (!ValParamRailType(this->railtype)) {
 			/* Close toolbar if rail type is not available. */
 			this->Close();
@@ -965,8 +969,14 @@ Window *ShowBuildRailToolbar(RailType railtype)
 	if (!Company::IsValidID(_local_company)) return nullptr;
 	if (!ValParamRailType(railtype)) return nullptr;
 
-	CloseWindowByClass(WindowClass::BuildToolbar);
 	_cur_railtype = railtype;
+
+	if (Window *w = BringWindowToFrontById(WindowClass::BuildToolbar, TransportType::Rail); w != nullptr) {
+		w->OnInvalidateData();
+		return w;
+	}
+
+	CloseWindowByClass(WindowClass::BuildToolbar);
 	_remove_button_clicked = false;
 	return new BuildRailToolbarWindow(_build_rail_desc, railtype);
 }
