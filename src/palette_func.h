@@ -20,6 +20,7 @@ extern Palette _cur_palette; ///< Current palette
 bool CopyPalette(Palette &local_palette, bool force_copy = false);
 void GfxInitPalettes();
 void SwitchCustomPalette();
+void SwitchCustomPaletteBrightness();
 
 uint8_t GetNearestColourIndex(uint8_t r, uint8_t g, uint8_t b);
 uint8_t GetNearestColourReshadeIndex(uint8_t b);

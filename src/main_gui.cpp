@@ -189,6 +189,7 @@ enum GlobalHotKeys : int32_t {
 	GHK_DIRTY_BLOCKS,
 	GHK_WIDGET_OUTLINES,
 	GHK_CUSTOM_PALETTE,
+	GHK_CUSTOM_BRIGHTNESS,
 	GHK_CENTER,
 	GHK_CENTER_ZOOM,
 	GHK_RESET_OBJECT_TO_PLACE,
@@ -320,6 +321,10 @@ struct MainWindow : Window
 
 			case GHK_CUSTOM_PALETTE:
 				SwitchCustomPalette();
+				return EventState::Handled;
+
+			case GHK_CUSTOM_BRIGHTNESS:
+				SwitchCustomPaletteBrightness();
 				return EventState::Handled;
 		}
 
@@ -491,6 +496,7 @@ struct MainWindow : Window
 		Hotkey('I' | WKC_CTRL, "dirty_blocks", GHK_DIRTY_BLOCKS),
 		Hotkey('O' | WKC_CTRL, "widget_outlines", GHK_WIDGET_OUTLINES),
 		Hotkey('P' | WKC_CTRL | WKC_SHIFT, "custom_palette", GHK_CUSTOM_PALETTE),
+		Hotkey('B' | WKC_CTRL | WKC_SHIFT, "custom_brightness", GHK_CUSTOM_BRIGHTNESS),
 		Hotkey('C', "center", GHK_CENTER),
 		Hotkey('Z', "center_zoom", GHK_CENTER_ZOOM),
 		Hotkey(WKC_ESC, "reset_object_to_place", GHK_RESET_OBJECT_TO_PLACE),

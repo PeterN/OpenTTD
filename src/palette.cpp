@@ -216,6 +216,7 @@ void DoPaletteAnimations();
 #include "table/custom_palettes.h"
 
 static int _custom_palette = -1;
+static float _custom_brightness = 1.0;
 
 void SwitchCustomPalette()
 {
@@ -229,18 +230,26 @@ void SwitchCustomPalette()
 	GfxInitPalettes();
 }
 
+void SwitchCustomPaletteBrightness()
+{
+	_custom_brightness += 0.05f;
+	if (_custom_brightness > 1.5f) {
+		_custom_brightness = 0.5f;
+	}
+	IConsolePrint(CC_INFO, "Custom brightness set to {}%", std::round((1 - _custom_brightness + 1) * 100));
+	if (_custom_palette != -1) GfxInitPalettes();
+}
+
 static Colour FindNearestRetroColour(const Colour &colour)
 {
 	if (_custom_palette == -1) return colour;
 
-	constexpr int m = 3;
-	constexpr int d = 4;
 	const auto &pal = RETRO_PALETTES[_custom_palette].first;
 
 	uint best_index = 0;
 	uint best_distance = UINT32_MAX;
 	for (uint j = 0; j < std::size(pal); ++j) {
-		if (uint distance = CalculateColourDistance(colour, pal[j].r * m / d, pal[j].g * m / d, pal[j].b * m / d); distance < best_distance) {
+		if (uint distance = CalculateColourDistance(colour, pal[j].r * _custom_brightness, pal[j].g * _custom_brightness, pal[j].b * _custom_brightness); distance < best_distance) {
 			best_index = j;
 			best_distance = distance;
 		}
