@@ -51,6 +51,11 @@ add_files(
 )
 
 add_files(
+    soundresampler_soxr.cpp
+    CONDITION Soxr_FOUND
+)
+
+add_files(
     aircraft.h
     aircraft_cmd.cpp
     aircraft_cmd.h
@@ -336,6 +341,8 @@ add_files(
     newgrf_town.h
     newgrf_townname.cpp
     newgrf_townname.h
+    newgrf_tree.cpp
+    newgrf_tree.h
     newgrf_type.h
     news_cmd.h
     news_func.h
@@ -400,6 +407,8 @@ add_files(
     roadveh_cmd.h
     roadveh_gui.cpp
     safeguards.h
+    screensaver.cpp
+    screensaver.h
     screenshot_bmp.cpp
     screenshot_gui.cpp
     screenshot_gui.h
@@ -451,6 +460,7 @@ add_files(
     soundloader_type.h
     soundloader_raw.cpp
     soundloader_wav.cpp
+    soundresampler_type.h
     source_type.h
     sprite.cpp
     sprite.h
@@ -547,7 +557,9 @@ add_files(
     transport_type.h
     tree_cmd.cpp
     tree_cmd.h
+    tree_func.h
     tree_gui.cpp
+    tree_type.h
     tree_map.h
     tunnel_map.cpp
     tunnel_map.h

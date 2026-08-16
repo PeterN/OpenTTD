@@ -26,6 +26,7 @@
 #include "error.h"
 #include "strings_func.h"
 #include "string_func.h"
+#include "tree_type.h"
 
 #include "table/strings.h"
 
@@ -38,11 +39,8 @@
  * @param invalid is the ID used to identify an invalid entity id
  */
 OverrideManagerBase::OverrideManagerBase(uint16_t offset, uint16_t maximum, uint16_t invalid)
+	: max_offset(offset), max_entities(maximum), invalid_id(invalid)
 {
-	this->max_offset = offset;
-	this->max_entities = maximum;
-	this->invalid_id = invalid;
-
 	this->mappings.resize(this->max_entities);
 	this->entity_overrides.resize(this->max_offset);
 	std::fill(this->entity_overrides.begin(), this->entity_overrides.end(), this->invalid_id);
@@ -422,7 +420,7 @@ TileIndex GetNearbyTile(uint8_t parameter, TileIndex tile, bool signed_offsets, 
 }
 
 /**
- * Common part of station var 0x67, house var 0x62, indtile var 0x60, industry var 0x62.
+ * Common part of station var 0x67, house var 0x62, indtile var 0x60, industry var 0x62, town var 0x60.
  *
  * @param tile the tile of interest.
  * @param grf_version8 True, if we are dealing with a new NewGRF which uses GRF version >= 8.

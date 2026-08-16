@@ -227,7 +227,7 @@ function Regression::Airport()
 		print("  GetAirportNumHelipads(" + i + "):         " + AIAirport.GetAirportNumHelipads(i));
 	}
 
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	local accounting = AIAccounting();
 	print("  GetPrice():           " + AIAirport.GetPrice(0));
 	print("  BuildAirport():       " + AIAirport.BuildAirport(32116, 0, AIStation.STATION_JOIN_ADJACENT));
 	print("  IsHangarTile():       " + AIAirport.IsHangarTile(32116));
@@ -237,12 +237,13 @@ function Regression::Airport()
 	print("  IsHangarTile():       " + AIAirport.IsHangarTile(32119));
 	print("  IsAirportTile():      " + AIAirport.IsAirportTile(32119));
 	print("  GetAirportType():     " + AIAirport.GetAirportType(32119));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
 
+	accounting.ResetCosts();
 	print("  RemoveAirport():      " + AIAirport.RemoveAirport(32118));
 	print("  IsHangarTile():       " + AIAirport.IsHangarTile(32119));
 	print("  IsAirportTile():      " + AIAirport.IsAirportTile(32119));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
 	print("  BuildAirport():       " + AIAirport.BuildAirport(32116, 0, AIStation.STATION_JOIN_ADJACENT));
 }
 
@@ -1167,7 +1168,7 @@ function Regression::Marine()
 	print("  IsLockTile():         " + AIMarine.IsLockTile(32116));
 	print("  IsCanalTile():        " + AIMarine.IsCanalTile(32116));
 
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	local accounting = AIAccounting();
 	print("  BuildWaterDepot():    " + AIMarine.BuildWaterDepot(28479, 28478));
 	print("  BuildDock():          " + AIMarine.BuildDock(29253, AIStation.STATION_JOIN_ADJACENT));
 	print("  BuildBuoy():          " + AIMarine.BuildBuoy(28481));
@@ -1180,7 +1181,7 @@ function Regression::Marine()
 	print("  IsBuoyTile():         " + AIMarine.IsBuoyTile(28481));
 	print("  IsLockTile():         " + AIMarine.IsLockTile(28487));
 	print("  IsCanalTile():        " + AIMarine.IsCanalTile(32127));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
 
 	local list = AIWaypointList(AIWaypoint.WAYPOINT_BUOY);
 	print("");
@@ -1196,6 +1197,7 @@ function Regression::Marine()
 	}
 	print("");
 
+	accounting.ResetCosts();
 	print("  RemoveWaterDepot():   " + AIMarine.RemoveWaterDepot(28479));
 	print("  RemoveDock():         " + AIMarine.RemoveDock(29253));
 	print("  RemoveBuoy():         " + AIMarine.RemoveBuoy(28481));
@@ -1206,7 +1208,7 @@ function Regression::Marine()
 	print("  IsBuoyTile():         " + AIMarine.IsBuoyTile(28481));
 	print("  IsLockTile():         " + AIMarine.IsLockTile(28487));
 	print("  IsCanalTile():        " + AIMarine.IsCanalTile(32127));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
 
 	print("  BuildWaterDepot():    " + AIMarine.BuildWaterDepot(28479, 28480));
 	print("  BuildDock():          " + AIMarine.BuildDock(29253, AIStation.STATION_JOIN_ADJACENT));
@@ -1396,6 +1398,9 @@ function Regression::Rail()
 	print("  Depot");
 	print("    IsRailTile():                  " + AIRail.IsRailTile(33411));
 	print("    BuildRailDepot():              " + AIRail.BuildRailDepot(0, 1));
+	print("    RemoveRailDepot():             " + AIRail.RemoveRailDepot(33411));
+	print("    BuildRailDepot():              " + AIRail.BuildRailDepot(33411, 33412));
+	print("    RemoveRailDepot():             " + AIRail.RemoveRailDepot(33411));
 	print("    BuildRailDepot():              " + AIRail.BuildRailDepot(33411, 33411));
 	print("    BuildRailDepot():              " + AIRail.BuildRailDepot(33411, 33410));
 	print("    BuildRailDepot():              " + AIRail.BuildRailDepot(33411, 33414));
@@ -2302,25 +2307,31 @@ function Regression::PriorityQueue()
 
 function Regression::Terraforming()
 {
+	local accounting = AIAccounting();
 	print("");
 	print("--Terraforming--");
 	print("  DemolishTile():       " + AITile.DemolishTile(4033));
 	print("  DemolishTile():       " + AITile.DemolishTile(60766));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  LowerTile():          " + AITile.LowerTile(8205, AITile.SLOPE_ENW));
 	print("  RaiseTile():          " + AITile.RaiseTile(8205, AITile.SLOPE_ENW));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  LowerTile():          " + AITile.LowerTile(8205, AITile.SLOPE_ENW));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  LowerTile():          " + AITile.LowerTile(4113, AITile.SLOPE_SW));
 	print("  RaiseTile():          " + AITile.RaiseTile(5902, AITile.SLOPE_NE));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  RaiseTile():          " + AITile.RaiseTile(7958, AITile.SLOPE_SE));
 	print("  LowerTile():          " + AITile.LowerTile(7958, AITile.SLOPE_NE));
 	print("  LowerTile():          " + AITile.LowerTile(7958, AITile.SLOPE_SE));
 	print("  RaiseTile():          " + AITile.RaiseTile(7958, AITile.SLOPE_SE));
 	print("  LowerTile():          " + AITile.LowerTile(7958, AITile.SLOPE_EW));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  LowerTile():          " + AITile.LowerTile(33924, AITile.SLOPE_ELEVATED));
 	print("  LowerTile():          " + AITile.LowerTile(33923, AITile.SLOPE_ELEVATED));
 	print("  RaiseTile():          " + AITile.RaiseTile(34193, AITile.SLOPE_ELEVATED));
@@ -2328,37 +2339,45 @@ function Regression::Terraforming()
 	print("  LowerTile():          " + AITile.LowerTile(34192, AITile.SLOPE_NE));
 	print("  RaiseTile():          " + AITile.RaiseTile(34193, AITile.SLOPE_ELEVATED));
 	print("  LowerTile():          " + AITile.LowerTile(34192, AITile.SLOPE_NE));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  RaiseTile():          " + AITile.RaiseTile(5687, AITile.SLOPE_N));
 	print("  LowerTile():          " + AITile.LowerTile(5687, AITile.SLOPE_SE));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  RaiseTile():          " + AITile.RaiseTile(23596, AITile.SLOPE_NE));
 	print("  LowerTile():          " + AITile.LowerTile(23596, AITile.SLOPE_NE));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  RaiseTile():          " + AITile.RaiseTile(28536, AITile.SLOPE_E));
 	print("  RaiseTile():          " + AITile.RaiseTile(28536, AITile.SLOPE_E));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  LevelTiles():         " + AITile.LevelTiles(28536, 29053));
 	print("  LevelTiles():         " + AITile.LevelTiles(28536, 29053));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  LevelTiles():         " + AITile.LevelTiles(22348, 24405));
 	print("  LevelTiles():         " + AITile.LevelTiles(27717, 29772));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  LowerTile():          " + AITile.LowerTile(61534, AITile.SLOPE_W));
 	print("  RaiseTile():          " + AITile.RaiseTile(61534, AITile.SLOPE_NE));
 	print("  RaiseTile():          " + AITile.RaiseTile(61534, AITile.SLOPE_N));
 	print("  LowerTile():          " + AITile.LowerTile(61534, AITile.SLOPE_W));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  RaiseTile():          " + AITile.RaiseTile(61534, AITile.SLOPE_N));
 	print("  LowerTile():          " + AITile.LowerTile(61533, AITile.SLOPE_E));
 	print("  LowerTile():          " + AITile.LowerTile(61534, AITile.SLOPE_E));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
+	accounting.ResetCosts();
 	print("  RaiseTile():          " + AITile.RaiseTile(4033, AITile.SLOPE_S));
 	print("  LowerTile():          " + AITile.LowerTile(4033, AITile.SLOPE_S));
 	print("  LowerTile():          " + AITile.LowerTile(4033, AITile.SLOPE_E));
 	print("  RaiseTile():          " + AITile.RaiseTile(4033, AITile.SLOPE_E));
 	print("  RaiseTile():          " + AITile.RaiseTile(4033, AITile.SLOPE_NWS));
-	print("  GetBankBalance():     " + AICompany.GetBankBalance(AICompany.COMPANY_SELF));
+	print("  GetCosts():           " + accounting.GetCosts());
 }
 
 function Regression::Start()
@@ -2473,4 +2492,3 @@ function Regression::Start()
 	}
 	list.Valuate(Infinite);
 }
-

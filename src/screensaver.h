@@ -5,15 +5,12 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <https://www.gnu.org/licenses/old-licenses/gpl-2.0>.
  */
 
-/** @file tree_cmd.h Command definitions related to tree tiles. */
+/** @file screensaver.h Exports a function to turn on and off a screensaver mode. */
 
-#ifndef TREE_CMD_H
-#define TREE_CMD_H
+#ifndef SCREENSAVER_H
+#define SCREENSAVER_H
 
-#include "command_type.h"
+void ExitScreensaverMode();
+void ToggleScreensaverMode();
 
-CommandCost CmdPlantTree(DoCommandFlags flags, TileIndex tile, TileIndex start_tile, uint8_t tree_to_plant, bool diagonal);
-
-DEF_CMD_TRAIT(Commands::PlantTree, CmdPlantTree, CommandFlag::Auto, CommandType::LandscapeConstruction)
-
-#endif /* TREE_CMD_H */
+#endif /* SCREENSAVER_H */
