@@ -1090,7 +1090,7 @@ static CallBackFunction ToolbarHelpClick(Window *w)
 				STR_ABOUT_MENU_TOGGLE_CONSOLE, STR_ABOUT_MENU_AI_DEBUG,
 				STR_ABOUT_MENU_SCREENSHOT, STR_ABOUT_MENU_SHOW_FRAMERATE, STR_ABOUT_MENU_ABOUT_OPENTTD,
 				STR_ABOUT_MENU_SPRITE_ALIGNER, STR_ABOUT_MENU_TOGGLE_BOUNDING_BOXES, STR_ABOUT_MENU_TOGGLE_DIRTY_BLOCKS,
-				STR_ABOUT_MENU_TOGGLE_WIDGET_OUTLINES});
+				STR_ABOUT_MENU_TOGGLE_WIDGET_OUTLINES, STR_ABOUT_MENU_TOGGLE_ANIMATED_TILES});
 	} else {
 		PopupMainToolbarMenu(w, _game_mode == GameMode::Editor ? (WidgetID)WID_TE_HELP : (WidgetID)WID_TN_HELP, {STR_ABOUT_MENU_LAND_BLOCK_INFO,
 				STR_ABOUT_MENU_HELP, STR_NULL, STR_ABOUT_MENU_ENTER_SCREENSAVER_MODE, STR_ABOUT_MENU_TOGGLE_CONSOLE, STR_ABOUT_MENU_AI_DEBUG,
@@ -1148,6 +1148,19 @@ void ToggleWidgetOutlines()
 }
 
 /**
+ * Toggle highlighting of animated tiles.
+ */
+void ToggleAnimatedTiles()
+{
+	extern bool _highlight_animated_tiles;
+	/* Always allow to toggle them off. */
+	if (_settings_client.gui.newgrf_developer_tools || _highlight_animated_tiles) {
+		_highlight_animated_tiles = !_highlight_animated_tiles;
+		MarkWholeScreenDirty();
+	}
+}
+
+/**
  * Set the starting year for a scenario.
  * @param year New starting year.
  */
@@ -1188,6 +1201,7 @@ static CallBackFunction MenuClickHelp(int index)
 		case 9: ToggleBoundingBoxes(); break;
 		case 10: ToggleDirtyBlocks(); break;
 		case 11: ToggleWidgetOutlines(); break;
+		case 12: ToggleAnimatedTiles(); break;
 	}
 	return CallBackFunction::None;
 }

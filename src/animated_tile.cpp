@@ -19,6 +19,8 @@
 /** The table/list with animated tiles. */
 std::vector<TileIndex> _animated_tiles;
 
+bool _highlight_animated_tiles = false; ///< Animated tile highlighting.
+
 /**
  * Stops animation on the given tile.
  * @param tile the tile to remove
@@ -45,7 +47,10 @@ void DeleteAnimatedTile(TileIndex tile, bool immediate)
 	}
 
 	/* If the tile was animated, mark it for deletion from the tile list on the next animation loop. */
-	if (GetAnimatedTileState(tile) == AnimatedTileState::Animated) SetAnimatedTileState(tile, AnimatedTileState::Deleted);
+	if (GetAnimatedTileState(tile) == AnimatedTileState::Animated) {
+		SetAnimatedTileState(tile, AnimatedTileState::Deleted);
+		if (_highlight_animated_tiles) MarkTileDirtyByTile(tile);
+	}
 }
 
 /**
@@ -55,7 +60,7 @@ void DeleteAnimatedTile(TileIndex tile, bool immediate)
  */
 void AddAnimatedTile(TileIndex tile, bool mark_dirty)
 {
-	if (mark_dirty) MarkTileDirtyByTile(tile);
+	if (mark_dirty || _highlight_animated_tiles) MarkTileDirtyByTile(tile);
 
 	const AnimatedTileState state = GetAnimatedTileState(tile);
 
@@ -82,6 +87,7 @@ void AnimateAnimatedTiles()
 		if (GetAnimatedTileState(tile) != AnimatedTileState::Animated) {
 			/* Tile should not be animated any more, mark it as not animated and erase it from the list. */
 			SetAnimatedTileState(tile, AnimatedTileState::None);
+			if (_highlight_animated_tiles) MarkTileDirtyByTile(tile);
 
 			/* Removing the last entry, no need to swap and continue. */
 			if (std::next(it) == std::end(_animated_tiles)) {

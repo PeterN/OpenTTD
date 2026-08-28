@@ -63,6 +63,7 @@
 #include "stdafx.h"
 #include "core/backup_type.hpp"
 #include "landscape.h"
+#include "animated_tile_map.h"
 #include "viewport_func.h"
 #include "station_base.h"
 #include "waypoint_base.h"
@@ -100,6 +101,8 @@
 #include "table/string_colours.h"
 
 #include "safeguards.h"
+
+extern bool _highlight_animated_tiles;
 
 Point _tile_fract_coords;
 
@@ -1126,6 +1129,15 @@ static void DrawTileSelection(const TileInfo *ti)
 	/* Draw a red error square? */
 	bool is_redsq = _thd.redsq == ti->tile;
 	if (is_redsq) DrawTileSelectionRect(ti, PALETTE_TILE_RED_PULSATING);
+
+	if (_highlight_animated_tiles) {
+		AnimatedTileState state = GetAnimatedTileState(ti->tile);
+		if (state == AnimatedTileState::Animated) {
+			DrawTileSelectionRect(ti, PALETTE_SEL_TILE_BLUE);
+		} else if (state == AnimatedTileState::Deleted) {
+			DrawTileSelectionRect(ti, PALETTE_SEL_TILE_RED);
+		}
+	}
 
 	TileHighlightType tht = GetTileHighlightType(ti->tile);
 	DrawTileHighlightType(ti, tht);
