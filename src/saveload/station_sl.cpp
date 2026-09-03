@@ -70,7 +70,7 @@ void MoveBuoysToWaypoints()
 		std::string name   = st->name;
 		TimerGameCalendar::Date build_date = st->build_date;
 		/* TTDPatch could use "buoys with rail station" for rail waypoints */
-		bool train         = st->train_station.tile != INVALID_TILE;
+		bool train         = !st->train_station.IsEmpty();
 		TileArea train_st  = st->train_station;
 
 		/* Delete the station, so we can make it a real waypoint. */
@@ -96,13 +96,13 @@ void MoveBuoysToWaypoints()
 				if (!IsTileType(tile, TileType::Station) || GetStationIndex(tile) != index) continue;
 
 				SB(tile.m6(), 3, 3, to_underlying(StationType::RailWaypoint));
-				wp->rect.BeforeAddTile(t, StationRect::ADD_FORCE);
+				wp->spread.Add(t);
 			}
 
 			wp->train_station = train_st;
 			wp->facilities.Set(StationFacility::Train);
 		} else if (IsBuoyTile(xy) && GetStationIndex(xy) == index) {
-			wp->rect.BeforeAddTile(xy, StationRect::ADD_FORCE);
+			wp->spread.Add(xy);
 			wp->facilities.Set(StationFacility::Dock);
 		}
 	}

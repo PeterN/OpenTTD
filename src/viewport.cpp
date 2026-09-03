@@ -1030,8 +1030,7 @@ static TileHighlightType GetTileHighlightType(TileIndex t)
 
 	if (_viewport_highlight_station_rect != nullptr) {
 		if (IsTileType(t, TileType::Station) && GetStationIndex(t) == _viewport_highlight_station_rect->index) return TileHighlightType::White;
-		const StationRect *r = &_viewport_highlight_station_rect->rect;
-		if (r->PtInExtendedRect(TileX(t), TileY(t))) return TileHighlightType::Blue;
+		if (_viewport_highlight_station_rect->spread.Contains(t)) return TileHighlightType::Blue;
 	}
 
 	if (_viewport_highlight_waypoint != nullptr) {
@@ -1040,8 +1039,7 @@ static TileHighlightType GetTileHighlightType(TileIndex t)
 
 	if (_viewport_highlight_waypoint_rect != nullptr) {
 		if (IsTileType(t, TileType::Station) && GetStationIndex(t) == _viewport_highlight_waypoint_rect->index) return TileHighlightType::White;
-		const StationRect *r = &_viewport_highlight_waypoint_rect->rect;
-		if (r->PtInExtendedRect(TileX(t), TileY(t))) return TileHighlightType::Blue;
+		if (_viewport_highlight_waypoint_rect->spread.Contains(t)) return TileHighlightType::Blue;
 	}
 
 	if (_viewport_highlight_town != nullptr) {
@@ -3672,12 +3670,11 @@ void MarkCatchmentTilesDirty()
 	}
 
 	if (_viewport_highlight_station != nullptr) {
-		if (_viewport_highlight_station->catchment_tiles.tile == INVALID_TILE) {
+		if (_viewport_highlight_station->catchment_tiles.IsEmpty()) {
 			MarkWholeScreenDirty();
 			_viewport_highlight_station = nullptr;
 		} else {
-			BitmapTileIterator it(_viewport_highlight_station->catchment_tiles);
-			for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
+			for (TileIndex tile : _viewport_highlight_station->catchment_tiles) {
 				MarkTileDirtyByTile(tile);
 			}
 		}
