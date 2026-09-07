@@ -148,6 +148,12 @@ public:
 		 * @param pt The point to create the position for.
 		 */
 		constexpr Position(const Point &pt) : left(pt.x), right(pt.x), top(pt.y) { }
+
+		/**
+		 * Get the width of this glyph position.
+		 * @return The width.
+		 */
+		constexpr int Width() const { return this->right - this->left + 1; }
 	};
 
 	/** Visual run contains data about the bit of text with the same font. */

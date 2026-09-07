@@ -44,7 +44,6 @@ public:
 	Font *font; ///< Font of the run.
 
 	std::vector<GlyphID> glyphs; ///< The glyphs of the run. Valid after Shape() is called.
-	std::vector<int> advance; ///< The advance (width) of the glyphs. Valid after Shape() is called.
 	std::vector<int> glyph_to_char; ///< The mapping from glyphs to characters. Valid after Shape() is called.
 	std::vector<ParagraphLayouter::Position> positions; ///< The positions of the glyphs. Valid after Shape() is called.
 	int total_advance = 0; ///< The total advance of the run. Valid after Shape() is called.
@@ -175,13 +174,11 @@ void ICURun::Shape(UChar *buff, size_t buff_length)
 	this->glyphs.clear();
 	this->glyph_to_char.clear();
 	this->positions.clear();
-	this->advance.clear();
 
 	/* Reserve space, as we already know the size. */
 	this->glyphs.reserve(glyph_count);
 	this->glyph_to_char.reserve(glyph_count);
 	this->positions.reserve(glyph_count);
-	this->advance.reserve(glyph_count);
 
 	/* Prepare the glyphs/position. ICUVisualRun will give the position an offset if needed. */
 	hb_position_t advance = 0;
@@ -200,7 +197,6 @@ void ICURun::Shape(UChar *buff, size_t buff_length)
 		}
 
 		this->glyph_to_char.push_back(glyph_info[i].cluster);
-		this->advance.push_back(x_advance);
 		advance += x_advance;
 	}
 
@@ -411,12 +407,12 @@ std::unique_ptr<const ICUParagraphLayout::Line> ICUParagraphLayout::NextLine(int
 	/* Add remaining width of the first run if it is a broken run. */
 	if (this->partial_offset > 0) {
 		if ((start_run->level & 1) == 0) {
-			for (size_t i = this->partial_offset; i < start_run->advance.size(); i++) {
-				cur_width += start_run->advance[i];
+			for (size_t i = this->partial_offset; i < start_run->positions.size(); i++) {
+				cur_width += start_run->positions[i].Width();
 			}
 		} else {
 			for (int i = 0; i < this->partial_offset; i++) {
-				cur_width += start_run->advance[i];
+				cur_width += start_run->positions[i].Width();
 			}
 		}
 		last_run++;
@@ -444,13 +440,13 @@ std::unique_ptr<const ICUParagraphLayout::Line> ICUParagraphLayout::NextLine(int
 			/* LTR */
 			for (index = overflow_run->glyphs.size(); index > 0; /* nothing */) {
 				--index;
-				cur_width -= overflow_run->advance[index];
+				cur_width -= overflow_run->positions[index].Width();
 				if (cur_width <= max_width) break;
 			}
 		} else {
 			/* RTL */
 			for (index = 0; index < overflow_run->glyphs.size(); index++) {
-				cur_width -= overflow_run->advance[index];
+				cur_width -= overflow_run->positions[index].Width();
 				if (cur_width <= max_width) break;
 			}
 		}
