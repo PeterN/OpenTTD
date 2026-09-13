@@ -489,6 +489,43 @@ public:
 	void LoadCheck(CompanyProperties *cprops) const override { this->Load(cprops); }
 };
 
+class SlCompanyExpenses : public DefaultSaveLoadHandler<SlCompanyExpenses, CompanyProperties> {
+public:
+	struct HistoryWrapper {
+		HistoryData<Expenses> expenses;
+	};
+
+	static inline const SaveLoad description[] = {
+		SaveLoad::Array<VarFileType::I64, to_underlying(ExpensesType::End)>("expenses", SLE_OBJECT_ADDRESS(HistoryWrapper, expenses)),
+	};
+	static inline const SaveLoadCompatTable compat_description = {};
+
+	void Save(CompanyProperties *c) const override
+	{
+		SlSetStructListLength(c->expenses.size());
+
+		for (auto &h : c->expenses) {
+			SlObject(&h, this->GetDescription());
+		}
+	}
+
+	void Load(CompanyProperties *c) const override
+	{
+		size_t len = SlGetStructListLength(UINT32_MAX);
+		if (len == 0) return;
+
+		auto &history = c->expenses;
+		for (auto &h : history) {
+			if (--len > history.size()) break; // unsigned so wraps after hitting zero.
+			SlObject(&h, this->GetLoadDescription());
+		}
+	}
+
+	void LoadCheck(CompanyProperties *cprops) const override { this->Load(cprops); }
+};
+
+static std::array<Expenses, 3> _old_yearly_expenses; ///< Temporary storage for loading old yearly expenses data.
+
 /** Save/load of companies. */
 static const SaveLoad _company_desc[] = {
 	SaveLoad::Variable<VarFileType::U32>("name_2", SLE_OBJECT_ADDRESS(CompanyProperties, name_2)),
@@ -536,8 +573,10 @@ static const SaveLoad _company_desc[] = {
 	SaveLoad::Variable<VarFileType::I64>("bankrupt_value", SLE_OBJECT_ADDRESS(CompanyProperties, bankrupt_value), SaveLoadVersion::UnifyCurrency),
 
 	/* yearly expenses was changed to 64-bit in savegame version 2. */
-	SaveLoad::Array<VarFileType::I32, 3 * 13>("yearly_expenses", SLE_OBJECT_ADDRESS(CompanyProperties, yearly_expenses), SaveLoadVersion::MinVersion, SaveLoadVersion::VehicleCurrencyStationChanges),
-	SaveLoad::Array<VarFileType::I64, 3 * 13>("yearly_expenses", SLE_OBJECT_ADDRESS(CompanyProperties, yearly_expenses), SaveLoadVersion::VehicleCurrencyStationChanges),
+	SaveLoad::Array<VarFileType::I32, 3 * 13>("yearly_expenses", SLE_GLOBAL_ADDRESS(_old_yearly_expenses), SaveLoadVersion::MinVersion, SaveLoadVersion::VehicleCurrencyStationChanges),
+	SaveLoad::Array<VarFileType::I64, 3 * 13>("yearly_expenses", SLE_GLOBAL_ADDRESS(_old_yearly_expenses), SaveLoadVersion::VehicleCurrencyStationChanges, SaveLoadVersion::CompanyExpensesHistory),
+	SaveLoad::Struct<SlCompanyExpenses>("expenses_history"),
+	SaveLoad::Variable<VarFileType::U64>("valid_expenses", SLE_OBJECT_ADDRESS(CompanyProperties, valid_expenses)),
 
 	SaveLoad::Variable<VarFileType::Bool>("is_ai", SLE_OBJECT_ADDRESS(CompanyProperties, is_ai), SaveLoadVersion::VehicleCurrencyStationChanges),
 
@@ -573,6 +612,13 @@ struct PLYRChunkHandler : ChunkHandler {
 			Company *c = Company::CreateAtIndex(CompanyID(index));
 			SlObject(c, slt);
 			_company_colours[c->index] = c->colour;
+
+			if (IsSavegameVersionBefore(SaveLoadVersion::CompanyExpensesHistory)) {
+				/* Expenses will be converted from yearly to montly in afterload. */
+				c->expenses[0] = _old_yearly_expenses[0];
+				c->expenses[1] = _old_yearly_expenses[1];
+				c->expenses[2] = _old_yearly_expenses[2];
+			}
 		}
 	}
 

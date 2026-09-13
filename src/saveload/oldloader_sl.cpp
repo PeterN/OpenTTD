@@ -912,7 +912,8 @@ static bool LoadOldCompanyYearly(LoadgameState &ls, int num)
 			if (!LoadChunk(ls, nullptr, _company_yearly_chunk)) return false;
 		}
 
-		c->yearly_expenses[num][i] = _old_yearly;
+		/* Expenses will be converted from yearly to montly in afterload. */
+		c->expenses[num][i] = _old_yearly;
 	}
 
 	return true;
