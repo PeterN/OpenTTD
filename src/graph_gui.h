@@ -19,6 +19,7 @@ void ShowPerformanceHistoryGraph();
 void ShowCompanyValueGraph();
 void ShowCargoPaymentRates();
 void ShowPerformanceRatingDetail();
+void ShowCompanyExpensesGraph();
 void ShowIndustryProductionGraph(WindowNumber window_number);
 void ShowTownCargoGraph(WindowNumber window_number);
 

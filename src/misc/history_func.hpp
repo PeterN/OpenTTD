@@ -79,16 +79,20 @@ T GetAndResetAccumulatedAverage(Taccrued &total)
  * @return True iff the data for this history range and age is valid.
  */
 template <typename T>
-bool GetHistory(const HistoryData<T> &history, ValidHistoryMask valid_history, const HistoryRange &hr, uint age, T &result)
+bool GetHistory(const HistoryData<T> &history, ValidHistoryMask valid_history, const HistoryRange &hr, int age, T &result)
 {
 	if (hr.hr == nullptr) {
 		if (age < hr.periods) {
-			uint slot = hr.first + age;
+			int slot = hr.first + age;
+			if (slot < 0) {
+				result = {};
+				return false;
+			}
 			result = history[slot];
 			return HasBit(valid_history, slot);
 		}
 	} else {
-		if (age * hr.division < static_cast<uint>(hr.hr->periods - hr.division)) {
+		if (age * hr.division < hr.hr->periods - hr.division) {
 			bool is_valid = false;
 			std::array<T, HISTORY_MAX_DIVISION> tmp_result; // No need to clear as we fill every element we use.
 			uint start = age * hr.division + ((TimerGameEconomy::month / hr.hr->division) % hr.division);
@@ -99,7 +103,7 @@ bool GetHistory(const HistoryData<T> &history, ValidHistoryMask valid_history, c
 			return is_valid;
 		}
 		if (age < hr.periods) {
-			uint slot = hr.first + age - ((hr.hr->periods / hr.division) - 1);
+			int slot = hr.first + age - ((hr.hr->periods / hr.division) - 1);
 			result = history[slot];
 			return HasBit(valid_history, slot);
 		}

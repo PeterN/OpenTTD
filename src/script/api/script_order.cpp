@@ -235,7 +235,9 @@ static ScriptOrder::OrderPosition RealOrderPositionToScriptOrderPosition(Vehicle
 
 /* static */ SQInteger ScriptOrder::GetOrderCount(VehicleID vehicle_id)
 {
-	return ScriptVehicle::IsPrimaryVehicle(vehicle_id) ? ::Vehicle::Get(vehicle_id)->GetNumManualOrders() : -1;
+	if (!ScriptVehicle::IsPrimaryVehicle(vehicle_id)) return -1;
+
+	return ::Vehicle::Get(vehicle_id)->GetNumManualOrders();
 }
 
 /* static */ TileIndex ScriptOrder::GetOrderDestination(VehicleID vehicle_id, OrderPosition order_position)
@@ -589,7 +591,7 @@ static void _DoCommandReturnSetOrderFlags(class ScriptInstance &instance)
 	/* Make sure we don't go into an infinite loop */
 	int retry = ScriptObject::GetCallbackVariable(3) - 1;
 	if (retry < 0) {
-		Debug(script, 0, "Possible infinite loop in SetOrderFlags() detected");
+		Debug(Facility::Script, Severity::Critical, "Possible infinite loop in SetOrderFlags() detected");
 		return false;
 	}
 	ScriptObject::SetCallbackVariable(3, retry);

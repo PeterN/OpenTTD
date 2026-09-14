@@ -197,7 +197,7 @@ void Train::ConsistChanged(ConsistChangeFlags allowed_changes)
 		uint16_t new_cap = e_u->DetermineCapacity(u);
 		if (allowed_changes.Test(ConsistChangeFlag::Capacity)) {
 			/* Update vehicle capacity. */
-			if (u->cargo_cap > new_cap) u->cargo.Truncate(new_cap);
+			if (u->cargo.TotalCount() > new_cap) u->cargo.Truncate(u->cargo.TotalCount() - new_cap);
 			u->refit_cap = std::min(new_cap, u->refit_cap);
 			u->cargo_cap = new_cap;
 		} else {
@@ -3248,9 +3248,26 @@ static uint TrainCrashed(Train *v)
 		Game::NewEvent(new ScriptEventVehicleCrashed(v->index, tile, ScriptEventVehicleCrashed::CRASH_TRAIN, victims, v->owner));
 	}
 
+	return victims;
+}
+
+/**
+ * Marks trains as crashed and creates an script events.
+ * @param v First vehicle of first consist.
+ * @param u First vehicle of second consist.
+ * @return The number of victims (including 4 drivers; 2 for each train that has not previously crashed).
+ */
+static uint TrainsCrashed(Train *v, Train *u)
+{
+	/* Crash both trains. Two statements required to guarantee execution
+	 * order because RandomRange() is involved. */
+	uint victims = TrainCrashed(v);
+	victims += TrainCrashed(u);
+
 	/* Try to re-reserve track under already crashed train too.
-	 * Crash() clears the reservation! */
+	 * Crash() in TrainCrashed() clears the reservation! */
 	v->ReserveTrackUnderConsist();
+	u->ReserveTrackUnderConsist();
 
 	return victims;
 }
@@ -3292,10 +3309,7 @@ static uint CheckTrainCollision(Vehicle *v, Train *moving_front)
 	/* Happens when there is a train under bridge next to bridge head */
 	if (abs(v->z_pos - moving_front->z_pos) > 5) return 0;
 
-	/* Crash both trains. Two statements required to guarantee execution
-	 * order because RandomRange() is involved. */
-	uint num_victims = TrainCrashed(moving_front->First());
-	return num_victims + TrainCrashed(Train::From(v)->First());
+	return TrainsCrashed(moving_front->First(), Train::From(v)->First());
 }
 
 /**
@@ -3715,8 +3729,8 @@ static void DeleteLastWagon(Train *v)
 		trackbits = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
 	}
 
-	Track track = TrackBitsToTrack(trackbits);
-	if (HasReservedTracks(tile, trackbits)) {
+	if (trackbits != Track::Depot && HasReservedTracks(tile, trackbits)) {
+		Track track = TrackBitsToTrack(trackbits);
 		UnreserveRailTrack(tile, track);
 
 		/* If there are still crashed vehicles on the tile, give the track reservation to them */
@@ -3751,7 +3765,7 @@ static void DeleteLastWagon(Train *v)
 	if (IsTileType(tile, TileType::TunnelBridge) || IsRailDepotTile(tile)) {
 		UpdateSignalsOnSegment(tile, DiagDirection::Invalid, owner);
 	} else {
-		SetSignalsOnBothDir(tile, track, owner);
+		SetSignalsOnBothDir(tile, TrackBitsToTrack(trackbits), owner);
 	}
 }
 

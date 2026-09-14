@@ -494,6 +494,7 @@ STR_GRAPH_MENU_DELIVERED_CARGO_GRAPH                            :Delivered cargo
 STR_GRAPH_MENU_PERFORMANCE_HISTORY_GRAPH                        :Performance history graph
 STR_GRAPH_MENU_COMPANY_VALUE_GRAPH                              :Company value graph
 STR_GRAPH_MENU_CARGO_PAYMENT_RATES                              :Cargo payment rates
+STR_GRAPH_MENU_EXPENSES_GRAPH                                   :Company expenses graph
 
 # Company league menu
 STR_GRAPH_MENU_COMPANY_LEAGUE_TABLE                             :Company league table
@@ -662,6 +663,33 @@ STR_GRAPH_TOWN_RANGE_TRANSPORTED                                :Transported
 STR_GRAPH_TOWN_RANGE_TRANSPORTED_TOOLTIP                        :Toggle graph of cargo transported from this town
 STR_GRAPH_TOWN_RANGE_DELIVERED                                  :Delivered
 STR_GRAPH_TOWN_RANGE_DELIVERED_TOOLTIP                          :Toggle graph of cargo delivered to this town
+
+STR_GRAPH_EXPENSES_RANGE_CONSTRUCTION                           :Construction
+STR_GRAPH_EXPENSES_RANGE_CONSTRUCTION_TOOLTIP                   :Toggle graph of construction
+STR_GRAPH_EXPENSES_RANGE_NEW_VEHICLES                           :New vehicles
+STR_GRAPH_EXPENSES_RANGE_NEW_VEHICLES_TOOLTIP                   :Toggle graph of new_vehicles
+STR_GRAPH_EXPENSES_RANGE_TRAIN_RUN                              :Train running cost
+STR_GRAPH_EXPENSES_RANGE_TRAIN_RUN_TOOLTIP                      :Toggle graph of train running cost
+STR_GRAPH_EXPENSES_RANGE_ROADVEH_RUN                            :Road vehicle running cost
+STR_GRAPH_EXPENSES_RANGE_ROADVEH_RUN_TOOLTIP                    :Toggle graph of roadveh running cost
+STR_GRAPH_EXPENSES_RANGE_AIRCRAFT_RUN                           :Aircraft running cost
+STR_GRAPH_EXPENSES_RANGE_AIRCRAFT_RUN_TOOLTIP                   :Toggle graph of aircraft running cost
+STR_GRAPH_EXPENSES_RANGE_SHIP_RUN                               :Ship running cost
+STR_GRAPH_EXPENSES_RANGE_SHIP_RUN_TOOLTIP                       :Toggle graph of ship running cost
+STR_GRAPH_EXPENSES_RANGE_PROPERTY                               :Property maintenance
+STR_GRAPH_EXPENSES_RANGE_PROPERTY_TOOLTIP                       :Toggle graph of property
+STR_GRAPH_EXPENSES_RANGE_TRAIN_REVENUE                          :Train revenue
+STR_GRAPH_EXPENSES_RANGE_TRAIN_REVENUE_TOOLTIP                  :Toggle graph of train revenue
+STR_GRAPH_EXPENSES_RANGE_ROADVEH_REVENUE                        :Road vehicle revenue
+STR_GRAPH_EXPENSES_RANGE_ROADVEH_REVENUE_TOOLTIP                :Toggle graph of roadveh revenue
+STR_GRAPH_EXPENSES_RANGE_AIRCRAFT_REVENUE                       :Aircraft revenue
+STR_GRAPH_EXPENSES_RANGE_AIRCRAFT_REVENUE_TOOLTIP               :Toggle graph of aircraft revenue
+STR_GRAPH_EXPENSES_RANGE_SHIP_REVENUE                           :Ship revenue
+STR_GRAPH_EXPENSES_RANGE_SHIP_REVENUE_TOOLTIP                   :Toggle graph of ship revenue
+STR_GRAPH_EXPENSES_RANGE_LOAN_INTEREST                          :Loan interest
+STR_GRAPH_EXPENSES_RANGE_LOAN_INTEREST_TOOLTIP                  :Toggle graph of loan interest
+STR_GRAPH_EXPENSES_RANGE_OTHER                                  :Other
+STR_GRAPH_EXPENSES_RANGE_OTHER_TOOLTIP                          :Toggle graph of other
 
 STR_GRAPH_PERFORMANCE_DETAIL_TOOLTIP                            :{BLACK}Show detailed performance ratings
 

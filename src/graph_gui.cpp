@@ -2131,6 +2131,147 @@ void ShowPerformanceRatingDetail()
 	AllocateWindowDescFront<PerformanceRatingDetailWindow>(_performance_rating_detail_desc, 0);
 }
 
+class CompanyExpensesGraphWindow : public BaseGraphWindow {
+public:
+	static constexpr GraphRange RANGE_LABELS[] = {
+		{STR_GRAPH_EXPENSES_RANGE_CONSTRUCTION, STR_GRAPH_EXPENSES_RANGE_CONSTRUCTION_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_NEW_VEHICLES, STR_GRAPH_EXPENSES_RANGE_NEW_VEHICLES_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_TRAIN_RUN, STR_GRAPH_EXPENSES_RANGE_TRAIN_RUN_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_ROADVEH_RUN, STR_GRAPH_EXPENSES_RANGE_ROADVEH_RUN_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_AIRCRAFT_RUN, STR_GRAPH_EXPENSES_RANGE_AIRCRAFT_RUN_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_SHIP_RUN, STR_GRAPH_EXPENSES_RANGE_SHIP_RUN_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_PROPERTY, STR_GRAPH_EXPENSES_RANGE_PROPERTY_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_TRAIN_REVENUE, STR_GRAPH_EXPENSES_RANGE_TRAIN_REVENUE_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_ROADVEH_REVENUE, STR_GRAPH_EXPENSES_RANGE_ROADVEH_REVENUE_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_AIRCRAFT_REVENUE, STR_GRAPH_EXPENSES_RANGE_AIRCRAFT_REVENUE_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_SHIP_REVENUE, STR_GRAPH_EXPENSES_RANGE_SHIP_REVENUE_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_LOAN_INTEREST, STR_GRAPH_EXPENSES_RANGE_LOAN_INTEREST_TOOLTIP},
+		{STR_GRAPH_EXPENSES_RANGE_OTHER, STR_GRAPH_EXPENSES_RANGE_OTHER_TOOLTIP},
+	};
+
+	static inline CargoTypes excluded_cargo_types{};
+
+	CompanyExpensesGraphWindow(WindowDesc &desc, WindowNumber window_number) : BaseGraphWindow(desc, STR_JUST_CURRENCY_SHORT)
+	{
+		this->num_on_x_axis = GRAPH_NUM_MONTHS;
+		this->num_vert_lines = GRAPH_NUM_MONTHS;
+		this->month_increment = 1;
+		this->x_values_increment = ECONOMY_MONTH_MINUTES;
+		this->draw_dates = !TimerGameEconomy::UsingWallclockUnits();
+		this->ranges = RANGE_LABELS;
+
+		this->InitializeWindow(window_number);
+	}
+
+	void InitializeWindow(WindowNumber number)
+	{
+		this->CreateNestedTree();
+
+		this->excluded_range = this->masked_range;
+
+		auto *wid = this->GetWidget<NWidgetCore>(WID_GRAPH_FOOTER);
+		wid->SetString(TimerGameEconomy::UsingWallclockUnits() ? STR_GRAPH_LAST_72_MINUTES_TIME_LABEL : STR_EMPTY);
+
+		this->FinishInitNested(number);
+	}
+
+	void OnInit() override
+	{
+		this->BaseGraphWindow::OnInit();
+
+		this->scales = TimerGameEconomy::UsingWallclockUnits() ? MONTHLY_SCALE_WALLCLOCK : MONTHLY_SCALE_CALENDAR;
+	}
+
+	void UpdateStatistics(bool initialize) override
+	{
+		CompanyMask excluded_companies = _legend_excluded_companies;
+
+		int mo = (TimerGameEconomy::month / this->month_increment - this->num_vert_lines) * this->month_increment;
+		auto yr = TimerGameEconomy::year;
+		while (mo < 0) {
+			yr--;
+			mo += 12;
+		}
+
+		if (!initialize && this->excluded_data == excluded_companies.base() && this->num_on_x_axis == this->num_vert_lines && this->year == yr && this->month == mo) {
+			/* There's no reason to get new stats */
+			return;
+		}
+
+		this->excluded_data = excluded_companies.base();
+		this->year = yr;
+		this->month = mo;
+
+		this->data.clear();
+		this->data.reserve(MAX_COMPANIES * to_underlying(ExpensesType::End));
+
+		for (CompanyID k = CompanyID::Begin(); k < MAX_COMPANIES; ++k) {
+			const Company *c = Company::GetIfValid(k);
+			if (c == nullptr) continue;
+
+			for (ExpensesType type : EnumRange(ExpensesType::End)) {
+				DataSet &dataset = this->data.emplace_back();
+				dataset.colour = GetColourGradient(c->colour, Shade::Lighter);
+				dataset.exclude_bit = k.base();
+				dataset.range_bit = to_underlying(type);
+
+				FillFromHistory<GRAPH_NUM_MONTHS>(c->expenses, c->valid_expenses, *this->scales[this->selected_scale].history_range,
+					Filler{{dataset}, [type](const Expenses &e) { return -e[type]; }});
+			}
+		}
+
+		this->SetDirty();
+	}
+};
+
+static constexpr std::initializer_list<NWidgetPart> _nested_copmany_expenses_graph_widgets = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, Colours::Brown),
+		NWidget(WWT_CAPTION, Colours::Brown, WID_GRAPH_CAPTION),
+		NWidget(WWT_SHADEBOX, Colours::Brown),
+		NWidget(WWT_DEFSIZEBOX, Colours::Brown),
+		NWidget(WWT_STICKYBOX, Colours::Brown),
+	EndContainer(),
+	NWidget(WWT_PANEL, Colours::Brown, WID_GRAPH_BACKGROUND), SetMinimalSize(568, 128),
+		NWidget(NWID_HORIZONTAL),
+			NWidget(WWT_EMPTY, Colours::Invalid, WID_GRAPH_GRAPH), SetMinimalSize(495, 0), SetFill(1, 1), SetResize(1, 1),
+			NWidget(NWID_VERTICAL),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 1),
+				NWidget(WWT_MATRIX, Colours::Brown, WID_GRAPH_RANGE_MATRIX), SetFill(1, 0), SetResize(0, 0), SetMatrixDataTip(1, 0),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 4),
+				NWidget(WWT_PUSHTXTBTN, Colours::Brown, WID_GRAPH_ENABLE_CARGOES), SetStringTip(STR_GRAPH_CARGO_ENABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_ENABLE_ALL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, Colours::Brown, WID_GRAPH_DISABLE_CARGOES), SetStringTip(STR_GRAPH_CARGO_DISABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_DISABLE_ALL), SetFill(1, 0),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 4),
+				NWidget(NWID_HORIZONTAL),
+					NWidget(WWT_MATRIX, Colours::Brown, WID_GRAPH_MATRIX), SetFill(1, 0), SetResize(0, 2), SetMatrixDataTip(1, 0, STR_GRAPH_CARGO_PAYMENT_TOGGLE_CARGO), SetScrollbar(WID_GRAPH_MATRIX_SCROLLBAR),
+					NWidget(NWID_VSCROLLBAR, Colours::Brown, WID_GRAPH_MATRIX_SCROLLBAR),
+				EndContainer(),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 4),
+				NWidget(WWT_MATRIX, Colours::Brown, WID_GRAPH_SCALE_MATRIX), SetFill(1, 0), SetResize(0, 0), SetMatrixDataTip(1, 0, STR_GRAPH_CARGO_PAYMENT_TOGGLE_CARGO),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 1),
+			EndContainer(),
+			NWidget(NWID_SPACER), SetMinimalSize(5, 0), SetFill(0, 1), SetResize(0, 1),
+		EndContainer(),
+		NWidget(NWID_HORIZONTAL),
+			NWidget(WWT_TEXT, Colours::Invalid, WID_GRAPH_FOOTER), SetFill(1, 0), SetResize(1, 0), SetPadding(2, 0, 2, 0), SetTextStyle(TextColour::Black, FontSize::Small), SetAlignment({AlignmentH::Centre, AlignmentV::Middle}),
+			NWidget(WWT_RESIZEBOX, Colours::Brown, WID_GRAPH_RESIZE), SetResizeWidgetTypeTip(ResizeWidgetType::HideBevel, STR_TOOLTIP_RESIZE),
+		EndContainer(),
+	EndContainer(),
+};
+
+/** Window definition for the town cargo graph window. */
+static WindowDesc _company_expenses_graph_desc(
+	WindowPosition::Automatic, "graph_company_expenses", 0, 0,
+	WindowClass::TownCargoGraph, WindowClass::TownView,
+	{},
+	_nested_copmany_expenses_graph_widgets
+);
+
+void ShowCompanyExpensesGraph()
+{
+	AllocateWindowDescFront<CompanyExpensesGraphWindow>(_company_expenses_graph_desc, 0);
+}
+
 void InitializeGraphGui()
 {
 	_legend_excluded_companies = CompanyMask{};

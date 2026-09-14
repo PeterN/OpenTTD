@@ -54,6 +54,7 @@
 #include "../engine_func.h"
 #include "../rail_gui.h"
 #include "../core/backup_type.hpp"
+#include "../misc/history_func.hpp"
 #include "../smallmap_gui.h"
 #include "../news_func.h"
 #include "../order_backup.h"
@@ -585,8 +586,8 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SaveLoadVersion::PauseModes)) {
 		_pause_mode = (_pause_mode.base() == 2) ? PauseMode::Normal : PauseModes{};
 	} else if (_network_dedicated && _pause_mode.Test(PauseMode::Error)) {
-		Debug(net, 0, "The loading savegame was paused due to an error state");
-		Debug(net, 0, "  This savegame cannot be used for multiplayer");
+		Debug(Facility::Net, Severity::Critical, "The loading savegame was paused due to an error state");
+		Debug(Facility::Net, Severity::Critical, "  This savegame cannot be used for multiplayer");
 		/* Restore the signals */
 		ResetSignalHandlers();
 		return false;
@@ -1460,6 +1461,25 @@ bool AfterLoadGame()
 	for (Company *c : Company::Iterate()) {
 		c->avail_railtypes = GetCompanyRailTypes(c->index);
 		c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+	}
+
+	if (IsSavegameVersionBefore(SaveLoadVersion::CompanyExpensesHistory)) {
+		for (Company *c : Company::Iterate()) {
+			/* Back up then clear existing history. */
+			HistoryData<Expenses> old_expenses = c->expenses;
+			c->expenses.fill({});
+
+			/* Convert old 3 years of expenses to monthly history. */
+			for (int slot = 0; slot < 3; ++slot) {
+				int months = (slot == 2) ? TimerGameEconomy::month : 12;
+				c->expenses[0] = old_expenses[2 - slot];
+				for (int month = 0; month != months; ++month) {
+					UpdateValidHistory(c->valid_expenses, HISTORY_YEAR, month);
+					RotateHistory(c->expenses, c->valid_expenses, HISTORY_YEAR, month);
+					c->expenses[0] = {};
+				}
+			}
+		}
 	}
 
 	AfterLoadStations();
@@ -2403,7 +2423,7 @@ bool AfterLoadGame()
 			/* At some point, invalid depots were saved into the game (possibly those removed in the past?)
 			 * Remove them here, so they don't cause issues further down the line */
 			if (!IsDepotTile(tile)) {
-				Debug(sl, 0, "Removing invalid depot {} at {}, {}", d->index, TileX(d->xy), TileY(d->xy));
+				Debug(Facility::Sl, Severity::Critical, "Removing invalid depot {} at {}, {}", d->index, TileX(d->xy), TileY(d->xy));
 				delete d;
 				d = nullptr;
 				continue;
@@ -3434,7 +3454,7 @@ bool AfterLoadGame()
 	AfterLoadCompanyStats();
 	AfterLoadStoryBook();
 
-	_gamelog.PrintDebug(1);
+	_gamelog.PrintDebug(Severity::Error);
 
 	InitializeWindowsAndCaches();
 	/* Restore the signals */

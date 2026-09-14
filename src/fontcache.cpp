@@ -162,7 +162,7 @@ static bool IsDefaultFont(const FontCacheSubSetting &setting)
 uint GetFontCacheFontSize(FontSize fs)
 {
 	const FontCacheSubSetting &setting = *GetFontCacheSubSetting(fs);
-	return IsDefaultFont(setting) ? FontCache::GetDefaultFontHeight(fs) : setting.size;
+	return IsDefaultFont(setting) && setting.size == 0 ? FontCache::GetDefaultFontHeight(fs) : setting.size;
 }
 
 #if defined(WITH_FREETYPE) || defined(_WIN32) || defined(WITH_COCOA)
@@ -259,7 +259,7 @@ static std::string GetFontCacheFontName(FontSize fs)
 	}
 
 	if (matching_chars < glyphs.size()) {
-		Debug(fontcache, 1, "Font \"{}\" misses {} glyphs", name, glyphs.size() - matching_chars);
+		Debug(Facility::Fontcache, Severity::Error, "Font \"{}\" misses {} glyphs", name, glyphs.size() - matching_chars);
 		return false;
 	}
 
