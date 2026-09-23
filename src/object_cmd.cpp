@@ -12,6 +12,8 @@
 #include "landscape.h"
 #include "command_func.h"
 #include "company_func.h"
+#include "terraform_cmd.h"
+#include "tilearea_type.h"
 #include "viewport_func.h"
 #include "company_base.h"
 #include "town.h"
@@ -207,9 +209,10 @@ static CommandCost ClearTile_Object(TileIndex tile, DoCommandFlags flags);
  * @param tile tile where the object will be located
  * @param type the object type to build
  * @param view the view for the object
+ * @param island Build an island under the object if it's on water.
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type, uint8_t view)
+CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type, uint8_t view, bool island)
 {
 	CommandCost cost(ExpensesType::Construction);
 
@@ -259,7 +262,7 @@ CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type
 		/* Check the surface to build on. At this time we can't actually execute the
 		 * the CLEAR_TILE commands since the newgrf callback later on can check
 		 * some information about the tiles. */
-		bool allow_water = spec->flags.Any({ObjectFlag::BuiltOnWater, ObjectFlag::NotOnLand});
+		bool allow_water = island || spec->flags.Any({ObjectFlag::BuiltOnWater, ObjectFlag::NotOnLand});
 		bool allow_ground = !spec->flags.Test(ObjectFlag::NotOnLand);
 		for (TileIndex t : ta) {
 			if (HasTileWaterGround(t)) {
@@ -295,25 +298,39 @@ CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type
 			}
 		}
 
-		/* So, now the surface is checked... check the slope of said surface. */
-		auto [slope, allowed_z] = GetTileSlopeZ(tile);
-		if (slope != SLOPE_FLAT) allowed_z++;
-
-		for (TileIndex t : ta) {
-			uint16_t callback = CALLBACK_FAILED;
-			std::array<int32_t, 16> regs100;
-			if (spec->callback_mask.Test(ObjectCallbackMask::SlopeCheck)) {
-				TileIndex diff = t - tile;
-				callback = GetObjectCallback(CBID_OBJECT_LAND_SLOPE_CHECK, GetTileSlope(t), TileY(diff) << 4 | TileX(diff), spec, nullptr, t, regs100, view);
+		if (island) {
+			/* An island must be on water. */
+			for (TileIndex t : ta) {
+				if (!IsTileType(t, TileType::Water)) return CMD_ERROR;
+			}
+			/* Don't block rivers with an island. */
+			for (TileIndex t : SpiralTileSequence(TileAddXY(ta.tile, -1, -1), 1, ta.w, ta.h)) {
+				if (IsTileType(t, TileType::Water) && !IsCoast(t) && GetWaterClass(t) != WaterClass::Sea) return CMD_ERROR;
 			}
 
-			if (callback == CALLBACK_FAILED) {
-				cost.AddCost(CheckBuildableTile(t, {}, allowed_z, false, false));
-			} else {
-				/* The meaning of bit 10 is inverted for a grf version < 8. */
-				if (spec->grf_prop.grffile->grf_version < 8) ToggleBit(callback, 10);
-				CommandCost ret = GetErrorMessageFromLocationCallbackResult(callback, regs100, spec->grf_prop.grffile, STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
-				if (ret.Failed()) return ret;
+			LevelMode mode = TileHeight(ta.tile) == 0 ? LevelMode::Raise : LevelMode::Level;
+			cost.AddCost(std::get<CommandCost>(CmdLevelLand(flags | DoCommandFlag::ClearToRocks, TileXY(TileX(ta.tile) + ta.w, TileY(ta.tile) + ta.h), ta.tile, false, mode)));
+		} else {
+			/* So, now the surface is checked... check the slope of said surface. */
+			auto [slope, allowed_z] = GetTileSlopeZ(tile);
+			if (slope != SLOPE_FLAT) allowed_z++;
+
+			for (TileIndex t : ta) {
+				uint16_t callback = CALLBACK_FAILED;
+				std::array<int32_t, 16> regs100;
+				if (spec->callback_mask.Test(ObjectCallbackMask::SlopeCheck)) {
+					TileIndex diff = t - tile;
+					callback = GetObjectCallback(CBID_OBJECT_LAND_SLOPE_CHECK, GetTileSlope(t), TileY(diff) << 4 | TileX(diff), spec, nullptr, t, regs100, view);
+				}
+
+				if (callback == CALLBACK_FAILED) {
+					cost.AddCost(CheckBuildableTile(t, {}, allowed_z, false, false));
+				} else {
+					/* The meaning of bit 10 is inverted for a grf version < 8. */
+					if (spec->grf_prop.grffile->grf_version < 8) ToggleBit(callback, 10);
+					CommandCost ret = GetErrorMessageFromLocationCallbackResult(callback, regs100, spec->grf_prop.grffile, STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
+					if (ret.Failed()) return ret;
+				}
 			}
 		}
 
@@ -404,7 +421,7 @@ CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type
 			 * control of the direction of GenerateRocks, so this gives more chance for rocks to be generated in water. */
 			uint32_t r = Random();
 			for (TileIndex rock_tile : SpiralTileSequence(tile, 3)) {
-				if (!IsCoastTile(rock_tile)) continue;
+				if (!island && !IsCoastTile(rock_tile)) continue;
 				GenerateRocks(rock_tile, GB(r, 0, 4) + 5);
 				r >>= 4;
 			}
@@ -413,6 +430,19 @@ CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type
 
 	cost.AddCost(spec->GetBuildCost() * build_object_size);
 	return cost;
+}
+
+/**
+ * Build an object object
+ * @param flags type of operation
+ * @param tile tile where the object will be located
+ * @param type the object type to build
+ * @param view the view for the object
+ * @return the cost of this operation or an error
+ */
+CommandCost CmdBuildObject(DoCommandFlags flags, TileIndex tile, ObjectType type, uint8_t view)
+{
+	return CmdBuildObject(flags, tile, type, view, false);
 }
 
 /**
@@ -775,14 +805,18 @@ static bool ClickTile_Object(TileIndex tile)
  * Try to build an object near a tile.
  * @param tile The tile to try building near.
  * @param spec The object spec.
+ * @param island Whether to terraform an island to place the object on first.
  * @return \c true iff an object was built.
  */
-static bool TryBuildObjectNearTile(TileIndex tile, const ObjectSpec &spec)
+static bool TryBuildObjectNearTile(TileIndex tile, const ObjectSpec &spec, bool island)
 {
 	if (!Object::CanAllocateItem()) return false;
 	if (!IsValidTile(tile)) return false;
 
-	if (spec.flags.Test(ObjectFlag::PlaceNearCoast)) {
+	if (island) {
+		/* For an island we start on any water tile. */
+		if (!IsTileType(tile, TileType::Water)) return false;
+	} else if (spec.flags.Test(ObjectFlag::PlaceNearCoast)) {
 		/* We always start on a coast tile. */
 		if (!IsTileType(tile, TileType::Water) || GetWaterTileType(tile) != WaterTileType::Coast) return false;
 	}
@@ -795,7 +829,7 @@ static bool TryBuildObjectNearTile(TileIndex tile, const ObjectSpec &spec)
 	/* Find a suitable tile nearby to build. */
 	for (TileIndex build_tile : SpiralTileSequence(tile, 3)) {
 		uint8_t view = RandomRange(spec.views);
-		if (CmdBuildObject({DoCommandFlag::Execute, DoCommandFlag::Auto, DoCommandFlag::NoTestTownRating, DoCommandFlag::NoModifyTownRating}, build_tile, spec.Index(), view).Succeeded()) return true;
+		if (CmdBuildObject({DoCommandFlag::Execute, DoCommandFlag::Auto, DoCommandFlag::NoTestTownRating, DoCommandFlag::NoModifyTownRating}, build_tile, spec.Index(), view, island).Succeeded()) return true;
 	}
 
 	return false;
@@ -830,7 +864,9 @@ static bool TryBuildObjectNearTown(Town *town, const ObjectSpec &spec)
 
 	/* Search the perimeter for a suitable tile. */
 	for (TileIndex tile : perimeter) {
-		if (TryBuildObjectNearTile(tile, spec)) return true;
+		/* There's a small chance that we'll allow picking a sea tile and terraforming an island for the object to sit upon. */
+		bool island = spec.flags.Test(ObjectFlag::PlaceNearCoast) && Chance16(1, 8);
+		if (TryBuildObjectNearTile(tile, spec, island)) return true;
 	}
 
 	return false;
@@ -893,7 +929,7 @@ static bool TryBuildCoastObject(const ObjectSpec &spec)
 
 	/* Now walk inwards until we find a valid tile, or hit the other edge of the map. */
 	while (IsValidTile(tile)) {
-		if (TryBuildObjectNearTile(tile, spec)) return true;
+		if (TryBuildObjectNearTile(tile, spec, false)) return true;
 		tile += TileOffsByDiagDir(dir);
 	}
 
