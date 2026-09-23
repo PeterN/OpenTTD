@@ -8,10 +8,13 @@
 /** @file company_cmd.cpp Handling of companies. */
 
 #include "stdafx.h"
+#include "misc/history_type.hpp"
+#include "misc/history_func.hpp"
 #include "company_base.h"
 #include "company_func.h"
 #include "company_gui.h"
 #include "core/backup_type.hpp"
+#include "economy_type.h"
 #include "town.h"
 #include "news_func.h"
 #include "command_func.h"
@@ -317,7 +320,7 @@ static void SubtractMoneyFromCompany(Company *c, const CommandCost &cost)
 	assert(cost.GetExpensesType() != ExpensesType::Invalid);
 
 	c->money -= cost.GetCost();
-	c->yearly_expenses[0][cost.GetExpensesType()] += cost.GetCost();
+	c->expenses[THIS_MONTH][cost.GetExpensesType()] += cost.GetCost();
 
 	if (EXPENSESTYPES_INCOME.Test(cost.GetExpensesType())) {
 		c->cur_economy.income -= cost.GetCost();
@@ -839,14 +842,6 @@ void OnTick_Companies()
  */
 static const IntervalTimer<TimerGameEconomy> _economy_companies_yearly({TimerGameEconomy::Trigger::Year, TimerGameEconomy::Priority::Company}, [](auto)
 {
-	/* Copy statistics */
-	for (Company *c : Company::Iterate()) {
-		/* Move expenses to previous years. */
-		std::rotate(std::rbegin(c->yearly_expenses), std::rbegin(c->yearly_expenses) + 1, std::rend(c->yearly_expenses));
-		c->yearly_expenses[0].fill(0);
-		InvalidateWindowData(WindowClass::Finances, c->index);
-	}
-
 	if (_settings_client.gui.show_finances && _local_company != COMPANY_SPECTATOR) {
 		ShowCompanyFinances(_local_company);
 		Company *c = Company::Get(_local_company);

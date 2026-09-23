@@ -54,6 +54,7 @@
 #include "../engine_func.h"
 #include "../rail_gui.h"
 #include "../core/backup_type.hpp"
+#include "../misc/history_func.hpp"
 #include "../smallmap_gui.h"
 #include "../news_func.h"
 #include "../order_backup.h"
@@ -1460,6 +1461,25 @@ bool AfterLoadGame()
 	for (Company *c : Company::Iterate()) {
 		c->avail_railtypes = GetCompanyRailTypes(c->index);
 		c->avail_roadtypes = GetCompanyRoadTypes(c->index);
+	}
+
+	if (IsSavegameVersionBefore(SaveLoadVersion::CompanyExpensesHistory)) {
+		for (Company *c : Company::Iterate()) {
+			/* Back up then clear existing history. */
+			HistoryData<Expenses> old_expenses = c->expenses;
+			c->expenses.fill({});
+
+			/* Convert old 3 years of expenses to monthly history. */
+			for (int slot = 0; slot < 3; ++slot) {
+				int months = (slot == 2) ? TimerGameEconomy::month : 12;
+				c->expenses[0] = old_expenses[2 - slot];
+				for (int month = 0; month != months; ++month) {
+					UpdateValidHistory(c->valid_expenses, HISTORY_YEAR, month);
+					RotateHistory(c->expenses, c->valid_expenses, HISTORY_YEAR, month);
+					c->expenses[0] = {};
+				}
+			}
+		}
 	}
 
 	AfterLoadStations();

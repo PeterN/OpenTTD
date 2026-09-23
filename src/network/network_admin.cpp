@@ -12,6 +12,7 @@
 #include "../strings_func.h"
 #include "../timer/timer_game_calendar.h"
 #include "../timer/timer_game_calendar.h"
+#include "../misc/history_func.hpp"
 #include "core/network_game_info.h"
 #include "network_admin.h"
 #include "network_base.h"
@@ -409,7 +410,9 @@ NetworkRecvStatus ServerNetworkAdminSocketHandler::SendCompanyEconomy()
 {
 	for (const Company *company : Company::Iterate()) {
 		/* Get the income. */
-		Money income = -std::reduce(std::begin(company->yearly_expenses[0]), std::end(company->yearly_expenses[0]));
+		Expenses expenses{};
+		GetHistory(company->expenses, company->valid_expenses, HISTORY_YEAR, -1, expenses);
+		Money income = -std::reduce(std::begin(expenses), std::end(expenses));
 
 		auto p = std::make_unique<Packet>(this, PacketAdminType::ServerCompanyEconomy);
 

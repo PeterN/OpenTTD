@@ -12,6 +12,7 @@
 #include "company_func.h"
 #include "command_func.h"
 #include "industry.h"
+#include "misc/history_func.hpp"
 #include "town.h"
 #include "news_func.h"
 #include "network/network.h"
@@ -629,6 +630,34 @@ static void CompanyCheckBankrupt(Company *c)
 	}
 
 	if (CeilDiv(c->months_of_bankruptcy, 3) != CeilDiv(c->months_of_bankruptcy - 1, 3)) CompanyAdminUpdate(c);
+}
+
+/**
+ * Sum history for company expenses.
+ * @param history History to be summed.
+ * @return Summary data.
+ */
+template <>
+Expenses SumHistory(std::span<const Expenses> history)
+{
+	Expenses expenses{};
+	for (ExpensesType type : EnumRange(ExpensesType::End)) {
+		expenses[type] = std::accumulate(std::begin(history), std::end(history), 0, [type](Money r, const auto &e) { return r + e[type]; });
+	}
+	return expenses;
+}
+
+/**
+ * Update company expenses history for each company.
+ */
+static void CompaniesUpdateExpenses()
+{
+	auto month = TimerGameEconomy::month;
+	for (Company *c : Company::Iterate()) {
+		UpdateValidHistory(c->valid_expenses, HISTORY_YEAR, month);
+		RotateHistory(c->expenses, c->valid_expenses, HISTORY_YEAR, month);
+		InvalidateWindowData(WindowClass::Finances, c->index);
+	}
 }
 
 /**
@@ -1976,6 +2005,7 @@ static const IntervalTimer<TimerGameEconomy> _economy_companies_monthly({ TimerG
 {
 	CompaniesGenStatistics();
 	CompaniesPayInterest();
+	CompaniesUpdateExpenses();
 	HandleEconomyFluctuations();
 });
 
