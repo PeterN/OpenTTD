@@ -432,12 +432,12 @@ static ChangeInfoResult IndustriesChangeInfo(uint first, uint last, int prop, By
 							uint8_t laynbr = buf.ReadByte();
 
 							if (type >= lengthof(_origin_industry_specs)) {
-								GrfMsg(Severity::Error, "IndustriesChangeInfo: Invalid original industry number for layout import, industry {}", id);
+								GrfMsg(Severity::Critical, "IndustriesChangeInfo: Invalid original industry number for layout import, industry {}", id);
 								DisableGrf(STR_NEWGRF_ERROR_INVALID_ID);
 								return ChangeInfoResult::Disabled;
 							}
 							if (laynbr >= _origin_industry_specs[type].layouts.size()) {
-								GrfMsg(Severity::Error, "IndustriesChangeInfo: Invalid original industry layout index for layout import, industry {}", id);
+								GrfMsg(Severity::Critical, "IndustriesChangeInfo: Invalid original industry layout index for layout import, industry {}", id);
 								DisableGrf(STR_NEWGRF_ERROR_INVALID_ID);
 								return ChangeInfoResult::Disabled;
 							}

@@ -1283,7 +1283,7 @@ static void DecodeSpecialSprite(ReusableBuffer<uint8_t> &allocator, uint num, Gr
 			InvokeGrfActionHandler::Invoke(action, stage, br);
 		}
 	} catch (...) {
-		GrfMsg(Severity::Error, "DecodeSpecialSprite: Tried to read past end of pseudo-sprite data");
+		GrfMsg(Severity::Critical, "DecodeSpecialSprite: Tried to read past end of pseudo-sprite data");
 		DisableGrf(STR_NEWGRF_ERROR_READ_BOUNDS);
 	}
 }

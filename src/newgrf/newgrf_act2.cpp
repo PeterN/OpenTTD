@@ -84,7 +84,7 @@ TileLayoutFlags ReadSpriteLayoutSprite(ByteReader &buf, bool read_flags, bool in
 			SetBit(grf_sprite->sprite, SPRITE_MODIFIER_CUSTOM_SPRITE);
 		}
 	} else if ((flags & TLF_SPRITE_VAR10) && !(flags & TLF_SPRITE_REG_FLAGS)) {
-		GrfMsg(Severity::Error, "ReadSpriteLayoutSprite: Spritelayout specifies var10 value for non-action-1 sprite");
+		GrfMsg(Severity::Critical, "ReadSpriteLayoutSprite: Spritelayout specifies var10 value for non-action-1 sprite");
 		DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return flags;
 	}
@@ -102,7 +102,7 @@ TileLayoutFlags ReadSpriteLayoutSprite(ByteReader &buf, bool read_flags, bool in
 			SetBit(grf_sprite->pal, SPRITE_MODIFIER_CUSTOM_SPRITE);
 		}
 	} else if ((flags & TLF_PALETTE_VAR10) && !(flags & TLF_PALETTE_REG_FLAGS)) {
-		GrfMsg(Severity::Error, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 value for non-action-1 palette");
+		GrfMsg(Severity::Critical, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 value for non-action-1 palette");
 		DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return flags;
 	}
@@ -144,7 +144,7 @@ static void ReadSpriteLayoutRegisters(ByteReader &buf, TileLayoutFlags flags, bo
 	if (flags & TLF_SPRITE_VAR10) {
 		regs.sprite_var10 = buf.ReadByte();
 		if (regs.sprite_var10 > TLR_MAX_VAR10) {
-			GrfMsg(Severity::Error, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 ({}) exceeding the maximal allowed value {}", regs.sprite_var10, TLR_MAX_VAR10);
+			GrfMsg(Severity::Critical, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 ({}) exceeding the maximal allowed value {}", regs.sprite_var10, TLR_MAX_VAR10);
 			DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 			return;
 		}
@@ -153,7 +153,7 @@ static void ReadSpriteLayoutRegisters(ByteReader &buf, TileLayoutFlags flags, bo
 	if (flags & TLF_PALETTE_VAR10) {
 		regs.palette_var10 = buf.ReadByte();
 		if (regs.palette_var10 > TLR_MAX_VAR10) {
-			GrfMsg(Severity::Error, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 ({}) exceeding the maximal allowed value {}", regs.palette_var10, TLR_MAX_VAR10);
+			GrfMsg(Severity::Critical, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 ({}) exceeding the maximal allowed value {}", regs.palette_var10, TLR_MAX_VAR10);
 			DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 			return;
 		}
@@ -187,7 +187,7 @@ bool ReadSpriteLayout(ByteReader &buf, uint num_building_sprites, bool use_cur_s
 	if (_cur_gps.skip_sprites < 0) return true;
 
 	if (flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS)) {
-		GrfMsg(Severity::Error, "ReadSpriteLayout: Spritelayout uses invalid flag 0x{:X} for ground sprite", flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS));
+		GrfMsg(Severity::Critical, "ReadSpriteLayout: Spritelayout uses invalid flag 0x{:X} for ground sprite", flags & ~(valid_flags & ~TLF_NON_GROUND_FLAGS));
 		DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return true;
 	}
@@ -202,7 +202,7 @@ bool ReadSpriteLayout(ByteReader &buf, uint num_building_sprites, bool use_cur_s
 		if (_cur_gps.skip_sprites < 0) return true;
 
 		if (flags & ~valid_flags) {
-			GrfMsg(Severity::Error, "ReadSpriteLayout: Spritelayout uses unknown flag 0x{:X}", flags & ~valid_flags);
+			GrfMsg(Severity::Critical, "ReadSpriteLayout: Spritelayout uses unknown flag 0x{:X}", flags & ~valid_flags);
 			DisableGrf(STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 			return true;
 		}
