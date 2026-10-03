@@ -10,17 +10,19 @@
 /** @defgroup SnowLineGroup Snowline functions and data structures */
 
 #include "stdafx.h"
+#include "bridge_map.h"
 #include "heightmap.h"
 #include "clear_map.h"
 #include "spritecache.h"
 #include "station_map.h"
+#include "tilearea_spiral.h"
+#include "tilearea_type.h"
 #include "viewport_func.h"
 #include "command_func.h"
 #include "landscape.h"
 #include "void_map.h"
 #include "tgp.h"
 #include "genworld.h"
-#include "fios.h"
 #include "error_func.h"
 #include "timer/timer_game_calendar.h"
 #include "timer/timer_game_tick.h"
@@ -30,7 +32,7 @@
 #include "animated_tile_func.h"
 #include "core/random_func.hpp"
 #include "object_base.h"
-#include "tree_cmd.h"
+#include "tree_func.h"
 #include "company_func.h"
 #include "company_gui.h"
 #include "saveload/saveload_func.h"
@@ -758,9 +760,7 @@ std::tuple<CommandCost, Money> CmdClearArea(DoCommandFlags flags, TileIndex tile
 
 	if (tile != start_tile) flags.Set(DoCommandFlag::ForceClearTile);
 
-	std::unique_ptr<TileIterator> iter = TileIterator::Create(tile, start_tile, diagonal);
-	for (; *iter != INVALID_TILE; ++(*iter)) {
-		TileIndex t = *iter;
+	for (TileIndex t : CreateOrthoDiagonalArea(tile, start_tile, diagonal)) {
 		CommandCost ret = Command<Commands::LandscapeClear>::Do(DoCommandFlags{flags}.Reset(DoCommandFlag::Execute), t);
 		if (ret.Failed()) {
 			last_error = std::move(ret);

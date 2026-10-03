@@ -10,7 +10,9 @@
 #ifndef NEWGRF_H
 #define NEWGRF_H
 
-#include "cargotype.h"
+#include "cargo_type.h"
+#include "economy_type.h"
+#include "strings_type.h"
 #include "debug_type.h"
 #include "livery.h"
 #include "rail_type.h"
@@ -99,6 +101,7 @@ enum class GrfSpecFeature : uint8_t {
 	TramTypes, ///< Tram types feature
 	RoadStops, ///< Road stops feature
 	Badges, ///< Badges feature
+	Trees, ///< Trees feature
 	End, ///< End marker
 
 	Default = End, ///< Unspecified feature, default badge
@@ -130,14 +133,15 @@ struct GRFFile {
 	uint sound_offset = 0;
 	uint16_t num_sounds = 0;
 
-	std::vector<std::unique_ptr<struct StationSpec>> stations;
-	std::vector<std::unique_ptr<struct HouseSpec>> housespec;
-	std::vector<std::unique_ptr<struct IndustrySpec>> industryspec;
-	std::vector<std::unique_ptr<struct IndustryTileSpec>> indtspec;
-	std::vector<std::unique_ptr<struct ObjectSpec>> objectspec;
-	std::vector<std::unique_ptr<struct AirportSpec>> airportspec;
-	std::vector<std::unique_ptr<struct AirportTileSpec>> airtspec;
-	std::vector<std::unique_ptr<struct RoadStopSpec>> roadstops;
+	std::vector<std::unique_ptr<struct StationSpec>> stations; ///< Station definitions.
+	std::vector<std::unique_ptr<struct HouseSpec>> housespec; ///< House definitions.
+	std::vector<std::unique_ptr<struct IndustrySpec>> industryspec; ///< Industry definitions.
+	std::vector<std::unique_ptr<struct IndustryTileSpec>> indtspec; ///< Industry Tile definitions.
+	std::vector<std::unique_ptr<struct ObjectSpec>> objectspec; ///< Object definitions.
+	std::vector<std::unique_ptr<struct AirportSpec>> airportspec; ///< Airport definitions.
+	std::vector<std::unique_ptr<struct AirportTileSpec>> airtspec; ///< Airport Tile definitions.
+	std::vector<std::unique_ptr<struct RoadStopSpec>> roadstops; ///< RoadStop definitions.
+	std::vector<std::unique_ptr<struct TreeSpec>> treespecs; ///< Tree definitions.
 
 	std::vector<uint32_t> param{};
 
@@ -239,6 +243,7 @@ void LoadNewGRF(SpriteID load_index, uint num_baseset);
 void ReloadNewGRFData(); // in saveload/afterload.cpp
 void ResetNewGRFData();
 void ResetPersistentNewGRFData();
+void ResetUnhandledVariableWarnings();
 
 void GrfMsgI(Severity severity, const std::string &msg);
 #define GrfMsg(severity, format_string, ...) do { if ((severity) == Severity::Critical || IsVisibleSeverity(Facility::Grf, (severity))) GrfMsgI(severity, fmt::format(FMT_STRING(format_string) __VA_OPT__(,) __VA_ARGS__)); } while (false)

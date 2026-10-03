@@ -26,7 +26,6 @@
 #include "vehicle_base.h"
 #include "engine_base.h"
 #include "language.h"
-#include "townname_func.h"
 #include "string_func.h"
 #include "company_base.h"
 #include "smallmap_gui.h"
@@ -2384,6 +2383,15 @@ void CheckForMissingGlyphs(FontSizes fontsizes, MissingGlyphSearcher *searcher)
 
 	searcher->DetermineRequiredGlyphs(fontsizes);
 	bool bad_font = searcher->missing_fontsizes.Any();
+
+	if (bad_font) {
+		Debug(Facility::Fontcache, Severity::Error, "Missing {} glyph(s) in requested fonts", searcher->missing_glyphs.size());
+		if (IsVisibleSeverity(Facility::Fontcache, Severity::Notice)) {
+			for (char32_t c : searcher->missing_glyphs) {
+				Debug(Facility::Fontcache, Severity::Notice, "  U+{:04X}", static_cast<uint32_t>(c));
+			}
+		}
+	}
 
 #if defined(WITH_FREETYPE) || defined(_WIN32) || defined(WITH_COCOA)
 	if (bad_font) {

@@ -23,7 +23,6 @@
 #include "core/container_func.hpp"
 #include "game/game.hpp"
 #include "command_func.h"
-#include "string_func.h"
 #include "tile_cmd.h"
 #include "subsidy_cmd.h"
 #include "script/api/script_event_types.hpp"
@@ -515,8 +514,7 @@ bool CheckSubsidised(CargoType cargo_type, CompanyID company, Source src, const 
 			if (s->cargo_type != cargo_type || s->src != src) continue;
 			if (s->IsAwarded() && s->awarded != company) continue;
 
-			BitmapTileIterator it(st->catchment_tiles);
-			for (TileIndex tile = it; tile != INVALID_TILE; tile = ++it) {
+			for (TileIndex tile : st->catchment_tiles) {
 				if (!IsTileType(tile, TileType::House)) continue;
 				const Town *t = Town::GetByTile(tile);
 				if (t->cache.part_of_subsidy.Test(PartOfSubsidy::Destination)) include(towns_near, t);

@@ -48,8 +48,10 @@
 #include "../newgrf_railtype.h"
 #include "../newgrf_roadtype.h"
 #include "../settings_internal.h"
-#include "saveload_internal.h"
+#include "saveload_error.hpp"
 #include "saveload_filter.h"
+#include "saveload_func.h"
+#include "saveload_internal.h"
 
 #include <atomic>
 #ifdef __EMSCRIPTEN__
@@ -68,6 +70,7 @@
 #include <lzma.h>
 #endif /* WITH_LIBLZMA */
 
+#include "../table/control_codes.h"
 #include "table/strings.h"
 
 #include "../safeguards.h"
@@ -256,6 +259,7 @@ static const std::vector<ChunkHandlerRef> &ChunkHandlers()
 	extern const ChunkHandlerTable _persistent_storage_chunk_handlers;
 	extern const ChunkHandlerTable _water_region_chunk_handlers;
 	extern const ChunkHandlerTable _randomizer_chunk_handlers;
+	extern const ChunkHandlerTable _tree_chunk_handlers;
 
 	/** List of all chunks in a savegame. */
 	static const ChunkHandlerTable _chunk_handler_tables[] = {
@@ -295,6 +299,7 @@ static const std::vector<ChunkHandlerRef> &ChunkHandlers()
 		_persistent_storage_chunk_handlers,
 		_water_region_chunk_handlers,
 		_randomizer_chunk_handlers,
+		_tree_chunk_handlers,
 	};
 
 	static std::vector<ChunkHandlerRef> _chunk_handlers;

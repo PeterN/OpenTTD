@@ -12,10 +12,8 @@
 #include "landscape.h"
 #include "newgrf_badge.h"
 #include "newgrf_industrytiles.h"
-#include "newgrf_sound.h"
 #include "industry.h"
 #include "town.h"
-#include "command_func.h"
 #include "water.h"
 #include "newgrf_animation_base.h"
 
@@ -97,7 +95,7 @@ uint32_t GetRelativePosition(TileIndex tile, TileIndex ind_tile)
 		case 0x7A: return GetBadgeVariableResult(*this->ro.grffile, GetIndustryTileSpec(GetIndustryGfx(this->tile))->badges, parameter);
 	}
 
-	Debug(Facility::Grf, Severity::Error, "Unhandled industry tile variable 0x{:X}", variable);
+	this->ro.UnhandledVariable(variable);
 
 	available = false;
 	return UINT_MAX;

@@ -8,18 +8,22 @@
 /** @file town_cmd.cpp Handling of town tiles. */
 
 #include "stdafx.h"
+#include "bridge.h"
 #include "misc/history_type.hpp"
 #include "misc/history_func.hpp"
 #include "road.h"
 #include "road_internal.h" /* Cleaning up road bits */
 #include "road_cmd.h"
 #include "landscape.h"
+#include "tilearea_spiral.h"
+#include "tilearea_type.h"
 #include "viewport_func.h"
 #include "viewport_kdtree.h"
 #include "command_func.h"
 #include "company_func.h"
 #include "industry.h"
 #include "station_base.h"
+#include "station_func.h"
 #include "waypoint_base.h"
 #include "station_kdtree.h"
 #include "company_base.h"
@@ -46,7 +50,6 @@
 #include "core/random_func.hpp"
 #include "core/backup_type.hpp"
 #include "depot_base.h"
-#include "object_map.h"
 #include "object_base.h"
 #include "ai/ai.hpp"
 #include "game/game.hpp"
@@ -3035,9 +3038,7 @@ CommandCost CmdPlaceHouseArea(DoCommandFlags flags, TileIndex tile, TileIndex st
 	CommandCost last_error = CMD_ERROR;
 	bool had_success = false;
 
-	std::unique_ptr<TileIterator> iter = TileIterator::Create(tile, start_tile, diagonal);
-	for (; *iter != INVALID_TILE; ++(*iter)) {
-		TileIndex t = *iter;
+	for (TileIndex t : CreateOrthoDiagonalArea(tile, start_tile, diagonal)) {
 		CommandCost ret = Command<Commands::PlaceHouse>::Do(DoCommandFlags{flags}.Reset(DoCommandFlag::Execute), t, house, is_protected, replace);
 
 		/* If we've reached the limit, stop building (or testing). */

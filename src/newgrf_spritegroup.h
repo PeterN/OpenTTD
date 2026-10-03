@@ -11,9 +11,6 @@
 #define NEWGRF_SPRITEGROUP_H
 
 #include "core/pool_type.hpp"
-#include "town_type.h"
-#include "engine_type.h"
-#include "house_type.h"
 #include "industry_type.h"
 
 #include "newgrf_callbacks.h"
@@ -483,6 +480,8 @@ public:
 	 * @return The identifier.
 	 */
 	virtual uint32_t GetDebugID() const { return 0; }
+
+	void UnhandledVariable(uint8_t variable) const;
 };
 
 /**
