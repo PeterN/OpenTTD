@@ -14,9 +14,9 @@
 #include "newgrf_house.h"
 #include "newgrf_spritegroup.h"
 #include "newgrf_town.h"
-#include "newgrf_sound.h"
 #include "company_func.h"
 #include "company_base.h"
+#include "tilearea_spiral.h"
 #include "town.h"
 #include "genworld.h"
 #include "newgrf_animation_base.h"
@@ -336,7 +336,7 @@ static uint32_t GetDistanceFromNearbyHouse(uint8_t parameter, TileIndex start_ti
 			case 0x7A: return GetBadgeVariableResult(*this->ro.grffile, HouseSpec::Get(this->house_id)->badges, parameter);
 		}
 
-		Debug(Facility::Grf, Severity::Error, "Unhandled house variable 0x{:X}", variable);
+		this->ro.UnhandledVariable(variable);
 		available = false;
 		return UINT_MAX;
 	}
@@ -451,7 +451,7 @@ static uint32_t GetDistanceFromNearbyHouse(uint8_t parameter, TileIndex start_ti
 		case 0x7A: return GetBadgeVariableResult(*this->ro.grffile, HouseSpec::Get(this->house_id)->badges, parameter);
 	}
 
-	Debug(Facility::Grf, Severity::Error, "Unhandled house variable 0x{:X}", variable);
+	this->ro.UnhandledVariable(variable);
 
 	available = false;
 	return UINT_MAX;

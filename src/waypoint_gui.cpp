@@ -17,7 +17,6 @@
 #include "strings_func.h"
 #include "command_func.h"
 #include "company_func.h"
-#include "company_base.h"
 #include "window_func.h"
 #include "waypoint_base.h"
 #include "station_base.h"
@@ -62,7 +61,7 @@ private:
 			default:
 				NOT_REACHED();
 		}
-		return this->wp->GetTileArea(type).GetCenterTile();
+		return this->wp->GetTileArea(type).GetCentreTile();
 	}
 
 public:

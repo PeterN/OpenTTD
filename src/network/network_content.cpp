@@ -19,7 +19,6 @@
 #include "../base_media_graphics.h"
 #include "../base_media_music.h"
 #include "../base_media_sounds.h"
-#include "../settings_type.h"
 #include "../strings_func.h"
 #include "../timer/timer.h"
 #include "../timer/timer_window.h"
@@ -463,7 +462,7 @@ bool ClientNetworkContentSocketHandler::ReceiveServerContent(Packet &p)
 		}
 	} else {
 		/* We have a file opened, thus are downloading internal content */
-		ssize_t to_read = p.RemainingBytesToTransfer();
+		std::ptrdiff_t to_read = p.RemainingBytesToTransfer();
 		auto write_to_disk = [this](std::span<const uint8_t> buffer) {
 			return fwrite(buffer.data(), 1, buffer.size(), *this->cur_file);
 		};

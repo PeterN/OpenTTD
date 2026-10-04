@@ -12,7 +12,6 @@
 #include "newgrf_airporttiles.h"
 #include "newgrf_badge.h"
 #include "newgrf_spritegroup.h"
-#include "newgrf_sound.h"
 #include "station_base.h"
 #include "water.h"
 #include "landscape.h"
@@ -20,7 +19,6 @@
 #include "town.h"
 #include "newgrf_animation_base.h"
 
-#include "table/strings.h"
 #include "table/airporttiles.h"
 
 #include "safeguards.h"
@@ -196,7 +194,7 @@ static uint32_t GetAirportTileIDAtOffset(TileIndex tile, const Station *st, GrfI
 		case 0x7A: return GetBadgeVariableResult(*this->ro.grffile, this->ats->badges, parameter);
 	}
 
-	Debug(Facility::Grf, Severity::Error, "Unhandled airport tile variable 0x{:X}", variable);
+	this->ro.UnhandledVariable(variable);
 
 	available = false;
 	return UINT_MAX;
