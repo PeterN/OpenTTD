@@ -497,28 +497,6 @@ static void GenerateCompanyName(Company *c)
 	}
 }
 
-/** Sorting weights for the company colours. */
-static const EnumIndexArray<uint8_t, Colours, Colours::End> _colour_sort{2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 2, 2, 3, 1, 1, 1};
-/** Similar colours, so we can try to prevent same coloured companies. */
-static const std::initializer_list<Colours> _similar_colour[to_underlying(Colours::End)] = {
-	{Colours::Blue, Colours::LightBlue }, // Colours::DarkBlue
-	{Colours::Green, Colours::DarkGreen }, // Colours::PaleGreen
-	{}, // Colours::Pink
-	{Colours::Orange}, // Colours::Yellow
-	{}, // Colours::Red
-	{Colours::DarkBlue, Colours::Blue }, // Colours::LightBlue
-	{Colours::PaleGreen, Colours::DarkGreen }, // Colours::Green
-	{Colours::PaleGreen, Colours::Green }, // Colours::DarkGreen
-	{Colours::DarkBlue, Colours::LightBlue }, // Colours::Blue
-	{Colours::Brown, Colours::Orange }, // Colours::Cream
-	{Colours::Purple}, // Colours::Mauve
-	{Colours::Mauve}, // Colours::Purple
-	{Colours::Yellow, Colours::Cream }, // Colours::Orange
-	{Colours::Cream}, // Colours::Brown
-	{Colours::White}, // Colours::Grey
-	{Colours::Grey}, // Colours::White
-};
-
 /**
  * Generate a company colour.
  * @return Generated company colour.
@@ -526,7 +504,7 @@ static const std::initializer_list<Colours> _similar_colour[to_underlying(Colour
 static Colours GenerateCompanyColour()
 {
 	/* Initialize colour table. */
-	std::vector<Colours> colours(to_underlying(Colours::End));
+	std::vector<Colours> colours(to_underlying(GetNumColours()));
 	std::iota(colours.begin(), colours.end(), Colours::Begin);
 
 	/* And randomize it */
@@ -536,14 +514,14 @@ static Colours GenerateCompanyColour()
 	}
 
 	/* Sort it according to the values in _colour_sort. */
-	std::ranges::stable_sort(colours, std::greater{}, [](auto &i) { return _colour_sort[i]; });
+	std::ranges::stable_sort(colours, std::greater{}, [](auto &i) { return _colour_specs[i].weight; });
 
 	/* Move the colours that look similar to each company's colour to the side */
 	for (const Company *c : Company::Iterate()) {
 		/* This company's colour is not available at all. */
 		std::erase(colours, c->colour);
 
-		for (Colours similar : _similar_colour[to_underlying(c->colour)]) {
+		for (Colours similar : _colour_specs[c->colour].similar) {
 			auto it = std::ranges::find(colours, similar);
 			if (it != colours.end()) std::rotate(it, it + 1, colours.end());
 		}
@@ -1136,7 +1114,7 @@ void UpdateCompanyLiveries(Company *c)
  */
 CommandCost CmdSetCompanyColour(DoCommandFlags flags, LiveryScheme scheme, uint8_t colour_index, Colours colour)
 {
-	if (scheme >= LiveryScheme::End || (colour >= Colours::End && colour != Colours::Invalid)) return CMD_ERROR;
+	if (scheme >= LiveryScheme::End || (colour >= GetNumColours() && colour != Colours::Invalid)) return CMD_ERROR;
 
 	/* Default scheme can't be reset to invalid. */
 	if (scheme == LiveryScheme::Default && colour == Colours::Invalid) return CMD_ERROR;

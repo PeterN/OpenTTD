@@ -63,6 +63,7 @@
 #include "timer/timer_game_economy.h"
 #include "timer/timer_game_tick.h"
 
+#include "table/sprites.h"
 #include "table/strings.h"
 
 #include "safeguards.h"
@@ -2128,6 +2129,30 @@ const Livery *GetEngineLivery(EngineID engine_type, CompanyID company, EngineID 
 	return &c->livery[scheme];
 }
 
+PaletteID TranslateNewGRFRecolourPalette(PaletteID pal, const Livery &livery, bool twocc)
+{
+	switch (pal) {
+		/* 1CC regular. */
+		case PALETTE_RECOLOUR_START:
+		case PALETTE_RECOLOUR_START + 1: return GetColourPalette(livery.colours[0], Colours::Invalid);
+
+		/* 1CC but second colour. */
+		case PALETTE_RECOLOUR_START + 2: return GetColourPalette(livery.colours[1], Colours::Invalid);
+
+		/* Default, 1CC or 2CC depending on flag. */
+		case PAL_NONE: return GetColourPalette(livery.colours[0], twocc ? livery.colours[1] : Colours::Invalid);
+
+		/* 2CC regular. */
+		case SPR_2CCMAP_BASE:
+		case SPR_2CCMAP_BASE + 33: return GetColourPalette(livery.colours[0], livery.colours[1]);
+
+		/* 2CC but reversed. */
+		case SPR_2CCMAP_BASE + 18: return GetColourPalette(livery.colours[1], livery.colours[0]);
+
+		default: return pal + livery.GetRecolourOffset(0, twocc);
+	}
+}
+
 /**
  * Get colour remaps for an engine.
  * @param engine_type The engine type.
@@ -2156,26 +2181,23 @@ static Livery::Palettes GetEngineColourMaps(EngineID engine_type, CompanyID comp
 			/* If bit 14 is set, then the company colours are applied to the
 			 * map else it's returned as-is. */
 			if (!HasBit(callback, 14)) {
-				/* Update cache */
-				if (v != nullptr) const_cast<Vehicle *>(v)->colourmap = map;
-				return map;
+				/* Check for magic values that indicate company-colour variations. */
+				if (map[0] != PALETTE_RECOLOUR_START + 1 && map[0] != PALETTE_RECOLOUR_START + 2 && map[0] != SPR_2CCMAP_BASE + 33 && map[0] != SPR_2CCMAP_BASE + 18) {
+					/* Update cache */
+					if (v != nullptr) const_cast<Vehicle *>(v)->colourmap = map;
+					return map;
+				}
 			}
 		}
 	}
-
-	bool twocc = e->info.misc_flags.Test(EngineMiscFlag::Uses2CC);
-	bool fourcc = e->info.extra_flags.Test(ExtraEngineFlag::Uses4CC);
-
-	if (map[0] == PAL_NONE) map[0] = twocc ? (PaletteID)SPR_2CCMAP_BASE : (PaletteID)PALETTE_RECOLOUR_START;
-	if (map[1] == PAL_NONE) map[1] = fourcc ? (PaletteID)SPR_2CCMAP_BASE : (PaletteID)PALETTE_RECOLOUR_START;
 
 	/* Spectator has news shown too, but has invalid company ID - as well as dedicated server */
 	if (!Company::IsValidID(company)) return map;
 
 	const Livery *livery = GetEngineLivery(engine_type, company, parent_engine_type, v, _settings_client.gui.liveries);
 
-	map[0] += livery->GetRecolourOffset(0, twocc);
-	map[1] += livery->GetRecolourOffset(1, fourcc);
+	map[0] = TranslateNewGRFRecolourPalette(map[0], *livery, e->info.misc_flags.Test(EngineMiscFlag::Uses2CC));
+	map[1] = GetColourPalette(livery->colours[2], e->info.extra_flags.Test(ExtraEngineFlag::Uses4CC) ? livery->colours[3] : Colours::Invalid);
 
 	/* Update cache */
 	if (v != nullptr) const_cast<Vehicle *>(v)->colourmap = map;

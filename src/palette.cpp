@@ -14,8 +14,10 @@
 #include "landscape_type.h"
 #include "palette_func.h"
 #include "settings_type.h"
+#include "spritecache.h"
 
 #include "table/palettes.h"
+#include "table/strings.h"
 
 #include <mutex>
 
@@ -213,6 +215,8 @@ void DoPaletteAnimations();
 
 void GfxInitPalettes()
 {
+	ResetColourSpecs();
+
 	std::lock_guard<std::recursive_mutex> lock(_palette_mutex);
 	_cur_palette = _palette;
 	DoPaletteAnimations();
@@ -373,37 +377,96 @@ TextColour GetContrastColour(PixelColour background, uint8_t threshold)
 	return sq1000_brightness < ((uint) threshold) * ((uint) threshold) * 1000 ? TextColour::White : TextColour::Black;
 }
 
-/**
- * Lookup table of colour shades for all 16 colour gradients.
- * 8 colours per gradient from darkest (0) to lightest (7)
- */
-struct ColourGradients
-{
-	using ColourGradient = std::array<PixelColour, to_underlying(Shade::End)>;
-
-	static inline std::array<ColourGradient, to_underlying(Colours::End)> gradient{};
+static constexpr ColourSpec _original_colour_specs[] = {
+	{STR_COLOUR_DARK_BLUE,  2, {PixelColour{0xC6}, PixelColour{0xC7}, PixelColour{0xC8}, PixelColour{0xC9}, PixelColour{0xCA}, PixelColour{0xCB}, PixelColour{0xCC}, PixelColour{0xCD}}, {Colours::Blue, Colours::LightBlue}},
+	{STR_COLOUR_PALE_GREEN, 2, {PixelColour{0x60}, PixelColour{0x61}, PixelColour{0x62}, PixelColour{0x63}, PixelColour{0x64}, PixelColour{0x65}, PixelColour{0x66}, PixelColour{0x67}}, {Colours::Green, Colours::DarkGreen}},
+	{STR_COLOUR_PINK,       3, {PixelColour{0x2A}, PixelColour{0x2B}, PixelColour{0x2C}, PixelColour{0x2D}, PixelColour{0x2E}, PixelColour{0x2F}, PixelColour{0x30}, PixelColour{0x31}}, {}},
+	{STR_COLOUR_YELLOW,     2, {PixelColour{0x3E}, PixelColour{0x3F}, PixelColour{0x40}, PixelColour{0x41}, PixelColour{0x42}, PixelColour{0x43}, PixelColour{0x44}, PixelColour{0x45}}, {Colours::Orange}},
+	{STR_COLOUR_RED,        3, {PixelColour{0xB3}, PixelColour{0xB4}, PixelColour{0xB5}, PixelColour{0xB6}, PixelColour{0xB7}, PixelColour{0xA4}, PixelColour{0xA5}, PixelColour{0xA6}}, {}},
+	{STR_COLOUR_LIGHT_BLUE, 2, {PixelColour{0x9A}, PixelColour{0x9B}, PixelColour{0x9C}, PixelColour{0x9D}, PixelColour{0x9E}, PixelColour{0x9F}, PixelColour{0xA0}, PixelColour{0xA1}}, {Colours::DarkBlue, Colours::Blue}},
+	{STR_COLOUR_GREEN,      3, {PixelColour{0x52}, PixelColour{0x53}, PixelColour{0x54}, PixelColour{0x55}, PixelColour{0xCE}, PixelColour{0xCF}, PixelColour{0xD0}, PixelColour{0xD1}}, {Colours::PaleGreen, Colours::DarkGreen}},
+	{STR_COLOUR_DARK_GREEN, 2, {PixelColour{0x58}, PixelColour{0x59}, PixelColour{0x5A}, PixelColour{0x5B}, PixelColour{0x5C}, PixelColour{0x5D}, PixelColour{0x5E}, PixelColour{0x5F}}, {Colours::PaleGreen, Colours::Green}},
+	{STR_COLOUR_BLUE,       3, {PixelColour{0x92}, PixelColour{0x93}, PixelColour{0x94}, PixelColour{0x95}, PixelColour{0x96}, PixelColour{0x97}, PixelColour{0x98}, PixelColour{0x99}}, {Colours::DarkBlue, Colours::LightBlue}},
+	{STR_COLOUR_CREAM,      2, {PixelColour{0x72}, PixelColour{0x73}, PixelColour{0x74}, PixelColour{0x75}, PixelColour{0x76}, PixelColour{0x77}, PixelColour{0x78}, PixelColour{0x79}}, {Colours::Brown, Colours::Orange}},
+	{STR_COLOUR_MAUVE,      2, {PixelColour{0x80}, PixelColour{0x81}, PixelColour{0x82}, PixelColour{0x83}, PixelColour{0x84}, PixelColour{0x85}, PixelColour{0x86}, PixelColour{0x87}}, {Colours::Purple}},
+	{STR_COLOUR_PURPLE,     2, {PixelColour{0x88}, PixelColour{0x89}, PixelColour{0x8A}, PixelColour{0x8B}, PixelColour{0x8C}, PixelColour{0x8D}, PixelColour{0x8E}, PixelColour{0x8F}}, {Colours::Mauve}},
+	{STR_COLOUR_ORANGE,     3, {PixelColour{0x40}, PixelColour{0xC0}, PixelColour{0xC1}, PixelColour{0xC2}, PixelColour{0xC3}, PixelColour{0xC4}, PixelColour{0xC5}, PixelColour{0x27}}, {Colours::Yellow, Colours::Cream}},
+	{STR_COLOUR_BROWN,      1, {PixelColour{0x20}, PixelColour{0x21}, PixelColour{0x22}, PixelColour{0x23}, PixelColour{0x24}, PixelColour{0x25}, PixelColour{0x26}, PixelColour{0x27}}, {Colours::Cream}},
+	{STR_COLOUR_GREY,       1, {PixelColour{0x04}, PixelColour{0x05}, PixelColour{0x06}, PixelColour{0x07}, PixelColour{0x08}, PixelColour{0x09}, PixelColour{0x0A}, PixelColour{0x0B}}, {Colours::White}},
+	{STR_COLOUR_WHITE,      1, {PixelColour{0x08}, PixelColour{0x09}, PixelColour{0x0A}, PixelColour{0x0B}, PixelColour{0x0C}, PixelColour{0x0D}, PixelColour{0x0E}, PixelColour{0x0F}}, {Colours::Grey}},
 };
+
+EnumClassIndexContainer<std::vector<ColourSpec>, Colours> _colour_specs;
+std::map<std::pair<Colours, Colours>, PaletteID> _colour_palettes;
+
+void ResetColourSpecs()
+{
+	_colour_specs.clear();
+	_colour_specs.assign(std::begin(_original_colour_specs), std::end(_original_colour_specs));
+
+	_colour_palettes.clear();
+}
 
 /**
  * Get colour gradient palette index.
- * @param colour Colour.
- * @param shade Shade level from 1 to 7.
+ * @param colour The colour.
+ * @param shade The shade.
  * @returns palette index of colour.
  */
 PixelColour GetColourGradient(Colours colour, Shade shade)
 {
-	return ColourGradients::gradient[to_underlying(colour) % to_underlying(Colours::End)][to_underlying(shade) % to_underlying(Shade::End)];
+	assert(colour <= static_cast<Colours>(_colour_specs.size()));
+	assert(shade <= Shade::End);
+	return _colour_specs[colour].pc[shade];
+}
+
+static void ApplyRecolourToPalette(const ColourSpec &cs, uint8_t *p)
+{
+	for (Shade shade : EnumRange(Shade::End)) {
+		*p++ = cs.pc[shade].p;
+	}
+}
+
+PaletteID CreateRecolourPalette(Colours colour1, Colours colour2)
+{
+	PaletteID pal = AllocateDynamicSprite();
+
+	InjectSprite(SpriteType::Recolour, pal, [colour1, colour2](SpriteAllocator &allocator) {
+		static constexpr uint8_t PALETTE_INDEX_CC1_START = 0xC6;
+		static constexpr uint8_t PALETTE_INDEX_CC2_START = 0x50;
+
+		uint8_t *palette = allocator.Allocate<uint8_t>(257) + 1;
+		std::iota(palette, palette + 256, 0);
+
+		if (colour1 != Colours::Invalid) ApplyRecolourToPalette(_colour_specs[colour1], &palette[PALETTE_INDEX_CC1_START]);
+		if (colour2 != Colours::Invalid) ApplyRecolourToPalette(_colour_specs[colour2], &palette[PALETTE_INDEX_CC2_START]);
+	});
+
+	return pal;
 }
 
 /**
- * Set colour gradient palette index.
- * @param colour Colour.
- * @param shade Shade level from 1 to 7.
- * @param palette_index Palette index to set.
+ * Get recolour palette for a colour.
+ * @param colour1 First colour.
+ * @param colour2 Second colour.
+ * @return Recolour palette.
  */
-void SetColourGradient(Colours colour, Shade shade, PixelColour palette_index)
+PaletteID GetColourPalette(Colours colour1, Colours colour2)
 {
-	assert(colour < Colours::End);
-	assert(shade < Shade::End);
-	ColourGradients::gradient[to_underlying(colour) % to_underlying(Colours::End)][to_underlying(shade) % to_underlying(Shade::End)] = palette_index;
+	std::pair<Colours, Colours> key{colour1, colour2};
+	auto it = _colour_palettes.find(key);
+	if (it != _colour_palettes.end()) return it->second;
+
+	return _colour_palettes[key] = CreateRecolourPalette(colour1, colour2);
+}
+
+/**
+ * Get name for a colour.
+ * @param colour Colour.
+ * @return Name of colour.
+ */
+StringID GetColourName(Colours colour)
+{
+	assert(colour <= static_cast<Colours>(_colour_specs.size()));
+	return _colour_specs[colour].name;
 }

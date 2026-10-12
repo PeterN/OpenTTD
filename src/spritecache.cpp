@@ -731,7 +731,7 @@ static void DeleteEntriesFromSpriteCache(size_t to_remove)
 	SpriteID i = 0;
 	for (; i != static_cast<SpriteID>(_spritecache.size()) && candidate_bytes < to_remove; i++) {
 		const SpriteCache *sc = GetSpriteCache(i);
-		if (sc->ptr != nullptr) {
+		if (sc->ptr != nullptr && sc->file != nullptr) {
 			push({ sc->lru, i, sc->length });
 			if (candidate_bytes >= to_remove) break;
 		}
@@ -740,7 +740,7 @@ static void DeleteEntriesFromSpriteCache(size_t to_remove)
 	 * only sprites with LRU values <= the maximum (i.e. the top of the heap) need to be considered */
 	for (; i != static_cast<SpriteID>(_spritecache.size()); i++) {
 		const SpriteCache *sc = GetSpriteCache(i);
-		if (sc->ptr != nullptr && sc->lru <= candidates.front().lru) {
+		if (sc->ptr != nullptr && sc->file != nullptr && sc->lru <= candidates.front().lru) {
 			push({ sc->lru, i, sc->length });
 			while (!candidates.empty() && candidate_bytes - candidates.front().size >= to_remove) {
 				pop();
@@ -791,6 +791,29 @@ void *UniquePtrSpriteAllocator::AllocatePtr(size_t size)
 	this->data = std::make_unique<std::byte[]>(size);
 	this->size = size;
 	return this->data.get();
+}
+
+/**
+ * Allocate and inject memory for a memory-based sprite.
+ */
+void InjectSprite(SpriteType type, SpriteID load_index, std::function<void(SpriteAllocator &)> func)
+{
+	if (SpriteExists(load_index)) GetSpriteCache(load_index)->ClearSpriteData();
+
+	SpriteCache *sc = AllocateSpriteCache(load_index);
+	sc->file_pos = SIZE_MAX;
+	sc->file = nullptr;
+	sc->id = 0;
+	sc->lru = 0;
+	sc->type = type;
+	sc->warned = false;
+	sc->control_flags = {};
+
+	UniquePtrSpriteAllocator cache_allocator;
+	func(cache_allocator);
+	sc->ptr = std::move(cache_allocator.data);
+	sc->length = static_cast<uint32_t>(cache_allocator.size);
+	_spritecache_bytes_used += sc->length;
 }
 
 /**
@@ -928,3 +951,11 @@ void GfxClearFontSpriteCache()
 }
 
 /* static */ SpriteCollMap<ReusableBuffer<SpriteLoader::CommonPixel>> SpriteLoader::Sprite::buffer;
+
+/**
+ * Allocate a custom sprite ID.
+ */
+SpriteID AllocateDynamicSprite()
+{
+	return _spritecache.size();
+}

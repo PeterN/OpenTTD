@@ -131,7 +131,7 @@ static void UpdateElement(StoryPageElement &pe, TileIndex tile, uint32_t referen
  */
 void StoryPageButtonData::SetColour(Colours button_colour)
 {
-	assert(button_colour < Colours::End);
+	assert(button_colour < GetNumColours());
 	SB(this->referenced_id, 0, 8, to_underlying(button_colour));
 }
 
@@ -210,7 +210,7 @@ VehicleType StoryPageButtonData::GetVehicleType() const
  */
 bool StoryPageButtonData::ValidateColour() const
 {
-	return GB(this->referenced_id, 0, 8) < to_underlying(Colours::End);
+	return GB(this->referenced_id, 0, 8) < to_underlying(GetNumColours());
 }
 
 /**

@@ -697,7 +697,7 @@ CommandCost CmdSetGroupLivery(DoCommandFlags flags, GroupID group_id, uint8_t co
 	if (g == nullptr || g->owner != _current_company) return CMD_ERROR;
 	if (colour_index >= Livery::NUM_COLOURS) return CMD_ERROR;
 
-	if (colour >= Colours::End && colour != Colours::Invalid) return CMD_ERROR;
+	if (colour >= GetNumColours() && colour != Colours::Invalid) return CMD_ERROR;
 
 	if (flags.Test(DoCommandFlag::Execute)) {
 		AssignBit(g->livery.in_use, colour_index, colour != Colours::Invalid);

@@ -11,6 +11,7 @@
 #define PALETTE_FUNC_H
 
 #include "gfx_type.h"
+#include "strings_type.h"
 
 extern Palette _cur_palette; ///< Current palette
 
@@ -53,17 +54,6 @@ static inline uint8_t GetColourBrightness(Colour colour)
 	return rgb_max;
 }
 
-/**
- * Checks if a Colours value is valid.
- *
- * @param colours The value to check
- * @return true if the given value is a valid Colours.
- */
-inline bool IsValidColours(Colours colours)
-{
-	return colours < Colours::End;
-}
-
 TextColour GetContrastColour(PixelColour background, uint8_t threshold = 128);
 
 /** The eight shades of each company colour. Not all shaded are used. */
@@ -82,7 +72,36 @@ enum class Shade : uint8_t {
 };
 
 PixelColour GetColourGradient(Colours colour, Shade shade);
-void SetColourGradient(Colours colour, Shade shade, PixelColour palette_colour);
+void ResetColourSpecs();
+
+struct ColourSpec {
+	StringID name; ///< Name of this colour.
+	uint8_t weight; ///< Sorting weight.
+	EnumIndexArray<PixelColour, Shade, Shade::End> pc{}; ///< Pixel colours of this recolour.
+	std::basic_string<Colours> similar; ///< Similar colours.
+};
+
+extern EnumClassIndexContainer<std::vector<ColourSpec>, Colours> _colour_specs;
+
+inline Colours GetNumColours()
+{
+	return static_cast<Colours>(_colour_specs.size());
+}
+
+PaletteID GetColourPalette(Colours colour1, Colours colour2 = Colours::Invalid);
+StringID GetColourName(Colours colour);
+
+/**
+ * Checks if a Colours value is valid.
+ *
+ * @param colours The value to check
+ * @return true if the given value is a valid Colours.
+ */
+inline bool IsValidColours(Colours colours)
+{
+	return colours < GetNumColours();
+}
+
 
 /**
  * Return the colour for a particular greyscale level.

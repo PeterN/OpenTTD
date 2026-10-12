@@ -548,14 +548,6 @@ void ShowSelectGameWindow();
  */
 void SetupColoursAndInitialWindow()
 {
-	for (Colours i : EnumRange(Colours::End)) {
-		const uint8_t *b = GetNonSprite(GetColourPalette(i), SpriteType::Recolour) + 1;
-		assert(b != nullptr);
-		for (Shade j : EnumRange(Shade::End)) {
-			SetColourGradient(i, j, PixelColour{b[0xC6 + to_underlying(j)]});
-		}
-	}
-
 	new MainWindow(_main_window_desc);
 
 	/* XXX: these are not done */

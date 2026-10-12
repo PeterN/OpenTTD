@@ -383,15 +383,8 @@ bool HandleBootstrap()
 	/* Next "force" finding a suitable non-sprite font as the local font is missing. */
 	CheckForMissingGlyphs(FontSize::Normal);
 
-	/* Initialise the palette. The biggest step is 'faking' some recolour sprites.
-	 * This way the mauve and gray colours work and we can show the user interface. */
+	/* Initialise the palette. */
 	GfxInitPalettes();
-	static const EnumIndexArray<uint8_t, Colours, Colours::End> offsets = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0x04, 0x08 };
-	for (Colours i : EnumRange(Colours::End)) {
-		for (Shade j : EnumRange(Shade::End)) {
-			SetColourGradient(i, j, PixelColour(offsets[i] + to_underlying(j)));
-		}
-	}
 
 	/* Finally ask the question. */
 	new BootstrapBackground();

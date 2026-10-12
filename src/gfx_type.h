@@ -298,6 +298,22 @@ enum class Colours : uint8_t {
 	Brown, ///< Brown
 	Grey, ///< Grey
 	White, ///< White
+	Custom0,
+	Custom1,
+	Custom2,
+	Custom3,
+	Custom4,
+	Custom5,
+	Custom6,
+	Custom7,
+	Custom8,
+	Custom9,
+	Custom10,
+	Custom11,
+	Custom12,
+	Custom13,
+	Custom14,
+	Custom15,
 	End, ///< End-of-array marker.
 	Invalid = 0xFF, ///< Invalid marker.
 };

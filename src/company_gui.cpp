@@ -598,8 +598,8 @@ static const EnumIndexArray<LiveryClass, LiveryScheme, LiveryScheme::End> _liver
 template <SpriteID TSprite = SPR_SQUARE>
 class DropDownListColourItem : public DropDownIcon<DropDownString<DropDownListItem>> {
 public:
-	DropDownListColourItem(int colour, bool masked) :
-			DropDownIcon<DropDownString<DropDownListItem>>(TSprite, GetColourPalette(static_cast<Colours>(colour % to_underlying(Colours::End))), GetString(colour < to_underlying(Colours::End) ? (STR_COLOUR_DARK_BLUE + colour) : STR_COLOUR_DEFAULT), colour, masked)
+	DropDownListColourItem(Colours colour, bool is_default, bool masked) :
+			DropDownIcon<DropDownString<DropDownListItem>>(TSprite, GetColourPalette(colour), GetString(is_default ? STR_COLOUR_DEFAULT : GetColourName(colour)), is_default ? INT_MAX : to_underlying(colour), masked)
 
 	{
 	}
@@ -622,15 +622,15 @@ private:
 
 	void ShowColourDropDownMenu(uint32_t widget)
 	{
-		EnumBitSet<Colours, uint16_t, Colours::End> used_colours{};
+		FlatSet<Colours> used_colours{};
 		const Livery *livery, *default_livery = nullptr;
 		uint colour_index = widget - WID_SCL_PRI_COL_DROPDOWN;
-		uint8_t default_col{};
+		int default_col;
 
 		/* Disallow other company colours for the primary colour */
 		if (this->livery_class < LiveryClass::GroupRail && this->sel.schemes.Test(LiveryScheme::Default) && colour_index == 0) {
 			for (const Company *c : Company::Iterate()) {
-				if (c->index != _local_company) used_colours.Set(c->colour);
+				if (c->index != _local_company) used_colours.insert(c->colour);
 			}
 		}
 
@@ -654,15 +654,14 @@ private:
 
 		DropDownList list;
 		if (default_livery != nullptr) {
-			/* Add Colours::End to put the colour out of range, but also allow us to show what the default is */
-			default_col = to_underlying(default_livery->colours[colour_index]) + to_underlying(Colours::End);
-			list.push_back(std::make_unique<DropDownListColourItem<>>(default_col, false));
+			list.push_back(std::make_unique<DropDownListColourItem<>>(default_livery->colours[colour_index], true, false));
+			default_col = INT_MAX;
 		}
-		for (Colours colour : EnumRange(Colours::End)) {
-			list.push_back(std::make_unique<DropDownListColourItem<>>(to_underlying(colour), used_colours.Test(colour)));
+		for (Colours colour : EnumRange(GetNumColours())) {
+			list.push_back(std::make_unique<DropDownListColourItem<>>(colour, false, used_colours.contains(colour)));
 		}
 
-		uint8_t sel;
+		int sel;
 		if (default_livery == nullptr || HasBit(livery->in_use, colour_index)) {
 			sel = to_underlying(livery->colours[colour_index]);
 		} else {
@@ -798,8 +797,8 @@ public:
 			case WID_SCL_PRI_COL_DROPDOWN: {
 				this->square = GetSpriteSize(SPR_SQUARE);
 				int string_padding = this->square.width + WidgetDimensions::scaled.hsep_normal + padding.width;
-				for (Colours colour : EnumRange(Colours::End)) {
-					size.width = std::max(size.width, GetStringBoundingBox(STR_COLOUR_DARK_BLUE + to_underlying(colour)).width + string_padding);
+				for (Colours colour : EnumRange(GetNumColours())) {
+					size.width = std::max(size.width, GetStringBoundingBox(GetColourName(colour)).width + string_padding);
 				}
 				size.width = std::max(size.width, GetStringBoundingBox(STR_COLOUR_DEFAULT).width + string_padding);
 				break;
@@ -839,7 +838,7 @@ public:
 					if (scheme != LiveryScheme::End) {
 						const Livery &livery = c->livery[scheme];
 						if (scheme == LiveryScheme::Default || HasBit(livery.in_use, colour_index)) {
-							colour = STR_COLOUR_DARK_BLUE + livery.colours[colour_index];
+							colour = GetColourName(livery.colours[colour_index]);
 						}
 					}
 				} else {
@@ -847,7 +846,7 @@ public:
 						const Group *g = Group::Get(this->sel.group);
 						const Livery &livery = g->livery;
 						if (HasBit(livery.in_use, colour_index)) {
-							colour = STR_COLOUR_DARK_BLUE + livery.colours[colour_index];
+							colour = GetColourName(livery.colours[colour_index]);
 						}
 					}
 				}
@@ -892,7 +891,7 @@ public:
 			for (uint colour_index = 0; colour_index < Livery::NUM_COLOURS; ++colour_index) {
 				if (columns[colour_index].right > columns[colour_index].left) {
 					DrawSprite(SPR_SQUARE, GetColourPalette(livery.colours[colour_index]), squares[colour_index].left, y + square_offs);
-					DrawString(columns[colour_index].left, columns[colour_index].right, y + text_offs, (is_default_scheme || HasBit(livery.in_use, colour_index)) ? STR_COLOUR_DARK_BLUE + to_underlying(livery.colours[colour_index]) : STR_COLOUR_DEFAULT, is_selected ? TextColour::White : TextColour::Gold);
+					DrawString(columns[colour_index].left, columns[colour_index].right, y + text_offs, (is_default_scheme || HasBit(livery.in_use, colour_index)) ? GetColourName(livery.colours[colour_index]) : STR_COLOUR_DEFAULT, is_selected ? TextColour::White : TextColour::Gold);
 				}
 			}
 
@@ -999,7 +998,7 @@ public:
 		if (!local) return;
 
 		Colours colour = static_cast<Colours>(index);
-		if (colour >= Colours::End) colour = Colours::Invalid;
+		if (colour >= GetNumColours()) colour = Colours::Invalid;
 
 		if (this->livery_class < LiveryClass::GroupRail) {
 			/* Set company colour livery */

@@ -213,11 +213,4 @@ inline PaletteID GroundSpritePaletteTransform(SpriteID image, PaletteID pal, Pal
 	}
 }
 
-/**
- * Get recolour palette for a colour.
- * @param colour Colour.
- * @return Recolour palette.
- */
-static inline PaletteID GetColourPalette(Colours colour) { return PALETTE_RECOLOUR_START + to_underlying(colour); }
-
 #endif /* SPRITE_H */
