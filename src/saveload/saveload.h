@@ -429,7 +429,7 @@ enum class SaveLoadVersion : uint16_t {
 };
 
 /** Types of save games. */
-enum SavegameType : uint8_t {
+enum class SavegameType : uint8_t {
 	TTD, ///< TTD savegame (can be detected incorrectly)
 	TTDP1, ///< TTDP savegame ( -//- ) (data at NW border)
 	TTDP2, ///< TTDP savegame in new format (data at SE border)
