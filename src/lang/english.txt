@@ -186,6 +186,36 @@ STR_COLOUR_ORANGE                                               :Orange
 STR_COLOUR_BROWN                                                :Brown
 STR_COLOUR_GREY                                                 :Grey
 STR_COLOUR_WHITE                                                :White
+STR_COLOUR_AMANITA                                              :Amanita
+STR_COLOUR_AMBER                                                :Amber
+STR_COLOUR_BANANA                                               :Banana
+STR_COLOUR_BEIGE                                                :Beige
+STR_COLOUR_BROWNIE                                              :Brownie
+STR_COLOUR_BURGUNDY                                             :Burgundy
+STR_COLOUR_CHARCOAL                                             :Charcoal
+STR_COLOUR_CHERRY                                               :Cherry
+STR_COLOUR_CHOCOLATE                                            :Chocolate
+STR_COLOUR_CLAY                                                 :Clay
+STR_COLOUR_COBALT                                               :Cobalt
+STR_COLOUR_DIAMOND                                              :Diamond
+STR_COLOUR_FOREST                                               :Forest
+STR_COLOUR_GOLD                                                 :Gold
+STR_COLOUR_KHAKI                                                :Khaki
+STR_COLOUR_LAVA                                                 :Lava
+STR_COLOUR_LAVENDER                                             :Lavender
+STR_COLOUR_LILAC                                                :Lilac
+STR_COLOUR_MAROON                                               :Maroon
+STR_COLOUR_MOSS                                                 :Moss
+STR_COLOUR_ROYAL_PURPLE                                         :Royal Purple
+STR_COLOUR_SALMON                                               :Salmon
+STR_COLOUR_SCARLET                                              :Scarlet
+STR_COLOUR_SILVER                                               :Silver
+STR_COLOUR_SLATE                                                :Slate
+STR_COLOUR_SPRUCE                                               :Spruce
+STR_COLOUR_SUNFLOWER                                            :Sunflower
+STR_COLOUR_TANGERINE                                            :Tangerine
+STR_COLOUR_TERRACOTTA                                           :Terracotta
+STR_COLOUR_TOFFEE                                               :Toffee
 STR_COLOUR_RANDOM                                               :Random
 STR_COLOUR_SAME_AS_PRIMARY                                      :Same As Primary
 
