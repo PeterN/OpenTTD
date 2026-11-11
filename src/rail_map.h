@@ -181,7 +181,7 @@ inline DiagDirection GetRailDepotDirection(Tile t)
  */
 inline Track GetRailDepotTrack(Tile t)
 {
-	return DiagDirToDiagTrack(GetRailDepotDirection(t));
+	return DiagDirToTrack(GetRailDepotDirection(t));
 }
 
 

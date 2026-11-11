@@ -844,7 +844,7 @@ static void RoadVehCheckOvertake(RoadVehicle *v, RoadVehicle *u)
 		return;
 	}
 
-	od.trackdir = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+	od.trackdir = DiagDirToTrackdir(DirToDiagDir(v->direction));
 
 	/* Are the current and the next tile suitable for overtaking?
 	 *  - Does the track continue along od.trackdir
@@ -1011,7 +1011,7 @@ bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	DiagDirection dir = GetRoadDepotDirection(v->tile);
 	v->direction = DiagDirToDir(dir);
 
-	Trackdir tdir = DiagDirToDiagTrackdir(dir);
+	Trackdir tdir = DiagDirToTrackdir(dir);
 	const RoadDriveEntry *rdp = _road_drive_data[GetRoadTramType(v->roadtype)][(to_underlying(_settings_game.vehicle.road_side) << RVS_DRIVE_SIDE) + to_underlying(tdir)];
 
 	int x = TileX(v->tile) * TILE_SIZE + (rdp[RVC_DEPOT_START_FRAME].x & 0xF);
@@ -1070,7 +1070,7 @@ static Trackdir FollowPreviousRoadVehicle(const RoadVehicle *v, const RoadVehicl
 		}
 
 		if (diag_dir == DiagDirection::Invalid) return Trackdir::Invalid;
-		dir = DiagDirToDiagTrackdir(diag_dir);
+		dir = DiagDirToTrackdir(diag_dir);
 	} else {
 		if (already_reversed && (prev->tile != tile || (static_cast<Trackdir>(prev_state) < Trackdir::End && IsReversingRoadTrackdir(static_cast<Trackdir>(prev_state))))) {
 			/*
@@ -1753,16 +1753,16 @@ Trackdir RoadVehicle::GetVehicleTrackdir() const
 
 	if (this->IsInDepot()) {
 		/* We'll assume the road vehicle is facing outwards */
-		return DiagDirToDiagTrackdir(GetRoadDepotDirection(this->tile));
+		return DiagDirToTrackdir(GetRoadDepotDirection(this->tile));
 	}
 
 	if (IsBayRoadStopTile(this->tile)) {
 		/* We'll assume the road vehicle is facing outwards */
-		return DiagDirToDiagTrackdir(GetBayRoadStopDir(this->tile)); // Road vehicle in a station
+		return DiagDirToTrackdir(GetBayRoadStopDir(this->tile)); // Road vehicle in a station
 	}
 
 	/* Drive through road stops / wormholes (tunnels) */
-	if (this->state > RVSB_TRACKDIR_MASK) return DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
+	if (this->state > RVSB_TRACKDIR_MASK) return DiagDirToTrackdir(DirToDiagDir(this->direction));
 
 	/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
 	 * otherwise transform it into a valid track direction */

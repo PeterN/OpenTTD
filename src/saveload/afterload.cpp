@@ -2673,8 +2673,8 @@ bool AfterLoadGame()
 				v->vehstatus.Reset(VehState::Hidden);
 
 				switch (v->type) {
-					case VehicleType::Train: Train::From(v)->track = DiagDirToDiagTrack(vdir); break;
-					case VehicleType::Road: RoadVehicle::From(v)->state = to_underlying(DiagDirToDiagTrackdir(vdir)); RoadVehicle::From(v)->frame = frame; break;
+					case VehicleType::Train: Train::From(v)->track = DiagDirToTrack(vdir); break;
+					case VehicleType::Road: RoadVehicle::From(v)->state = to_underlying(DiagDirToTrackdir(vdir)); RoadVehicle::From(v)->frame = frame; break;
 					default: NOT_REACHED();
 				}
 			}
@@ -2802,7 +2802,7 @@ bool AfterLoadGame()
 					 * track == Track::Wormhole - this could happen
 					 * when the train was reversed while on the last "tick"
 					 * on the ramp before leaving the ramp to the bridge. */
-					Train::From(v)->track = DiagDirToDiagTrack(dir);
+					Train::From(v)->track = DiagDirToTrack(dir);
 				}
 			}
 

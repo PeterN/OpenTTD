@@ -295,12 +295,12 @@ Trackdir Ship::GetVehicleTrackdir() const
 
 	if (this->IsInDepot()) {
 		/* We'll assume the ship is facing outwards */
-		return DiagDirToDiagTrackdir(GetShipDepotDirection(this->tile));
+		return DiagDirToTrackdir(GetShipDepotDirection(this->tile));
 	}
 
 	if (this->state == Track::Wormhole) {
 		/* ship on aqueduct, so just use its direction and assume a diagonal track */
-		return DiagDirToDiagTrackdir(DirToDiagDir(this->direction));
+		return DiagDirToTrackdir(DirToDiagDir(this->direction));
 	}
 
 	return TrackDirectionToTrackdir(FindFirstTrack(this->state), this->direction);

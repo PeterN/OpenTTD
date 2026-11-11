@@ -1003,7 +1003,7 @@ CommandCost CmdBuildTrainDepot(DoCommandFlags flags, TileIndex tile, RailType ra
 		if (ret.Failed()) return ret;
 
 		if (HasDepotReservation(tile)) {
-			v = GetTrainForReservation(tile, DiagDirToDiagTrack(old_dir));
+			v = GetTrainForReservation(tile, DiagDirToTrack(old_dir));
 		}
 
 		rotate_existing_depot = true;
@@ -1039,7 +1039,7 @@ CommandCost CmdBuildTrainDepot(DoCommandFlags flags, TileIndex tile, RailType ra
 
 		MarkTileDirtyByTile(tile);
 		AddSideToSignalBuffer(tile, DiagDirection::Invalid, _current_company);
-		YapfNotifyTrackLayoutChange(tile, DiagDirToDiagTrack(dir));
+		YapfNotifyTrackLayoutChange(tile, DiagDirToTrack(dir));
 
 		if (v != nullptr) TryPathReserve(v, true);
 	}
@@ -1702,7 +1702,7 @@ CommandCost CmdConvertRail(DoCommandFlags flags, TileIndex tile, TileIndex area_
 				}
 
 				if (flags.Test(DoCommandFlag::Execute)) {
-					Track track = DiagDirToDiagTrack(GetTunnelBridgeDirection(cur_tile));
+					Track track = DiagDirToTrack(GetTunnelBridgeDirection(cur_tile));
 					if (HasTunnelBridgeReservation(cur_tile)) {
 						Train *v = GetTrainForReservation(cur_tile, track);
 						if (v != nullptr && !HasPowerOnRail(v->railtypes, totype)) {
@@ -1789,7 +1789,7 @@ static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlags flags)
 		Train *v = nullptr;
 
 		if (HasDepotReservation(tile)) {
-			v = GetTrainForReservation(tile, DiagDirToDiagTrack(dir));
+			v = GetTrainForReservation(tile, DiagDirToTrack(dir));
 			if (v != nullptr) FreeTrainTrackReservation(v);
 		}
 
@@ -1799,7 +1799,7 @@ static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlags flags)
 		delete Depot::GetByTile(tile);
 		DoClearSquare(tile);
 		AddSideToSignalBuffer(tile, dir, owner);
-		YapfNotifyTrackLayoutChange(tile, DiagDirToDiagTrack(dir));
+		YapfNotifyTrackLayoutChange(tile, DiagDirToTrack(dir));
 		if (v != nullptr) TryPathReserve(v, true);
 	}
 
@@ -2832,7 +2832,7 @@ static TrackStatus GetTileTrackStatus_Rail(TileIndex tile, TransportType mode, [
 
 			if (side != DiagDirection::Invalid && side != dir) break;
 
-			trackbits = DiagDirToDiagTrack(dir);
+			trackbits = DiagDirToTrack(dir);
 			break;
 		}
 	}

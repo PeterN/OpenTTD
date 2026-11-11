@@ -2203,7 +2203,7 @@ static TrackStatus GetTileTrackStatus_Road(TileIndex tile, TransportType mode, R
 
 					if (side != DiagDirection::Invalid && side != dir) break;
 
-					trackdirbits = TrackBitsToTrackdirBits(DiagDirToDiagTrack(dir));
+					trackdirbits = TrackBitsToTrackdirBits(DiagDirToTrack(dir));
 					break;
 				}
 			}

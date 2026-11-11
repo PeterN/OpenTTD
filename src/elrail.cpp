@@ -104,7 +104,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirections *override
 			if (override != nullptr && (IsTunnel(t) || GetTunnelBridgeLength(t, GetOtherBridgeEnd(t)) > 0)) {
 				*override = GetTunnelBridgeDirection(t);
 			}
-			return DiagDirToDiagTrack(GetTunnelBridgeDirection(t));
+			return DiagDirToTrack(GetTunnelBridgeDirection(t));
 
 		case TileType::Road:
 			if (!IsLevelCrossing(t)) return {};

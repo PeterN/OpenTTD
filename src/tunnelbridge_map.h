@@ -116,7 +116,7 @@ inline void SetTunnelBridgeReservation(Tile t, bool b)
  */
 inline TrackBits GetTunnelBridgeReservationTrackBits(Tile t)
 {
-	return HasTunnelBridgeReservation(t) ? DiagDirToDiagTrack(GetTunnelBridgeDirection(t)) : TrackBits{};
+	return HasTunnelBridgeReservation(t) ? DiagDirToTrack(GetTunnelBridgeDirection(t)) : TrackBits{};
 }
 
 #endif /* TUNNELBRIDGE_MAP_H */

@@ -221,7 +221,7 @@ static PBSTileInfo FollowReservation(Owner o, RailTypes rts, TileIndex tile, Tra
 					ft.new_tile -= diff;
 					if (HasStationReservation(ft.new_tile)) {
 						tile = ft.new_tile;
-						trackdir = DiagDirToDiagTrackdir(ft.exitdir);
+						trackdir = DiagDirToTrackdir(ft.exitdir);
 						break;
 					}
 				}

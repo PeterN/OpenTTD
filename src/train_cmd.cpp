@@ -3189,7 +3189,7 @@ void Train::ReserveTrackUnderConsist() const
 	for (const Train *u = this; u != nullptr; u = u->Next()) {
 		switch (u->track.base()) {
 			case TrackBits{Track::Wormhole}.base():
-				TryReserveRailTrack(u->tile, DiagDirToDiagTrack(GetTunnelBridgeDirection(u->tile)));
+				TryReserveRailTrack(u->tile, DiagDirToTrack(GetTunnelBridgeDirection(u->tile)));
 				break;
 			case TrackBits{Track::Depot}.base():
 				break;
@@ -3603,7 +3603,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			if (IsTileType(gp.new_tile, TileType::TunnelBridge) && VehicleEnterTile(v, gp.new_tile, gp.x, gp.y).Test(VehicleEnterTileState::EnteredWormhole)) {
 				/* Perform look-ahead on tunnel exit. */
 				if (v->IsMovingFront()) {
-					TryReserveRailTrack(gp.new_tile, DiagDirToDiagTrack(GetTunnelBridgeDirection(gp.new_tile)));
+					TryReserveRailTrack(gp.new_tile, DiagDirToTrack(GetTunnelBridgeDirection(gp.new_tile)));
 					CheckNextTrainTile(first);
 				}
 				/* Prevent v->UpdateInclination() being called with wrong parameters.
@@ -3735,7 +3735,7 @@ static void DeleteLastWagon(Train *v)
 
 	if (trackbits == Track::Wormhole) {
 		/* Vehicle is inside a wormhole, v->track contains no useful value then. */
-		trackbits = DiagDirToDiagTrack(GetTunnelBridgeDirection(tile));
+		trackbits = DiagDirToTrack(GetTunnelBridgeDirection(tile));
 	}
 
 	if (trackbits != Track::Depot && HasReservedTracks(tile, trackbits)) {
@@ -3749,7 +3749,7 @@ static void DeleteLastWagon(Train *v)
 			TrackBits train_tbits = Train::From(u)->track;
 			if (train_tbits == Track::Wormhole) {
 				/* Vehicle is inside a wormhole, u->track contains no useful value then. */
-				remaining_trackbits.Set(DiagDirToDiagTrack(GetTunnelBridgeDirection(u->tile)));
+				remaining_trackbits.Set(DiagDirToTrack(GetTunnelBridgeDirection(u->tile)));
 			} else if (train_tbits != Track::Depot) {
 				remaining_trackbits.Set(train_tbits);
 			}
@@ -4316,12 +4316,12 @@ Trackdir Train::GetVehicleTrackdir() const
 
 	if (this->track == Track::Depot) {
 		/* We'll assume the train is facing outwards */
-		return DiagDirToDiagTrackdir(GetRailDepotDirection(this->tile)); // Train in depot
+		return DiagDirToTrackdir(GetRailDepotDirection(this->tile)); // Train in depot
 	}
 
 	if (this->track == Track::Wormhole) {
 		/* train in tunnel or on bridge, so just use its direction and assume a diagonal track */
-		return DiagDirToDiagTrackdir(DirToDiagDir(this->GetMovingDirection()));
+		return DiagDirToTrackdir(DirToDiagDir(this->GetMovingDirection()));
 	}
 
 	return TrackDirectionToTrackdir(FindFirstTrack(this->track), this->GetMovingDirection());

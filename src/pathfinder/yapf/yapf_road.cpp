@@ -135,7 +135,7 @@ public:
 			}
 
 			/* stop if we have just entered the depot */
-			if (IsRoadDepotTile(tile) && trackdir == DiagDirToDiagTrackdir(ReverseDiagDir(GetRoadDepotDirection(tile)))) {
+			if (IsRoadDepotTile(tile) && trackdir == DiagDirToTrackdir(ReverseDiagDir(GetRoadDepotDirection(tile)))) {
 				/* next time we will reverse and leave the depot */
 				break;
 			}
@@ -349,7 +349,7 @@ public:
 		 * this method forces the vehicle to jump in circles. */
 		if (tile == v->dest_tile && !v->current_order.IsType(OT_GOTO_STATION)) {
 			/* choose diagonal trackdir reachable from enterdir */
-			return DiagDirToDiagTrackdir(enterdir);
+			return DiagDirToTrackdir(enterdir);
 		}
 		/* our source tile will be the next vehicle tile (should be the given one) */
 		TileIndex src_tile = tile;

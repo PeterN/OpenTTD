@@ -1427,7 +1427,7 @@ static TrackStatus GetTileTrackStatus_Water(TileIndex tile, TransportType mode, 
 	switch (GetWaterTileType(tile)) {
 		case WaterTileType::Clear: ts = IsTileFlat(tile) ? TRACK_BIT_ALL : TrackBits{}; break;
 		case WaterTileType::Coast: ts = coast_tracks[GetTileSlope(tile) & SLOPE_ELEVATED]; break;
-		case WaterTileType::Lock: ts = DiagDirToDiagTrack(GetLockDirection(tile)); break;
+		case WaterTileType::Lock: ts = DiagDirToTrack(GetLockDirection(tile)); break;
 		case WaterTileType::Depot: ts = AxisToTrack(GetShipDepotAxis(tile)); break;
 		default: return {};
 	}

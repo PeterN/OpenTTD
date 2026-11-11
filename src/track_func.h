@@ -411,25 +411,25 @@ inline Trackdir TrackDirectionToTrackdir(Track track, Direction dir)
 }
 
 /**
- * Maps a DiagDirection to the associated diagonal Track.
+ * Maps a DiagDirection to the associated Track.
  *
  * @param diagdir The direction
  * @return The resulting Track
  */
-inline Track DiagDirToDiagTrack(DiagDirection diagdir)
+inline Track DiagDirToTrack(DiagDirection diagdir)
 {
 	assert(IsValidDiagDirection(diagdir));
 	return static_cast<Track>(to_underlying(diagdir) & 1);
 }
 
 /**
- * Maps a (4-way) direction to the diagonal trackdir that runs in that
+ * Maps a (4-way) direction to the trackdir that runs in that
  * direction.
  *
  * @param diagdir The direction
  * @return The resulting Trackdir direction
  */
-inline Trackdir DiagDirToDiagTrackdir(DiagDirection diagdir)
+inline Trackdir DiagDirToTrackdir(DiagDirection diagdir)
 {
 	assert(IsValidDiagDirection(diagdir));
 	extern const DiagDirectionIndexArray<Trackdir> _dir_to_diag_trackdir;

@@ -791,7 +791,7 @@ CommandCost CmdBuildTunnel(DoCommandFlags flags, TileIndex start_tile, Transport
 			MakeRailTunnel(start_tile, company, direction,                 railtype);
 			MakeRailTunnel(end_tile,   company, ReverseDiagDir(direction), railtype);
 			AddSideToSignalBuffer(start_tile, DiagDirection::Invalid, company);
-			YapfNotifyTrackLayoutChange(start_tile, DiagDirToDiagTrack(direction));
+			YapfNotifyTrackLayoutChange(start_tile, DiagDirToTrack(direction));
 		} else {
 			if (c != nullptr) c->infrastructure.road[roadtype] += num_pieces * 2; // A full diagonal road has two road bits.
 			RoadType road_rt = RoadTypeIsRoad(roadtype) ? roadtype : INVALID_ROADTYPE;
@@ -894,7 +894,7 @@ static CommandCost DoClearTunnel(TileIndex tile, DoCommandFlags flags)
 		if (GetTunnelBridgeTransportType(tile) == TransportType::Rail) {
 			/* We first need to request values before calling DoClearSquare */
 			DiagDirection dir = GetTunnelBridgeDirection(tile);
-			Track track = DiagDirToDiagTrack(dir);
+			Track track = DiagDirToTrack(dir);
 			Owner owner = GetTileOwner(tile);
 
 			Train *v = nullptr;
@@ -979,7 +979,7 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlags flags)
 		Train *v = nullptr;
 
 		if (rail && HasTunnelBridgeReservation(tile)) {
-			v = GetTrainForReservation(tile, DiagDirToDiagTrack(direction));
+			v = GetTrainForReservation(tile, DiagDirToTrack(direction));
 			if (v != nullptr) FreeTrainTrackReservation(v);
 		}
 
@@ -1013,7 +1013,7 @@ static CommandCost DoClearBridge(TileIndex tile, DoCommandFlags flags)
 			AddSideToSignalBuffer(tile,    ReverseDiagDir(direction), owner);
 			AddSideToSignalBuffer(endtile, direction,                 owner);
 
-			Track track = DiagDirToDiagTrack(direction);
+			Track track = DiagDirToTrack(direction);
 			YapfNotifyTrackLayoutChange(tile,    track);
 			YapfNotifyTrackLayoutChange(endtile, track);
 
@@ -1858,7 +1858,7 @@ static TrackStatus GetTileTrackStatus_TunnelBridge(TileIndex tile, TransportType
 
 	DiagDirection dir = GetTunnelBridgeDirection(tile);
 	if (side != DiagDirection::Invalid && side != ReverseDiagDir(dir)) return {};
-	return {TrackBitsToTrackdirBits(DiagDirToDiagTrack(dir)), {}};
+	return {TrackBitsToTrackdirBits(DiagDirToTrack(dir)), {}};
 }
 
 /** @copydoc ChangeTileOwnerProc */
@@ -1993,7 +1993,7 @@ static VehicleEnterTileStates VehicleEnterTile_TunnelBridge(Vehicle *v, TileInde
 			if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
 				/* We're at the tunnel exit ?? */
 				t->tile = tile;
-				t->track = DiagDirToDiagTrack(vdir);
+				t->track = DiagDirToTrack(vdir);
 				assert(t->track.Any());
 				t->vehstatus.Reset(VehState::Hidden);
 				return VehicleEnterTileState::EnteredWormhole;
@@ -2018,7 +2018,7 @@ static VehicleEnterTileStates VehicleEnterTile_TunnelBridge(Vehicle *v, TileInde
 			/* We're at the tunnel exit ?? */
 			if (dir == ReverseDiagDir(vdir) && frame == TILE_SIZE - _tunnel_visibility_frame[dir] && z == 0) {
 				rv->tile = tile;
-				rv->state = to_underlying(DiagDirToDiagTrackdir(vdir));
+				rv->state = to_underlying(DiagDirToTrackdir(vdir));
 				rv->frame = frame;
 				rv->vehstatus.Reset(VehState::Hidden);
 				return VehicleEnterTileState::EnteredWormhole;
@@ -2065,7 +2065,7 @@ static VehicleEnterTileStates VehicleEnterTile_TunnelBridge(Vehicle *v, TileInde
 				case VehicleType::Train: {
 					Train *t = Train::From(v);
 					if (t->track == Track::Wormhole) {
-						t->track = DiagDirToDiagTrack(vdir);
+						t->track = DiagDirToTrack(vdir);
 						return VehicleEnterTileState::EnteredWormhole;
 					}
 					break;
@@ -2074,7 +2074,7 @@ static VehicleEnterTileStates VehicleEnterTile_TunnelBridge(Vehicle *v, TileInde
 				case VehicleType::Road: {
 					RoadVehicle *rv = RoadVehicle::From(v);
 					if (rv->state == RVSB_WORMHOLE) {
-						rv->state = to_underlying(DiagDirToDiagTrackdir(vdir));
+						rv->state = to_underlying(DiagDirToTrackdir(vdir));
 						rv->frame = 0;
 						return VehicleEnterTileState::EnteredWormhole;
 					}
@@ -2084,7 +2084,7 @@ static VehicleEnterTileStates VehicleEnterTile_TunnelBridge(Vehicle *v, TileInde
 				case VehicleType::Ship: {
 					Ship *ship = Ship::From(v);
 					if (ship->state == Track::Wormhole) {
-						ship->state = DiagDirToDiagTrack(vdir);
+						ship->state = DiagDirToTrack(vdir);
 						return VehicleEnterTileState::EnteredWormhole;
 					}
 					break;
