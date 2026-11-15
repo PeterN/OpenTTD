@@ -74,6 +74,7 @@
 
 extern Company *DoStartupNewCompany(bool is_ai, CompanyID company = CompanyID::Invalid());
 extern void ClearOldOrders();
+extern void ClearOldEngineRenews();
 
 /**
  * Makes a tile canal or water depending on the surroundings.
@@ -822,6 +823,7 @@ bool AfterLoadGame()
 
 	/* Old orders are no longer needed. */
 	ClearOldOrders();
+	ClearOldEngineRenews();
 
 	/* make sure there is a town in the game */
 	if (_game_mode == GameMode::Normal && Town::GetNumItems() == 0) {
@@ -1036,7 +1038,6 @@ bool AfterLoadGame()
 	 *  of course, we do need to initialize them for older savegames. */
 	if (IsSavegameVersionBefore(SaveLoadVersion::EngineRenew)) {
 		for (Company *c : Company::Iterate()) {
-			c->engine_renew_list            = nullptr;
 			c->settings.engine_renew        = false;
 			c->settings.engine_renew_months = 6;
 			c->settings.engine_renew_money  = 100000;

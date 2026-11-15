@@ -124,7 +124,8 @@ struct CompanyProperties {
 
 	EnumIndexArray<Livery, LiveryScheme, LiveryScheme::End> livery{};
 
-	EngineRenewList engine_renew_list = nullptr; ///< Engine renewals of this company.
+	uint16_t old_engine_renew_index = 0; ///< Index of first item in old engine renew pool, required for old savegame conversion.
+	EngineRenewList engine_renew_list{}; ///< Engine renewals of this company.
 	CompanySettings settings{}; ///< settings specific for each company
 };
 

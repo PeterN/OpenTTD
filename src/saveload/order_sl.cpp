@@ -8,6 +8,7 @@
 /** @file order_sl.cpp Code handling saving and loading of orders. */
 
 #include "../stdafx.h"
+#include <type_traits>
 
 #include "saveload.h"
 #include "saveload_internal.h"

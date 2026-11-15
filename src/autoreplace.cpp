@@ -8,111 +8,93 @@
 /** @file autoreplace.cpp Management of replacement lists. */
 
 #include "stdafx.h"
+
+#include "autoreplace_func.h"
+#include "autoreplace_type.h"
 #include "command_func.h"
+#include "company_base.h"
 #include "group.h"
-#include "autoreplace_base.h"
-#include "core/pool_func.hpp"
 
 #include "safeguards.h"
 
-/** The pool of autoreplace "orders". */
-EngineRenewPool _enginerenew_pool("EngineRenew");
-INSTANTIATE_POOL_METHODS(EngineRenew)
+/**
+ * Search within a single engine renew list for an engine to renew.
+ * @param erl The engine renew list.
+ * @param engine THe engine to search for.
+ * @return Engine Renew data if present.
+ */
+const EngineRenew *GetEngineRenew(const EngineRenewList &erl, EngineID engine)
+{
+	auto it = std::ranges::lower_bound(erl, engine, std::less{}, &EngineRenew::from);
+	if (it == erl.end() || it->from != engine) return nullptr;
+	return &*it;
+}
 
 /**
- * Retrieves the EngineRenew that specifies the replacement of the given
- * engine type from the given renewlist
- * @param erl Linked list of engine renews.
- * @param engine The engine to look for.
+ * Retrieves the EngineRenew that specifies the replacement of the given engine type from the given renewlist
+ * @param company The company.
  * @param group The group to look for.
+ * @param engine The engine to look for.
+ * @param search Whether to search groups and company for replacement.
  * @return The engine renew configuration for the given engine and group.
  */
-static EngineRenew *GetEngineReplacement(EngineRenewList erl, EngineID engine, GroupID group)
+const EngineRenew *GetEngineRenew(CompanyID company, GroupID group, EngineID engine, bool search)
 {
-	EngineRenew *er = (EngineRenew *)erl;
-
-	while (er != nullptr) {
-		if (er->from == engine && GroupIsInGroup(group, er->group_id)) return er;
-		er = er->next;
+	for (const Group *g = Group::GetIfValid(group); g != nullptr; g = Group::GetIfValid(g->parent)) {
+		if (g->flags.Test(GroupFlag::ReplaceProtection)) return nullptr;
+		const EngineRenew *er = GetEngineRenew(g->engine_renew_list, engine);
+		if (er != nullptr || !search) return er;
 	}
-	return nullptr;
+
+	return GetEngineRenew(Company::Get(company)->engine_renew_list, engine);
 }
 
 /**
- * Remove all engine replacement settings for the company.
- * @param erl The renewlist for a given company.
+ * Remove all engine replacements for a company.
+ * @param company The company.
  */
-void RemoveAllEngineReplacement(EngineRenewList *erl)
+void RemoveAllEngineReplacementForCompany(CompanyID company)
 {
-	EngineRenew *er = (EngineRenew *)(*erl);
-	EngineRenew *next;
+	Company *c = Company::GetIfValid(company);
+	if (c == nullptr) return;
 
-	while (er != nullptr) {
-		next = er->next;
-		delete er;
-		er = next;
-	}
-	*erl = nullptr; // Empty list
-}
+	c->engine_renew_list.clear();
 
-/**
- * Retrieve the engine replacement in a given renewlist for an original engine type.
- * @param erl The renewlist to search in.
- * @param engine Engine type to be replaced.
- * @param group The group related to this replacement.
- * @param[out] replace_when_old Set to true if the replacement should be done when old.
- * @return The engine type to replace with, or EngineID::Invalid() if no
- * replacement is in the list.
- */
-EngineID EngineReplacement(EngineRenewList erl, EngineID engine, GroupID group, bool *replace_when_old)
-{
-	const EngineRenew *er = GetEngineReplacement(erl, engine, group);
-	if (er == nullptr && (group == DEFAULT_GROUP || (Group::IsValidID(group) && !Group::Get(group)->flags.Test(GroupFlag::ReplaceProtection)))) {
-		/* We didn't find anything useful in the vehicle's own group so we will try ALL_GROUP */
-		er = GetEngineReplacement(erl, engine, ALL_GROUP);
+	for (Group *g : Group::Iterate()) {
+		if (g->owner != company) continue;
+		g->engine_renew_list.clear();
 	}
-	if (replace_when_old != nullptr) {
-		if (er == nullptr) {
-			/* Not replacing */
-			*replace_when_old = false;
-		} else if (er->to == engine) {
-			/* When replacing with same model, only ever do it when old */
-			*replace_when_old = true;
-		} else {
-			/* Use player setting */
-			*replace_when_old = er->replace_when_old;
-		}
-	}
-	return er == nullptr ? EngineID::Invalid() : er->to;
 }
 
 /**
  * Add an engine replacement to the given renewlist.
- * @param erl The renewlist to add to.
- * @param old_engine The original engine type.
- * @param new_engine The replacement engine type.
- * @param group The group related to this replacement.
- * @param replace_when_old Replace when old or always?
  * @param flags The calling command flags.
+ * @param company The company.
+ * @param group The group related to this replacement.
+ * @param engine The original engine type.
+ * @param new_engine The replacement engine type.
+ * @param replace_when_old Replace when old or always?
  * @return 0 on success, CMD_ERROR on failure.
  */
-CommandCost AddEngineReplacement(EngineRenewList *erl, EngineID old_engine, EngineID new_engine, GroupID group, bool replace_when_old, DoCommandFlags flags)
+CommandCost AddEngineReplacement(DoCommandFlags flags, CompanyID company, GroupID group, EngineID engine, EngineID new_engine, bool replace_when_old)
 {
+	if (engine == new_engine) replace_when_old = true;
+
+	Group *g = Group::GetIfValid(group);
+	EngineRenewList &erl = g == nullptr ? Company::Get(company)->engine_renew_list : g->engine_renew_list;
+
 	/* Check if the old vehicle is already in the list */
-	EngineRenew *er = GetEngineReplacement(*erl, old_engine, group);
-	if (er != nullptr) {
+	auto it = std::ranges::lower_bound(erl, engine, std::less{}, &EngineRenew::from);
+	if (it != erl.end() && it->from == engine) {
 		if (flags.Test(DoCommandFlag::Execute)) {
-			er->to = new_engine;
-			er->replace_when_old = replace_when_old;
+			it->to = new_engine;
+			it->replace_when_old = replace_when_old;
 		}
 		return CommandCost();
 	}
 
-	if (!EngineRenew::CanAllocateItem()) return CMD_ERROR;
-
 	if (flags.Test(DoCommandFlag::Execute)) {
-		/* Insert before the first element */
-		*erl = EngineRenew::Create(old_engine, new_engine, group, replace_when_old, *erl);
+		erl.emplace(it, engine, new_engine, replace_when_old);
 	}
 
 	return CommandCost();
@@ -120,34 +102,23 @@ CommandCost AddEngineReplacement(EngineRenewList *erl, EngineID old_engine, Engi
 
 /**
  * Remove an engine replacement from a given renewlist.
- * @param erl The renewlist from which to remove the replacement
- * @param engine The original engine type.
- * @param group The group related to this replacement.
  * @param flags The calling command flags.
+ * @param company The company.
+ * @param group The group related to this replacement.
+ * @param engine The original engine type.
  * @return 0 on success, CMD_ERROR on failure.
  */
-CommandCost RemoveEngineReplacement(EngineRenewList *erl, EngineID engine, GroupID group, DoCommandFlags flags)
+CommandCost RemoveEngineReplacement(DoCommandFlags flags, CompanyID company, GroupID group, EngineID engine)
 {
-	EngineRenew *er = (EngineRenew *)(*erl);
-	EngineRenew *prev = nullptr;
+	Group *g = Group::GetIfValid(group);
+	EngineRenewList &erl = g == nullptr ? Company::Get(company)->engine_renew_list : g->engine_renew_list;
 
-	while (er != nullptr) {
-		if (er->from == engine && er->group_id == group) {
-			if (flags.Test(DoCommandFlag::Execute)) {
-				if (prev == nullptr) { // First element
-					/* The second becomes the new first element */
-					*erl = (EngineRenewList)er->next;
-				} else {
-					/* Cut this element out */
-					prev->next = er->next;
-				}
-				delete er;
-			}
-			return CommandCost();
-		}
-		prev = er;
-		er = er->next;
+	auto it = std::ranges::lower_bound(erl, engine, std::less{}, &EngineRenew::from);
+	if (it == erl.end() || it->from != engine) return CMD_ERROR;
+
+	if (flags.Test(DoCommandFlag::Execute)) {
+		erl.erase(it);
 	}
 
-	return CMD_ERROR;
+	return CommandCost();
 }

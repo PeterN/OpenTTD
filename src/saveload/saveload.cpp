@@ -34,7 +34,6 @@
 #include "../vehicle_base.h"
 #include "../company_func.h"
 #include "../timer/timer_game_economy.h"
-#include "../autoreplace_base.h"
 #include "../roadstop_base.h"
 #include "../linkgraph/linkgraph.h"
 #include "../linkgraph/linkgraphjob.h"
@@ -1346,7 +1345,6 @@ static uint32_t ReferenceToInt(const void *obj, SLRefType rt)
 		case SLRefType::Station: return static_cast<const Station *>(obj)->index + 1;
 		case SLRefType::Town: return static_cast<const Town *>(obj)->index + 1;
 		case SLRefType::RoadStop: return static_cast<const RoadStop *>(obj)->index + 1;
-		case SLRefType::EngineRenew: return static_cast<const EngineRenew *>(obj)->index + 1;
 		case SLRefType::CargoPacket: return static_cast<const CargoPacket *>(obj)->index + 1;
 		case SLRefType::OrderList: return static_cast<const OrderList *>(obj)->index + 1;
 		case SLRefType::Storage: return static_cast<const PersistentStorage *>(obj)->index + 1;
@@ -1406,10 +1404,6 @@ static void *IntToReference(size_t index, SLRefType rt)
 		case SLRefType::RoadStop:
 			if (RoadStop::IsValidID(index)) return RoadStop::Get(index);
 			SlErrorCorrupt("Referencing invalid RoadStop");
-
-		case SLRefType::EngineRenew:
-			if (EngineRenew::IsValidID(index)) return EngineRenew::Get(index);
-			SlErrorCorrupt("Referencing invalid EngineRenew");
 
 		case SLRefType::CargoPacket:
 			if (CargoPacket::IsValidID(index)) return CargoPacket::Get(index);
@@ -2962,6 +2956,7 @@ static void ResetSettings()
 }
 
 extern void ClearOldOrders();
+extern void ClearOldEngineRenews();
 
 /**
  * Clear temporary data that is passed between various saveload phases.
@@ -2969,6 +2964,7 @@ extern void ClearOldOrders();
 static void ResetSaveloadData()
 {
 	ClearOldOrders();
+	ClearOldEngineRenews();
 	ResetTempEngineData();
 	ClearRailTypeLabelList();
 	ClearRoadTypeLabelList();
